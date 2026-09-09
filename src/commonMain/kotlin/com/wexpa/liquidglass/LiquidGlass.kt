@@ -18,8 +18,8 @@ import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
+import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntSize
@@ -45,7 +45,7 @@ class LiquidGlassState internal constructor(
     internal val background: Color,
 ) {
     internal var layer: GraphicsLayer? by mutableStateOf(null)
-    internal var sourceOrigin: Offset by mutableStateOf(Offset.Zero)
+    internal var sourceCoordinates: LayoutCoordinates? by mutableStateOf(null)
     internal var sourceSize: Size by mutableStateOf(Size.Zero)
 
     /** True once a backdrop has been recorded and panels can sample it. */
@@ -67,7 +67,7 @@ fun Modifier.liquidGlassSource(state: LiquidGlassState): Modifier = composed {
     val layer = rememberGraphicsLayer()
     this
         .onGloballyPositioned { coords ->
-            state.sourceOrigin = coords.positionInRoot()
+            state.sourceCoordinates = coords
             state.sourceSize = Size(coords.size.width.toFloat(), coords.size.height.toFloat())
         }
         .drawWithContent {
@@ -92,22 +92,23 @@ fun Modifier.liquidGlass(
     light: GlassLight = GlassLight.Default,
 ): Modifier = composed {
     val glassLayer = rememberGraphicsLayer()
-    var origin by remember { mutableStateOf(Offset.Zero) }
+    var coordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
 
     this
-        .onGloballyPositioned { origin = it.positionInRoot() }
+        .onGloballyPositioned { coordinates = it }
         .drawWithContent {
             val source = state.layer
             val radii = shape.cornerRadiiPx(size, layoutDirection, this)
 
-            if (source != null && LiquidGlassSupport.hasShaders) {
+            val delta = panelOffsetInSource(state.sourceCoordinates, coordinates)
+
+            if (source != null && delta != null && LiquidGlassSupport.hasShaders) {
                 // Apple's material samples "an area larger than itself" — that is what makes it
                 // lens rather than merely blur. Record that margin, or displacement at the rim
                 // clamps against the panel's own edge and the lensing has nothing to bend.
                 val pad = style.refractionDepth.toPx() * 1.4f +
                     maxOf(style.blurRadius.toPx(), style.backdropBlur.toPx())
                 val sizeFactor = elementSizeFactor(size, this)
-                val delta = origin - state.sourceOrigin
                 val effect = createGlassRenderEffect(
                     GlassUniforms(
                         width = size.width,
@@ -264,6 +265,29 @@ internal expect fun createGlassRenderEffect(
  *
  * Half a pixel of inset keeps bilinear filtering from reaching across either boundary.
  */
+/**
+ * Where this panel sits inside the backdrop recording, in the recording's own coordinates.
+ *
+ * Subtracting two `positionInRoot` values would be the obvious way to compute this and is
+ * wrong as soon as anything between the two applies a transform: root positions come back with
+ * that transform folded in, while the recorded layer is drawn in untransformed local space, so
+ * the two disagree by the transform. An app that scales its content away behind a modal - a
+ * 2.5% shrink is typical - would slide every panel's sample off by 2.5% of its distance from
+ * the backdrop's origin, which is tens of pixels for chrome at the bottom of a screen.
+ *
+ * Asking the source for the panel's position in *its* space is both simpler and correct under
+ * any transform. Returns null while either node is detached, which happens for a frame around
+ * composition changes.
+ */
+internal fun panelOffsetInSource(
+    source: LayoutCoordinates?,
+    panel: LayoutCoordinates?,
+): Offset? {
+    if (source == null || panel == null) return null
+    if (!source.isAttached || !panel.isAttached) return null
+    return source.localPositionOf(panel, Offset.Zero)
+}
+
 internal fun sampleBounds(
     pad: Float,
     delta: Offset,

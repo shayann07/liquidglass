@@ -18,8 +18,8 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
+import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
@@ -62,7 +62,7 @@ fun LiquidGlassContainer(
 ) {
     val members = remember { mutableStateListOf<GlassMember>() }
     val glassLayer = rememberGraphicsLayer()
-    var origin by remember { mutableStateOf(Offset.Zero) }
+    var coordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
 
     val scope = remember(members) {
         object : LiquidGlassContainerScope {
@@ -72,7 +72,12 @@ fun LiquidGlassContainer(
                 val density = LocalDensity.current
                 val direction = LocalLayoutDirection.current
                 onGloballyPositioned { coords ->
-                    val topLeft = coords.positionInRoot() - origin
+                    val container = coordinates
+                    val topLeft = if (container != null && container.isAttached && coords.isAttached) {
+                        container.localPositionOf(coords, Offset.Zero)
+                    } else {
+                        Offset.Zero
+                    }
                     val size = Size(coords.size.width.toFloat(), coords.size.height.toFloat())
                     member.bounds = Rect(topLeft, size)
                     member.radius = shape.cornerRadiiPx(size, direction, density)
@@ -84,15 +89,18 @@ fun LiquidGlassContainer(
 
     Box(
         modifier = modifier
-            .onGloballyPositioned { origin = it.positionInRoot() }
+            .onGloballyPositioned { coordinates = it }
             .drawWithContent {
                 val source = state.layer
                 val active = members.filter { !it.bounds.isEmpty }
 
-                if (source != null && LiquidGlassSupport.hasShaders && active.isNotEmpty()) {
+                val delta = panelOffsetInSource(state.sourceCoordinates, coordinates)
+
+                if (source != null && delta != null &&
+                    LiquidGlassSupport.hasShaders && active.isNotEmpty()
+                ) {
                     val pad = style.refractionDepth.toPx() * 1.4f +
                     maxOf(style.blurRadius.toPx(), style.backdropBlur.toPx())
-                    val delta = origin - state.sourceOrigin
                     val effect = createGlassContainerRenderEffect(
                         GlassContainerUniforms(
                             width = size.width,
