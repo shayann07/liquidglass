@@ -43,8 +43,27 @@ a band hugging the rim that fades to nothing in the flat centre. The gradient of
 the surface normal, which gives refraction its direction and specular its angle, and stays
 correct through corners where a per-edge normal pops.
 
-**Dispersion.** A real bevel does not bend every wavelength equally, so red and blue are
-sampled fractionally apart from green and the rim carries a faint colour fringe.
+That gradient is central-differenced at a *wide* epsilon, `clamp(band * 0.3, 1, 16)` px. At one
+pixel the gradient magnitude collapses from 1 to 0 to 1 across the medial axis, leaving a
+one-pixel seam of zero refraction down the spine of every capsule. The magnitude that falls out
+of the wide difference is reused as a confidence term that fades the lens toward the axis
+rather than letting its direction flip — which matters most in a container's neck, where the
+whole region is medial axis.
+
+**Dispersion.** A real bevel does not bend every wavelength equally, so the channels are
+sampled fractionally apart and the rim carries a faint colour fringe. Blue carries the higher
+index, so it lands furthest out. Faint on purpose — real UI glass shows almost no prismatic
+rainbow, and past a few percent this reads as a broken colour channel rather than as glass.
+
+**A mirrored edge band.** A broad, soft, upside-down echo of nearby content over roughly the
+outer third of the surface, with a squared falloff. This is the detail that makes an edge read
+as liquid rather than as a bevel; a thin band instead reads as a hard streak.
+
+**Exact refraction, not a curve that looks about right.** The bevel is a superellipse height
+field and the displacement is the exact Snell deviation for its slope, computed through the
+tangent-difference identity so it contains no transcendental. It is self-bounding as the slope
+goes vertical, which is why it needs none of the ad-hoc clamps the usual `slope * (1 - 1/n)`
+shortcut requires. The index of refraction therefore shapes the falloff rather than scaling it.
 
 **Tint is a tone mapping, not an overlay.** One colour generates a range of tones indexed by
 backdrop brightness — lifting and desaturating over dark ground, darkening and saturating over
@@ -53,6 +72,15 @@ bright — the way a real pane of coloured glass does.
 **Parameters are keyed to element size.** Larger glass reads more opaque with deeper shadow and
 stronger lensing; smaller glass reads clearer and is allowed to invert light/dark to hold
 contrast. See `elementSizeFactor`.
+
+**Inversion is one decision per element, not per pixel.** Symbols and labels drawn *on* the
+glass have to flip in lockstep with it, and a fragment shader behind them cannot reach them, so
+the same scalar has to reach both. The app decides and passes it as
+`rememberLiquidGlassState(inversion = ...)`; a permanently dark app leaves it at 0.
+
+**Legibility rises with local contrast.** Apple shifts tint as text scrolls underneath. The
+shader gets that signal for free: its rim sample and its interior sample already bracket the
+backdrop's high frequencies, so their difference stands in for "something busy is under here".
 
 **The edge is lit, not outlined.** A thin bright line where the edge turns into the light, and
 no dark border. A dark border is the fastest way to make this read as a drawn rectangle.
@@ -100,9 +128,10 @@ the signature for legibility on purpose.
 ## Presets
 
 - `Regular` — the workhorse. Carries controls.
-- `Clear` — thinner and more transparent, for chrome that should mostly disappear. Ships with
-  the HIG's 35% dimming layer, the one number Apple actually gives, because the clear variant
-  does not adapt on its own.
+- `Clear` — thinner and more transparent, for chrome that should mostly disappear. Its zeros
+  are Apple's, not a tuning choice: clear "does not have adaptive behaviours, it is permanently
+  more transparent", so it does not tone-map, does not react to contrast and never flips — and
+  therefore *requires* the 35% dimming layer, the one number the HIG actually gives.
 - `Thick` — a sheet or dialog that must hold a lot of content. Adapts but never flips polarity.
 - `Chrome` — tab bars, toolbars, accessory pills over an app's own content.
 
@@ -128,7 +157,8 @@ recorded backdrop with the layer.
 
 Measured on a Pixel 7 at 120 Hz with two glass elements over a live, continuously animating
 app: 4.36% janky frames with the shader path enabled against 4.96% with it forced off — the
-same within noise, on an app whose idle redraw already dominates. The padded recording is sized
+same within noise, on an app whose idle redraw already dominates. Adding the mirrored band,
+the Schlick term and exact-Snell refraction did not move it (3.85%, p90 8 ms). The padded recording is sized
 to what the shader actually reads (peak displacement plus blur radius), since every pixel of it
 is re-recorded per frame.
 

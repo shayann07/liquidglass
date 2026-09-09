@@ -47,6 +47,11 @@ internal actual fun createGlassRenderEffect(
     )
     shader.setFloatUniform("uRefractBand", uniforms.refractBand)
     shader.setFloatUniform("uAberration", uniforms.aberration)
+    shader.setFloatUniform("uIor", uniforms.ior)
+    shader.setFloatUniform("uBevelPower", uniforms.bevelPower)
+    shader.setFloatUniform("uMirror", uniforms.mirror)
+    shader.setFloatUniform("uFresnel", uniforms.fresnel)
+    shader.setFloatUniform("uLegibility", uniforms.legibility)
     shader.setFloatUniform("uBlur", uniforms.blurRadius)
     shader.setFloatUniform(
         "uBase",
@@ -62,6 +67,9 @@ internal actual fun createGlassRenderEffect(
         uniforms.backdrop[3],
     )
     shader.setFloatUniform("uPad", uniforms.pad)
+    shader.setFloatUniform("uIor", uniforms.ior)
+    shader.setFloatUniform("uBevelPower", uniforms.bevelPower)
+    shader.setFloatUniform("uFresnel", uniforms.fresnel)
     shader.setFloatUniform("uScale", uniforms.scale)
     shader.setFloatUniform("uFlip", uniforms.flip)
     shader.setFloatUniform("uRefractDepth", uniforms.refractDepth)

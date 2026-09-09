@@ -43,6 +43,16 @@ class LiquidGlassState internal constructor(
      * light and they bloom.
      */
     internal val background: Color,
+    /**
+     * How far elements that allow it should invert light/dark, 0 to 1.
+     *
+     * Apple treats this as one decision per element rather than a per-pixel one, because
+     * symbols and labels drawn *on* the glass flip in lockstep with it, and a fragment shader
+     * behind them cannot reach them. So the app decides — from whatever it knows about its own
+     * backdrop — and hands the same number to the glass and to its content. A permanently dark
+     * app leaves it at 0 and nothing ever flips.
+     */
+    val inversion: Float,
 ) {
     internal var layer: GraphicsLayer? by mutableStateOf(null)
     internal var sourceCoordinates: LayoutCoordinates? by mutableStateOf(null)
@@ -53,8 +63,10 @@ class LiquidGlassState internal constructor(
 }
 
 @Composable
-fun rememberLiquidGlassState(background: Color = Color.Black): LiquidGlassState =
-    remember(background) { LiquidGlassState(background) }
+fun rememberLiquidGlassState(
+    background: Color = Color.Black,
+    inversion: Float = 0f,
+): LiquidGlassState = remember(background, inversion) { LiquidGlassState(background, inversion) }
 
 /**
  * Marks this content as the backdrop that glass panels refract.
@@ -115,11 +127,20 @@ fun Modifier.liquidGlass(
                         height = size.height,
                         pad = pad,
                         scale = sizeFactor,
-                        flip = if (style.invertsWithBackdrop && sizeFactor < 0.5f) 1f else 0f,
+                        flip = if (style.invertsWithBackdrop && sizeFactor < 0.5f) {
+                            state.inversion
+                        } else {
+                            0f
+                        },
                         radii = radii,
                         refractBand = style.refractionBand.toPx(),
                         refractDepth = style.refractionDepth.toPx(),
                         aberration = style.dispersion,
+                        ior = style.indexOfRefraction,
+                        bevelPower = style.bevelPower,
+                        mirror = style.mirror,
+                        fresnel = style.fresnel,
+                        legibility = style.legibility,
                         bevel = style.bevel.toPx(),
                         backdrop = sampleBounds(pad, delta, size, state.sourceSize),
                         background = state.background,
@@ -202,6 +223,11 @@ internal data class GlassUniforms(
     val refractBand: Float,
     val refractDepth: Float,
     val aberration: Float,
+    val ior: Float,
+    val bevelPower: Float,
+    val mirror: Float,
+    val fresnel: Float,
+    val legibility: Float,
     val bevel: Float,
     /** Where inside the padded layer real pixels exist; sampling past it would read nothing. */
     val backdrop: FloatArray,
@@ -224,6 +250,8 @@ internal data class GlassUniforms(
             radii.contentEquals(other.radii) &&
             refractBand == other.refractBand && refractDepth == other.refractDepth &&
             aberration == other.aberration && backdrop.contentEquals(other.backdrop) &&
+            ior == other.ior && bevelPower == other.bevelPower && mirror == other.mirror &&
+            fresnel == other.fresnel && legibility == other.legibility &&
             background == other.background &&
             bevel == other.bevel && lightX == other.lightX && lightY == other.lightY &&
             specular == other.specular && specularPower == other.specularPower &&

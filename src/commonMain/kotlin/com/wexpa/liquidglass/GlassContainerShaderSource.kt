@@ -36,6 +36,9 @@ uniform float   uMerge;                      // px over which neighbouring field
 uniform float   uRefractBand;
 uniform float   uRefractDepth;
 uniform float   uAberration;
+uniform float   uIor;
+uniform float   uBevelPower;
+uniform float   uFresnel;
 uniform float   uBlur;
 uniform float   uBevel;
 uniform float2  uLight;
@@ -138,10 +141,27 @@ float luma(half3 c) {
     return dot(float3(c), float3(0.2126, 0.7152, 0.0722));
 }
 
-half3 toneMappedTint(half3 tint, float bgLuma) {
+// See GlassShaderSource for both of these: a superellipse bevel profile and the exact Snell
+// deviation for its slope, so a fused body bends light the same way a single panel does.
+float bevelSlope(float e, float p) {
+    float u = 1.0 - clamp(e, 0.002, 0.998);
+    float up = pow(u, p);
+    return pow(u, p - 1.0) / pow(max(1.0 - up, 1e-4), 1.0 - 1.0 / p);
+}
+
+float snellShift(float slope, float ior) {
+    float inv = inversesqrt(1.0 + slope * slope);
+    float si = slope * inv;
+    float ci = inv;
+    float st = si / max(ior, 1.0001);
+    float ct = sqrt(max(1.0 - st * st, 0.0));
+    return (si * ct - ci * st) / max(ci * ct + si * st, 1e-4);
+}
+
+half3 toneMappedTint(half3 tint, float bgLuma, float adapt) {
     float g = clamp(bgLuma, 0.0, 1.0);
-    float value = mix(1.10, 0.88, g);
-    float sat   = mix(0.88, 1.06, g);
+    float value = mix(1.0, mix(1.10, 0.88, g), adapt);
+    float sat   = mix(1.0, mix(0.88, 1.06, g), adapt);
     float mean  = dot(float3(tint), float3(1.0 / 3.0));
     half3 shifted = half3(half(mean)) + (tint - half3(half(mean))) * half(sat);
     return clamp(shifted * half(value), half3(0.0), half3(1.0));
@@ -157,28 +177,40 @@ half4 main(float2 coord) {
     }
 
     // Normal from the gradient of the *merged* field, so the bevel follows the fused outline
-    // through the neck between two panels rather than tracing either one's own edge.
-    float e = 1.0;
-    float2 n = normalize(float2(
-        fieldAt(local + float2(e, 0.0)) - fieldAt(local - float2(e, 0.0)),
-        fieldAt(local + float2(0.0, e)) - fieldAt(local - float2(0.0, e))
-    ) + float2(1e-6));
+    // through the neck between two panels rather than tracing either one's own edge. The wide
+    // epsilon matters more here than for a single panel: the neck between two members is all
+    // medial axis, and at a one-pixel epsilon the gradient collapses right where the fusion is
+    // supposed to read.
+    float eps = clamp(uRefractBand * 0.3, 1.0, 16.0);
+    float2 g = float2(
+        fieldAt(local + float2(eps, 0.0)) - fieldAt(local - float2(eps, 0.0)),
+        fieldAt(local + float2(0.0, eps)) - fieldAt(local - float2(0.0, eps)));
+    float gLen = length(g);
+    float2 n = g / max(gLen, 1e-5);
+    float axisFade = smoothstep(0.15, 0.80, gLen / (2.0 * eps));
 
     float depth = max(-d, 0.0);
-    float t = clamp(1.0 - depth / max(uRefractBand, 0.001), 0.0, 1.0);
-    float bend = t * t * t;
+    float e = clamp(depth / max(uRefractBand, 0.001), 0.0, 1.0);
+    float pw = max(uBevelPower, 1.5);
+    float slope = bevelSlope(e, pw);
+
+    float bend = snellShift(slope, uIor) / max(snellShift(bevelSlope(0.0, pw), uIor), 1e-4);
+    bend *= smoothstep(1.0, 0.75, e) * axisFade * smoothstep(0.0, 1.5, depth);
+    bend = clamp(bend, 0.0, 1.0);
     float2 push = n * bend * uRefractDepth;
 
     float split = uAberration * bend;
     half3 sharp = half3(
-        backdropAt(coord + push * (1.0 + split)).r,
+        backdropAt(coord + push * (1.0 - split)).r,
         backdropAt(coord + push).g,
-        backdropAt(coord + push * (1.0 - split)).b
+        backdropAt(coord + push * (1.0 + split)).b
     );
-    half3 bg = mix(blurredAt(coord + push, uBlur * (1.0 - t), tapRotation(coord)), sharp, half(t * t));
+    half3 soft = blurredAt(coord + push, uBlur * e, tapRotation(coord));
+    float rimSharp = (1.0 - e) * (1.0 - e);
+    half3 bg = mix(soft, sharp, half(rimSharp));
 
     float bgLuma = luma(bg);
-    half3 tinted = toneMappedTint(half3(uTint.rgb), bgLuma);
+    half3 tinted = toneMappedTint(half3(uTint.rgb), bgLuma, uAdaptive);
     half3 col = mix(bg, tinted, half(clamp(uTint.a, 0.0, 1.0)));
 
     float facing = dot(n, uLight);
@@ -187,11 +219,17 @@ half4 main(float2 coord) {
     float innerLine = max(smoothstep(uBevel * 2.2, 0.0, depth) - bevelBand, 0.0);
     col -= half3(half(innerLine * uInnerShadow));
 
-    float spec = pow(max(facing, 0.0), uSpecularPow) * bevelBand * uSpecular;
-    float counter = pow(max(-facing, 0.0), uSpecularPow * 1.6) * bevelBand * uSpecular * 0.35;
+    float cosI = inversesqrt(1.0 + slope * slope);
+    float f0 = (uIor - 1.0) / (uIor + 1.0);
+    f0 = f0 * f0;
+    float fresnel = f0 + (1.0 - f0) * pow(max(1.0 - cosI, 0.0), 5.0);
+
+    float spec = pow(max(facing, 0.0), uSpecularPow) * bevelBand;
+    float counter = pow(max(-facing, 0.0), uSpecularPow * 1.6) * bevelBand * 0.35;
     float edge = smoothstep(2.0, 0.0, depth);
-    float edgeLine = edge * uSpecular * (0.07 + 0.5 * max(facing, 0.0));
-    col += half3(half(spec + counter + edgeLine));
+    float edgeLine = edge * (0.07 + 0.5 * max(facing, 0.0));
+    col += half3(half((spec + counter + edgeLine) * uSpecular
+        + fresnel * uFresnel * bevelBand));
 
     return half4(clamp(col, half3(0.0), half3(1.0)), 1.0) * half(coverage);
 }

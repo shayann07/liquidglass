@@ -4,57 +4,60 @@ package com.wexpa.liquidglass
  * The glass shader, in the SkSL dialect shared by AGSL (Android 13+) and Skia (Desktop).
  *
  * Apple publishes no numbers for Liquid Glass — no blur radius, no index of refraction, no
- * falloff exponent, no specular formula. What it does publish is architecture and
- * direction-of-effect, and this shader implements that architecture; the constants are ours.
+ * falloff exponent, no specular formula. What it publishes is architecture and
+ * direction-of-effect. This implements that architecture; the numbers are ours.
  *
- * The five architectural facts that shape it:
+ * The material is **displacement-first, blur-second**. Apple's own framing is that inversion:
+ * earlier materials scattered light, this one bends and concentrates it. That single property
+ * is what separates it from glassmorphism, and the rest follows from it:
  *
  *  1. **The sample region is larger than the element.** Apple describes the material as
- *     sampling content from an area larger than itself, which is what makes it lens rather
- *     than merely blur. The host records a padded backdrop and passes [uPad]; the panel
- *     occupies the inset rect, so displacement near the rim reaches real content beyond the
- *     edge instead of clamping against it.
- *  2. **The rim is sharper than the middle.** This is the most recognisable thing about the
- *     material and the easiest to lose. The edge band shows a compressed, warped, *legible*
- *     image of what lies just outside the element; the interior is soft. A backdrop that is
- *     blurred before it reaches the shader cannot do this — the detail the rim is supposed to
- *     bend has already been destroyed — so the blur lives here instead, with its radius keyed
- *     to distance from the edge.
- *  3. **Parameters are keyed to element size.** Larger glass reads more opaque, with deeper
- *     shadow and stronger lensing; smaller glass reads clearer. [uScale] carries that factor.
- *  4. **Tint is a tone mapping, not an overlay.** One colour generates a range of tones
- *     indexed by the brightness of the backdrop, varying hue, saturation and brightness the
- *     way real coloured glass does.
- *  5. **The edge is lit, not outlined.** A pane of glass carries a thin bright line where its
- *     edge turns into the light. It does not carry a dark border, and a dark border is the
- *     fastest way to make a material like this read as a drawn rectangle rather than a solid.
- *
- * Geometry comes from a signed distance field. Distance to the edge drives refraction, so the
- * bend is a band hugging the rim that fades to nothing in the flat centre; the gradient of the
- * field is the surface normal, which gives refraction its direction and specular its angle and
- * stays correct through corners where a per-edge normal pops.
+ *     sampling content from an area larger than itself, and only *outward* displacement needs
+ *     that. The host records a padded backdrop and passes [uPad]; the panel occupies the inset
+ *     rect, so the rim reaches real content instead of clamping against its own edge.
+ *  2. **The rim is sharper than the middle.** The edge band shows a compressed, warped,
+ *     *legible* image of what lies just outside; the interior is soft. A backdrop blurred
+ *     before the shader sees it cannot do this — the detail the rim exists to bend is already
+ *     gone — so the scatter lives here, keyed to distance from the edge.
+ *  3. **Parameters are keyed to element size.** Larger glass reads more opaque with deeper
+ *     shadow and stronger lensing; smaller glass reads clearer. [uScale] carries that.
+ *  4. **Tint is a tone mapping, not an overlay**, and it is per-pixel, because coloured glass
+ *     really does vary with what is behind each point. Light/dark inversion is the opposite:
+ *     one decision for the whole element, because symbols drawn on top have to flip in lockstep
+ *     with it and only a scalar the host also gives the content layer can do that. So [uFlip]
+ *     arrives already decided rather than being derived per pixel here.
+ *  5. **The edge is lit, not outlined.** A dark border is the fastest way to make a material
+ *     like this read as a drawn rectangle rather than a solid.
  */
 internal const val GLASS_SHADER_SOURCE = """
-uniform shader content;        // padded backdrop, unblurred
+uniform shader content;        // padded backdrop, opaque by construction, unblurred
 
 uniform float2  uSize;         // panel size, px (not counting padding)
 uniform float   uPad;          // px of backdrop recorded beyond each edge
 uniform float4  uBackdrop;     // l, t, r, b of the region that actually holds recorded pixels
 uniform float3  uBase;         // opaque ground the backdrop is painted on
 uniform float4  uRadii;        // corner radii: top-left, top-right, bottom-right, bottom-left
+
 uniform float   uRefractBand;  // px from the rim over which refraction acts
-uniform float   uRefractDepth; // peak displacement at the rim, px
-uniform float   uAberration;   // fraction by which red and blue split from green at the rim
-uniform float   uBlur;         // px radius of the interior blur, tapering to 0 at the rim
-uniform float   uBevel;        // px width of the lit bevel
+uniform float   uRefractDepth; // px of displacement at the rim
+uniform float   uIor;          // index of refraction; shapes the falloff, not its magnitude
+uniform float   uBevelPower;   // superellipse exponent: 2 a circular arc, 4 squircle-matched
+uniform float   uAberration;   // per-channel split as a fraction of the displacement
+uniform float   uMirror;       // amplitude of the mirrored edge band
+uniform float   uBlur;         // px radius of the interior scatter, tapering to 0 at the rim
+
+uniform float   uBevel;        // px width of the lit bevel (uRefractBand is 4-7x this)
 uniform float2  uLight;        // unit vector toward the key light
 uniform float   uSpecular;     // rim highlight intensity, 0..1
 uniform float   uSpecularPow;  // rim highlight tightness
-uniform float4  uTint;         // rgb + strength
+uniform float   uFresnel;      // Schlick rim reflectance gain
 uniform float   uInnerShadow;  // strength of the inner thickness line
-uniform float   uAdaptive;     // how much backdrop luminance modulates the tint
+
+uniform float4  uTint;         // rgb + strength
+uniform float   uAdaptive;     // how far the tint tone-maps against backdrop brightness
+uniform float   uLegibility;   // how far local backdrop contrast raises tint strength
 uniform float   uScale;        // element-size factor: 0 small and clear, 1 large and opaque
-uniform float   uFlip;         // 1 when this element may invert light/dark, 0 when it may not
+uniform float   uFlip;         // whole-element light/dark inversion, 0..1, decided by the host
 
 float sdRoundRect(float2 p, float2 halfSize, float4 r) {
     float2 rr = (p.x > 0.0) ? r.yz : r.xw;
@@ -64,12 +67,12 @@ float sdRoundRect(float2 p, float2 halfSize, float4 r) {
     return min(max(q.x, q.y), 0.0) + length(max(q, float2(0.0))) - radius;
 }
 
-// One backdrop sample, clamped to the region that actually holds recorded pixels.
+// One backdrop sample, bounded by the region that actually holds recorded pixels.
 //
-// The recorded layer is filled with the ground before the backdrop is drawn into it, so it is
-// opaque by construction and any alpha shortfall here is filtering error at its own boundary
-// rather than real transparency. Dividing it out reconstructs the colour; compositing it
-// toward the ground instead paints a halo of the ground colour around every panel.
+// The layer is filled with the ground before the backdrop is drawn into it, so it is opaque by
+// construction and any alpha shortfall here is filtering error at its own boundary rather than
+// real transparency. Dividing it out reconstructs the colour; compositing toward the ground
+// instead paints a halo of the ground colour around every panel.
 half3 backdropAt(float2 p) {
     float2 q = clamp(p, uBackdrop.xy, uBackdrop.zw);
     half4 c = content.eval(q);
@@ -80,8 +83,7 @@ float2 rotate(float2 v, float2 rot) {
     return float2(v.x * rot.x - v.y * rot.y, v.x * rot.y + v.y * rot.x);
 }
 
-// A cheap per-pixel angle. Any hash with no visible structure will do; this one is the
-// standard three-round float shuffle, chosen because it needs no texture and no state.
+// A cheap per-pixel angle; any hash with no visible structure will do.
 float2 tapRotation(float2 coord) {
     float3 q = fract(float3(coord.x, coord.y, coord.x) * 0.1031);
     q += dot(q, q.yzx + 33.33);
@@ -89,21 +91,16 @@ float2 tapRotation(float2 coord) {
     return float2(cos(a), sin(a));
 }
 
-// A nineteen-tap disc, for the soft interior of the material.
-//
-// Three rings of six at staggered angles, plus the centre. Nineteen taps is still too few to
-// blur legible text on its own — the taps land as discrete ghosts of it — so the whole pattern
-// is rotated by an angle that varies per pixel. Neighbouring pixels then sample different
-// points and the ghosts break up into noise, which the eye integrates as blur. One sine and
-// cosine cover all twelve offsets, so this costs a rotation rather than a bigger kernel.
-//
-// It is only ever called with a radius that falls to zero at the rim, so the expensive case
-// never coincides with the case that needs detail.
+// Nineteen taps: three rings of six at staggered angles plus the centre. Too few to blur
+// legible text on their own, so the whole pattern is rotated per pixel and the ghosts break up
+// into noise, which the eye integrates as blur. Only ever called with a radius that falls to
+// zero at the rim, so the expensive case never coincides with the case that needs detail.
 half3 blurredAt(float2 p, float radius, float2 rot) {
     if (radius < 0.5) {
         return backdropAt(p);
     }
     float inner = radius * 0.55;
+    float mid = radius * 0.8;
     half3 sum = backdropAt(p);
     sum += backdropAt(p + inner * rotate(float2( 1.000,  0.000), rot));
     sum += backdropAt(p + inner * rotate(float2( 0.500,  0.866), rot));
@@ -117,7 +114,6 @@ half3 blurredAt(float2 p, float radius, float2 rot) {
     sum += backdropAt(p + radius * rotate(float2(-0.866, -0.500), rot));
     sum += backdropAt(p + radius * rotate(float2( 0.000, -1.000), rot));
     sum += backdropAt(p + radius * rotate(float2( 0.866, -0.500), rot));
-    float mid = radius * 0.8;
     sum += backdropAt(p + mid * rotate(float2( 0.966,  0.259), rot));
     sum += backdropAt(p + mid * rotate(float2( 0.259,  0.966), rot));
     sum += backdropAt(p + mid * rotate(float2(-0.707,  0.707), rot));
@@ -131,15 +127,43 @@ float luma(half3 c) {
     return dot(float3(c), float3(0.2126, 0.7152, 0.0722));
 }
 
+// Superellipse bevel height h(e) = T * (1 - (1-e)^p)^(1/p), for e = depth/band in [0,1].
+// This returns dh/ds, the surface slope: p = 2 is a true circular arc, p = 4 the
+// squircle-matched profile. The slope is 0 at the inner edge of the band and diverges at the
+// rim, so e is clamped a hair inside both ends.
+float bevelSlope(float e, float p) {
+    float u = 1.0 - clamp(e, 0.002, 0.998);
+    float up = pow(u, p);
+    return pow(u, p - 1.0) / pow(max(1.0 - up, 1e-4), 1.0 - 1.0 / p);
+}
+
+// Exact Snell deviation for a surface of that slope, returned as tan(theta - theta_t) via the
+// tangent difference identity, so it contains no transcendental at all.
+//
+// The usual shortcut is slope * (1 - 1/n), which overestimates by about a fifth at this
+// profile's own peak and diverges at the rim, which is why every shader that uses it also
+// carries an ad-hoc clamp. The exact form is self-bounding: as the slope goes vertical it
+// tends to sqrt(n^2 - 1), so no clamp is needed and the index of refraction becomes a knob on
+// the shape of the falloff rather than on its magnitude.
+float snellShift(float slope, float ior) {
+    float inv = inversesqrt(1.0 + slope * slope);
+    float si = slope * inv;
+    float ci = inv;
+    float st = si / max(ior, 1.0001);
+    float ct = sqrt(max(1.0 - st * st, 0.0));
+    return (si * ct - ci * st) / max(ci * ct + si * st, 1e-4);
+}
+
 // Tone-map one tint colour across the backdrop's brightness, the way a pane of coloured glass
 // does: it darkens and saturates over bright ground, lifts and desaturates over dark ground,
-// and stays recognisably the same colour throughout.
-half3 toneMappedTint(half3 tint, float bgLuma) {
+// and stays recognisably the same colour throughout. At uAdaptive 0 it does nothing at all,
+// which is what Apple's clear variant requires — it "does not have adaptive behaviours".
+half3 toneMappedTint(half3 tint, float bgLuma, float adapt) {
     float g = clamp(bgLuma, 0.0, 1.0);
-    float value = mix(1.10, 0.88, g);            // lift over dark, darken over bright
-    float sat   = mix(0.88, 1.06, g);            // saturate as the ground brightens
-    float mean  = dot(float3(tint), float3(1.0 / 3.0));
-    half3 shifted = half3(half(mean)) + (tint - half3(half(mean))) * half(sat);
+    float value = mix(1.0, mix(1.10, 0.88, g), adapt);
+    float sat   = mix(1.0, mix(0.88, 1.06, g), adapt);
+    half mean = half(dot(float3(tint), float3(1.0 / 3.0)));
+    half3 shifted = half3(mean) + (tint - half3(mean)) * half(sat);
     return clamp(shifted * half(value), half3(0.0), half3(1.0));
 }
 
@@ -150,88 +174,113 @@ half4 main(float2 coord) {
     float2 p = local - halfSize;
 
     float d = sdRoundRect(p, halfSize, uRadii);
-
     float coverage = 1.0 - smoothstep(-0.75, 0.75, d);
     if (coverage <= 0.0) {
         return half4(0.0);
     }
 
-    float e = 1.0;
-    float dx = sdRoundRect(p + float2(e, 0.0), halfSize, uRadii)
-             - sdRoundRect(p - float2(e, 0.0), halfSize, uRadii);
-    float dy = sdRoundRect(p + float2(0.0, e), halfSize, uRadii)
-             - sdRoundRect(p - float2(0.0, e), halfSize, uRadii);
-    float2 n = normalize(float2(dx, dy) + float2(1e-6));
+    float scale = clamp(uScale, 0.0, 1.0);
+
+    // Geometry. A one-pixel epsilon collapses the gradient magnitude from 1 to 0 to 1 across
+    // the medial axis of a pill and leaves a one-pixel seam of zero refraction down its middle.
+    // Widening the epsilon to the scale of the band lets the two sides cancel gradually, and
+    // the gradient magnitude that falls out doubles as a confidence term that fades the lens
+    // toward the axis instead of letting its direction flip.
+    float eps = clamp(uRefractBand * 0.3, 1.0, 16.0);
+    float2 ex = float2(eps, 0.0);
+    float2 ey = float2(0.0, eps);
+    float2 g = float2(
+        sdRoundRect(p + ex, halfSize, uRadii) - sdRoundRect(p - ex, halfSize, uRadii),
+        sdRoundRect(p + ey, halfSize, uRadii) - sdRoundRect(p - ey, halfSize, uRadii));
+    float gLen = length(g);
+    float2 n = g / max(gLen, 1e-5);
+    float axisFade = smoothstep(0.15, 0.80, gLen / (2.0 * eps));
 
     float depth = max(-d, 0.0);
+    float e = clamp(depth / max(uRefractBand, 0.001), 0.0, 1.0);
+    float pw = max(uBevelPower, 1.5);
+    float slope = bevelSlope(e, pw);
 
-    // Refraction. Normalised so 1 sits on the rim and 0 at the inner limit of the band, then
-    // shaped so the bend accelerates toward the edge the way a bevel's curvature does — a
-    // linear ramp reads as a gradient, not as glass. Larger elements lens harder.
-    float t = clamp(1.0 - depth / max(uRefractBand, 0.001), 0.0, 1.0);
-    float bend = t * t * t * mix(0.8, 1.3, uScale);
+    // Refraction, normalised by the shift at the rim so uRefractDepth is literally the peak
+    // displacement in px. Faded over the inner quarter of the band so the warp field is C1
+    // where it meets the flat interior; a kink there resamples as a visible ring. The 1.5px
+    // guard stops the outermost antialiased pixel fetching from beyond coverage.
+    float bend = snellShift(slope, uIor) / max(snellShift(bevelSlope(0.0, pw), uIor), 1e-4);
+    bend *= smoothstep(1.0, 0.75, e) * axisFade * smoothstep(0.0, 1.5, depth);
+    bend = clamp(bend, 0.0, 1.0);
 
-    // Sampling outward pulls the surroundings inward and compresses them into the bevel. This
-    // only works because the backdrop was recorded with uPad to spare beyond the rim.
-    float2 push = n * bend * uRefractDepth;
+    float lens = uRefractDepth * mix(0.85, 1.25, scale);
 
-    // Dispersion. A real bevel does not bend every wavelength equally, so the channels land
-    // apart and the rim carries a faint colour fringe. It is a small effect, and it is part of
-    // the difference between a blurred panel and a piece of glass.
+    // Sampling outward pulls the surroundings inward and compresses them into the rim band.
+    // That is the only direction consistent with sampling "an area larger than itself", and it
+    // is why the host has to record uPad beyond the edge.
+    float2 push = n * bend * lens;
+
+    // Dispersion. Blue carries the higher index, so it lands furthest out. Kept faint: this is
+    // a fringe, and past a few percent it stops reading as glass and starts reading as a broken
+    // colour channel.
     float split = uAberration * bend;
     half3 sharp = half3(
-        backdropAt(coord + push * (1.0 + split)).r,
+        backdropAt(coord + push * (1.0 - split)).r,
         backdropAt(coord + push).g,
-        backdropAt(coord + push * (1.0 - split)).b
-    );
+        backdropAt(coord + push * (1.0 + split)).b);
 
-    // Blur where the glass is flat, sharp where it curves. See note 2 in the file comment:
-    // this ordering is what lets the rim carry a legible compressed image of the surroundings
-    // while the middle stays soft.
-    half3 soft = blurredAt(coord + push, uBlur * (1.0 - t), tapRotation(coord));
-    // Squared, so the crisp compressed image stays tight against the rim while the
-    // displacement itself still spans the whole band.
-    half3 bg = mix(soft, sharp, half(t * t));
+    // Scatter, keyed to distance from the edge. Squared, so the crisp compressed image stays
+    // tight against the rim while the displacement itself still spans the whole band.
+    half3 soft = blurredAt(coord + push, uBlur * e, tapRotation(coord));
+    float rimSharp = (1.0 - e) * (1.0 - e);
+    half3 bg = mix(soft, sharp, half(rimSharp));
+
+    // The mirrored edge band: a broad, soft, upside-down echo of nearby content over roughly
+    // the outer third of the surface. A thin band reads as a hard streak rather than as liquid.
+    float mirrorWidth = max(14.0, min(halfSize.x, halfSize.y) * 0.7);
+    float mirrorBand = 1.0 - clamp(depth / mirrorWidth, 0.0, 1.0);
+    float mirrorMask = mirrorBand * mirrorBand * axisFade * smoothstep(0.0, 1.5, depth);
+    half3 echo = backdropAt(coord - n * (mirrorMask * lens * 3.0));
+    bg = mix(bg, echo, half(clamp(mirrorMask * uMirror, 0.0, 1.0)));
 
     float bgLuma = luma(bg);
 
-    // Whole-element light/dark inversion, gated by size: small chrome flips with its backdrop
-    // to hold contrast, large surfaces adapt without flipping because the change would be
-    // distracting across that much area.
-    float inversion = uFlip * smoothstep(0.42, 0.62, bgLuma);
+    // Local contrast, free: the rim sample and the interior sample already bracket the
+    // backdrop's high frequencies, so their luma difference stands in for text scrolling
+    // underneath. Apple raises tint and dynamic range exactly then, to keep controls legible.
+    float contrast = clamp(abs(luma(sharp) - luma(soft)) * 4.0, 0.0, 1.0);
 
-    half3 tinted = toneMappedTint(half3(uTint.rgb), bgLuma);
-    tinted = mix(tinted, half3(1.0) - tinted, half(inversion));
+    half3 tinted = toneMappedTint(half3(uTint.rgb), bgLuma, uAdaptive);
+    tinted = mix(tinted, half3(1.0) - tinted, half(clamp(uFlip, 0.0, 1.0)));
 
-    // Larger elements sit a little more opaque over their backdrop. Kept gentle: the material
-    // has to stay transparent enough that the refracted detail behind it survives, which is
-    // the whole point of lensing.
-    float strength = clamp(uTint.a * mix(0.9, 1.25, uScale), 0.0, 1.0);
+    // Larger elements sit a little more opaque. Kept gentle: the material has to stay
+    // transparent enough that the refracted detail survives, which is the whole point.
+    float strength = uTint.a * mix(0.9, 1.25, scale);
+    strength = clamp(strength + contrast * uLegibility * 0.25, 0.0, 1.0);
     half3 col = mix(bg, tinted, half(strength));
 
     float facing = dot(n, uLight);
-
-    // The faint dark line that reads as thickness, sitting just inside the bevel rather than
-    // on the rim. Deliberately weak — see note 5 about outlines.
     float bevelBand = smoothstep(uBevel, 0.0, depth);
+
+    // The faint dark line that reads as thickness, sitting just inside the bevel rather than on
+    // the rim. Deliberately weak — see note 5 about outlines.
     float innerLine = max(smoothstep(uBevel * 2.2, 0.0, depth) - bevelBand, 0.0);
-    col -= half3(half(innerLine * uInnerShadow * mix(0.9, 1.15, uScale)));
+    col -= half3(half(innerLine * uInnerShadow * mix(0.9, 1.15, scale)));
 
-    // Specular: the bevel is lit where its normal faces the light. Confined to the bevel band
-    // and raised to a power, so it is a glint on two sides rather than a halo on all four.
-    float spec = pow(max(facing, 0.0), uSpecularPow) * bevelBand * uSpecular;
+    // Schlick, using the same bevel slope the refraction used, so the rim brightens where it
+    // turns away from the viewer. It stands in for an environment we do not have.
+    float cosI = inversesqrt(1.0 + slope * slope);
+    float f0 = (uIor - 1.0) / (uIor + 1.0);
+    f0 = f0 * f0;
+    float fresnel = f0 + (1.0 - f0) * pow(max(1.0 - cosI, 0.0), 5.0);
 
-    // A weaker counter-highlight opposite the key light. Without it a bead of glass looks lit
-    // from one side only, which reads as a gradient rather than as a solid.
-    float counter = pow(max(-facing, 0.0), uSpecularPow * 1.6) * bevelBand * uSpecular * 0.35;
-
-    // The edge line itself: a couple of pixels of brightness right at the boundary. It carries
-    // a small floor so the shape stays defined all the way round, but most of it is
+    // The bevel is lit where its normal faces the light, with a weaker counter-lobe opposite:
+    // a bead lit from one side only reads as a gradient rather than as a solid. The edge line
+    // carries a small floor so the shape stays defined all the way round, but most of it is
     // directional, because a line of even brightness reads as a stroke and not as an edge.
+    float key = pow(max(facing, 0.0), uSpecularPow) * bevelBand;
+    float counter = pow(max(-facing, 0.0), uSpecularPow * 1.6) * bevelBand * 0.35;
     float edge = smoothstep(2.0, 0.0, depth);
-    float edgeLine = edge * uSpecular * (0.07 + 0.5 * max(facing, 0.0));
+    float edgeLine = edge * (0.07 + 0.5 * max(facing, 0.0));
 
-    col += half3(half(spec + counter + edgeLine));
+    col += half3(half((key + counter + edgeLine) * uSpecular
+        + fresnel * uFresnel * bevelBand));
 
     return half4(clamp(col, half3(0.0), half3(1.0)), 1.0) * half(coverage);
 }

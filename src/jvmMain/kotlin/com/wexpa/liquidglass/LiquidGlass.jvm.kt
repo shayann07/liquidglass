@@ -39,6 +39,11 @@ internal actual fun createGlassRenderEffect(
     )
     builder.uniform("uRefractBand", uniforms.refractBand)
     builder.uniform("uAberration", uniforms.aberration)
+    builder.uniform("uIor", uniforms.ior)
+    builder.uniform("uBevelPower", uniforms.bevelPower)
+    builder.uniform("uMirror", uniforms.mirror)
+    builder.uniform("uFresnel", uniforms.fresnel)
+    builder.uniform("uLegibility", uniforms.legibility)
     builder.uniform("uBlur", uniforms.blurRadius)
     builder.uniform(
         "uBase",
@@ -54,6 +59,9 @@ internal actual fun createGlassRenderEffect(
         uniforms.backdrop[3],
     )
     builder.uniform("uPad", uniforms.pad)
+    builder.uniform("uIor", uniforms.ior)
+    builder.uniform("uBevelPower", uniforms.bevelPower)
+    builder.uniform("uFresnel", uniforms.fresnel)
     builder.uniform("uScale", uniforms.scale)
     builder.uniform("uFlip", uniforms.flip)
     builder.uniform("uRefractDepth", uniforms.refractDepth)
