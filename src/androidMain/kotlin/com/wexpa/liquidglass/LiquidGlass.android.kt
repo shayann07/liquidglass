@@ -97,3 +97,46 @@ private fun RoundRect.toRadii(): FloatArray = floatArrayOf(
     bottomRightCornerRadius.x,
     bottomLeftCornerRadius.x,
 )
+
+private val containerShader: RuntimeShader? by lazy {
+    if (!LiquidGlassSupport.hasShaders) null
+    else runCatching { RuntimeShader(GLASS_CONTAINER_SHADER_SOURCE) }.getOrNull()
+}
+
+internal actual fun createGlassContainerRenderEffect(
+    uniforms: GlassContainerUniforms,
+): androidx.compose.ui.graphics.RenderEffect? {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return null
+    val shader = containerShader ?: return null
+    if (uniforms.width <= 0f || uniforms.height <= 0f) return null
+
+    shader.setFloatUniform("uSize", uniforms.width, uniforms.height)
+    shader.setFloatUniform("uRect", uniforms.rects)
+    shader.setFloatUniform("uRadius", uniforms.radii)
+    shader.setFloatUniform("uCount", uniforms.count)
+    shader.setFloatUniform("uMerge", uniforms.merge)
+    shader.setFloatUniform("uRefractBand", uniforms.refractBand)
+    shader.setFloatUniform("uRefractDepth", uniforms.refractDepth)
+    shader.setFloatUniform("uBevel", uniforms.bevel)
+    shader.setFloatUniform("uLight", uniforms.lightX, uniforms.lightY)
+    shader.setFloatUniform("uSpecular", uniforms.specular)
+    shader.setFloatUniform("uSpecularPow", uniforms.specularPower)
+    shader.setFloatUniform(
+        "uTint",
+        uniforms.tint.red,
+        uniforms.tint.green,
+        uniforms.tint.blue,
+        uniforms.tint.alpha,
+    )
+    shader.setFloatUniform("uInnerShadow", uniforms.innerShadow)
+    shader.setFloatUniform("uAdaptive", uniforms.adaptivity)
+
+    val blur = if (uniforms.blurRadius > 0f) {
+        RenderEffect.createBlurEffect(uniforms.blurRadius, uniforms.blurRadius, Shader.TileMode.CLAMP)
+    } else {
+        null
+    }
+    val glass = RenderEffect.createRuntimeShaderEffect(shader, "content")
+    val chained = if (blur != null) RenderEffect.createChainEffect(glass, blur) else glass
+    return chained.asComposeRenderEffect()
+}

@@ -82,3 +82,47 @@ private fun RoundRect.toRadii(): FloatArray = floatArrayOf(
     bottomRightCornerRadius.x,
     bottomLeftCornerRadius.x,
 )
+
+private val containerEffect: RuntimeEffect? by lazy {
+    runCatching { RuntimeEffect.makeForShader(GLASS_CONTAINER_SHADER_SOURCE) }.getOrNull()
+}
+
+internal actual fun createGlassContainerRenderEffect(
+    uniforms: GlassContainerUniforms,
+): androidx.compose.ui.graphics.RenderEffect? {
+    val effect = containerEffect ?: return null
+    if (uniforms.width <= 0f || uniforms.height <= 0f) return null
+
+    val builder = RuntimeShaderBuilder(effect)
+    builder.uniform("uSize", uniforms.width, uniforms.height)
+    builder.uniform("uRect", uniforms.rects)
+    builder.uniform("uRadius", uniforms.radii)
+    builder.uniform("uCount", uniforms.count)
+    builder.uniform("uMerge", uniforms.merge)
+    builder.uniform("uRefractBand", uniforms.refractBand)
+    builder.uniform("uRefractDepth", uniforms.refractDepth)
+    builder.uniform("uBevel", uniforms.bevel)
+    builder.uniform("uLight", uniforms.lightX, uniforms.lightY)
+    builder.uniform("uSpecular", uniforms.specular)
+    builder.uniform("uSpecularPow", uniforms.specularPower)
+    builder.uniform(
+        "uTint",
+        uniforms.tint.red,
+        uniforms.tint.green,
+        uniforms.tint.blue,
+        uniforms.tint.alpha,
+    )
+    builder.uniform("uInnerShadow", uniforms.innerShadow)
+    builder.uniform("uAdaptive", uniforms.adaptivity)
+
+    val blurred = if (uniforms.blurRadius > 0f) {
+        ImageFilter.makeBlur(uniforms.blurRadius, uniforms.blurRadius, FilterTileMode.CLAMP)
+    } else {
+        null
+    }
+    return ImageFilter.makeRuntimeShader(
+        runtimeShaderBuilder = builder,
+        shaderName = "content",
+        input = blurred,
+    ).asComposeRenderEffect()
+}

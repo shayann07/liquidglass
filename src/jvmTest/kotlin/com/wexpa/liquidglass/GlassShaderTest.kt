@@ -45,3 +45,32 @@ class GlassShaderTest {
         assertTrue(unset.isEmpty(), "shader declares uniforms nothing sets: $unset")
     }
 }
+
+/** The container shader, checked the same way. */
+class GlassContainerShaderTest {
+
+    @Test
+    fun testContainerShaderCompiles() {
+        val effect = RuntimeEffect.makeForShader(GLASS_CONTAINER_SHADER_SOURCE)
+        assertNotNull(effect, "GLASS_CONTAINER_SHADER_SOURCE failed to compile")
+    }
+
+    @Test
+    fun testMemberLoopIsBoundedByTheDeclaredArraySize() {
+        // SkSL needs unrollable loops, so the member cap is compiled into the source. If the
+        // constant and the array size ever drift apart the shader still compiles and silently
+        // ignores members, which is invisible until a container overflows.
+        val arrayDecls = Regex("""uniform\s+\w+\s+\w+\[(\d+)]""")
+            .findAll(GLASS_CONTAINER_SHADER_SOURCE)
+            .map { it.groupValues[1].toInt() }
+            .toSet()
+        assertTrue(
+            arrayDecls.all { it == MAX_GLASS_MEMBERS },
+            "array sizes $arrayDecls do not all match MAX_GLASS_MEMBERS=$MAX_GLASS_MEMBERS",
+        )
+        assertTrue(
+            GLASS_CONTAINER_SHADER_SOURCE.contains("i < $MAX_GLASS_MEMBERS"),
+            "the member loop bound must be the same constant as the array size",
+        )
+    }
+}
