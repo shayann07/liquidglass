@@ -46,6 +46,24 @@ internal actual fun createGlassRenderEffect(
         uniforms.radii.getOrElse(3) { 0f },
     )
     shader.setFloatUniform("uRefractBand", uniforms.refractBand)
+    shader.setFloatUniform("uAberration", uniforms.aberration)
+    shader.setFloatUniform("uBlur", uniforms.blurRadius)
+    shader.setFloatUniform(
+        "uBase",
+        uniforms.background.red,
+        uniforms.background.green,
+        uniforms.background.blue,
+    )
+    shader.setFloatUniform(
+        "uBackdrop",
+        uniforms.backdrop[0],
+        uniforms.backdrop[1],
+        uniforms.backdrop[2],
+        uniforms.backdrop[3],
+    )
+    shader.setFloatUniform("uPad", uniforms.pad)
+    shader.setFloatUniform("uScale", uniforms.scale)
+    shader.setFloatUniform("uFlip", uniforms.flip)
     shader.setFloatUniform("uRefractDepth", uniforms.refractDepth)
     shader.setFloatUniform("uBevel", uniforms.bevel)
     shader.setFloatUniform("uLight", uniforms.lightX, uniforms.lightY)
@@ -61,22 +79,22 @@ internal actual fun createGlassRenderEffect(
     shader.setFloatUniform("uInnerShadow", uniforms.innerShadow)
     shader.setFloatUniform("uAdaptive", uniforms.adaptivity)
 
-    // Blur first, then refract the blurred result: sampling a sharp backdrop through the
-    // bevel produces aliased streaks, because neighbouring output pixels reach for widely
-    // separated input pixels near the rim.
-    val blur = if (uniforms.blurRadius > 0f) {
-        RenderEffect.createBlurEffect(
-            uniforms.blurRadius,
-            uniforms.blurRadius,
-            Shader.TileMode.CLAMP,
-        )
-    } else {
-        null
-    }
-
+    // The interior blur is NOT chained ahead of the shader: pre-blurring destroys exactly the
+    // detail the rim is supposed to bend. backdropBlur is the opt-in that does pre-blur, for
+    // chrome that would rather hide its backdrop than refract it.
     val glass = RenderEffect.createRuntimeShaderEffect(shader, "content")
-    val chained = if (blur != null) RenderEffect.createChainEffect(glass, blur) else glass
-    return chained.asComposeRenderEffect()
+    return if (uniforms.backdropBlur > 0f) {
+        RenderEffect.createChainEffect(
+            glass,
+            RenderEffect.createBlurEffect(
+                uniforms.backdropBlur,
+                uniforms.backdropBlur,
+                Shader.TileMode.CLAMP,
+            ),
+        ).asComposeRenderEffect()
+    } else {
+        glass.asComposeRenderEffect()
+    }
 }
 
 internal actual fun Shape.cornerRadiiPx(
@@ -115,6 +133,22 @@ internal actual fun createGlassContainerRenderEffect(
     shader.setFloatUniform("uRadius", uniforms.radii)
     shader.setFloatUniform("uCount", uniforms.count)
     shader.setFloatUniform("uMerge", uniforms.merge)
+    shader.setFloatUniform("uPad", uniforms.pad)
+    shader.setFloatUniform("uAberration", uniforms.aberration)
+    shader.setFloatUniform("uBlur", uniforms.blurRadius)
+    shader.setFloatUniform(
+        "uBase",
+        uniforms.background.red,
+        uniforms.background.green,
+        uniforms.background.blue,
+    )
+    shader.setFloatUniform(
+        "uBackdrop",
+        uniforms.backdrop[0],
+        uniforms.backdrop[1],
+        uniforms.backdrop[2],
+        uniforms.backdrop[3],
+    )
     shader.setFloatUniform("uRefractBand", uniforms.refractBand)
     shader.setFloatUniform("uRefractDepth", uniforms.refractDepth)
     shader.setFloatUniform("uBevel", uniforms.bevel)
@@ -131,12 +165,20 @@ internal actual fun createGlassContainerRenderEffect(
     shader.setFloatUniform("uInnerShadow", uniforms.innerShadow)
     shader.setFloatUniform("uAdaptive", uniforms.adaptivity)
 
-    val blur = if (uniforms.blurRadius > 0f) {
-        RenderEffect.createBlurEffect(uniforms.blurRadius, uniforms.blurRadius, Shader.TileMode.CLAMP)
-    } else {
-        null
-    }
+    // The interior blur is NOT chained ahead of the shader: pre-blurring destroys exactly the
+    // detail the rim is supposed to bend. backdropBlur is the opt-in that does pre-blur, for
+    // chrome that would rather hide its backdrop than refract it.
     val glass = RenderEffect.createRuntimeShaderEffect(shader, "content")
-    val chained = if (blur != null) RenderEffect.createChainEffect(glass, blur) else glass
-    return chained.asComposeRenderEffect()
+    return if (uniforms.backdropBlur > 0f) {
+        RenderEffect.createChainEffect(
+            glass,
+            RenderEffect.createBlurEffect(
+                uniforms.backdropBlur,
+                uniforms.backdropBlur,
+                Shader.TileMode.CLAMP,
+            ),
+        ).asComposeRenderEffect()
+    } else {
+        glass.asComposeRenderEffect()
+    }
 }

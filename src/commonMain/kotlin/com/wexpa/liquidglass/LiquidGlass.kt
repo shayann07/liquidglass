@@ -8,6 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -20,7 +21,10 @@ import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
 
 /**
  * Shared state linking a backdrop to the glass panels drawn over it.
@@ -29,7 +33,17 @@ import androidx.compose.ui.unit.LayoutDirection
  * panel samples the region beneath itself out of that single recording.
  */
 @Stable
-class LiquidGlassState internal constructor() {
+class LiquidGlassState internal constructor(
+    /**
+     * The opaque colour behind the recorded backdrop.
+     *
+     * A backdrop layer is transparent wherever the recorded subtree painted nothing, and the
+     * glass has to reconstruct what a viewer actually sees there, which is this colour showing
+     * through. Getting it wrong is visible: too dark and the panels grow a black halo, too
+     * light and they bloom.
+     */
+    internal val background: Color,
+) {
     internal var layer: GraphicsLayer? by mutableStateOf(null)
     internal var sourceOrigin: Offset by mutableStateOf(Offset.Zero)
     internal var sourceSize: Size by mutableStateOf(Size.Zero)
@@ -39,7 +53,8 @@ class LiquidGlassState internal constructor() {
 }
 
 @Composable
-fun rememberLiquidGlassState(): LiquidGlassState = remember { LiquidGlassState() }
+fun rememberLiquidGlassState(background: Color = Color.Black): LiquidGlassState =
+    remember(background) { LiquidGlassState(background) }
 
 /**
  * Marks this content as the backdrop that glass panels refract.
@@ -86,14 +101,27 @@ fun Modifier.liquidGlass(
             val radii = shape.cornerRadiiPx(size, layoutDirection, this)
 
             if (source != null && LiquidGlassSupport.hasShaders) {
+                // Apple's material samples "an area larger than itself" — that is what makes it
+                // lens rather than merely blur. Record that margin, or displacement at the rim
+                // clamps against the panel's own edge and the lensing has nothing to bend.
+                val pad = style.refractionDepth.toPx() * 1.4f +
+                    maxOf(style.blurRadius.toPx(), style.backdropBlur.toPx())
+                val sizeFactor = elementSizeFactor(size, this)
+                val delta = origin - state.sourceOrigin
                 val effect = createGlassRenderEffect(
                     GlassUniforms(
                         width = size.width,
                         height = size.height,
+                        pad = pad,
+                        scale = sizeFactor,
+                        flip = if (style.invertsWithBackdrop && sizeFactor < 0.5f) 1f else 0f,
                         radii = radii,
                         refractBand = style.refractionBand.toPx(),
                         refractDepth = style.refractionDepth.toPx(),
+                        aberration = style.dispersion,
                         bevel = style.bevel.toPx(),
+                        backdrop = sampleBounds(pad, delta, size, state.sourceSize),
+                        background = state.background,
                         lightX = light.x,
                         lightY = light.y,
                         specular = style.specular,
@@ -102,17 +130,37 @@ fun Modifier.liquidGlass(
                         innerShadow = style.innerShadow,
                         adaptivity = style.adaptivity,
                         blurRadius = style.blurRadius.toPx(),
+                        backdropBlur = style.backdropBlur.toPx(),
                     )
                 )
                 if (effect != null) {
-                    // Redraw the slice of backdrop that sits under this panel, in the panel's
-                    // own coordinates, then let the effect chain blur and refract it.
-                    val delta = origin - state.sourceOrigin
-                    glassLayer.record {
-                        translate(-delta.x, -delta.y) { drawLayer(source) }
+                    // Record the padded slice of backdrop beneath this panel, in the panel's own
+                    // coordinates offset by the pad, then let the chain blur and refract it.
+                    val padPx = pad.toInt()
+                    glassLayer.record(
+                        size = IntSize(
+                            (size.width.toInt() + padPx * 2).coerceAtLeast(1),
+                            (size.height.toInt() + padPx * 2).coerceAtLeast(1),
+                        )
+                    ) {
+                    // Fill with the ground first. The padded slice reaches past the backdrop
+                    // near a screen edge, and the backdrop is itself transparent wherever the
+                    // app painted nothing; blurring either kind of hole drags transparency
+                    // inward and the panel grows a halo of whatever it composites against.
+                    // Baking the ground in once leaves an opaque image for the blur to work
+                    // on, which is both correct and cheaper than compensating downstream.
+                        drawRect(state.background)
+                        translate(-delta.x + pad, -delta.y + pad) { drawLayer(source) }
                     }
                     glassLayer.renderEffect = effect
-                    drawLayer(glassLayer)
+                    if (style.dimmingLayer > 0f) {
+                        drawRoundRect(
+                            color = Color.Black.copy(alpha = style.dimmingLayer),
+                            cornerRadius = CornerRadius(radii.getOrElse(0) { 0f }),
+                            size = size,
+                        )
+                    }
+                    translate(-pad, -pad) { drawLayer(glassLayer) }
                     drawContent()
                     return@drawWithContent
                 }
@@ -136,17 +184,28 @@ expect object LiquidGlassSupport {
 internal expect fun Shape.cornerRadiiPx(
     size: Size,
     layoutDirection: LayoutDirection,
-    density: androidx.compose.ui.unit.Density,
+    density: Density,
 ): FloatArray
 
 @Stable
 internal data class GlassUniforms(
     val width: Float,
     val height: Float,
+    /** Backdrop recorded beyond each edge, so displacement near the rim has content to reach. */
+    val pad: Float,
+    /** 0 for small chrome, 1 for a large surface. Keys opacity, lensing and shadow depth. */
+    val scale: Float,
+    /** 1 when this element may invert light/dark with its backdrop. */
+    val flip: Float,
     val radii: FloatArray,
     val refractBand: Float,
     val refractDepth: Float,
+    val aberration: Float,
     val bevel: Float,
+    /** Where inside the padded layer real pixels exist; sampling past it would read nothing. */
+    val backdrop: FloatArray,
+    /** Opaque ground the recorded backdrop sits on, for the transparent parts of it. */
+    val background: Color,
     val lightX: Float,
     val lightY: Float,
     val specular: Float,
@@ -155,16 +214,21 @@ internal data class GlassUniforms(
     val innerShadow: Float,
     val adaptivity: Float,
     val blurRadius: Float,
+    val backdropBlur: Float,
 ) {
     override fun equals(other: Any?): Boolean =
         other is GlassUniforms &&
             width == other.width && height == other.height &&
+            pad == other.pad && scale == other.scale && flip == other.flip &&
             radii.contentEquals(other.radii) &&
             refractBand == other.refractBand && refractDepth == other.refractDepth &&
+            aberration == other.aberration && backdrop.contentEquals(other.backdrop) &&
+            background == other.background &&
             bevel == other.bevel && lightX == other.lightX && lightY == other.lightY &&
             specular == other.specular && specularPower == other.specularPower &&
             tint == other.tint && innerShadow == other.innerShadow &&
-            adaptivity == other.adaptivity && blurRadius == other.blurRadius
+            adaptivity == other.adaptivity && blurRadius == other.blurRadius &&
+            backdropBlur == other.backdropBlur
 
     override fun hashCode(): Int = width.hashCode() * 31 + height.hashCode() + radii.contentHashCode()
 }
@@ -172,3 +236,53 @@ internal data class GlassUniforms(
 internal expect fun createGlassRenderEffect(
     uniforms: GlassUniforms,
 ): androidx.compose.ui.graphics.RenderEffect?
+
+/**
+ * How "large" a panel reads, 0 to 1.
+ *
+ * Apple keys the material to element geometry rather than fixing it: bigger glass renders more
+ * opaque, with deeper shadow and stronger lensing, while smaller glass renders clearer and is
+ * allowed to invert light/dark to hold contrast. The scale below treats a 56dp control as
+ * small and a 320dp surface as large, which puts a tab bar near the clear end and a sheet near
+ * the opaque one.
+ */
+/**
+ * The region of the padded layer the shader may read, in layer coordinates.
+ *
+ * Two different things go wrong outside it, which is why the bound is the intersection of two
+ * rectangles rather than either one alone.
+ *
+ * The padded slice is deliberately larger than the panel so displacement near the rim has
+ * somewhere to reach, and near a screen edge that slice hangs off the end of the backdrop.
+ * Those pixels are not merely dark, they are a flat fill, and a panel that samples them grows
+ * a band of solid colour at the rim. So the bound stops at the backdrop.
+ *
+ * The layer is also filled with the ground before the backdrop is drawn into it. That is what
+ * keeps the blur honest: a blur over any transparent margin returns partly-transparent pixels,
+ * and those composite as a halo whichever way they are unpacked. So the fill has to be there
+ * even though nothing is allowed to sample it.
+ *
+ * Half a pixel of inset keeps bilinear filtering from reaching across either boundary.
+ */
+internal fun sampleBounds(
+    pad: Float,
+    delta: Offset,
+    panelSize: Size,
+    sourceSize: Size,
+): FloatArray {
+    val layerWidth = panelSize.width + pad * 2f
+    val layerHeight = panelSize.height + pad * 2f
+    val backdropLeft = pad - delta.x
+    val backdropTop = pad - delta.y
+    return floatArrayOf(
+        maxOf(0f, backdropLeft) + 0.5f,
+        maxOf(0f, backdropTop) + 0.5f,
+        minOf(layerWidth, backdropLeft + sourceSize.width) - 0.5f,
+        minOf(layerHeight, backdropTop + sourceSize.height) - 0.5f,
+    )
+}
+
+internal fun elementSizeFactor(size: Size, density: Density): Float {
+    val minEdgeDp = with(density) { minOf(size.width, size.height).toDp().value }
+    return ((minEdgeDp - 56f) / (320f - 56f)).coerceIn(0f, 1f)
+}

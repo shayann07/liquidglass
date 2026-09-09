@@ -23,6 +23,7 @@ import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 
 /** One panel taking part in a container's merged field. */
@@ -89,10 +90,16 @@ fun LiquidGlassContainer(
                 val active = members.filter { !it.bounds.isEmpty }
 
                 if (source != null && LiquidGlassSupport.hasShaders && active.isNotEmpty()) {
+                    val pad = style.refractionDepth.toPx() * 1.4f +
+                    maxOf(style.blurRadius.toPx(), style.backdropBlur.toPx())
+                    val delta = origin - state.sourceOrigin
                     val effect = createGlassContainerRenderEffect(
                         GlassContainerUniforms(
                             width = size.width,
                             height = size.height,
+                            pad = pad,
+                            backdrop = sampleBounds(pad, delta, size, state.sourceSize),
+                            background = state.background,
                             rects = FloatArray(MAX_GLASS_MEMBERS * 4).also { out ->
                                 active.take(MAX_GLASS_MEMBERS).forEachIndexed { i, m ->
                                     out[i * 4] = m.bounds.left
@@ -110,6 +117,7 @@ fun LiquidGlassContainer(
                             merge = mergeDistance.toPx(),
                             refractBand = style.refractionBand.toPx(),
                             refractDepth = style.refractionDepth.toPx(),
+                            aberration = style.dispersion,
                             bevel = style.bevel.toPx(),
                             lightX = light.x,
                             lightY = light.y,
@@ -119,15 +127,24 @@ fun LiquidGlassContainer(
                             innerShadow = style.innerShadow,
                             adaptivity = style.adaptivity,
                             blurRadius = style.blurRadius.toPx(),
+                            backdropBlur = style.backdropBlur.toPx(),
                         )
                     )
                     if (effect != null) {
-                        val delta = origin - state.sourceOrigin
-                        glassLayer.record {
-                            translate(-delta.x, -delta.y) { drawLayer(source) }
+                        val padPx = pad.toInt()
+                        glassLayer.record(
+                            size = IntSize(
+                                (size.width.toInt() + padPx * 2).coerceAtLeast(1),
+                                (size.height.toInt() + padPx * 2).coerceAtLeast(1),
+                            )
+                        ) {
+                            // See the note in Modifier.liquidGlass: the blur needs an
+                            // opaque image or the fused body grows a halo.
+                            drawRect(state.background)
+                            translate(-delta.x + pad, -delta.y + pad) { drawLayer(source) }
                         }
                         glassLayer.renderEffect = effect
-                        drawLayer(glassLayer)
+                        translate(-pad, -pad) { drawLayer(glassLayer) }
                     }
                 }
                 drawContent()
@@ -141,12 +158,16 @@ fun LiquidGlassContainer(
 internal class GlassContainerUniforms(
     val width: Float,
     val height: Float,
+    val pad: Float,
+    val backdrop: FloatArray,
+    val background: androidx.compose.ui.graphics.Color,
     val rects: FloatArray,
     val radii: FloatArray,
     val count: Float,
     val merge: Float,
     val refractBand: Float,
     val refractDepth: Float,
+    val aberration: Float,
     val bevel: Float,
     val lightX: Float,
     val lightY: Float,
@@ -156,6 +177,7 @@ internal class GlassContainerUniforms(
     val innerShadow: Float,
     val adaptivity: Float,
     val blurRadius: Float,
+    val backdropBlur: Float,
 )
 
 internal expect fun createGlassContainerRenderEffect(

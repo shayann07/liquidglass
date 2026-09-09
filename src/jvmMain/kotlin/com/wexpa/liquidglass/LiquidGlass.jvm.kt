@@ -38,6 +38,24 @@ internal actual fun createGlassRenderEffect(
         uniforms.radii.getOrElse(3) { 0f },
     )
     builder.uniform("uRefractBand", uniforms.refractBand)
+    builder.uniform("uAberration", uniforms.aberration)
+    builder.uniform("uBlur", uniforms.blurRadius)
+    builder.uniform(
+        "uBase",
+        uniforms.background.red,
+        uniforms.background.green,
+        uniforms.background.blue,
+    )
+    builder.uniform(
+        "uBackdrop",
+        uniforms.backdrop[0],
+        uniforms.backdrop[1],
+        uniforms.backdrop[2],
+        uniforms.backdrop[3],
+    )
+    builder.uniform("uPad", uniforms.pad)
+    builder.uniform("uScale", uniforms.scale)
+    builder.uniform("uFlip", uniforms.flip)
     builder.uniform("uRefractDepth", uniforms.refractDepth)
     builder.uniform("uBevel", uniforms.bevel)
     builder.uniform("uLight", uniforms.lightX, uniforms.lightY)
@@ -53,16 +71,17 @@ internal actual fun createGlassRenderEffect(
     builder.uniform("uInnerShadow", uniforms.innerShadow)
     builder.uniform("uAdaptive", uniforms.adaptivity)
 
-    // Same ordering as Android: blur the backdrop, then bend the blurred result.
-    val blurred = if (uniforms.blurRadius > 0f) {
-        ImageFilter.makeBlur(uniforms.blurRadius, uniforms.blurRadius, FilterTileMode.CLAMP)
+    // See the Android actual: only backdropBlur pre-blurs; the interior blur lives in the
+    // shader so the rim keeps its detail.
+    val prepared = if (uniforms.backdropBlur > 0f) {
+        ImageFilter.makeBlur(uniforms.backdropBlur, uniforms.backdropBlur, FilterTileMode.CLAMP)
     } else {
         null
     }
     return ImageFilter.makeRuntimeShader(
         runtimeShaderBuilder = builder,
         shaderName = "content",
-        input = blurred,
+        input = prepared,
     ).asComposeRenderEffect()
 }
 
@@ -99,6 +118,22 @@ internal actual fun createGlassContainerRenderEffect(
     builder.uniform("uRadius", uniforms.radii)
     builder.uniform("uCount", uniforms.count)
     builder.uniform("uMerge", uniforms.merge)
+    builder.uniform("uPad", uniforms.pad)
+    builder.uniform("uAberration", uniforms.aberration)
+    builder.uniform("uBlur", uniforms.blurRadius)
+    builder.uniform(
+        "uBase",
+        uniforms.background.red,
+        uniforms.background.green,
+        uniforms.background.blue,
+    )
+    builder.uniform(
+        "uBackdrop",
+        uniforms.backdrop[0],
+        uniforms.backdrop[1],
+        uniforms.backdrop[2],
+        uniforms.backdrop[3],
+    )
     builder.uniform("uRefractBand", uniforms.refractBand)
     builder.uniform("uRefractDepth", uniforms.refractDepth)
     builder.uniform("uBevel", uniforms.bevel)
@@ -115,14 +150,16 @@ internal actual fun createGlassContainerRenderEffect(
     builder.uniform("uInnerShadow", uniforms.innerShadow)
     builder.uniform("uAdaptive", uniforms.adaptivity)
 
-    val blurred = if (uniforms.blurRadius > 0f) {
-        ImageFilter.makeBlur(uniforms.blurRadius, uniforms.blurRadius, FilterTileMode.CLAMP)
+    // See the Android actual: only backdropBlur pre-blurs; the interior blur lives in the
+    // shader so the rim keeps its detail.
+    val prepared = if (uniforms.backdropBlur > 0f) {
+        ImageFilter.makeBlur(uniforms.backdropBlur, uniforms.backdropBlur, FilterTileMode.CLAMP)
     } else {
         null
     }
     return ImageFilter.makeRuntimeShader(
         runtimeShaderBuilder = builder,
         shaderName = "content",
-        input = blurred,
+        input = prepared,
     ).asComposeRenderEffect()
 }

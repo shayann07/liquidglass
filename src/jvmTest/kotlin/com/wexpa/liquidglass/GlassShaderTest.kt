@@ -33,8 +33,9 @@ class GlassShaderTest {
             .toSet()
 
         val setByHost = setOf(
-            "uSize", "uRadii", "uRefractBand", "uRefractDepth", "uBevel",
+            "uSize", "uRadii", "uRefractBand", "uBackdrop", "uAberration", "uBase", "uBlur", "uRefractDepth", "uBevel",
             "uLight", "uSpecular", "uSpecularPow", "uTint", "uInnerShadow", "uAdaptive",
+            "uPad", "uScale", "uFlip",
         )
 
         val missing = setByHost - declared
