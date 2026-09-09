@@ -1,0 +1,298 @@
+// Verbatim output of the `liquid-glass-optical-spec` research run.
+//
+// This is NOT the shader the library ships. It is the reference the shipped one was
+// reconciled against; see docs/research/README.md for what was adopted and what was not,
+// and GlassShaderSource.kt for what actually runs.
+
+// ============================================================================
+//  Liquid Glass - one fragment shader, AGSL (Android 13+) / SkSL (Skia desktop)
+//
+//  VERIFIED: compiles as written under Skia's RuntimeEffect.makeForShader, which is
+//  the same SkSL front end AGSL uses. half4 main(float2); no dynamic loop bounds;
+//  no arrays; no discard; premultiplied output.
+// ----------------------------------------------------------------------------
+//  Render order inside main():
+//    0  geometry        signed distance field, wide-epsilon gradient, medial-axis confidence
+//    1  refraction      superellipse bevel -> exact Snell deviation -> outward sample push
+//    2  dispersion      R/G/B sampled at 1-s / 1 / 1+s of that push
+//    3  scatter         19-tap rotated disc, radius 0 at the rim and full in the interior
+//    4  echo            broad mirrored edge band over the outer ~third of the surface
+//    5  adaptation      per-pixel tone-mapped tint + whole-element light/dark inversion
+//    6  legibility      local contrast raises tint strength (text scrolling underneath)
+//    7  lighting        inner thickness line, two-lobe bevel specular, Fresnel rim, edge line
+//    8  interaction     illumination from within under the fingertip + touch magnifier
+//    9  accessibility   frost (reduce transparency), black/white + border (increase contrast)
+// ============================================================================
+
+uniform shader content;      // padded backdrop, opaque by construction, ideally UNBLURRED
+
+uniform float2 uSize;        // panel size in px, excluding the pad
+uniform float  uPad;         // px of backdrop recorded beyond each edge
+uniform float4 uBackdrop;    // l,t,r,b of the region of the layer holding real pixels
+uniform float3 uBase;        // opaque ground the backdrop was painted onto
+uniform float4 uRadii;       // corner radii in px: TL, TR, BR, BL
+
+uniform float  uBand;        // px, width of the refraction band measured in from the rim
+uniform float  uDepth;       // px, peak backdrop displacement, reached at the rim
+uniform float  uIor;         // index of refraction; shapes the falloff, not the magnitude
+uniform float  uBevelPower;  // superellipse exponent: 2 = circular arc, 4 = squircle
+uniform float  uDispersion;  // per-channel split as a fraction of the displacement
+uniform float  uMirror;      // amplitude of the mirrored edge band, 0..1
+uniform float  uBlur;        // px, interior scatter radius; tapers to 0 at the rim
+
+uniform float  uBevel;       // px, width of the LIT bevel (uBand is 4-7x this)
+uniform float2 uLight;       // unit vector toward the key light, y negative = above
+uniform float  uSpecular;    // rim highlight intensity 0..1
+uniform float  uSpecularPow; // rim highlight tightness
+uniform float  uFresnel;     // Schlick rim reflectance gain 0..1
+uniform float  uInnerShadow; // strength of the dark thickness line inside the bevel
+
+uniform float4 uTint;        // rgb + strength
+uniform float  uAdaptive;    // how far the tint tone-maps against backdrop brightness
+uniform float  uLegibility;  // how far local backdrop contrast raises tint strength
+uniform float  uScale;       // element size factor: 0 = small and clear, 1 = large and opaque
+uniform float  uFlip;        // 0..1 whole-element light/dark inversion, decided by the host
+
+uniform float2 uTouch;       // touch point in panel-local px
+uniform float  uTouchAmt;    // 0..1 press amount
+uniform float  uMaterialize; // 0..1; at 0 the shader is an exact pass-through of the backdrop
+uniform float  uFrost;       // Reduce Transparency, 0..1
+uniform float  uContrast;    // Increase Contrast, 0..1
+
+// ---------------------------------------------------------------- geometry --
+
+float sdRoundRect(float2 p, float2 halfSize, float4 r) {
+    float2 rr = (p.x > 0.0) ? r.yz : r.xw;
+    float radius = (p.y > 0.0) ? rr.y : rr.x;
+    radius = min(radius, min(halfSize.x, halfSize.y));
+    float2 q = abs(p) - halfSize + radius;
+    return min(max(q.x, q.y), 0.0) + length(max(q, float2(0.0))) - radius;
+}
+
+// One backdrop sample, bounded by the region that actually holds recorded pixels.
+// The layer is filled with the ground before the backdrop is drawn into it, so any alpha
+// shortfall here is filtering error at its own boundary rather than real transparency:
+// dividing it out reconstructs the colour, compositing toward the ground paints a halo.
+half3 backdropAt(float2 p) {
+    float2 q = clamp(p, uBackdrop.xy, uBackdrop.zw);
+    half4 c = content.eval(q);
+    return (c.a > half(0.004)) ? c.rgb / c.a : half3(uBase);
+}
+
+float2 rotate(float2 v, float2 rot) {
+    return float2(v.x * rot.x - v.y * rot.y, v.x * rot.y + v.y * rot.x);
+}
+
+// A cheap per-pixel angle; any hash with no visible structure will do.
+float2 tapRotation(float2 coord) {
+    float3 q = fract(float3(coord.x, coord.y, coord.x) * 0.1031);
+    q += dot(q, q.yzx + 33.33);
+    float a = fract((q.x + q.y) * q.z) * 6.2831853;
+    return float2(cos(a), sin(a));
+}
+
+// Nineteen taps: three rings of six at staggered angles plus the centre. Too few to blur
+// legible text on their own, so the whole pattern is rotated per pixel and the ghosts break
+// up into noise, which the eye integrates as blur. Only ever called with a radius that falls
+// to zero at the rim, so the expensive case never coincides with the case needing detail.
+half3 blurredAt(float2 p, float radius, float2 rot) {
+    if (radius < 0.5) {
+        return backdropAt(p);
+    }
+    float inner = radius * 0.55;
+    float mid = radius * 0.8;
+    half3 sum = backdropAt(p);
+    sum += backdropAt(p + inner * rotate(float2( 1.000,  0.000), rot));
+    sum += backdropAt(p + inner * rotate(float2( 0.500,  0.866), rot));
+    sum += backdropAt(p + inner * rotate(float2(-0.500,  0.866), rot));
+    sum += backdropAt(p + inner * rotate(float2(-1.000,  0.000), rot));
+    sum += backdropAt(p + inner * rotate(float2(-0.500, -0.866), rot));
+    sum += backdropAt(p + inner * rotate(float2( 0.500, -0.866), rot));
+    sum += backdropAt(p + mid   * rotate(float2( 0.966,  0.259), rot));
+    sum += backdropAt(p + mid   * rotate(float2( 0.259,  0.966), rot));
+    sum += backdropAt(p + mid   * rotate(float2(-0.707,  0.707), rot));
+    sum += backdropAt(p + mid   * rotate(float2(-0.966, -0.259), rot));
+    sum += backdropAt(p + mid   * rotate(float2(-0.259, -0.966), rot));
+    sum += backdropAt(p + mid   * rotate(float2( 0.707, -0.707), rot));
+    sum += backdropAt(p + radius * rotate(float2( 0.866,  0.500), rot));
+    sum += backdropAt(p + radius * rotate(float2( 0.000,  1.000), rot));
+    sum += backdropAt(p + radius * rotate(float2(-0.866,  0.500), rot));
+    sum += backdropAt(p + radius * rotate(float2(-0.866, -0.500), rot));
+    sum += backdropAt(p + radius * rotate(float2( 0.000, -1.000), rot));
+    sum += backdropAt(p + radius * rotate(float2( 0.866, -0.500), rot));
+    return sum * half(1.0 / 19.0);
+}
+
+float luma(half3 c) {
+    return dot(float3(c), float3(0.2126, 0.7152, 0.0722));
+}
+
+// ---------------------------------------------------------------- optics ----
+
+// Superellipse bevel height h(e) = T * (1 - (1-e)^p)^(1/p), e = depth/band in [0,1].
+// This returns dh/ds, the surface slope: p = 2 is a true circular arc, p = 4 is the
+// squircle-matched profile. Slope is 0 at the inner edge of the band and diverges at the
+// rim, so e is clamped a hair inside both ends.
+float bevelSlope(float e, float p) {
+    float u = 1.0 - clamp(e, 0.002, 0.998);
+    float up = pow(u, p);
+    return pow(u, p - 1.0) / pow(max(1.0 - up, 1e-4), 1.0 - 1.0 / p);
+}
+
+// Exact Snell deviation for a surface of the given slope, returned as tan(theta - theta_t)
+// via the tangent difference identity, so there is not a single transcendental in it.
+// It is self-bounding: as the slope goes vertical this tends to sqrt(n^2 - 1) (1.118 at
+// n = 1.5), which is why the usual small-angle form slope*(1 - 1/n) and its ad-hoc clamp
+// are not needed. That form overestimates by 21% at the profile's own peak and diverges.
+float snellShift(float slope, float ior) {
+    float inv = inversesqrt(1.0 + slope * slope);
+    float si = slope * inv;
+    float ci = inv;
+    float st = si / max(ior, 1.0001);
+    float ct = sqrt(max(1.0 - st * st, 0.0));
+    return (si * ct - ci * st) / max(ci * ct + si * st, 1e-4);
+}
+
+// One colour tone-mapped across the backdrop's brightness, the way a pane of coloured glass
+// behaves: it darkens and saturates over bright ground, lifts and desaturates over dark
+// ground, and stays recognisably the same colour throughout.
+half3 toneMappedTint(half3 tint, float bgLuma, float adapt) {
+    float g = clamp(bgLuma, 0.0, 1.0);
+    float value = mix(1.0, mix(1.10, 0.88, g), adapt);
+    float sat   = mix(1.0, mix(0.88, 1.06, g), adapt);
+    half  mean  = half(dot(float3(tint), float3(1.0 / 3.0)));
+    half3 shifted = half3(mean) + (tint - half3(mean)) * half(sat);
+    return clamp(shifted * half(value), half3(0.0), half3(1.0));
+}
+
+// ------------------------------------------------------------------ main ----
+
+half4 main(float2 coord) {
+    float2 local    = coord - float2(uPad);
+    float2 halfSize = uSize * 0.5;
+    float2 p        = local - halfSize;
+
+    float d = sdRoundRect(p, halfSize, uRadii);
+    float coverage = 1.0 - smoothstep(-0.75, 0.75, d);
+    if (coverage <= 0.0) {
+        return half4(0.0);
+    }
+
+    float mat   = clamp(uMaterialize, 0.0, 1.0);
+    float scale = clamp(uScale, 0.0, 1.0);
+
+    // 0. Geometry. A one-pixel epsilon collapses |grad| from 1 to 0 to 1 across the medial
+    // axis of a pill and leaves a one-pixel seam of zero refraction down its middle. Widening
+    // the epsilon to the scale of the band lets the two sides cancel gradually, and the
+    // gradient magnitude that falls out doubles as a confidence term that fades the lens
+    // toward the axis instead of letting it flip direction.
+    float eps = clamp(uBand * 0.3, 1.0, 16.0);
+    float2 ex = float2(eps, 0.0);
+    float2 ey = float2(0.0, eps);
+    float2 g = float2(
+        sdRoundRect(p + ex, halfSize, uRadii) - sdRoundRect(p - ex, halfSize, uRadii),
+        sdRoundRect(p + ey, halfSize, uRadii) - sdRoundRect(p - ey, halfSize, uRadii));
+    float gLen = length(g);
+    float2 n = g / max(gLen, 1e-5);                 // outward unit normal
+    float axisFade = smoothstep(0.15, 0.80, gLen / (2.0 * eps));
+
+    float depth = max(-d, 0.0);
+    float e     = clamp(depth / max(uBand, 0.001), 0.0, 1.0);
+    float pw    = max(uBevelPower, 1.5);
+    float slope = bevelSlope(e, pw);
+
+    // 1. Refraction. Normalised by the shift at the rim so uDepth is literally the peak
+    // displacement in px. Faded over the inner quarter of the band so the warp field is C1
+    // where it meets the flat interior; a kink there resamples as a visible ring.
+    float bend = snellShift(slope, uIor) / max(snellShift(bevelSlope(0.0, pw), uIor), 1e-4);
+    bend *= smoothstep(1.0, 0.75, e) * axisFade * smoothstep(0.0, 1.5, depth);
+    bend = clamp(bend, 0.0, 1.0);
+
+    float lens = uDepth * mat * mix(0.85, 1.25, scale);
+
+    // 8a. The touch magnifier: content under the fingertip swells slightly toward it.
+    float2 td = local - uTouch;
+    float tr = max(min(uSize.x, uSize.y), 1.0);
+    float tFall = exp(-dot(td, td) / (tr * tr)) * clamp(uTouchAmt, 0.0, 1.0);
+    float2 base = coord - td * (tFall * 0.17);
+
+    // Sampling OUTWARD along the normal pulls the surroundings inward and compresses them
+    // into the rim band. That is the only direction consistent with a material that samples
+    // "an area larger than itself", and it is why the host must record uPad beyond the edge.
+    float2 push = n * bend * lens;
+
+    // 2. Dispersion. Blue carries the higher index and lands further out.
+    float split = uDispersion * bend;
+    half3 sharp = half3(
+        backdropAt(base + push * (1.0 - split)).r,
+        backdropAt(base + push).g,
+        backdropAt(base + push * (1.0 + split)).b);
+
+    // 3. Scatter. Blur belongs here, keyed to distance from the edge, not upstream: a
+    // backdrop blurred before the shader sees it has already lost the detail the rim exists
+    // to bend. Squared mix, so the crisp compressed image stays tight against the rim while
+    // the displacement itself still spans the whole band.
+    half3 soft = blurredAt(base + push, uBlur * mat * e, tapRotation(coord));
+    float rimSharp = (1.0 - e) * (1.0 - e);
+    half3 bg = mix(soft, sharp, half(rimSharp));
+
+    // 4. The mirrored edge band: the upside-down echo of content near the rim. Broad and
+    // soft - roughly the outer third of the surface each side with a squared falloff. A thin
+    // band reads as a hard streak rather than as liquid.
+    float mirrorW = max(14.0, min(halfSize.x, halfSize.y) * 0.7);
+    float mBand = 1.0 - clamp(depth / mirrorW, 0.0, 1.0);
+    float mirrorMask = mBand * mBand * axisFade * smoothstep(0.0, 1.5, depth);
+    half3 echo = backdropAt(base - n * (mirrorMask * lens * 3.0));
+    bg = mix(bg, echo, half(clamp(mirrorMask * uMirror * mat, 0.0, 1.0)));
+
+    float bgLuma = luma(bg);
+
+    // 6. Local contrast, free: the rim sample and the interior sample already bracket the
+    // backdrop's high frequencies, so their luma difference stands in for "text underneath".
+    float contrast = clamp(abs(luma(sharp) - luma(soft)) * 4.0, 0.0, 1.0);
+
+    // 5. Adaptation. The inversion is one decision for the whole element, not a per-pixel
+    // one: symbols drawn on top have to flip in lockstep with the glass, and only a single
+    // scalar the host also hands to the content layer can do that. The host derives it from
+    // a sparse read of the backdrop with hysteresis; see the parameter table. The tone map
+    // below is per-pixel, because coloured glass really does vary with what is behind it.
+    float inversion = clamp(uFlip, 0.0, 1.0);
+    half3 tinted = toneMappedTint(half3(uTint.rgb), bgLuma, clamp(uAdaptive, 0.0, 1.0));
+    tinted = mix(tinted, half3(1.0) - tinted, half(inversion));
+
+    float strength = uTint.a * mix(0.9, 1.25, scale)
+                   + uLegibility * contrast * 0.25
+                   + clamp(uFrost, 0.0, 1.0) * 0.35;
+    strength = clamp(strength * mat, 0.0, 0.95);
+    half3 col = mix(bg, tinted, half(strength));
+
+    // 7. Lighting. The bevel is lit where its normal faces the light, with a weaker
+    // counter-lobe opposite: a bead lit from one side only reads as a gradient, not a solid.
+    float facing    = dot(n, uLight);
+    float bevelBand = smoothstep(uBevel, 0.0, depth);
+    float innerLine = max(smoothstep(uBevel * 2.2, 0.0, depth) - bevelBand, 0.0);
+    col -= half3(half(innerLine * uInnerShadow * mix(0.9, 1.15, scale) * mat));
+
+    float cosI = inversesqrt(1.0 + slope * slope);
+    float f0   = (uIor - 1.0) / (uIor + 1.0);
+    f0 = f0 * f0;
+    float fres = f0 + (1.0 - f0) * pow(max(1.0 - cosI, 0.0), 5.0);
+
+    float key     = pow(max(facing, 0.0), uSpecularPow) * bevelBand;
+    float counter = pow(max(-facing, 0.0), uSpecularPow * 1.6) * bevelBand * 0.35;
+    float edge    = smoothstep(2.0, 0.0, depth);
+    float edgeLine = edge * (0.07 + 0.5 * max(facing, 0.0));
+    col += half3(half(((key + counter + edgeLine) * uSpecular
+                      + fres * uFresnel * bevelBand) * mat));
+
+    // 8b. Illumination from within, starting under the fingertip.
+    col += half3(half(tFall * 0.06 * mat));
+
+    // 9. Increase Contrast: predominantly black or white, with a contrasting border.
+    float cb = clamp(uContrast, 0.0, 1.0);
+    half3 solid = (bgLuma > 0.5) ? half3(0.02) : half3(0.97);
+    col = mix(col, solid, half(cb * 0.88));
+    col += half3(half(cb * edge * ((bgLuma > 0.5) ? 0.85 : -0.85)));
+
+    return half4(clamp(col, half3(0.0), half3(1.0)), 1.0) * half(coverage);
+}

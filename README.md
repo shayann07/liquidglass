@@ -7,6 +7,10 @@ sitting over whatever is behind it.
 Runs on Android 13+ (AGSL) and Desktop/JVM (Skia). Below Android 13 it degrades to a tinted
 surface with the same rim lighting — a plainer material, not a broken one.
 
+**[Full documentation →](docs/README.md)** · [Getting started](docs/getting-started.md) ·
+[Shapes](docs/shapes.md) · [Interaction](docs/interaction.md) ·
+[Limitations](docs/limitations.md) · [The research](docs/research/README.md)
+
 ```kotlin
 val glass = rememberLiquidGlassState(background = MyTheme.ground)
 
@@ -124,6 +128,25 @@ the pattern is rotated and the ghosts break up into noise the eye integrates as 
 high-contrast text there is almost nothing to refract, and the little there is arrives
 half-legible, smeared along the rim and sitting under the labels. `GlassStyle.Chrome` trades
 the signature for legibility on purpose.
+
+## What else it does
+
+- **Shapes.** Rounded rects, capsules and circles analytically; `GlassSquircleShape` for Apple's
+  actual corner geometry; and anything else — a star, a blob, a hand-drawn `GenericShape` — by
+  measuring it. See [Shapes](docs/shapes.md).
+- **Touch.** Opt-in press response: scale with one overshoot, illumination from within under the
+  fingertip, and a magnifier that drags the backdrop with it. Inside a container a press on one
+  member lights its neighbours, because the falloff is evaluated in the container's space.
+- **Materialize.** Elements arrive and leave by modulating the lensing rather than by fading,
+  which is Apple's stated mechanism and their guidance over alpha.
+- **Morph.** `animateGlassStyle` carries the material with the geometry, because Apple's material
+  changes *with* size — a growing element that holds its edge parameters constant reads as a
+  picture of glass being stretched.
+- **Adaptation.** Per-pixel tone-mapped tint, free local-contrast legibility, and a per-element
+  light/dark inversion with hysteresis that the app hands to its content too.
+- **Accessibility.** Frost, high contrast, and reduced motion. See
+  [Accessibility](docs/accessibility.md) for what Android does and does not have.
+- **Scroll edge effect.** A separate sibling, as Apple ships it — it is not the material.
 
 ## Presets
 
