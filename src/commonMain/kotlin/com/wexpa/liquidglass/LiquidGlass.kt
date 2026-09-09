@@ -1,5 +1,6 @@
 package com.wexpa.liquidglass
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
@@ -12,14 +13,18 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntSize
@@ -53,6 +58,23 @@ class LiquidGlassState internal constructor(
      * app leaves it at 0 and nothing ever flips.
      */
     val inversion: Float,
+    /**
+     * Reduce Transparency, 0 to 1.
+     *
+     * Android has no system setting for this — iOS does, and Apple's material honours it — so
+     * it is whatever in-app control the app exposes. It raises the material's opacity rather
+     * than switching it off, which keeps the shape and the edge lighting for anyone who wants
+     * to keep seeing them.
+     */
+    val frost: Float,
+    /**
+     * Increase Contrast, 0 to 1.
+     *
+     * Maps to `AccessibilityManager.isHighTextContrastEnabled` on Android, which is about text
+     * rather than materials, so it is an approximation of Apple's setting rather than the same
+     * thing. The material goes predominantly black or white with a contrasting border.
+     */
+    val contrast: Float,
 ) {
     internal var layer: GraphicsLayer? by mutableStateOf(null)
     internal var sourceCoordinates: LayoutCoordinates? by mutableStateOf(null)
@@ -66,7 +88,11 @@ class LiquidGlassState internal constructor(
 fun rememberLiquidGlassState(
     background: Color = Color.Black,
     inversion: Float = 0f,
-): LiquidGlassState = remember(background, inversion) { LiquidGlassState(background, inversion) }
+    frost: Float = 0f,
+    contrast: Float = 0f,
+): LiquidGlassState = remember(background, inversion, frost, contrast) {
+    LiquidGlassState(background, inversion, frost, contrast)
+}
 
 /**
  * Marks this content as the backdrop that glass panels refract.
@@ -102,15 +128,68 @@ fun Modifier.liquidGlass(
     shape: Shape = RectangleShape,
     style: GlassStyle = GlassStyle.Regular,
     light: GlassLight = GlassLight.Default,
+    /**
+     * Whether the element responds to touch. Opt-in, as Apple makes it: the response is strong
+     * enough that applying it to everything would be noise. See [GlassInteraction].
+     */
+    interaction: GlassInteraction? = null,
+    /**
+     * Whether the material is present, 0 to 1, for materialising in and out.
+     *
+     * Apple: "instead of fading, Liquid Glass objects materialize in and out by gradually
+     * modulating the light bending and lensing", and the UIKit guidance is to prefer setting
+     * the effect over setting alpha. Drive this instead of `alpha` and the element arrives by
+     * becoming glass rather than by becoming opaque.
+     */
+    materialize: Float = 1f,
 ): Modifier = composed {
     val glassLayer = rememberGraphicsLayer()
     var coordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
+    val (press, pressModifier) = rememberGlassPress(enabled = interaction != null)
+
+    val density = LocalDensity.current
+    val direction = LocalLayoutDirection.current
+    val measured = coordinates?.let { Size(it.size.width.toFloat(), it.size.height.toFloat()) }
+        ?: Size.Zero
+    val padForField = with(density) {
+        style.refractionDepth.toPx() * 1.4f +
+            maxOf(style.blurRadius.toPx(), style.backdropBlur.toPx())
+    }
+    // Measured once per shape and size, never per frame. Null for every shape that has a closed
+    // form, which is all of them until someone reaches for a path.
+    val pathField = if (shape.needsSampledField(measured, direction, density)) {
+        rememberGlassPathField(
+            shape = shape,
+            size = measured,
+            pad = padForField,
+            band = with(density) { style.refractionBand.toPx() },
+            density = density,
+            layoutDirection = direction,
+        )
+    } else {
+        null
+    }
+
+    // The scale is a separate channel from the glow on purpose: it is the part the hand feels,
+    // so it overshoots going down and settles calmly coming back. A single spring for both
+    // makes the highlight bounce, which reads as a rendering glitch rather than as a press.
+    val targetScale = if (interaction != null && press.amount > 0.5f) interaction.pressScale else 1f
+    val pressScale by animateFloatAsState(
+        targetValue = targetScale,
+        animationSpec = if (targetScale > 1f) GlassMotion.PressDown else GlassMotion.PressUp,
+        label = "glass_press_scale",
+    )
 
     this
         .onGloballyPositioned { coordinates = it }
+        .then(pressModifier)
+        .graphicsLayer {
+            scaleX = pressScale
+            scaleY = pressScale
+        }
         .drawWithContent {
             val source = state.layer
-            val radii = shape.cornerRadiiPx(size, layoutDirection, this)
+            val radii = shape.glassRadii(size, layoutDirection, this)
 
             val delta = panelOffsetInSource(state.sourceCoordinates, coordinates)
 
@@ -121,6 +200,12 @@ fun Modifier.liquidGlass(
                 val pad = style.refractionDepth.toPx() * 1.4f +
                     maxOf(style.blurRadius.toPx(), style.backdropBlur.toPx())
                 val sizeFactor = elementSizeFactor(size, this)
+                val bounds = sampleBounds(pad, delta, size, state.sourceSize)
+                if (!hasSampleRegion(bounds)) {
+                    drawGlassFallback(style, light, radii, style.bevel.toPx())
+                    drawContent()
+                    return@drawWithContent
+                }
                 val effect = createGlassRenderEffect(
                     GlassUniforms(
                         width = size.width,
@@ -138,12 +223,27 @@ fun Modifier.liquidGlass(
                         aberration = style.dispersion,
                         ior = style.indexOfRefraction,
                         bevelPower = style.bevelPower,
+                        cornerPower = if (shape is GlassSquircleShape) {
+                            shape.power
+                        } else {
+                            style.cornerPower
+                        },
+                        shapeKind = if (pathField != null) 1f else 0f,
+                        fieldRange = pathField?.range ?: 1f,
+                        fieldScale = pathField?.scale ?: 1f,
+                        field = pathField?.bitmap,
                         mirror = style.mirror,
                         fresnel = style.fresnel,
                         legibility = style.legibility,
                         bevel = style.bevel.toPx(),
-                        backdrop = sampleBounds(pad, delta, size, state.sourceSize),
+                        backdrop = bounds,
                         background = state.background,
+                        touchX = press.x,
+                        touchY = press.y,
+                        touchAmount = press.amount * (interaction?.illumination ?: 0f),
+                        materialize = materialize.coerceIn(0f, 1f),
+                        frost = state.frost,
+                        contrast = state.contrast,
                         lightX = light.x,
                         lightY = light.y,
                         specular = style.specular,
@@ -202,7 +302,34 @@ expect object LiquidGlassSupport {
     val hasBackdropBlur: Boolean
 }
 
-/** Corner radii in px, in the order the shader expects: TL, TR, BR, BL. */
+/**
+ * Corner radii in px, in the order the shader expects: TL, TR, BR, BL.
+ *
+ * A [GlassSquircleShape] produces a generic path outline, so the platform reader cannot see its
+ * radii; it is intercepted here because a squircle *is* analytic — it is exactly what
+ * `uCornerPower` describes — and routing it through the sampled field would be slower and less
+ * exact for no reason.
+ */
+internal fun Shape.glassRadii(size: Size, layoutDirection: LayoutDirection, density: Density): FloatArray {
+    if (this is GlassSquircleShape) {
+        val r = with(density) { cornerRadius.toPx() }
+            .coerceAtMost(minOf(size.width, size.height) / 2f)
+        return floatArrayOf(r, r, r, r)
+    }
+    return cornerRadiiPx(size, layoutDirection, density)
+}
+
+/** True when the shape has no closed form and the shader has to read a measured field. */
+internal fun Shape.needsSampledField(
+    size: Size,
+    layoutDirection: LayoutDirection,
+    density: Density,
+): Boolean {
+    if (this is GlassSquircleShape) return false
+    if (size.width <= 0f || size.height <= 0f) return false
+    return createOutline(size, layoutDirection, density) is Outline.Generic
+}
+
 internal expect fun Shape.cornerRadiiPx(
     size: Size,
     layoutDirection: LayoutDirection,
@@ -225,6 +352,12 @@ internal data class GlassUniforms(
     val aberration: Float,
     val ior: Float,
     val bevelPower: Float,
+    val cornerPower: Float,
+    val shapeKind: Float,
+    val fieldRange: Float,
+    val fieldScale: Float,
+    /** The measured field, when the shape has no closed form. */
+    val field: androidx.compose.ui.graphics.ImageBitmap?,
     val mirror: Float,
     val fresnel: Float,
     val legibility: Float,
@@ -233,6 +366,12 @@ internal data class GlassUniforms(
     val backdrop: FloatArray,
     /** Opaque ground the recorded backdrop sits on, for the transparent parts of it. */
     val background: Color,
+    val touchX: Float,
+    val touchY: Float,
+    val touchAmount: Float,
+    val materialize: Float,
+    val frost: Float,
+    val contrast: Float,
     val lightX: Float,
     val lightY: Float,
     val specular: Float,
@@ -251,6 +390,13 @@ internal data class GlassUniforms(
             refractBand == other.refractBand && refractDepth == other.refractDepth &&
             aberration == other.aberration && backdrop.contentEquals(other.backdrop) &&
             ior == other.ior && bevelPower == other.bevelPower && mirror == other.mirror &&
+            cornerPower == other.cornerPower && shapeKind == other.shapeKind &&
+            fieldRange == other.fieldRange && fieldScale == other.fieldScale &&
+            field === other.field &&
+            touchX == other.touchX &&
+            touchY == other.touchY && touchAmount == other.touchAmount &&
+            materialize == other.materialize && frost == other.frost &&
+            contrast == other.contrast &&
             fresnel == other.fresnel && legibility == other.legibility &&
             background == other.background &&
             bevel == other.bevel && lightX == other.lightX && lightY == other.lightY &&
@@ -313,7 +459,12 @@ internal fun panelOffsetInSource(
 ): Offset? {
     if (source == null || panel == null) return null
     if (!source.isAttached || !panel.isAttached) return null
-    return source.localPositionOf(panel, Offset.Zero)
+    // includeMotionFrameOfReference matters more than it looks. Compose tags scroll offsets as
+    // a "motion frame of reference" and leaves them out by default, so without this the panel
+    // reports where it would be if the list had never scrolled — and every glass element samples
+    // a backdrop that slides out from under it as you scroll. It is invisible on a repetitive
+    // backdrop and catastrophic past the recorded height, where the sample region inverts.
+    return source.localPositionOf(panel, Offset.Zero, includeMotionFrameOfReference = true)
 }
 
 internal fun sampleBounds(
@@ -326,13 +477,35 @@ internal fun sampleBounds(
     val layerHeight = panelSize.height + pad * 2f
     val backdropLeft = pad - delta.x
     val backdropTop = pad - delta.y
-    return floatArrayOf(
-        maxOf(0f, backdropLeft) + 0.5f,
-        maxOf(0f, backdropTop) + 0.5f,
-        minOf(layerWidth, backdropLeft + sourceSize.width) - 0.5f,
-        minOf(layerHeight, backdropTop + sourceSize.height) - 0.5f,
-    )
+    val left = maxOf(0f, backdropLeft) + 0.5f
+    val top = maxOf(0f, backdropTop) + 0.5f
+    val right = minOf(layerWidth, backdropLeft + sourceSize.width) - 0.5f
+    val bottom = minOf(layerHeight, backdropTop + sourceSize.height) - 0.5f
+    // An element can sit entirely outside the recorded backdrop — see the note on
+    // `hasSampleRegion`. Returning an inverted rect would hand the shader a clamp whose min
+    // exceeds its max, which is undefined and reads on screen as a solid block of nothing.
+    return floatArrayOf(left, top, maxOf(left, right), maxOf(top, bottom))
 }
+
+/**
+ * Whether there is any recorded backdrop under this element at all.
+ *
+ * There is one arrangement where the answer is no: a glass element *inside* a scrolling
+ * container whose backdrop source is *outside* it. Compose applies that scroll offset when it
+ * draws rather than when it lays out, so every layout API — `positionInRoot`, `positionOnScreen`,
+ * `localPositionOf` with or without the motion frame of reference — reports the element's
+ * unscrolled position. The offset between the panel and the backdrop is therefore unknowable
+ * from public API, and once the element scrolls past the recorded height the sample region
+ * collapses entirely.
+ *
+ * The supported arrangement is the one the material is for and the one Apple describes: glass
+ * is chrome, and the backdrop is the content scrolling beneath it. Put `liquidGlassSource` on
+ * the scrolling body and the glass outside the scroll, or put both inside it so they share the
+ * frame. When neither holds, this returns false and the caller degrades to the flat fallback
+ * surface rather than drawing a hole.
+ */
+internal fun hasSampleRegion(bounds: FloatArray): Boolean =
+    bounds[2] - bounds[0] > 1f && bounds[3] - bounds[1] > 1f
 
 internal fun elementSizeFactor(size: Size, density: Density): Float {
     val minEdgeDp = with(density) { minOf(size.width, size.height).toDp().value }

@@ -3,6 +3,9 @@ package com.wexpa.liquidglass
 import android.graphics.RenderEffect
 import android.graphics.RuntimeShader
 import android.graphics.Shader
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.ImageShader
+import androidx.compose.ui.graphics.TileMode
 import android.os.Build
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.RoundRect
@@ -25,6 +28,11 @@ actual object LiquidGlassSupport {
  * only its uniforms change per frame. RuntimeShader is not thread-safe, but every caller here
  * is on the UI thread inside a draw pass.
  */
+/** One opaque pixel, so the `field` child is always bound even when nothing samples it. */
+private val placeholderFieldShader: android.graphics.Shader by lazy {
+    ImageShader(ImageBitmap(1, 1), TileMode.Clamp, TileMode.Clamp)
+}
+
 private val runtimeShader: RuntimeShader? by lazy {
     if (!LiquidGlassSupport.hasShaders) null
     else runCatching { RuntimeShader(GLASS_SHADER_SOURCE) }.getOrNull()
@@ -49,6 +57,20 @@ internal actual fun createGlassRenderEffect(
     shader.setFloatUniform("uAberration", uniforms.aberration)
     shader.setFloatUniform("uIor", uniforms.ior)
     shader.setFloatUniform("uBevelPower", uniforms.bevelPower)
+    shader.setFloatUniform("uCornerPower", uniforms.cornerPower)
+    shader.setFloatUniform("uShapeKind", uniforms.shapeKind)
+    shader.setFloatUniform("uFieldRange", uniforms.fieldRange)
+    shader.setFloatUniform("uFieldScale", uniforms.fieldScale)
+    // `field` has to be bound whether or not it is read: an unbound child shader is a link
+    // error, not a silent zero. The placeholder is one opaque pixel and costs nothing.
+    shader.setInputShader("field", uniforms.field?.let { bitmap ->
+        ImageShader(bitmap, TileMode.Clamp, TileMode.Clamp)
+    } ?: placeholderFieldShader)
+    shader.setFloatUniform("uTouch", uniforms.touchX, uniforms.touchY)
+    shader.setFloatUniform("uTouchAmt", uniforms.touchAmount)
+    shader.setFloatUniform("uMaterialize", uniforms.materialize)
+    shader.setFloatUniform("uFrost", uniforms.frost)
+    shader.setFloatUniform("uContrast", uniforms.contrast)
     shader.setFloatUniform("uMirror", uniforms.mirror)
     shader.setFloatUniform("uFresnel", uniforms.fresnel)
     shader.setFloatUniform("uLegibility", uniforms.legibility)
@@ -141,6 +163,9 @@ internal actual fun createGlassContainerRenderEffect(
     shader.setFloatUniform("uRadius", uniforms.radii)
     shader.setFloatUniform("uCount", uniforms.count)
     shader.setFloatUniform("uMerge", uniforms.merge)
+    shader.setFloatUniform("uIor", uniforms.ior)
+    shader.setFloatUniform("uBevelPower", uniforms.bevelPower)
+    shader.setFloatUniform("uFresnel", uniforms.fresnel)
     shader.setFloatUniform("uPad", uniforms.pad)
     shader.setFloatUniform("uAberration", uniforms.aberration)
     shader.setFloatUniform("uBlur", uniforms.blurRadius)

@@ -34,7 +34,8 @@ class GlassShaderTest {
 
         val setByHost = setOf(
             "uSize", "uRadii", "uRefractBand", "uBackdrop", "uAberration", "uBase", "uBlur", "uIor", "uBevelPower", "uMirror",
-            "uFresnel", "uLegibility", "uRefractDepth", "uBevel",
+            "uFresnel", "uLegibility", "uCornerPower", "uTouch", "uTouchAmt",
+            "uMaterialize", "uFrost", "uContrast", "uShapeKind", "uFieldRange", "uFieldScale", "uRefractDepth", "uBevel",
             "uLight", "uSpecular", "uSpecularPow", "uTint", "uInnerShadow", "uAdaptive",
             "uPad", "uScale", "uFlip",
         )
@@ -43,7 +44,7 @@ class GlassShaderTest {
         assertTrue(missing.isEmpty(), "host sets uniforms the shader does not declare: $missing")
 
         // `content` is bound as the input shader rather than as a float uniform.
-        val unset = declared - setByHost - setOf("content")
+        val unset = declared - setByHost - setOf("content", "field")
         assertTrue(unset.isEmpty(), "shader declares uniforms nothing sets: $unset")
     }
 }
@@ -55,6 +56,33 @@ class GlassContainerShaderTest {
     fun testContainerShaderCompiles() {
         val effect = RuntimeEffect.makeForShader(GLASS_CONTAINER_SHADER_SOURCE)
         assertNotNull(effect, "GLASS_CONTAINER_SHADER_SOURCE failed to compile")
+    }
+
+    @Test
+    fun testEveryUniformTheContainerShaderDeclaresIsSetByTheHost() {
+        // The panel shader has had this check since it was written; the container did not, and
+        // it cost three uniforms. uIor in particular reads as zero, which makes the exact-Snell
+        // deviation evaluate to zero, which silently removes *all* refraction from a fused body
+        // while leaving its geometry and lighting intact — so it still looks like a material,
+        // just a flat one. Both shaders are checked now.
+        val declared = Regex("""uniform\s+\w+\s+(\w+)""")
+            .findAll(GLASS_CONTAINER_SHADER_SOURCE)
+            .map { it.groupValues[1] }
+            .filter { it.startsWith("u") }
+            .toSet()
+
+        val setByHost = setOf(
+            "uSize", "uPad", "uBackdrop", "uBase", "uRect", "uRadius", "uCount", "uMerge",
+            "uRefractBand", "uRefractDepth", "uAberration", "uIor", "uBevelPower", "uBlur",
+            "uBevel", "uLight", "uSpecular", "uSpecularPow", "uFresnel", "uTint",
+            "uInnerShadow", "uAdaptive",
+        )
+
+        val unset = declared - setByHost
+        assertTrue(unset.isEmpty(), "container shader declares uniforms nothing sets: $unset")
+
+        val missing = setByHost - declared
+        assertTrue(missing.isEmpty(), "host sets container uniforms the shader lacks: $missing")
     }
 
     @Test

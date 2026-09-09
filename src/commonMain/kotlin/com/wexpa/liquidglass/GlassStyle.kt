@@ -52,6 +52,15 @@ data class GlassStyle(
     /** Superellipse bevel exponent: 2 is a true circular arc, 4 the squircle-matched profile. */
     val bevelPower: Float = 2f,
     /**
+     * Corner exponent of the *outline*, distinct from [bevelPower], which shapes the bevel.
+     *
+     * 2 is the circular arc `RoundedCornerShape` draws. 4 is the superellipse Apple actually
+     * uses, and if the element is clipped to a matching [GlassSquircleShape] the material and
+     * the clip agree; with a plain rounded rect the corner will read slightly fuller than the
+     * clip, which is why this is not 4 by default.
+     */
+    val cornerPower: Float = 2f,
+    /**
      * How far red and blue split from green at the rim, as a fraction of the displacement.
      * Faint on purpose: real UI glass shows almost no prismatic fringe, and past a few percent
      * this stops reading as glass and starts reading as a broken colour channel.

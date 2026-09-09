@@ -31,6 +31,7 @@ package com.wexpa.liquidglass
  */
 internal const val GLASS_SHADER_SOURCE = """
 uniform shader content;        // padded backdrop, opaque by construction, unblurred
+uniform shader field;          // sampled distance field, used only when uShapeKind is 1
 
 uniform float2  uSize;         // panel size, px (not counting padding)
 uniform float   uPad;          // px of backdrop recorded beyond each edge
@@ -41,7 +42,11 @@ uniform float4  uRadii;        // corner radii: top-left, top-right, bottom-righ
 uniform float   uRefractBand;  // px from the rim over which refraction acts
 uniform float   uRefractDepth; // px of displacement at the rim
 uniform float   uIor;          // index of refraction; shapes the falloff, not its magnitude
-uniform float   uBevelPower;   // superellipse exponent: 2 a circular arc, 4 squircle-matched
+uniform float   uBevelPower;   // bevel profile exponent: 2 a circular arc, 4 squircle-matched
+uniform float   uCornerPower;  // OUTLINE corner exponent: 2 a circular arc, 4 an Apple squircle
+uniform float   uShapeKind;    // 0 analytic rounded rect, 1 sampled field
+uniform float   uFieldRange;   // px the sampled field's 0..1 range spans, centred on zero
+uniform float   uFieldScale;   // layer px -> field texel; the field is stored downscaled
 uniform float   uAberration;   // per-channel split as a fraction of the displacement
 uniform float   uMirror;       // amplitude of the mirrored edge band
 uniform float   uBlur;         // px radius of the interior scatter, tapering to 0 at the rim
@@ -59,12 +64,35 @@ uniform float   uLegibility;   // how far local backdrop contrast raises tint st
 uniform float   uScale;        // element-size factor: 0 small and clear, 1 large and opaque
 uniform float   uFlip;         // whole-element light/dark inversion, 0..1, decided by the host
 
+uniform float2  uTouch;        // touch point in panel-local px
+uniform float   uTouchAmt;     // press amount, 0..1
+uniform float   uMaterialize;  // 0 the shader is a pass-through of the backdrop, 1 full material
+uniform float   uFrost;        // Reduce Transparency, 0..1
+uniform float   uContrast;     // Increase Contrast, 0..1
+
+// The Ln norm. At n = 2 this is `length`, so the rounded rect below is bit-identical to a
+// circular-cornered one; at n = 4 the corner becomes the superellipse Apple actually uses.
+float lnNorm(float2 v, float n) {
+    if (n <= 2.001 && n >= 1.999) {
+        return length(v);
+    }
+    return pow(pow(v.x, n) + pow(v.y, n), 1.0 / n);
+}
+
+// A rounded rectangle whose corners are Lame curves rather than circular arcs.
+//
+// Apple's shapes are squircles, and Compose's RoundedCornerShape is a circular arc, so a
+// panel drawn with the platform shape and lit by a circular-corner field is subtly wrong at
+// exactly the place the eye checks. Swapping the corner's L2 norm for an Ln one fixes the
+// outline without changing anything else; the field is no longer a true Euclidean distance in
+// the corner, but its zero set is exact and its gradient points the right way, which is all
+// the refraction and the lighting read from it.
 float sdRoundRect(float2 p, float2 halfSize, float4 r) {
     float2 rr = (p.x > 0.0) ? r.yz : r.xw;
     float radius = (p.y > 0.0) ? rr.y : rr.x;
     radius = min(radius, min(halfSize.x, halfSize.y));
     float2 q = abs(p) - halfSize + radius;
-    return min(max(q.x, q.y), 0.0) + length(max(q, float2(0.0))) - radius;
+    return min(max(q.x, q.y), 0.0) + lnNorm(max(q, float2(0.0)), uCornerPower) - radius;
 }
 
 // One backdrop sample, bounded by the region that actually holds recorded pixels.
@@ -73,6 +101,25 @@ float sdRoundRect(float2 p, float2 halfSize, float4 r) {
 // construction and any alpha shortfall here is filtering error at its own boundary rather than
 // real transparency. Dividing it out reconstructs the colour; compositing toward the ground
 // instead paints a halo of the ground colour around every panel.
+// The shape, as a signed distance in px: negative inside, zero on the outline.
+//
+// Rectangles, rounded rectangles, capsules, circles and squircles all have a closed form and
+// are evaluated directly. Anything else - a star, a blob, a hand-drawn GenericShape - has no
+// closed form, so the host rasterises it once and measures it, and this reads the measurement.
+// The two paths are interchangeable from here on: everything downstream asks the same two
+// questions of whichever one is in play.
+float sdShape(float2 p, float2 halfSize) {
+    if (uShapeKind < 0.5) {
+        return sdRoundRect(p, halfSize, uRadii);
+    }
+    // Field coordinates are the padded layer's, so undo the centring the caller applied — and
+    // then scale into the field's own resolution, which is lower than the layer's because a
+    // distance field is smooth and bilinear sampling puts back more than the halving takes out.
+    float2 layerCoord = (p + halfSize + float2(uPad)) * uFieldScale;
+    float stored = float(field.eval(layerCoord).r);
+    return (stored - 0.5) * 2.0 * uFieldRange;
+}
+
 half3 backdropAt(float2 p) {
     float2 q = clamp(p, uBackdrop.xy, uBackdrop.zw);
     half4 c = content.eval(q);
@@ -173,7 +220,7 @@ half4 main(float2 coord) {
     float2 halfSize = uSize * 0.5;
     float2 p = local - halfSize;
 
-    float d = sdRoundRect(p, halfSize, uRadii);
+    float d = sdShape(p, halfSize);
     float coverage = 1.0 - smoothstep(-0.75, 0.75, d);
     if (coverage <= 0.0) {
         return half4(0.0);
@@ -190,8 +237,8 @@ half4 main(float2 coord) {
     float2 ex = float2(eps, 0.0);
     float2 ey = float2(0.0, eps);
     float2 g = float2(
-        sdRoundRect(p + ex, halfSize, uRadii) - sdRoundRect(p - ex, halfSize, uRadii),
-        sdRoundRect(p + ey, halfSize, uRadii) - sdRoundRect(p - ey, halfSize, uRadii));
+        sdShape(p + ex, halfSize) - sdShape(p - ex, halfSize),
+        sdShape(p + ey, halfSize) - sdShape(p - ey, halfSize));
     float gLen = length(g);
     float2 n = g / max(gLen, 1e-5);
     float axisFade = smoothstep(0.15, 0.80, gLen / (2.0 * eps));
@@ -209,7 +256,19 @@ half4 main(float2 coord) {
     bend *= smoothstep(1.0, 0.75, e) * axisFade * smoothstep(0.0, 1.5, depth);
     bend = clamp(bend, 0.0, 1.0);
 
-    float lens = uRefractDepth * mix(0.85, 1.25, scale);
+    float mat = clamp(uMaterialize, 0.0, 1.0);
+    float lens = uRefractDepth * mix(0.85, 1.25, scale) * mat;
+
+    // The touch magnifier. Apple describes the material moving in tandem with the interaction
+    // and illuminating from within, starting under the fingertip; this is the optical half of
+    // that — the backdrop swells slightly toward the finger. A Gaussian of sigma = the panel's
+    // short edge, so a press near one end still lifts the far end a little, which is what lets
+    // a press on one member of a container light its neighbours with no extra term.
+    float2 touchDelta = local - uTouch;
+    float touchSigma = max(min(uSize.x, uSize.y), 1.0);
+    float touchFall = exp(-dot(touchDelta, touchDelta) / (touchSigma * touchSigma))
+        * clamp(uTouchAmt, 0.0, 1.0);
+    float2 base = coord - touchDelta * (touchFall * 0.17);
 
     // Sampling outward pulls the surroundings inward and compresses them into the rim band.
     // That is the only direction consistent with sampling "an area larger than itself", and it
@@ -221,13 +280,13 @@ half4 main(float2 coord) {
     // colour channel.
     float split = uAberration * bend;
     half3 sharp = half3(
-        backdropAt(coord + push * (1.0 - split)).r,
-        backdropAt(coord + push).g,
-        backdropAt(coord + push * (1.0 + split)).b);
+        backdropAt(base + push * (1.0 - split)).r,
+        backdropAt(base + push).g,
+        backdropAt(base + push * (1.0 + split)).b);
 
     // Scatter, keyed to distance from the edge. Squared, so the crisp compressed image stays
     // tight against the rim while the displacement itself still spans the whole band.
-    half3 soft = blurredAt(coord + push, uBlur * e, tapRotation(coord));
+    half3 soft = blurredAt(base + push, uBlur * mat * e, tapRotation(coord));
     float rimSharp = (1.0 - e) * (1.0 - e);
     half3 bg = mix(soft, sharp, half(rimSharp));
 
@@ -236,8 +295,8 @@ half4 main(float2 coord) {
     float mirrorWidth = max(14.0, min(halfSize.x, halfSize.y) * 0.7);
     float mirrorBand = 1.0 - clamp(depth / mirrorWidth, 0.0, 1.0);
     float mirrorMask = mirrorBand * mirrorBand * axisFade * smoothstep(0.0, 1.5, depth);
-    half3 echo = backdropAt(coord - n * (mirrorMask * lens * 3.0));
-    bg = mix(bg, echo, half(clamp(mirrorMask * uMirror, 0.0, 1.0)));
+    half3 echo = backdropAt(base - n * (mirrorMask * lens * 3.0));
+    bg = mix(bg, echo, half(clamp(mirrorMask * uMirror * mat, 0.0, 1.0)));
 
     float bgLuma = luma(bg);
 
@@ -251,8 +310,13 @@ half4 main(float2 coord) {
 
     // Larger elements sit a little more opaque. Kept gentle: the material has to stay
     // transparent enough that the refracted detail survives, which is the whole point.
-    float strength = uTint.a * mix(0.9, 1.25, scale);
-    strength = clamp(strength + contrast * uLegibility * 0.25, 0.0, 1.0);
+    // Reduce Transparency has no Android setting behind it, so uFrost is whatever in-app
+    // control the app exposes. It raises opacity rather than disabling the material, which
+    // keeps the shape and the lighting intact for anyone who still wants to see the edges.
+    float strength = uTint.a * mix(0.9, 1.25, scale)
+        + contrast * uLegibility * 0.25
+        + clamp(uFrost, 0.0, 1.0) * 0.35;
+    strength = clamp(strength * mat, 0.0, 0.95);
     half3 col = mix(bg, tinted, half(strength));
 
     float facing = dot(n, uLight);
@@ -261,7 +325,7 @@ half4 main(float2 coord) {
     // The faint dark line that reads as thickness, sitting just inside the bevel rather than on
     // the rim. Deliberately weak — see note 5 about outlines.
     float innerLine = max(smoothstep(uBevel * 2.2, 0.0, depth) - bevelBand, 0.0);
-    col -= half3(half(innerLine * uInnerShadow * mix(0.9, 1.15, scale)));
+    col -= half3(half(innerLine * uInnerShadow * mix(0.9, 1.15, scale) * mat));
 
     // Schlick, using the same bevel slope the refraction used, so the rim brightens where it
     // turns away from the viewer. It stands in for an environment we do not have.
@@ -279,8 +343,20 @@ half4 main(float2 coord) {
     float edge = smoothstep(2.0, 0.0, depth);
     float edgeLine = edge * (0.07 + 0.5 * max(facing, 0.0));
 
-    col += half3(half((key + counter + edgeLine) * uSpecular
-        + fresnel * uFresnel * bevelBand));
+    col += half3(half(((key + counter + edgeLine) * uSpecular
+        + fresnel * uFresnel * bevelBand) * mat));
+
+    // Illumination from within, under the fingertip. A sixth of a stop at the peak: measured
+    // against a device, where anything near 0.2 reads as a camera flash rather than as glass
+    // responding to a touch.
+    col += half3(half(touchFall * 0.06 * mat));
+
+    // Increase Contrast: Apple's guidance is that the material becomes predominantly black or
+    // white with a contrasting border, rather than losing the effect entirely.
+    float contrastBoost = clamp(uContrast, 0.0, 1.0);
+    half3 solid = (bgLuma > 0.5) ? half3(0.02) : half3(0.97);
+    col = mix(col, solid, half(contrastBoost * 0.88));
+    col += half3(half(contrastBoost * edge * ((bgLuma > 0.5) ? 0.85 : -0.85)));
 
     return half4(clamp(col, half3(0.0), half3(1.0)), 1.0) * half(coverage);
 }

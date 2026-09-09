@@ -1,6 +1,7 @@
 package com.wexpa.liquidglass
 
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.asSkiaBitmap
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Shape
@@ -16,6 +17,20 @@ actual object LiquidGlassSupport {
     /** Desktop renders through Skia, which runs SkSL everywhere. */
     actual val hasShaders: Boolean = true
     actual val hasBackdropBlur: Boolean = true
+}
+
+/** One opaque pixel, so the `field` child is always bound even when nothing samples it. */
+private val placeholderFieldShader: org.jetbrains.skia.Shader by lazy {
+    org.jetbrains.skia.Image.makeRaster(
+        org.jetbrains.skia.ImageInfo(
+            1,
+            1,
+            org.jetbrains.skia.ColorType.RGBA_8888,
+            org.jetbrains.skia.ColorAlphaType.UNPREMUL,
+        ),
+        byteArrayOf(0, 0, 0, -1),
+        4,
+    ).makeShader(FilterTileMode.CLAMP, FilterTileMode.CLAMP)
 }
 
 private val runtimeEffect: RuntimeEffect? by lazy {
@@ -41,6 +56,20 @@ internal actual fun createGlassRenderEffect(
     builder.uniform("uAberration", uniforms.aberration)
     builder.uniform("uIor", uniforms.ior)
     builder.uniform("uBevelPower", uniforms.bevelPower)
+    builder.uniform("uCornerPower", uniforms.cornerPower)
+    builder.uniform("uShapeKind", uniforms.shapeKind)
+    builder.uniform("uFieldRange", uniforms.fieldRange)
+    builder.uniform("uFieldScale", uniforms.fieldScale)
+    // See the Android actual: the child must be bound even when unread.
+    builder.child("field", uniforms.field?.let { bitmap ->
+        org.jetbrains.skia.Image.makeFromBitmap(bitmap.asSkiaBitmap())
+            .makeShader(FilterTileMode.CLAMP, FilterTileMode.CLAMP)
+    } ?: placeholderFieldShader)
+    builder.uniform("uTouch", uniforms.touchX, uniforms.touchY)
+    builder.uniform("uTouchAmt", uniforms.touchAmount)
+    builder.uniform("uMaterialize", uniforms.materialize)
+    builder.uniform("uFrost", uniforms.frost)
+    builder.uniform("uContrast", uniforms.contrast)
     builder.uniform("uMirror", uniforms.mirror)
     builder.uniform("uFresnel", uniforms.fresnel)
     builder.uniform("uLegibility", uniforms.legibility)
@@ -126,6 +155,9 @@ internal actual fun createGlassContainerRenderEffect(
     builder.uniform("uRadius", uniforms.radii)
     builder.uniform("uCount", uniforms.count)
     builder.uniform("uMerge", uniforms.merge)
+    builder.uniform("uIor", uniforms.ior)
+    builder.uniform("uBevelPower", uniforms.bevelPower)
+    builder.uniform("uFresnel", uniforms.fresnel)
     builder.uniform("uPad", uniforms.pad)
     builder.uniform("uAberration", uniforms.aberration)
     builder.uniform("uBlur", uniforms.blurRadius)

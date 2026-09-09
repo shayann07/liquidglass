@@ -101,12 +101,17 @@ fun LiquidGlassContainer(
                 ) {
                     val pad = style.refractionDepth.toPx() * 1.4f +
                     maxOf(style.blurRadius.toPx(), style.backdropBlur.toPx())
+                    val bounds = sampleBounds(pad, delta, size, state.sourceSize)
+                    if (!hasSampleRegion(bounds)) {
+                        drawContent()
+                        return@drawWithContent
+                    }
                     val effect = createGlassContainerRenderEffect(
                         GlassContainerUniforms(
                             width = size.width,
                             height = size.height,
                             pad = pad,
-                            backdrop = sampleBounds(pad, delta, size, state.sourceSize),
+                            backdrop = bounds,
                             background = state.background,
                             rects = FloatArray(MAX_GLASS_MEMBERS * 4).also { out ->
                                 active.take(MAX_GLASS_MEMBERS).forEachIndexed { i, m ->
