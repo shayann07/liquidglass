@@ -101,16 +101,6 @@ fun GlassGallery(modifier: Modifier = Modifier) {
                 )
 
                 Spacer(Modifier.height(4.dp))
-                Label("Slider - the knob is glass only while you drag it", size = 13)
-                var sliderValue by remember { mutableStateOf(0.38f) }
-                GlassSlider(
-                    state = glass,
-                    value = sliderValue,
-                    onValueChange = { sliderValue = it },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-
-                Spacer(Modifier.height(4.dp))
                 Label("Container - members fusing", size = 13)
                 LiquidGlassContainer(
                     state = glass,
