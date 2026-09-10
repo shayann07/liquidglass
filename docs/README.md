@@ -19,6 +19,7 @@ change the optics, read [How it works](how-it-works.md) and then
 | [How it works](how-it-works.md) | The optical model, layer by layer, and why each part is there. |
 | [Performance](performance.md) | What it costs, measured, and what to do if it costs too much. |
 | [Limitations](limitations.md) | What it cannot do. Read before promising anyone parity with iOS. |
+| [API reference](api-reference.md) | Every public symbol, with signatures. |
 
 ## Reference
 
