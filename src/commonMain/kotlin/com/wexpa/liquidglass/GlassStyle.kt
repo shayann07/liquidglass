@@ -148,6 +148,13 @@ data class GlassStyle(
      * a stroke someone drew rather than as an image being squeezed. A little smearing turns that
      * line into the short gradient the reference shows. Costs three backdrop samples per channel
      * inside the band instead of one, so it is off by default.
+     *
+     * **Use it sparingly, and watch what it costs.** The rim being *legible* is the most
+     * recognisable property of this material: it shows a compressed but readable image of what
+     * lies just outside. Softening trades exactly that away. Around 2-3 dp takes the hard line
+     * off a boundary while leaving text in the band readable; by 7 dp the band is a smooth
+     * gradient and the detail in it is gone, which is a different material rather than a better
+     * one.
      */
     val rimSoftness: Dp = 0.dp,
     /**
