@@ -62,7 +62,7 @@ done, it belongs behind a knob defaulting to the current behaviour, the way `edg
 ## P2 — reach, which is the real gap
 
 **Consumable: done.** The library is its own repository, with the app it was built for consuming
-it as `com.wexpa.liquidglass:liquidglass:0.1.0` from a Maven repository rather than as a module.
+it as `dev.shayxo.liquidglass:liquidglass:0.1.0` from a Maven repository rather than as a module.
 Android and JVM variants, Gradle module metadata, sources jars and a POM, under Apache-2.0; the
 licence is the canonical text and the README carries a statement of non-affiliation. Maven
 Central publishing is wired through the Central Portal and a tag-driven workflow

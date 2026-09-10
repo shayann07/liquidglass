@@ -4,7 +4,7 @@
 
 ```kotlin
 // your module's build.gradle.kts — commonMain for a multiplatform module
-implementation("com.wexpa.liquidglass:liquidglass:0.1.0")
+implementation("dev.shayxo.liquidglass:liquidglass:0.1.0")
 ```
 
 It is a Kotlin Multiplatform module with Android and desktop JVM variants; Gradle picks the one
@@ -26,7 +26,7 @@ and let your project see the local repository, restricted to this one group so n
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
-        mavenLocal { content { includeGroup("com.wexpa.liquidglass") } }
+        mavenLocal { content { includeGroup("dev.shayxo.liquidglass") } }
     }
 }
 ```

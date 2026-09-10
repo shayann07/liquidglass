@@ -3,7 +3,7 @@
 Maintainer notes. Consumers only need the coordinates:
 
 ```kotlin
-implementation("com.wexpa.liquidglass:liquidglass:0.1.0")
+implementation("dev.shayxo.liquidglass:liquidglass:0.1.0")
 ```
 
 ## Coordinates
@@ -19,13 +19,13 @@ and `liquidglass-jvm`. A consumer declares the root and Gradle picks the variant
 ./gradlew publishToMavenLocal
 ```
 
-puts every artifact in `~/.m2/repository/com/wexpa/liquidglass/`. A consuming project adds
+puts every artifact in `~/.m2/repository/dev/shayxo/liquidglass/`. A consuming project adds
 `mavenLocal()` to its repositories, restricted to this group so that a stale `~/.m2` cannot
 shadow anything else:
 
 ```kotlin
 // settings.gradle.kts, dependencyResolutionManagement.repositories
-mavenLocal { content { includeGroup("com.wexpa.liquidglass") } }
+mavenLocal { content { includeGroup("dev.shayxo.liquidglass") } }
 ```
 
 No signing key is needed for this. Signing switches on only when a key is present.
@@ -38,11 +38,14 @@ Publishing goes through Sonatype's Central Portal, via the
 ### Once
 
 1. **An account** at [central.sonatype.com](https://central.sonatype.com).
-2. **A verified namespace.** The group is `com.wexpa.liquidglass`, which needs ownership of
-   `wexpa.com` proven with a DNS TXT record the portal gives you. If that is not possible, the
-   namespace `io.github.shayann07` verifies automatically against a GitHub repository, and the
-   group becomes `io.github.shayann07.liquidglass`, a one-line change to `GROUP`. Decide this
-   before the first release; a group cannot be renamed afterwards without orphaning consumers.
+2. **A verified namespace.** The group is `dev.shayxo.liquidglass`, under the namespace
+   `dev.shayxo`, which is verified once by proving ownership of `shayxo.dev`: in the portal,
+   Namespaces, Add Namespace, enter `dev.shayxo`; it hands you a verification key to publish as
+   a DNS TXT record on the apex domain, then a Verify button. Every group under a verified
+   namespace is covered, so future artifacts need nothing more. The Kotlin package remains
+   `com.wexpa.liquidglass`; Central checks the group, not the package. A group cannot be
+   renamed after the first release without orphaning consumers, which is why this was settled
+   first.
 3. **A user token** from the portal (Account, then Generate User Token). This is the username
    and password the plugin uses, not the account login.
 4. **A GPG key.** `gpg --full-generate-key`, then publish it:

@@ -8,13 +8,13 @@ Runs on Android 13+ (AGSL) and Desktop/JVM (Skia). Below Android 13 it degrades 
 surface with the same rim lighting — a plainer material, not a broken one.
 
 ```kotlin
-implementation("com.wexpa.liquidglass:liquidglass:0.1.0")
+implementation("dev.shayxo.liquidglass:liquidglass:0.1.0")
 ```
 
 Published to Maven Central for Android and desktop JVM; a Kotlin Multiplatform module, so one
 dependency line in `commonMain` resolves the right variant for each target. Until the first
 release lands there, `./gradlew publishToMavenLocal` in a clone produces the same artifacts, and
-a project consumes them by adding `mavenLocal { content { includeGroup("com.wexpa.liquidglass") } }`
+a project consumes them by adding `mavenLocal { content { includeGroup("dev.shayxo.liquidglass") } }`
 to its repositories. See [Getting started](docs/getting-started.md).
 
 The `sample/` app is the material on a phone: `./gradlew :sample:installDebug`.
