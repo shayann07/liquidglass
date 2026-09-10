@@ -143,6 +143,37 @@ data class GlassTabBarStyle(
 `Dark` is the measured preset. `RestingInset` and `HeldLens` are the two materials the indicator
 morphs between, exposed so a host can start from them.
 
+### `GlassSlider`
+
+```kotlin
+@Composable
+fun GlassSlider(
+    state: LiquidGlassState,
+    value: Float,
+    onValueChange: (Float) -> Unit,
+    modifier: Modifier = Modifier,
+    style: GlassSliderStyle = GlassSliderStyle.Dark,
+    valueRange: ClosedFloatingPointRange<Float> = 0f..1f,
+    motionEnabled: Boolean = true,
+    materialize: Float = 1f,
+)
+```
+
+A slider whose knob is a plain shape at rest and Liquid Glass for the duration of the drag. Apple
+names sliders as the canonical case of that rule, and it is the same rule `GlassTabBar`'s
+indicator follows, implemented the same way: the knob's style is a morph between
+`GlassSliderStyle.knobRest` and `knobHeld`.
+
+The knob looks **through** the track rather than past it, using the same mechanism as the tab
+bar's lens, so pressing it shows the track's own edges bending inside the knob instead of
+punching a clear hole down to the app's content. It does not scale on press. It elongates along
+the direction of travel in proportion to speed and relaxes back, which is Apple's "preserve
+momentum and stretch".
+
+`GlassSliderStyle` carries `track`, `knobRest`, `knobHeld`, `trackHeight`, `knobSize`, `fill`,
+the `form`/`subside`/`settle` springs, and the `gel`/`gelReference`/`gelSpring` triple that
+governs the stretch. Presets: `KnobRest`, `KnobHeld`, and `Dark`.
+
 ---
 
 ## Styles

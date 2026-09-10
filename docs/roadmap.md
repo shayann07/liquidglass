@@ -16,77 +16,84 @@ none of the rest matters.
 
 ## P0 — a defect two independent measurements agree on
 
-**Remove the direction-independent floor in the edge line.** Our edge line is
-`edge * (0.07 + 0.5 * directional)`. That 0.07 draws a faint bright ring all the way round,
-including the sides, where the normal is perpendicular to the light and nothing should be lit.
-Our own measurement says the reference lens has a line at top and bottom and *nothing but a
-one-pixel dark step* at the sides. QWEA0's per-angle reading of the iOS 26 Control Center says
-the same thing and their shader has no such term by design.
+**Done.** The direction-independent floor is gone from the edge line, which is now entirely
+directional, and `GlassStyle.edgeShadow` draws the dark contour that defines a shape where
+nothing is lit. Measured back on device: the lens's side rim reads a dark step at 21 against an
+interior of 42, where the reference reads 24 against 41. `edgeLight` rose 1.14x on the two
+affected presets to hold the lit line where it already measured correctly.
 
-It is one constant. The work is not the edit, it is re-tuning `edgeLight` on the four presets
-that were fitted with the floor present, then re-measuring the bar and lens on device. Do this
-first, because every later measurement inherits it.
+Two faults surfaced doing it, both now lessons. A contour drawn on the outermost pixel is
+invisible over a dark ground, because coverage there is partial and the result is composited
+against whatever lies outside; it has to sit inside the ramp. And the device harness was reading
+the bar's edge rather than the lens's, because difference-based detection spans the whole bar
+when every icon recolours on press.
 
 ## P1 — take what the competition proved
 
-**Adopt Haze's dome field for elongated shapes.** Our answer to the medial-axis collapse in a
-capsule is a wide-epsilon gradient plus a confidence fade toward the axis, which costs
-refraction strength down the spine of every pill. Haze blends the distance field into a dome
-field built from a smooth rectangular radius, zero at the centre and one on every edge, with a
-closed-form gradient. No seam, no fade, full strength. Gate it the way they do, on aspect ratio
-past 1.5 and on the band approaching the inradius, so nothing square changes.
+**The analytic gradient: done.** For a closed-form shape whose refraction band stops short of
+the medial axis — which is the common case and both of our own presets — the surface normal now
+has a closed form, saving four field evaluations per pixel. The wide central difference stays
+for sampled paths and for bands that do reach the axis, because that is the only case its width
+was ever for. Frame cost on the tab bar fell from 14ms to 13ms at p50 and 32ms to 29ms at p99,
+with every measured parity number unchanged.
 
-**Add Kyant0's analytic gradient as a fast path.** For a rounded rectangle the surface normal
-has a closed form and we are spending four field evaluations per pixel to central-difference it.
-Keep the difference for arbitrary paths, branch to the closed form for corner-based shapes, and
-take their trick of evaluating it against an inflated corner radius capped at the half-size,
-which smooths the direction discontinuity where the flat run meets the corner.
+**The fingertip bulge: already present, and this item was an error.** The roadmap asked for
+something the shader has had all along — `touchFall` displaces sampling toward the finger, on a
+Gaussian whose sigma is the panel's short edge. The only real difference from QWEA0's is that
+theirs is tighter and ours is deliberately broad, so a press on one member of a container lifts
+its neighbours. Nothing to do.
 
-**Add a local bulge under the fingertip.** A Gaussian centred on the touch point that pulls
-sampling toward the finger, on top of the rim refraction. We already track the touch for
-illumination; this displaces there too. QWEA0 does it in about six lines and it is the single
-most alive-looking thing in their demo.
+**The dome field: deferred, with a measurement.** Haze replaces the distance field with a dome
+field for elongated shapes, which is a cleaner answer to the medial-axis collapse than our
+confidence fade. It engages only when the refraction band reaches the inradius, and a rendered
+test at exactly that worst case now shows no seam with what we already have: the row on the axis
+sits within 12 counts of its neighbours over a hard vertical stripe pattern. Our presets are
+nowhere near that regime — a band of 42px against an inradius of 108 on the bar. The open
+question is not the seam but how much refraction strength the fade costs down the spine of a
+very wide pill, and that is worth measuring before adding a second field.
 
-**Model tint as absorption plus scattering.** We mix toward the tint, which flattens the
-backdrop's own light and shade. Multiplying by the tint preserves that structure; a small
-additive term scaled by how dark the backdrop is keeps the hue readable over black. This is a
-better model than a tone-mapped mix and it is a contained change.
+**The tint model: deferred, deliberately.** QWEA0 multiplies by the tint and adds a scattering
+term, which preserves the backdrop's own light and shade where a lerp flattens it. Ours is a
+lerp toward a tone-mapped colour — but its strength is *fitted to measurement*: 0.36 is the
+value that both lifts pure black by 20 and passes 64% of white text, the two-measurement fit
+that pins the material. Swapping the model would break that fit for a theoretical gain. If it is
+done, it belongs behind a knob defaulting to the current behaviour, the way `edgeShadow` was.
 
 ## P2 — reach, which is the real gap
 
-**Ship iOS, macOS, web and desktop targets.** We build for Android and JVM. Kyant0 covers
-Android, desktop, JS, Wasm, macOS ARM and iOS. Haze covers all of that plus the Intel variants.
-Our desktop path already runs the same shader through Skia, so most of the work is source-set
-plumbing and a Skia-backed backdrop capture per target. Note that Compose Multiplatform 1.11
-turned the non-Android shader type into a Compose wrapper rather than a raw Skia type; our
-desktop sources import Skia directly today, which compiles on 1.12 but is the first thing that
-will bite when the target list grows.
+**Consumable: done.** The module publishes as `com.wexpa.liquidglass:liquidglass:0.1.0`, with
+Android and JVM variants, Gradle module metadata, sources jars and a POM, under Apache-2.0. The
+licence is the canonical text, and the README carries a statement of non-affiliation. The
+artifact id is the plain descriptive one for now; if this ever takes a product name of its own,
+that is a one-line change in `build.gradle.kts` before the first public publish.
 
-**Make it consumable.** There is no license file, no group coordinate, no version and no
-publishing plugin in the module. Nothing can be depended on. Pick a distinctive artifact name,
-add a license, and publish to Maven Central.
+**Targets: blocked on hardware, not on design.** Kotlin/Native cannot build iOS or macOS targets
+from Windows, so adding them here would mean shipping code nobody has compiled. The desktop path
+already runs the same shader through Skia, so the work when a Mac is available is mostly source
+set plumbing: rename `jvmMain` to a shared Skia source set and let the native and web targets
+depend on it. Two things to know before starting. Compose Multiplatform 1.11 turned the
+non-Android shader into a Compose wrapper type rather than a raw Skia one, and our desktop
+sources import Skia directly today. And the web targets *can* be built from here, so they are
+the sensible first move.
 
-**Adopt the platform backdrop behind a flag.** Android 17 QPR2 makes public a render node method
-that applies an effect to the pixels already drawn behind a node. It is a correct backdrop with
-no capture cost, it does no optics, and it cannot cross a dialog or popup boundary. Haze already
-wires it in behind a feature flag with a capture fallback. Do the same. When it is widespread,
-backdrop capture stops being anyone's advantage, which is an argument for getting our optics
-lead documented before then rather than after.
+**The platform backdrop: not started.** Android 17 QPR2 makes public a render node method that
+applies an effect to the pixels already drawn behind a node, which is a correct backdrop at no
+capture cost. It does no optics. Haze wires it in behind a feature flag with a capture fallback;
+we should do the same. Not testable on this device, which is on Android 16.
 
 ## P3 — the moat is components
 
-Nobody above 130 stars ships a published glass component. Kyant0 refuses on principle and keeps
-its tab bar in the catalog app. Haze ships three functions that build a style. The best
-behavioural tab bar in Compose has no optics at all and has been stale since June.
+**The slider: done.** `GlassSlider` and `GlassSliderStyle`. The knob is an opaque shape at rest
+and clear glass for the duration of the drag, it looks *through* the track rather than past it,
+it does not scale on press, and it stretches along the direction of travel in proportion to
+speed. Verified on device: the knob's centre falls from 217 to 73 as it becomes glass, the
+track's own edges bend visibly inside it, and the backdrop text fringes red and blue where the
+rim crosses it.
 
-We ship one component. The list worth adding, in order of how often a real app needs it: a
-navigation bar, a bottom sheet, a slider whose knob becomes glass during the drag, a toggle, a
-search field, and a floating action button. The slider matters more than its size suggests,
-because Apple names it as the canonical case of an element that is a shape at rest and glass
-during the gesture, which is exactly the rule our tab bar indicator already implements.
-
-For the tab bar itself, the behaviour Apple ships and we do not: minimize on scroll, a bottom
-accessory that moves inline when minimized, and a dedicated trailing search tab.
+That leaves, in order of how often a real app needs them: a navigation bar, a bottom sheet, a
+toggle, a search field, and a floating action button. And for the tab bar itself, the behaviour
+Apple ships and we do not: minimize on scroll, a bottom accessory that moves inline when
+minimized, and a dedicated trailing search tab.
 
 ## P4 — below Android 13
 

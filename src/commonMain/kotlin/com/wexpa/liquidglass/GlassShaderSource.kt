@@ -99,6 +99,35 @@ float sdRoundRect(float2 p, float2 halfSize, float4 r) {
     return min(max(q.x, q.y), 0.0) + lnNorm(max(q, float2(0.0)), uCornerPower) - radius;
 }
 
+// The outward unit normal of sdRoundRect, in closed form.
+//
+// Only valid away from the medial axis, where the true gradient is discontinuous; the caller
+// checks that before using it. `gradRadius` is deliberately larger than the outline's radius,
+// which rotates the normal through the corner over a wider arc than the outline turns and
+// removes the direction kink where the corner meets the flat run. It does not move the outline.
+float2 gradRoundRect(float2 p, float2 halfSize, float4 r, float power) {
+    float2 rr = (p.x > 0.0) ? r.yz : r.xw;
+    float radius = (p.y > 0.0) ? rr.y : rr.x;
+    radius = min(radius, min(halfSize.x, halfSize.y));
+    float gradRadius = min(radius * 1.5, min(halfSize.x, halfSize.y));
+    float2 q = abs(p) - halfSize + gradRadius;
+    float2 s = float2(p.x < 0.0 ? -1.0 : 1.0, p.y < 0.0 ? -1.0 : 1.0);
+    if (q.x > 0.0 && q.y > 0.0) {
+        float L = lnNorm(q, power);
+        if (L <= 1e-5) {
+            return s * float2(0.70710678, 0.70710678);
+        }
+        float2 w = float2(
+            pow(q.x / L, power - 1.0),
+            pow(q.y / L, power - 1.0));
+        float wl = length(w);
+        return (wl <= 1e-5) ? s * float2(0.70710678, 0.70710678) : s * (w / wl);
+    }
+    // Flat run: the nearest edge is whichever of the two is closer.
+    float ax = step(q.y, q.x);
+    return s * float2(ax, 1.0 - ax);
+}
+
 // One backdrop sample, bounded by the region that actually holds recorded pixels.
 //
 // The layer is filled with the ground before the backdrop is drawn into it, so it is opaque by
@@ -237,15 +266,26 @@ half4 main(float2 coord) {
     // Widening the epsilon to the scale of the band lets the two sides cancel gradually, and
     // the gradient magnitude that falls out doubles as a confidence term that fades the lens
     // toward the axis instead of letting its direction flip.
-    float eps = clamp(uRefractBand * 0.3, 1.0, 16.0);
-    float2 ex = float2(eps, 0.0);
-    float2 ey = float2(0.0, eps);
-    float2 g = float2(
-        sdShape(p + ex, halfSize) - sdShape(p - ex, halfSize),
-        sdShape(p + ey, halfSize) - sdShape(p - ey, halfSize));
-    float gLen = length(g);
-    float2 n = g / max(gLen, 1e-5);
-    float axisFade = smoothstep(0.15, 0.80, gLen / (2.0 * eps));
+    //
+    // When the shape is analytic and its band stops short of the axis, none of that applies and
+    // the normal has a closed form: four fewer field evaluations per pixel, and no fade.
+    float inradius = min(halfSize.x, halfSize.y);
+    float2 n;
+    float axisFade;
+    if (uShapeKind < 0.5 && uRefractBand < inradius * 0.75) {
+        n = gradRoundRect(p, halfSize, uRadii, uCornerPower);
+        axisFade = 1.0;
+    } else {
+        float eps = clamp(uRefractBand * 0.3, 1.0, 16.0);
+        float2 ex = float2(eps, 0.0);
+        float2 ey = float2(0.0, eps);
+        float2 g = float2(
+            sdShape(p + ex, halfSize) - sdShape(p - ex, halfSize),
+            sdShape(p + ey, halfSize) - sdShape(p - ey, halfSize));
+        float gLen = length(g);
+        n = g / max(gLen, 1e-5);
+        axisFade = smoothstep(0.15, 0.80, gLen / (2.0 * eps));
+    }
 
     float depth = max(-d, 0.0);
     float e = clamp(depth / max(uRefractBand, 0.001), 0.0, 1.0);

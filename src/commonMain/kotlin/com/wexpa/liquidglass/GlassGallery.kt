@@ -18,6 +18,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -94,6 +98,16 @@ fun GlassGallery(modifier: Modifier = Modifier) {
                     RoundedCornerShape(30.dp),
                     92.dp,
                     interaction = GlassInteraction.Default,
+                )
+
+                Spacer(Modifier.height(4.dp))
+                Label("Slider - the knob is glass only while you drag it", size = 13)
+                var sliderValue by remember { mutableStateOf(0.38f) }
+                GlassSlider(
+                    state = glass,
+                    value = sliderValue,
+                    onValueChange = { sliderValue = it },
+                    modifier = Modifier.fillMaxWidth(),
                 )
 
                 Spacer(Modifier.height(4.dp))

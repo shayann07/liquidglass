@@ -7,6 +7,14 @@ sitting over whatever is behind it.
 Runs on Android 13+ (AGSL) and Desktop/JVM (Skia). Below Android 13 it degrades to a tinted
 surface with the same rim lighting — a plainer material, not a broken one.
 
+```kotlin
+implementation("com.wexpa.liquidglass:liquidglass:0.1.0")
+```
+
+Apache-2.0. Not affiliated with, endorsed by, or derived from Apple. "Liquid Glass" is Apple's
+name for their design language and is used here only to describe what this material resembles;
+no Apple code, shader or asset is included.
+
 **[Full documentation →](docs/README.md)** · [Getting started](docs/getting-started.md) ·
 [Shapes](docs/shapes.md) · [Interaction](docs/interaction.md) ·
 [API reference](docs/api-reference.md) · [Limitations](docs/limitations.md) ·
