@@ -1,22 +1,27 @@
-# Measurements from an iOS 26 device recording
+# Measurements from iOS 26 device captures
 
 Everything else in this directory is derivation. This is measurement.
 
-The source is a 41.7-second screen recording of the iOS Phone app's tab bar being pressed and
-dragged, 720x1558 at ~30fps, in dark appearance, supplied by the app's author. It is the only
-first-hand observation of the real material anywhere in this project, so where it disagrees with
-a number in [parameters.md](parameters.md), it wins.
+Two sources, both supplied by the app's author from his own iPhone, both of the Phone app's tab
+bar in dark appearance:
 
-**Scale.** The bar is 115 px tall in the video. A standard iOS tab bar is 62.9 pt, so
-**1 pt = 1.83 video px**. On the Galaxy S24+ used for comparison (density 3.5) one point of the
-reference is 1.91 device px.
+1. **Nine native screenshots** (1170×2532, exactly 3 px/pt), taken with a finger on the bar at
+   various positions, plus three of Slack's tab bar for comparison. Uncompressed, unscaled. This
+   is the primary source.
+2. **A 41.7-second screen recording** (720×1558, ~30fps, H.264), of the same bar being pressed
+   and dragged. Compressed and scaled; useful for timing and motion, and for the resting state,
+   which the screenshots do not include. Where its numbers disagree with the screenshots, the
+   screenshots win — and they do disagree in two places, noted below.
 
-**Method.** All 1,250 frames were cropped to the bar strip and differenced to find the frames
-where motion starts and stops. Luminance is Rec. 709 from the video's RGB, sampled along single
-columns and rows rather than over blocks, because every interesting feature here is two to
-fifteen pixels wide and a block average erases it. Frame 165 is the resting state with pure
-black behind the bar; frame 240 is a press held on the first tab; frame 300 is mid-drag,
-straddling two tabs.
+**Scale.** In the screenshots the bar is 193 px tall between its hairlines: **64.3 pt**, so
+1 pt = 3 px exactly. In the video it is 115 px, which at the same 64 pt gives 1 pt ≈ 1.8 video
+px. On the Galaxy S24+ used for comparison (density 3.5) one point is 3.5 device px at the app's
+62 dp bar, which is within 4% of the reference's height.
+
+**Method.** Luminance is Rec. 709 from RGB, sampled along single columns and rows rather than
+over blocks, because every interesting feature here is one to twenty pixels wide and a block
+average erases it. Video frames were extracted with ffmpeg; all 1,250 were differenced to find
+the gestures.
 
 ---
 
@@ -62,47 +67,66 @@ indicator does the same, and the reverted state is a shape, not a material.
 
 ## The held lens
 
+Measured off the native screenshots (IMG_6614–6618), with the video agreeing on timing:
+
 | | |
 | :--- | :--- |
-| Size | 150 px = 82 pt tall (**1.30x the bar**), ~130 pt wide (**1.43 tabs**) |
-| Position | centred **5.2 pt above** the bar's centre line; stands 14.8 pt proud above, 4.4 pt below |
-| Interior where it overlaps the bar | **42, where the bar beside it reads 41** — it passes the bar through |
-| Interior where it stands proud, over black | **0** |
-| Rim, top | a bead: `0 16 32 53 78 101 107 110 102 78 46 20 4 0` — 14 px wide, peaking **+110** |
-| Rim, bottom | peaks **+73** |
-| Rim, sides | peaks **+5** over the bar, after a dip of **-17** |
-| Formation | fully formed within **2 frames** (≤66 ms) of touch-down, before any drag |
-| Release | subsides over **10–14 frames** (330–460 ms) |
-| Symbols crossing it | fringe visibly red and blue at the rim |
+| Size | 219 px = **73 pt** tall on a 64 pt bar (**1.135×**); about 125 pt wide, one item plus **16 pt** |
+| Position | **centred** on the bar: stands **4.3 pt proud above and 4.3 pt below** |
+| Interior where it overlaps the bar | **52–58, where the bar beside it reads 47–48** — the bar passed through, plus a faint glow that peaks in the middle |
+| Edge | a **one-to-two-pixel line at +85 on top and +68 below**; a one-pixel dark step and nothing else at the sides |
+| Refraction | **outward**: the bar's top hairline appears **11 px (3.7 pt) lower** inside the lens than outside it, the bottom hairline 9–11 px higher, and the black gap around the bar becomes a **~20 px dark band** just inside the lens's edge |
+| Dispersion | strong: symbols and labels crossing the rim split visibly into red and blue |
+| Bead, mirrored echo, inner shadow | **none** |
+| Formation (video) | fully formed within **2 frames** (≤66 ms) of touch-down, before any drag |
+| Release (video) | subsides over **10–14 frames** (330–460 ms) |
 
-Three things in that table are worth stating as claims rather than numbers.
+Four things in that table are worth stating as claims rather than numbers.
 
-**The lens is clear.** Over black it adds nothing at all. Over the bar it adds nothing either —
-it passes what the bar already lifted, because on iOS the lens sits *above* the bar and the light
-reaching the eye has been through both.
+**The lens looks through the bar.** It sits above it on iOS, so what reaches the eye has already
+been through the bar's frost: its interior reads as the bar does, the content behind the bar is
+no more visible through the lens than through the bar, and — decisively — the bar's own hairlines
+appear *inside* the lens, displaced toward its centre. A lens that sampled the content directly
+would show a sharp hole through the bar. The reference never does.
 
-**Its rim is lit on all four sides, but very unevenly.** 110 at the top, 73 at the bottom, 5 at
-the sides. The sides are the ones that catch an implementation out: with a light from overhead,
-both the key lobe and its counter-lobe vanish where the surface normal points sideways, so the
-only term that can light them is an omnidirectional one. Leave it out and the capsule reads as a
-black jellybean with a highlight on top; turn it up and the capsule grows a halo.
+**Its refraction is outward.** The displaced hairlines and the dark band settle the direction the
+research derived and two published reimplementations contradict: pixels near the rim show what
+lies *outside* the lens, compressed inward. Inward (magnifying) sampling would move the hairlines
+the other way and could not produce the band.
 
-**Its highlight sits inside the edge, not on it.** The outermost pixel is dark, the peak is about
-seven points in, and it falls away again toward the interior. That is a bead, not a chamfer, and
-it is what gives the rim its thickness.
+**Its edge is a line, not a bead.** The outermost one or two pixels are bright; the next twenty are
+the compressed exterior (black, when the exterior is the gap around the bar); then the pulled-in
+hairline; then the interior. An earlier pass fitted a soft bead peaking seven points inside the
+edge from the video. That bead was this line, band and hairline blurred together by compression.
+
+**It stands proud by the same amount above and below.** The video read 13 pt above and 4 pt
+below. The screenshots read 4.3 and 4.3. The screenshots are 3 px/pt and unscaled; the video is
+neither. The app follows the screenshots.
+
+## The bar, revisited
+
+The screenshots put the bar's body at **43 over black** where the video put it at **20**, with
+text behind it visibly softer and dimmer than the video suggested. The two captures may come from
+different builds or from iOS 26.1's Clear/Tinted preference; this project cannot tell. The
+library's `DarkChrome` keeps the video's two-measurement fit (lift 20, 64% of text peaks) because
+it is the only pair that pins both unknowns; a host wanting the screenshots' heavier look should
+raise the tint toward 0x78 at the same strength.
 
 ## What could not be established
 
 Whether the lens magnifies. Comparing glyph sizes inside and outside it is confounded by the
 selected tab also changing colour, and the list text behind it moves between frames. The
-straightforward reading of the profiles is that it does not magnify measurably, and the app's
-implementation assumes none, but this is not a measurement and should not be quoted as one.
+hairline displacement says the rim samples outward, which is compression, not magnification; the
+app assumes none.
 
-## Applying these to a host whose lens cannot sample the bar
+Why the two sources disagree about the bar's lift and the lens's vertical offset. Different OS
+builds, different device classes, or a different Liquid Glass preference are all possible.
 
-This library cannot sample glass with glass — see [divergences.md](divergences.md) §1 — so a
-selection lens samples the app's content directly and never sees the bar it sits in. Left clear,
-it shows the un-lifted ground and reads *darker* than its surroundings, which is exactly the
-failure the reference rules out. Giving the lens the bar's own tint reproduces the overlap
-exactly and costs only a small lift where the lens stands proud of the bar. The lens still reads
-as the clearer window, because it does not carry the bar's blur.
+## Applying these to a host whose lens cannot sample the bar directly
+
+This library cannot sample glass with glass in one pass — see [divergences.md](divergences.md)
+§1 — so `GlassTabBar` records the bar with a second `liquidGlassSource` and hands it to the lens
+as the glass it looks `through`. That reproduces the interior, the pulled-in hairlines and the
+dark band directly, at the cost of one extra layer per frame. Before that existed, the lens
+sampled the app's content and punched a clear hole through the bar, which is the single visible
+difference the author pointed to.

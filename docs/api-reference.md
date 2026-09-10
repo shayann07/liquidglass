@@ -65,6 +65,7 @@ fun Modifier.liquidGlass(
     materialize: Float = 1f,
     pressSource: GlassPressSource? = null,
     refractContent: Boolean = false,
+    through: LiquidGlassState? = null,
 ): Modifier
 ```
 
@@ -77,9 +78,70 @@ Draws this element as a piece of glass over `state`'s backdrop.
 | `materialize` | 0 to 1. Drive this instead of `alpha` — at 0 the shader returns the backdrop untouched, so the element leaves by ceasing to bend light. |
 | `pressSource` | Drive the press from outside, when another node owns the gesture. See `GlassPressSource`. |
 | `refractContent` | Draw the element's content **inside** the glass — bent and colour-split through the same bevel the backdrop goes through, clipped to the shape — instead of on top. For content that is the material's subject: what a magnifier is over, the symbol a selection lens is crossing. See [Interaction](interaction.md#content-inside-the-glass). |
+| `through` | Glass this element looks **through**. A lens on a tab bar sees the bar, not past it: record the bar with `liquidGlassSource` into a second state and pass it here, and it is composited over the backdrop before this element's shader runs. The element must not be inside that source's subtree. See [Tab bar](tab-bar.md). |
 
 Where the platform cannot run the shader this degrades to `style.fallbackSurface` with the same
 rim lighting.
+
+---
+
+## Components
+
+### `GlassTabBar`
+
+```kotlin
+@Composable
+fun GlassTabBar(
+    state: LiquidGlassState,
+    itemCount: Int,
+    selectedIndex: Int,
+    onSelected: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+    style: GlassTabBarStyle = GlassTabBarStyle.Dark,
+    motionEnabled: Boolean = true,
+    materialize: Float = 1f,
+    item: @Composable (index: Int, selected: Boolean) -> Unit,
+)
+```
+
+A tab bar whose selection indicator is a piece of glass you can pick up: a flat inset at rest, a
+lens while held that stands proud of the bar and looks *through* it, dragged 1:1 and committed on
+release. Every default is measured off an iOS 26 tab bar; see [Tab bar](tab-bar.md).
+
+| Parameter | |
+| :--- | :--- |
+| `item` | Called twice per tab on the shader path — `selected = false` for the copy on the bar, `true` for the copy inside the lens — and once, with the real selection, where the shader is unavailable. Change only colour between the two. |
+| `motionEnabled` | False disables the lens, the gel and the fling; taps and drags still select. |
+| `materialize` | Passed to the bar's glass. |
+
+Put a shadow on `modifier` with `clip = false`; the held lens is taller than the bar.
+
+### `GlassTabBarStyle`
+
+```kotlin
+@Immutable
+data class GlassTabBarStyle(
+    val bar: GlassStyle = GlassStyle.DarkChrome,
+    val pill: GlassStyle = RestingInset,
+    val lens: GlassStyle = HeldLens,
+    val light: GlassLight = GlassLight(0f, -1f),
+    val shape: Shape = RoundedCornerShape(percent = 50),
+    val height: Dp = 64.dp,
+    val contentPadding: Dp = 6.dp,
+    val pillInset: Dp = 3.dp,
+    val lensOverflow: Dp = 4.dp,
+    val lensExtraWidth: Dp = 16.dp,
+    val lensRise: Dp = 0.dp,
+    val lensInteraction: GlassInteraction = GlassInteraction(pressScale = 1f, illumination = 0.5f, gel = false),
+    val form: AnimationSpec<Float>, val subside: AnimationSpec<Float>,
+    val arrive: AnimationSpec<Float>, val settle: AnimationSpec<Float>,
+    val flingVelocity: Dp = 420.dp,
+    val gel: Float = 0.06f, val gelReference: Dp = 1200.dp, val gelSpring: AnimationSpec<Float>,
+)
+```
+
+`Dark` is the measured preset. `RestingInset` and `HeldLens` are the two materials the indicator
+morphs between, exposed so a host can start from them.
 
 ---
 

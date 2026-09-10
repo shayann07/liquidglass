@@ -64,6 +64,16 @@ animation was redrawing the whole screen at ~90fps while nothing was happening. 
 animation to whole pixels — it moved 1.5px per second and was invalidating at display rate —
 recovered more than the shader ever cost, and let the app reach idle at all.
 
+## What `through` costs
+
+A panel that looks through other glass (`liquidGlass(through = …)`, which `GlassTabBar` uses so
+its lens sees the bar) needs that glass recorded into a second layer every frame and composited
+into the panel's padded slice before its shader runs. On a Galaxy S24+ at 120 Hz, over 1,291
+frames of dragging the tab bar's lens, that moved the drag session from p50 10 ms / p95 14 ms to
+**p50 14 ms / p95 22 ms**, with janky frames unchanged at about 1%. It is the price of the lens
+reading correctly against the reference; a host that needs it cheaper could record the
+intervening glass at half resolution, which this library does not yet do.
+
 ## Frame-rate hygiene that has nothing to do with glass
 
 Two lessons from tuning this app that generalise:

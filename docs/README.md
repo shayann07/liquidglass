@@ -14,6 +14,7 @@ change the optics, read [How it works](how-it-works.md) and then
 | [Getting started](getting-started.md) | The three-line version, and the one rule about where the backdrop goes. |
 | [Shapes](shapes.md) | Rounded rects, capsules, squircles, and arbitrary paths. |
 | [Interaction](interaction.md) | Press, materialize, and morphing between styles. |
+| [Tab bar](tab-bar.md) | `GlassTabBar`: the measured selection lens, and what each number in it comes from. |
 | [Adaptation](adaptation.md) | Light/dark inversion, legibility, shadows, the scroll edge effect. |
 | [Accessibility](accessibility.md) | Reduce Transparency, Increase Contrast, Reduce Motion. |
 | [How it works](how-it-works.md) | The optical model, layer by layer, and why each part is there. |

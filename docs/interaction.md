@@ -72,6 +72,9 @@ the gesture owner's — the glow is positioned in the panel's own space.
 
 ### Content inside the glass
 
+> If what you want is a tab bar, use [`GlassTabBar`](tab-bar.md); it does everything in this
+> section and the next for you. What follows is how it works.
+
 Content normally sits *on* a panel and is left alone: labels on a button, icons on a bar. Some
 content is what the glass is looking *at*, and has to be bent with everything else it shows.
 The clearest case is Apple's tab bar. The selection indicator there is a lens **above** the
@@ -106,11 +109,12 @@ Box(
 Keep the two copies geometrically identical — same glyph, same stroke, same weight — or a tab
 half-covered by the lens will not line up with itself.
 
-**A lens that sits inside other glass has to carry that glass's tint.** This library cannot
-sample glass with glass, so the lens samples the app's content and never sees the bar it lives
-in. Left clear it shows the un-lifted ground and reads *darker* than its surroundings — a black
-jellybean rather than a window. Giving it the same tint as the bar reproduces the overlap
-exactly; it still reads as the clearer window, because it does not carry the bar's blur.
+**A lens that sits on other glass looks *through* it.** On iOS the lens is above the bar, so
+what reaches the eye has already been through the bar's frost: the lens's interior reads as the
+bar does, and its rim bends the bar's own hairline. Record the bar with `liquidGlassSource` into
+a second state and pass it as `through`; the lens composites it over the backdrop before its
+shader runs. Without it the lens samples the app's content directly and punches a clear hole
+through the bar, which is the one thing the reference never does.
 
 **And the element must be able to outgrow its parent.** A held lens is taller than the bar it
 belongs to, and `Modifier.size` is coerced into the incoming constraints, so it would be silently

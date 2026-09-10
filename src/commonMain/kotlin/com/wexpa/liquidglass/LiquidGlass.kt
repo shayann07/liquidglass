@@ -169,6 +169,18 @@ fun Modifier.liquidGlass(
      * Where the shader cannot run the content is drawn on top instead, as it always was.
      */
     refractContent: Boolean = false,
+    /**
+     * Glass this element looks *through*.
+     *
+     * A panel normally sees only the backdrop. A panel that sits on top of other glass — a
+     * selection lens on a tab bar — sees that glass too, and on iOS what reaches the eye has
+     * already been through it: the lens's interior reads as the bar does, and its rim bends the
+     * bar's own edge. Record the intervening glass with [liquidGlassSource] into a second state
+     * and pass it here, and it is composited over the backdrop before this panel's shader runs.
+     *
+     * The element must not be inside that source's subtree, or it would sample itself.
+     */
+    through: LiquidGlassState? = null,
 ): Modifier = composed {
     val glassLayer = rememberGraphicsLayer()
     val contentLayer = rememberGraphicsLayer()
@@ -303,6 +315,8 @@ fun Modifier.liquidGlass(
                             translate(pad, pad) { this@drawWithContent.drawContent() }
                         }
                     }
+                    val throughLayer = through?.layer
+                    val throughDelta = through?.let { panelOffsetInSource(it.sourceCoordinates, coordinates) }
                     glassLayer.record(size = paddedSize) {
                     // Fill with the ground first. The padded slice reaches past the backdrop
                     // near a screen edge, and the backdrop is itself transparent wherever the
@@ -312,6 +326,11 @@ fun Modifier.liquidGlass(
                     // on, which is both correct and cheaper than compensating downstream.
                         drawRect(state.background)
                         translate(-delta.x + pad, -delta.y + pad) { drawLayer(source) }
+                        // Whatever sits between this panel and the backdrop goes on top of it,
+                        // in this panel's frame, so the rim refracts that too.
+                        if (throughLayer != null && throughDelta != null) {
+                            translate(-throughDelta.x + pad, -throughDelta.y + pad) { drawLayer(throughLayer) }
+                        }
                     }
                     glassLayer.renderEffect = effect
                     if (style.dimmingLayer > 0f) {

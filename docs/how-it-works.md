@@ -125,6 +125,10 @@ the same dispersion — and nothing else, then composited over the material. It 
 backdrop but not tinted, dimmed or scattered like it. See
 [Content inside the glass](interaction.md#content-inside-the-glass).
 
+`through` adds a second layer to the padded backdrop — whatever glass sits between this panel
+and the content — so a panel on top of other glass refracts that glass rather than seeing past
+it. It is how a selection lens sees its bar.
+
 A test pins the two passes together: the four functions that decide where a pixel samples from
 must be identical text in both shaders, because a change to one that is not mirrored in the other
 would refract the content through a different lens than its backdrop — which shows up on a device

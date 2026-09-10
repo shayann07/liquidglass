@@ -97,6 +97,11 @@ dispersion as the backdrop, clipped to the shape, and is composited over the mat
 how an iOS tab bar changes a symbol's colour: the indicator is a lens *above* the tab, and a
 symbol half under it is half one colour and half the other, fringing where the rim crosses it.
 
+**There is a tab bar.** `GlassTabBar` is the component the material was measured against: a
+flat inset at rest that becomes a lens under the finger, stands proud of the bar, looks through
+it, is dragged 1:1 and commits on release, with the tabs changing colour because you are looking
+at them through the lens. Every default is a measurement.
+
 **One preset is measured rather than tuned.** `GlassStyle.DarkChrome` comes from a frame-by-frame
 reading of an iOS 26 tab bar in dark appearance — what it adds over black, what fraction of the
 text behind it survives, where its edge is lit and where it is not. See
