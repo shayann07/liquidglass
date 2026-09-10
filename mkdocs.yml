@@ -116,6 +116,7 @@ nav:
       - Confidence: research/confidence.md
       - What everyone else built: research/competitive-landscape.md
       - Reading their source: research/competitor-source-study.md
+      - iOS 27 measurements (raw): research/ios27-measurements-raw.md
   - Project:
       - Roadmap: roadmap.md
       - Publishing: publishing.md
