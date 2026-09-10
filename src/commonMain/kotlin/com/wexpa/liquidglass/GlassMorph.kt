@@ -45,6 +45,9 @@ fun lerpGlassStyle(start: GlassStyle, stop: GlassStyle, fraction: Float): GlassS
         legibility = f(start.legibility, stop.legibility),
         specular = f(start.specular, stop.specular),
         specularPower = f(start.specularPower, stop.specularPower),
+        counterLight = f(start.counterLight, stop.counterLight),
+        edgeLight = f(start.edgeLight, stop.edgeLight),
+        bevelPeak = f(start.bevelPeak, stop.bevelPeak),
         fresnel = f(start.fresnel, stop.fresnel),
         innerShadow = f(start.innerShadow, stop.innerShadow),
         // Not interpolated: these are decisions, not quantities. A half-inverted element or a

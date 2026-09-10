@@ -92,10 +92,15 @@ no dark border. A dark border is the fastest way to make this read as a drawn re
 
 **Content can sit inside the glass, not only on it.** Some content is what the glass is looking
 *at* — the symbol a selection lens is crossing, whatever a magnifier is over. With
-`refractContent = true` the element's content is recorded into its backdrop before the shader
-runs, so the rim compresses it, the dispersion splits it and the shape clips it. This is how an
-iOS tab bar changes a symbol's colour: the indicator is a lens *above* the tab, and a symbol
-half under it is half one colour and half the other.
+`refractContent = true` the content takes a second pass through the same field, bevel and
+dispersion as the backdrop, clipped to the shape, and is composited over the material. This is
+how an iOS tab bar changes a symbol's colour: the indicator is a lens *above* the tab, and a
+symbol half under it is half one colour and half the other, fringing where the rim crosses it.
+
+**One preset is measured rather than tuned.** `GlassStyle.DarkChrome` comes from a frame-by-frame
+reading of an iOS 26 tab bar in dark appearance — what it adds over black, what fraction of the
+text behind it survives, where its edge is lit and where it is not. See
+[reference measurements](docs/research/reference-measurements.md).
 
 ## Merging
 

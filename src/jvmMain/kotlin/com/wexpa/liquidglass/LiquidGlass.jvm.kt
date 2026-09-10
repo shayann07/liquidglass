@@ -98,6 +98,9 @@ internal actual fun createGlassRenderEffect(
     builder.uniform("uLight", uniforms.lightX, uniforms.lightY)
     builder.uniform("uSpecular", uniforms.specular)
     builder.uniform("uSpecularPow", uniforms.specularPower)
+    builder.uniform("uCounterLight", uniforms.counterLight)
+    builder.uniform("uEdgeLight", uniforms.edgeLight)
+    builder.uniform("uBevelPeak", uniforms.bevelPeak)
     builder.uniform(
         "uTint",
         uniforms.tint.red,
@@ -119,6 +122,50 @@ internal actual fun createGlassRenderEffect(
         runtimeShaderBuilder = builder,
         shaderName = "content",
         input = prepared,
+    ).asComposeRenderEffect()
+}
+
+private val contentEffect: RuntimeEffect? by lazy {
+    runCatching { RuntimeEffect.makeForShader(GLASS_CONTENT_SHADER_SOURCE) }.getOrNull()
+}
+
+internal actual fun createGlassContentRenderEffect(
+    uniforms: GlassUniforms,
+): androidx.compose.ui.graphics.RenderEffect? {
+    val effect = contentEffect ?: return null
+    if (uniforms.width <= 0f || uniforms.height <= 0f) return null
+
+    val builder = RuntimeShaderBuilder(effect)
+    builder.uniform("uSize", uniforms.width, uniforms.height)
+    builder.uniform("uPad", uniforms.pad)
+    builder.uniform(
+        "uRadii",
+        uniforms.radii.getOrElse(0) { 0f },
+        uniforms.radii.getOrElse(1) { 0f },
+        uniforms.radii.getOrElse(2) { 0f },
+        uniforms.radii.getOrElse(3) { 0f },
+    )
+    builder.uniform("uCornerPower", uniforms.cornerPower)
+    builder.uniform("uShapeKind", uniforms.shapeKind)
+    builder.uniform("uFieldRange", uniforms.fieldRange)
+    builder.uniform("uFieldScale", uniforms.fieldScale)
+    builder.child("field", uniforms.field?.let { bitmap ->
+        org.jetbrains.skia.Image.makeFromBitmap(bitmap.asSkiaBitmap())
+            .makeShader(FilterTileMode.CLAMP, FilterTileMode.CLAMP)
+    } ?: placeholderFieldShader)
+    builder.uniform("uRefractBand", uniforms.refractBand)
+    builder.uniform("uRefractDepth", uniforms.refractDepth)
+    builder.uniform("uIor", uniforms.ior)
+    builder.uniform("uBevelPower", uniforms.bevelPower)
+    builder.uniform("uAberration", uniforms.aberration)
+    builder.uniform("uScale", uniforms.scale)
+    builder.uniform("uMaterialize", uniforms.materialize)
+    builder.uniform("uTouch", uniforms.touchX, uniforms.touchY)
+    builder.uniform("uTouchAmt", uniforms.touchAmount)
+    return ImageFilter.makeRuntimeShader(
+        runtimeShaderBuilder = builder,
+        shaderName = "content",
+        input = null,
     ).asComposeRenderEffect()
 }
 
@@ -180,6 +227,9 @@ internal actual fun createGlassContainerRenderEffect(
     builder.uniform("uLight", uniforms.lightX, uniforms.lightY)
     builder.uniform("uSpecular", uniforms.specular)
     builder.uniform("uSpecularPow", uniforms.specularPower)
+    builder.uniform("uCounterLight", uniforms.counterLight)
+    builder.uniform("uEdgeLight", uniforms.edgeLight)
+    builder.uniform("uBevelPeak", uniforms.bevelPeak)
     builder.uniform(
         "uTint",
         uniforms.tint.red,

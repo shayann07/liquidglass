@@ -55,6 +55,9 @@ uniform float   uBevel;        // px width of the lit bevel (uRefractBand is 4-7
 uniform float2  uLight;        // unit vector toward the key light
 uniform float   uSpecular;     // rim highlight intensity, 0..1
 uniform float   uSpecularPow;  // rim highlight tightness
+uniform float   uCounterLight; // how much of the key light reaches the side facing away, 0..1
+uniform float   uEdgeLight;    // brightness of the outermost line relative to the bevel lobe
+uniform float   uBevelPeak;    // where in the bevel the highlight peaks: 0 at the edge (chamfer), 0.4 inside (bead)
 uniform float   uFresnel;      // Schlick rim reflectance gain
 uniform float   uInnerShadow;  // strength of the inner thickness line
 
@@ -320,7 +323,15 @@ half4 main(float2 coord) {
     half3 col = mix(bg, tinted, half(strength));
 
     float facing = dot(n, uLight);
-    float bevelBand = smoothstep(uBevel, 0.0, depth);
+    // Two rim geometries. At uBevelPeak 0 the bevel is a chamfer: brightest at the very edge,
+    // fading inward, which is what a hairline-edged bar wants. Above 0 it is a bead: dark at
+    // the edge, brightest a fraction of the bevel's width inside it, fading again toward the
+    // interior — the profile the reference lens shows, rising over about three points from a
+    // dark outermost pixel to its peak and falling over three more.
+    float peakAt = clamp(uBevelPeak, 0.0, 0.9) * uBevel;
+    float bevelBand = (peakAt < 0.5)
+        ? smoothstep(uBevel, 0.0, depth)
+        : smoothstep(0.0, peakAt, depth) * smoothstep(uBevel, peakAt, depth);
 
     // The faint dark line that reads as thickness, sitting just inside the bevel rather than on
     // the rim. Deliberately weak — see note 5 about outlines.
@@ -334,16 +345,27 @@ half4 main(float2 coord) {
     f0 = f0 * f0;
     float fresnel = f0 + (1.0 - f0) * pow(max(1.0 - cosI, 0.0), 5.0);
 
-    // The bevel is lit where its normal faces the light, with a weaker counter-lobe opposite:
-    // a bead lit from one side only reads as a gradient rather than as a solid. The edge line
-    // carries a small floor so the shape stays defined all the way round, but most of it is
-    // directional, because a line of even brightness reads as a stroke and not as an edge.
+    // The bevel is lit where its normal faces the light, with a counter-lobe opposite: a bead
+    // lit from one side only reads as a gradient rather than as a solid. How much reaches the
+    // far side is the style's call — a free-standing lens is lit from above and wants a little,
+    // while a bar measured against the reference is lit identically top and bottom and wants
+    // all of it. The counter-lobe tightens as it weakens, so the historical 0.35 keeps the
+    // narrower lobe it was tuned with.
+    //
+    // The edge line is the outermost two pixels. It carries a small floor so the shape stays
+    // defined all the way round, but most of it is directional, because a line of even
+    // brightness reads as a stroke and not as an edge. Its brightness is set apart from the
+    // bevel lobe's: the reference bar is a hairline with almost no lobe behind it, and the
+    // reference lens is a broad lobe whose peak sits inside an edge that stays dark.
+    float counterLight = clamp(uCounterLight, 0.0, 1.0);
+    float counterPow = uSpecularPow * mix(1.6, 1.0, smoothstep(0.35, 1.0, counterLight));
     float key = pow(max(facing, 0.0), uSpecularPow) * bevelBand;
-    float counter = pow(max(-facing, 0.0), uSpecularPow * 1.6) * bevelBand * 0.35;
+    float counter = pow(max(-facing, 0.0), counterPow) * bevelBand * counterLight;
     float edge = smoothstep(2.0, 0.0, depth);
-    float edgeLine = edge * (0.07 + 0.5 * max(facing, 0.0));
+    float edgeLine = edge * (0.07 + 0.5 * (max(facing, 0.0) + counterLight * max(-facing, 0.0)));
 
-    col += half3(half(((key + counter + edgeLine) * uSpecular
+    col += half3(half(((key + counter) * uSpecular
+        + edgeLine * uSpecular * uEdgeLight
         + fresnel * uFresnel * bevelBand) * mat));
 
     // Illumination from within, under the fingertip. A sixth of a stop at the peak: measured

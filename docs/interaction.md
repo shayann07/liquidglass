@@ -79,10 +79,12 @@ tabs, and a tab looks selected because you are seeing it through the lens — sl
 halfway across a symbol and the symbol is half one colour and half the other, with the rim
 compressing and colour-splitting its edges as it passes.
 
-`refractContent = true` does that. The element's content is recorded into the backdrop under it
-before the shader runs, so it is displaced at the rim, dispersed, echoed by the mirror band and
-covered by the tint like the rest of the backdrop — and clipped to the shape, so a lens can carry
-a copy of a whole row and show only the part it is over:
+`refractContent = true` does that. The content gets its **own pass** through the same distance
+field, bevel and Snell deviation the backdrop goes through, and is drawn over the material: bent
+at the rim, split into colour fringes, clipped to the shape. It is deliberately *not* recorded
+into the backdrop, which would also tint and dim it — glass dims what is behind it, not what is
+printed inside it. So a lens can carry a copy of a whole row and show only the part it is over,
+in full colour:
 
 ```kotlin
 // The lens moves; the row inside it is pinned to the bar's origin so it does not.
@@ -103,6 +105,17 @@ Box(
 
 Keep the two copies geometrically identical — same glyph, same stroke, same weight — or a tab
 half-covered by the lens will not line up with itself.
+
+**A lens that sits inside other glass has to carry that glass's tint.** This library cannot
+sample glass with glass, so the lens samples the app's content and never sees the bar it lives
+in. Left clear it shows the un-lifted ground and reads *darker* than its surroundings — a black
+jellybean rather than a window. Giving it the same tint as the bar reproduces the overlap
+exactly; it still reads as the clearer window, because it does not carry the bar's blur.
+
+**And the element must be able to outgrow its parent.** A held lens is taller than the bar it
+belongs to, and `Modifier.size` is coerced into the incoming constraints, so it would be silently
+clamped to the parent's height while its width — under the limit — came out right. Use
+`Modifier.requiredSize`.
 
 Where the shader cannot run, the content is drawn on top as it always was; a host that relies
 on the lens to colour its content should colour it directly on that path instead

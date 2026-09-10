@@ -76,7 +76,7 @@ Draws this element as a piece of glass over `state`'s backdrop.
 | `interaction` | Non-null opts into touch response. See `GlassInteraction`. |
 | `materialize` | 0 to 1. Drive this instead of `alpha` — at 0 the shader returns the backdrop untouched, so the element leaves by ceasing to bend light. |
 | `pressSource` | Drive the press from outside, when another node owns the gesture. See `GlassPressSource`. |
-| `refractContent` | Draw the element's content **inside** the glass — recorded into the backdrop and bent, colour-split and lit with it — instead of on top. For content that is the material's subject: what a magnifier is over, the symbol a selection lens is crossing. Clipped to the shape like any backdrop. See [Interaction](interaction.md#content-inside-the-glass). |
+| `refractContent` | Draw the element's content **inside** the glass — bent and colour-split through the same bevel the backdrop goes through, clipped to the shape — instead of on top. For content that is the material's subject: what a magnifier is over, the symbol a selection lens is crossing. See [Interaction](interaction.md#content-inside-the-glass). |
 
 Where the platform cannot run the shader this degrades to `style.fallbackSurface` with the same
 rim lighting.
@@ -105,6 +105,9 @@ data class GlassStyle(
     val legibility: Float = 0.6f,
     val specular: Float = 0.55f,
     val specularPower: Float = 6f,
+    val counterLight: Float = 0.35f,
+    val edgeLight: Float = 1f,
+    val bevelPeak: Float = 0f,
     val fresnel: Float = 0.10f,
     val innerShadow: Float = 0.07f,
     val fallbackSurface: Color = Color(0xF2141416),
@@ -119,9 +122,19 @@ The knobs the shader consumes. `copy()` is the intended way to adjust one.
 zero at the rim, preserving the signature edge; `backdropBlur` is chained ahead of the shader,
 is higher quality, and destroys that edge. See [the two blurs](../README.md#the-two-blurs).
 
+**The rim has four knobs and they are not interchangeable.** `specular` sets the lobe where the
+bevel faces the light; `counterLight` how much of it reaches the face turned away (a bar lit from
+overhead wants all of it, a free-standing panel a little); `edgeLight` the brightness of the
+outermost line relative to that lobe (a hairline-edged bar wants it well above 1, a soft bead
+near 0); and `bevelPeak` whether the highlight sits on the edge (0, a chamfer) or inside it
+(around 0.4, a bead). `fresnel` is the only omnidirectional one, so on a shape lit from directly
+overhead it is the only thing that lights the left and right sides at all.
+
 **Presets:** `Regular` (the workhorse), `Chrome` (floating over an app's own content),
-`Clear` (Apple's non-adaptive variant — its zeros are deliberate and it requires its dimming
-layer), `Thick` (sheets and dialogs).
+`DarkChrome` (a dark-appearance bar, every number measured off an iOS 26 recording — see
+[reference measurements](research/reference-measurements.md)), `Clear` (Apple's non-adaptive
+variant — its zeros are deliberate and it requires its dimming layer), `Thick` (sheets and
+dialogs).
 
 ### `GlassLight`
 

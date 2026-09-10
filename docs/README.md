@@ -26,6 +26,9 @@ change the optics, read [How it works](how-it-works.md) and then
 - [Research](research/README.md) — 27.6M tokens of adversarially-verified derivation, preserved
   verbatim: the optical model, every parameter with its provenance, the motion model, and an
   honest account of where Android cannot match Apple.
+- [Reference measurements](research/reference-measurements.md) — the one first-hand source:
+  numbers read off a recording of a real iOS 26 tab bar, and the three places they overturned a
+  derivation.
 
 ## The one-paragraph version
 

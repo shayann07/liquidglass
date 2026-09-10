@@ -44,6 +44,9 @@ uniform float   uBevel;
 uniform float2  uLight;
 uniform float   uSpecular;
 uniform float   uSpecularPow;
+uniform float   uCounterLight;
+uniform float   uEdgeLight;
+uniform float   uBevelPeak;
 uniform float4  uTint;
 uniform float   uInnerShadow;
 uniform float   uAdaptive;
@@ -214,7 +217,15 @@ half4 main(float2 coord) {
     half3 col = mix(bg, tinted, half(clamp(uTint.a, 0.0, 1.0)));
 
     float facing = dot(n, uLight);
-    float bevelBand = smoothstep(uBevel, 0.0, depth);
+    // Two rim geometries. At uBevelPeak 0 the bevel is a chamfer: brightest at the very edge,
+    // fading inward, which is what a hairline-edged bar wants. Above 0 it is a bead: dark at
+    // the edge, brightest a fraction of the bevel's width inside it, fading again toward the
+    // interior — the profile the reference lens shows, rising over about three points from a
+    // dark outermost pixel to its peak and falling over three more.
+    float peakAt = clamp(uBevelPeak, 0.0, 0.9) * uBevel;
+    float bevelBand = (peakAt < 0.5)
+        ? smoothstep(uBevel, 0.0, depth)
+        : smoothstep(0.0, peakAt, depth) * smoothstep(uBevel, peakAt, depth);
 
     float innerLine = max(smoothstep(uBevel * 2.2, 0.0, depth) - bevelBand, 0.0);
     col -= half3(half(innerLine * uInnerShadow));
@@ -224,11 +235,15 @@ half4 main(float2 coord) {
     f0 = f0 * f0;
     float fresnel = f0 + (1.0 - f0) * pow(max(1.0 - cosI, 0.0), 5.0);
 
+    // See GlassShaderSource: a two-sided rim whose far side and outermost line the style sets.
+    float counterLight = clamp(uCounterLight, 0.0, 1.0);
+    float counterPow = uSpecularPow * mix(1.6, 1.0, smoothstep(0.35, 1.0, counterLight));
     float spec = pow(max(facing, 0.0), uSpecularPow) * bevelBand;
-    float counter = pow(max(-facing, 0.0), uSpecularPow * 1.6) * bevelBand * 0.35;
+    float counter = pow(max(-facing, 0.0), counterPow) * bevelBand * counterLight;
     float edge = smoothstep(2.0, 0.0, depth);
-    float edgeLine = edge * (0.07 + 0.5 * max(facing, 0.0));
-    col += half3(half((spec + counter + edgeLine) * uSpecular
+    float edgeLine = edge * (0.07 + 0.5 * (max(facing, 0.0) + counterLight * max(-facing, 0.0)));
+    col += half3(half((spec + counter) * uSpecular
+        + edgeLine * uSpecular * uEdgeLight
         + fresnel * uFresnel * bevelBand));
 
     return half4(clamp(col, half3(0.0), half3(1.0)), 1.0) * half(coverage);

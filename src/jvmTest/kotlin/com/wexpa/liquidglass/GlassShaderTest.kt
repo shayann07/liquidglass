@@ -37,7 +37,7 @@ class GlassShaderTest {
             "uFresnel", "uLegibility", "uCornerPower", "uTouch", "uTouchAmt",
             "uMaterialize", "uFrost", "uContrast", "uShapeKind", "uFieldRange", "uFieldScale", "uRefractDepth", "uBevel",
             "uLight", "uSpecular", "uSpecularPow", "uTint", "uInnerShadow", "uAdaptive",
-            "uPad", "uScale", "uFlip",
+            "uPad", "uScale", "uFlip", "uCounterLight", "uEdgeLight", "uBevelPeak",
         )
 
         val missing = setByHost - declared
@@ -46,6 +46,61 @@ class GlassShaderTest {
         // `content` is bound as the input shader rather than as a float uniform.
         val unset = declared - setByHost - setOf("content", "field")
         assertTrue(unset.isEmpty(), "shader declares uniforms nothing sets: $unset")
+    }
+}
+
+/**
+ * The content pass, checked the same way — and checked against the panel shader, because the
+ * two must bend identically or content will drift against the backdrop it sits in.
+ */
+class GlassContentShaderTest {
+
+    @Test
+    fun testContentShaderCompiles() {
+        val effect = RuntimeEffect.makeForShader(GLASS_CONTENT_SHADER_SOURCE)
+        assertNotNull(effect, "GLASS_CONTENT_SHADER_SOURCE failed to compile")
+    }
+
+    @Test
+    fun testEveryUniformTheContentShaderDeclaresIsSetByTheHost() {
+        val declared = Regex("""uniform\s+\w+\s+(\w+)\s*;""")
+            .findAll(GLASS_CONTENT_SHADER_SOURCE)
+            .map { it.groupValues[1] }
+            .toSet()
+        val setByHost = setOf(
+            "uSize", "uPad", "uRadii", "uCornerPower", "uShapeKind", "uFieldRange", "uFieldScale",
+            "uRefractBand", "uRefractDepth", "uIor", "uBevelPower", "uAberration", "uScale",
+            "uMaterialize", "uTouch", "uTouchAmt",
+        )
+        val unset = declared - setByHost - setOf("content", "field")
+        assertTrue(unset.isEmpty(), "content shader declares uniforms nothing sets: $unset")
+        val missing = setByHost - declared
+        assertTrue(missing.isEmpty(), "host sets content uniforms the shader lacks: $missing")
+    }
+
+    @Test
+    fun testTheContentPassSharesThePanelShadersGeometry() {
+        // The functions that decide where a pixel samples from must be the same text in both
+        // shaders. A change to one that is not mirrored in the other would refract the content
+        // through a different lens than the backdrop, which shows up as the symbol sliding
+        // against the list behind it as the element moves.
+        for (name in listOf("float lnNorm(", "float sdRoundRect(", "float bevelSlope(", "float snellShift(")) {
+            val a = functionBody(GLASS_SHADER_SOURCE, name)
+            val b = functionBody(GLASS_CONTENT_SHADER_SOURCE, name)
+            assertTrue(a.isNotEmpty() && a == b, "$name differs between the panel and content shaders")
+        }
+    }
+
+    private fun functionBody(source: String, signature: String): String {
+        val start = source.indexOf(signature)
+        if (start < 0) return ""
+        val open = source.indexOf('{', start)
+        var depth = 0
+        for (i in open until source.length) {
+            if (source[i] == '{') depth++
+            if (source[i] == '}') { depth--; if (depth == 0) return source.substring(open, i + 1) }
+        }
+        return ""
     }
 }
 
@@ -75,7 +130,7 @@ class GlassContainerShaderTest {
             "uSize", "uPad", "uBackdrop", "uBase", "uRect", "uRadius", "uCount", "uMerge",
             "uRefractBand", "uRefractDepth", "uAberration", "uIor", "uBevelPower", "uBlur",
             "uBevel", "uLight", "uSpecular", "uSpecularPow", "uFresnel", "uTint",
-            "uInnerShadow", "uAdaptive",
+            "uInnerShadow", "uAdaptive", "uCounterLight", "uEdgeLight", "uBevelPeak",
         )
 
         val unset = declared - setByHost

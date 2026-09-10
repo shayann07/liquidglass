@@ -94,6 +94,38 @@ data class GlassStyle(
     val specular: Float = 0.55f,
     /** Rim highlight tightness. Higher is a narrower, harder glint. */
     val specularPower: Float = 6f,
+    /**
+     * How much of the key light reaches the side of the bevel facing away from it, 0 to 1.
+     *
+     * A bead lit from one side only reads as a gradient, so there is always some. A free-standing
+     * lens lit from above wants a little; a bar wants all of it — measured against the iOS 26
+     * reference, a dark tab bar's top and bottom edges carry the same hairline (61 over a body
+     * of 20 on both), and its straight sides carry none, which is exactly a light from directly
+     * above reaching both faces equally. The counter-lobe tightens as it weakens, so the
+     * historical 0.35 keeps the narrower lobe it was tuned with.
+     */
+    val counterLight: Float = 0.35f,
+    /**
+     * Brightness of the outermost line of the rim, relative to the bevel lobe.
+     *
+     * The two are different things and the reference separates them. Its resting bar is a
+     * one-point hairline with almost no lobe behind it: a tiny [specular] and an [edgeLight]
+     * well above 1. Its held lens is the opposite — a broad, soft lobe whose peak sits a few
+     * points *inside* an edge that stays dark: a real [specular] over a wide [bevel] and an
+     * [edgeLight] near 0. At 1 the two move together, which is how every preset was tuned.
+     */
+    val edgeLight: Float = 1f,
+    /**
+     * Where in the bevel the highlight peaks, as a fraction of [bevel] measured in from the edge.
+     *
+     * At 0 the bevel is a chamfer: brightest at the very edge and fading inward, which is how
+     * every preset was tuned and what a hairline-edged bar wants. Above 0 it is a bead: the
+     * outermost pixel stays dark and the highlight sits inside the edge, fading both ways. The
+     * reference's held lens is a bead — its top rim rises from 16 to 110 over about three
+     * points and falls back over three more, with the edge itself dark — so it sits near 0.4
+     * over a bevel about six points wide.
+     */
+    val bevelPeak: Float = 0f,
     /** Schlick rim reflectance gain: how much the bevel brightens as it turns away. */
     val fresnel: Float = 0.10f,
     /** Strength of the dark inner line that reads as the thickness of the glass. */
@@ -153,6 +185,45 @@ data class GlassStyle(
             specular = 0.50f,
             fresnel = 0.08f,
             innerShadow = 0.06f,
+        )
+
+        /**
+         * Floating chrome in a dark appearance, measured rather than tuned.
+         *
+         * Every number here comes from a frame-by-frame measurement of an iOS 26 tab bar in dark
+         * mode (the Phone app, recorded at 720x1558; see `docs/research/reference-measurements.md`).
+         * Over pure black the bar reads **20/255**, and the peaks of white text behind it come
+         * through at **64%** of their own brightness. Two numbers, two unknowns: a tint of about
+         * 0x37 at a strength of about 0.36 reproduces both. It is worth being precise about,
+         * because the obvious reading — a dark tint at high alpha — passes only a quarter of
+         * what is behind and turns the bar into a wall, which is the opposite of the material.
+         * Its edge is a one-point
+         * hairline at about twice the body's brightness on the top and bottom edges and absent
+         * on the straight sides, with no dark inner line at all. The rim's refraction is shallow
+         * and there is no visible dispersion at rest.
+         *
+         * The tint is a colour rather than an alpha, so it carries into [lerpGlassStyle] and
+         * into the tone mapping like any other; the numbers are chosen so that
+         * `tint.rgb x tint.alpha` reproduces the measured lift over black.
+         */
+        val DarkChrome = GlassStyle(
+            blurRadius = 0.dp,
+            backdropBlur = 3.dp,
+            refractionBand = 12.dp,
+            refractionDepth = 6.dp,
+            dispersion = 0.010f,
+            mirror = 0.05f,
+            bevel = 1.2.dp,
+            tint = Color(0xFF373737).copy(alpha = 0.36f),
+            adaptivity = 0.4f,
+            legibility = 0.5f,
+            specular = 0.06f,
+            specularPower = 4f,
+            counterLight = 1f,
+            edgeLight = 4.5f,
+            fresnel = 0f,
+            innerShadow = 0f,
+            invertsWithBackdrop = false,
         )
 
         /**

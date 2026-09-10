@@ -159,11 +159,12 @@ fun Modifier.liquidGlass(
      * does exactly this: as the selection indicator crosses a symbol, the symbol is seen
      * through the lens, and its edges fringe where the rim refracts them.
      *
-     * With this on, the content is recorded into the backdrop under the panel before the
-     * shader runs, so the rim compresses it, the dispersion splits it and the mirror echoes
-     * it. It is also clipped to the shape and covered by the tint like any other backdrop.
-     * Anything positioned outside the shape simply is not seen, which is what lets a lens
-     * carry a copy of a whole row and show only the part it is over.
+     * With this on, the content gets its own pass through the same distance field, bevel and
+     * dispersion the backdrop goes through, and is drawn over the material: bent and
+     * colour-split where the rim refracts it, clipped to the shape, and otherwise untouched —
+     * the glass dims what is behind it, not what is printed inside it, which is what the
+     * reference shows. Anything positioned outside the shape simply is not seen, which is what
+     * lets a lens carry a copy of a whole row and show only the part it is over.
      *
      * Where the shader cannot run the content is drawn on top instead, as it always was.
      */
@@ -236,8 +237,7 @@ fun Modifier.liquidGlass(
                     drawContent()
                     return@drawWithContent
                 }
-                val effect = createGlassRenderEffect(
-                    GlassUniforms(
+                val uniforms = GlassUniforms(
                         width = size.width,
                         height = size.height,
                         pad = pad,
@@ -283,8 +283,11 @@ fun Modifier.liquidGlass(
                         adaptivity = style.adaptivity,
                         blurRadius = style.blurRadius.toPx(),
                         backdropBlur = style.backdropBlur.toPx(),
+                        counterLight = style.counterLight,
+                        edgeLight = style.edgeLight,
+                        bevelPeak = style.bevelPeak,
                     )
-                )
+                val effect = createGlassRenderEffect(uniforms)
                 if (effect != null) {
                     // Record the padded slice of backdrop beneath this panel, in the panel's own
                     // coordinates offset by the pad, then let the chain blur and refract it.
@@ -294,9 +297,8 @@ fun Modifier.liquidGlass(
                         (size.height.toInt() + padPx * 2).coerceAtLeast(1),
                     )
                     if (refractContent) {
-                        // The content becomes part of what the glass is looking at. Recorded
-                        // separately first, because a layer cannot be recorded from inside
-                        // another layer's recording.
+                        // The content, alone and transparent, at the same padded size as the
+                        // backdrop so the two passes share one coordinate frame.
                         contentLayer.record(size = paddedSize) {
                             translate(pad, pad) { this@drawWithContent.drawContent() }
                         }
@@ -310,7 +312,6 @@ fun Modifier.liquidGlass(
                     // on, which is both correct and cheaper than compensating downstream.
                         drawRect(state.background)
                         translate(-delta.x + pad, -delta.y + pad) { drawLayer(source) }
-                        if (refractContent) drawLayer(contentLayer)
                     }
                     glassLayer.renderEffect = effect
                     if (style.dimmingLayer > 0f) {
@@ -321,9 +322,14 @@ fun Modifier.liquidGlass(
                         )
                     }
                     translate(-pad, -pad) { drawLayer(glassLayer) }
-                    // Refracted content has already been seen through the glass; drawing it
-                    // again on top would put a sharp copy over the bent one.
-                    if (!refractContent) drawContent()
+                    // The content pass: the same field and the same bend, over the material.
+                    val contentEffect = if (refractContent) createGlassContentRenderEffect(uniforms) else null
+                    if (contentEffect != null) {
+                        contentLayer.renderEffect = contentEffect
+                        translate(-pad, -pad) { drawLayer(contentLayer) }
+                    } else {
+                        drawContent()
+                    }
                     return@drawWithContent
                 }
             }
@@ -421,6 +427,9 @@ internal data class GlassUniforms(
     val adaptivity: Float,
     val blurRadius: Float,
     val backdropBlur: Float,
+    val counterLight: Float,
+    val edgeLight: Float,
+    val bevelPeak: Float,
 ) {
     override fun equals(other: Any?): Boolean =
         other is GlassUniforms &&
@@ -443,12 +452,22 @@ internal data class GlassUniforms(
             specular == other.specular && specularPower == other.specularPower &&
             tint == other.tint && innerShadow == other.innerShadow &&
             adaptivity == other.adaptivity && blurRadius == other.blurRadius &&
-            backdropBlur == other.backdropBlur
+            backdropBlur == other.backdropBlur &&
+            counterLight == other.counterLight && edgeLight == other.edgeLight &&
+            bevelPeak == other.bevelPeak
 
     override fun hashCode(): Int = width.hashCode() * 31 + height.hashCode() + radii.contentHashCode()
 }
 
 internal expect fun createGlassRenderEffect(
+    uniforms: GlassUniforms,
+): androidx.compose.ui.graphics.RenderEffect?
+
+/**
+ * The content pass — see [GLASS_CONTENT_SHADER_SOURCE]. Takes the same uniforms as the material
+ * so the two passes cannot disagree about the geometry.
+ */
+internal expect fun createGlassContentRenderEffect(
     uniforms: GlassUniforms,
 ): androidx.compose.ui.graphics.RenderEffect?
 

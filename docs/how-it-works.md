@@ -119,10 +119,16 @@ to make a material like this read as a drawn rectangle.
 The touch magnifier and glow, then Increase Contrast's solid-with-border treatment. See
 [Interaction](interaction.md) and [Accessibility](accessibility.md).
 
-One host-side variation belongs here too: with `refractContent` the element's own content is
-drawn into the padded backdrop before the shader sees it, so it goes through every step above
-as backdrop rather than being painted on top afterwards. See
+One host-side variation belongs here too: with `refractContent` the element's own content is run
+through a **second pass** that shares steps 0, 1 and 2 above — the same field, the same bevel,
+the same dispersion — and nothing else, then composited over the material. It is bent like the
+backdrop but not tinted, dimmed or scattered like it. See
 [Content inside the glass](interaction.md#content-inside-the-glass).
+
+A test pins the two passes together: the four functions that decide where a pixel samples from
+must be identical text in both shaders, because a change to one that is not mirrored in the other
+would refract the content through a different lens than its backdrop — which shows up on a device
+as the symbol sliding against the content behind it as the element moves.
 
 ---
 

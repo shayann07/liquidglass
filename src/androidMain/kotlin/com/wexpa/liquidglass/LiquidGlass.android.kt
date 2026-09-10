@@ -99,6 +99,9 @@ internal actual fun createGlassRenderEffect(
     shader.setFloatUniform("uLight", uniforms.lightX, uniforms.lightY)
     shader.setFloatUniform("uSpecular", uniforms.specular)
     shader.setFloatUniform("uSpecularPow", uniforms.specularPower)
+    shader.setFloatUniform("uCounterLight", uniforms.counterLight)
+    shader.setFloatUniform("uEdgeLight", uniforms.edgeLight)
+    shader.setFloatUniform("uBevelPeak", uniforms.bevelPeak)
     shader.setFloatUniform(
         "uTint",
         uniforms.tint.red,
@@ -125,6 +128,46 @@ internal actual fun createGlassRenderEffect(
     } else {
         glass.asComposeRenderEffect()
     }
+}
+
+private val contentRuntimeShader: RuntimeShader? by lazy {
+    if (!LiquidGlassSupport.hasShaders) null
+    else runCatching { RuntimeShader(GLASS_CONTENT_SHADER_SOURCE) }.getOrNull()
+}
+
+internal actual fun createGlassContentRenderEffect(
+    uniforms: GlassUniforms,
+): androidx.compose.ui.graphics.RenderEffect? {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return null
+    val shader = contentRuntimeShader ?: return null
+    if (uniforms.width <= 0f || uniforms.height <= 0f) return null
+
+    shader.setFloatUniform("uSize", uniforms.width, uniforms.height)
+    shader.setFloatUniform("uPad", uniforms.pad)
+    shader.setFloatUniform(
+        "uRadii",
+        uniforms.radii.getOrElse(0) { 0f },
+        uniforms.radii.getOrElse(1) { 0f },
+        uniforms.radii.getOrElse(2) { 0f },
+        uniforms.radii.getOrElse(3) { 0f },
+    )
+    shader.setFloatUniform("uCornerPower", uniforms.cornerPower)
+    shader.setFloatUniform("uShapeKind", uniforms.shapeKind)
+    shader.setFloatUniform("uFieldRange", uniforms.fieldRange)
+    shader.setFloatUniform("uFieldScale", uniforms.fieldScale)
+    shader.setInputShader("field", uniforms.field?.let { bitmap ->
+        ImageShader(bitmap, TileMode.Clamp, TileMode.Clamp)
+    } ?: placeholderFieldShader)
+    shader.setFloatUniform("uRefractBand", uniforms.refractBand)
+    shader.setFloatUniform("uRefractDepth", uniforms.refractDepth)
+    shader.setFloatUniform("uIor", uniforms.ior)
+    shader.setFloatUniform("uBevelPower", uniforms.bevelPower)
+    shader.setFloatUniform("uAberration", uniforms.aberration)
+    shader.setFloatUniform("uScale", uniforms.scale)
+    shader.setFloatUniform("uMaterialize", uniforms.materialize)
+    shader.setFloatUniform("uTouch", uniforms.touchX, uniforms.touchY)
+    shader.setFloatUniform("uTouchAmt", uniforms.touchAmount)
+    return RenderEffect.createRuntimeShaderEffect(shader, "content").asComposeRenderEffect()
 }
 
 internal actual fun Shape.cornerRadiiPx(
@@ -188,6 +231,9 @@ internal actual fun createGlassContainerRenderEffect(
     shader.setFloatUniform("uLight", uniforms.lightX, uniforms.lightY)
     shader.setFloatUniform("uSpecular", uniforms.specular)
     shader.setFloatUniform("uSpecularPow", uniforms.specularPower)
+    shader.setFloatUniform("uCounterLight", uniforms.counterLight)
+    shader.setFloatUniform("uEdgeLight", uniforms.edgeLight)
+    shader.setFloatUniform("uBevelPeak", uniforms.bevelPeak)
     shader.setFloatUniform(
         "uTint",
         uniforms.tint.red,
