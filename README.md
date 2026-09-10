@@ -10,7 +10,8 @@ surface with the same rim lighting — a plainer material, not a broken one.
 **[Full documentation →](docs/README.md)** · [Getting started](docs/getting-started.md) ·
 [Shapes](docs/shapes.md) · [Interaction](docs/interaction.md) ·
 [API reference](docs/api-reference.md) · [Limitations](docs/limitations.md) ·
-[The research](docs/research/README.md)
+[Roadmap](docs/roadmap.md) · [The research](docs/research/README.md) ·
+[What everyone else built](docs/research/competitive-landscape.md)
 
 ```kotlin
 val glass = rememberLiquidGlassState(background = MyTheme.ground)

@@ -53,6 +53,27 @@ class GlassTabBarStyleTest {
     }
 
     @Test
+    fun testTheLensSidesAreDarkBecauseTheEdgeLineIsDirectional() {
+        // The reference lens is lit from overhead: a bright line top and bottom, and at the
+        // sides, where the normal is perpendicular to the light, a one-pixel dark step reading
+        // 24 against an interior of 41. Nothing omnidirectional may light those sides, so the
+        // dark contour is the only thing that defines the shape there.
+        val lens = GlassTabBarStyle.HeldLens
+        assertTrue(lens.edgeShadow > 0f, "the sides are a dark step, not an unlit ramp")
+        assertEquals(0f, lens.fresnel, "fresnel is omnidirectional and would light the sides")
+    }
+
+    @Test
+    fun testTheIos27PresetOnlyDarkensTheContourAndBrightensTheHighlight() {
+        val base = GlassTabBarStyle.Dark
+        val revised = GlassTabBarStyle.Ios27
+        assertTrue(revised.lens.edgeShadow > base.lens.edgeShadow, "2026 darkens the edge")
+        assertTrue(revised.lens.specular > base.lens.specular, "and brightens the specular")
+        assertEquals(base.height, revised.height, "geometry is unchanged; only the surface moved")
+        assertEquals(base.lens.refractionDepth, revised.lens.refractionDepth)
+    }
+
+    @Test
     fun testTheLensStandsProudByTheSameAmountAboveAndBelow() {
         val style = GlassTabBarStyle.Dark
         assertEquals(0f, style.lensRise.value, "the native reference is centred on the bar")

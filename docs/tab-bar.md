@@ -94,6 +94,19 @@ and commits once, on release (`settle`); a release faster than `flingVelocity` c
 next tab. At speed it stretches along the travel by up to `gel`, lagged by `gelSpring`, so the
 deformation trails the movement.
 
+## The 2026 material
+
+`GlassTabBarStyle.Ios27` is `Dark` with a darker contour and a brighter highlight. Apple's 2026
+revision rebuilt the material around readability: it diffuses busy content behind it more
+effectively, and it gains a darkened edge and brighter speculars so an element stays distinct
+over that content.
+
+**Neither number in that preset is measured.** Everything in `Dark` is read off native
+screenshots; `Ios27` is a starting point, because the captures this library was tuned against
+predate the revision. The same release also replaces the earlier two-position transparency
+toggle with a continuous slider whose default is its midpoint, so there is no longer a single
+correct opacity to match and `tint` is the host's call.
+
 ## Where the shader is unavailable
 
 Below Android 13 the lens is a plain surface (`fallbackSurface`), the items colour themselves —

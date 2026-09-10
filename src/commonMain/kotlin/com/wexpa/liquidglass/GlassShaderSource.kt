@@ -58,6 +58,7 @@ uniform float   uSpecularPow;  // rim highlight tightness
 uniform float   uCounterLight; // how much of the key light reaches the side facing away, 0..1
 uniform float   uEdgeLight;    // brightness of the outermost line relative to the bevel lobe
 uniform float   uBevelPeak;    // where in the bevel the highlight peaks: 0 at the edge (chamfer), 0.4 inside (bead)
+uniform float   uEdgeShadow;   // dark separating contour at the outermost pixel, 0..1
 uniform float   uFresnel;      // Schlick rim reflectance gain
 uniform float   uInnerShadow;  // strength of the inner thickness line
 
@@ -352,9 +353,11 @@ half4 main(float2 coord) {
     // all of it. The counter-lobe tightens as it weakens, so the historical 0.35 keeps the
     // narrower lobe it was tuned with.
     //
-    // The edge line is the outermost two pixels. It carries a small floor so the shape stays
-    // defined all the way round, but most of it is directional, because a line of even
-    // brightness reads as a stroke and not as an edge. Its brightness is set apart from the
+    // The edge line is the outermost two pixels, and it is *entirely* directional: where the
+    // normal is perpendicular to the light there is no line at all. A floor here reads as a
+    // stroke drawn round the shape, and the reference has none — its lens is a bright line top
+    // and bottom and a one-pixel dark step at the sides. What defines the shape where nothing
+    // is lit is uEdgeShadow, below. Its brightness is set apart from the
     // bevel lobe's: the reference bar is a hairline with almost no lobe behind it, and the
     // reference lens is a broad lobe whose peak sits inside an edge that stays dark.
     float counterLight = clamp(uCounterLight, 0.0, 1.0);
@@ -362,11 +365,22 @@ half4 main(float2 coord) {
     float key = pow(max(facing, 0.0), uSpecularPow) * bevelBand;
     float counter = pow(max(-facing, 0.0), counterPow) * bevelBand * counterLight;
     float edge = smoothstep(2.0, 0.0, depth);
-    float edgeLine = edge * (0.07 + 0.5 * (max(facing, 0.0) + counterLight * max(-facing, 0.0)));
+    float edgeLine = edge * 0.5 * (max(facing, 0.0) + counterLight * max(-facing, 0.0));
 
     col += half3(half(((key + counter) * uSpecular
         + edgeLine * uSpecular * uEdgeLight
         + fresnel * uFresnel * bevelBand) * mat));
+
+    // The dark contour that separates glass from its backdrop. Apple's 2026 revision pairs it
+    // with a brighter specular; the 2025 material has none, so this is 0 on every preset here.
+    // It occupies the outermost pixel only, inside of which the lit edge line begins, so
+    // raising it darkens the boundary without eating the highlight.
+    // Centred 1.5px inside the edge, not on it: coverage only reaches 1 at 0.75px, so a contour
+    // drawn on the outermost pixel is multiplied by a partial alpha and composited against
+    // whatever is outside — invisible when that is dark. The reference's step is one solid
+    // pixel just inside the boundary.
+    float rimDark = clamp(1.0 - abs(depth - 1.5) / 1.5, 0.0, 1.0);
+    col -= half3(half(rimDark * uEdgeShadow * mat));
 
     // Illumination from within, under the fingertip. A sixth of a stop at the peak: measured
     // against a device, where anything near 0.2 reads as a camera flash rather than as glass

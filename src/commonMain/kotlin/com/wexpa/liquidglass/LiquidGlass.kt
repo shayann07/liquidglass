@@ -296,6 +296,7 @@ fun Modifier.liquidGlass(
                         blurRadius = style.blurRadius.toPx(),
                         backdropBlur = style.backdropBlur.toPx(),
                         counterLight = style.counterLight,
+                        edgeShadow = style.edgeShadow,
                         edgeLight = style.edgeLight,
                         bevelPeak = style.bevelPeak,
                     )
@@ -449,6 +450,7 @@ internal data class GlassUniforms(
     val counterLight: Float,
     val edgeLight: Float,
     val bevelPeak: Float,
+    val edgeShadow: Float,
 ) {
     override fun equals(other: Any?): Boolean =
         other is GlassUniforms &&
@@ -473,7 +475,7 @@ internal data class GlassUniforms(
             adaptivity == other.adaptivity && blurRadius == other.blurRadius &&
             backdropBlur == other.backdropBlur &&
             counterLight == other.counterLight && edgeLight == other.edgeLight &&
-            bevelPeak == other.bevelPeak
+            bevelPeak == other.bevelPeak && edgeShadow == other.edgeShadow
 
     override fun hashCode(): Int = width.hashCode() * 31 + height.hashCode() + radii.contentHashCode()
 }

@@ -99,6 +99,7 @@ internal actual fun createGlassRenderEffect(
     builder.uniform("uSpecular", uniforms.specular)
     builder.uniform("uSpecularPow", uniforms.specularPower)
     builder.uniform("uCounterLight", uniforms.counterLight)
+    builder.uniform("uEdgeShadow", uniforms.edgeShadow)
     builder.uniform("uEdgeLight", uniforms.edgeLight)
     builder.uniform("uBevelPeak", uniforms.bevelPeak)
     builder.uniform(
@@ -228,6 +229,7 @@ internal actual fun createGlassContainerRenderEffect(
     builder.uniform("uSpecular", uniforms.specular)
     builder.uniform("uSpecularPow", uniforms.specularPower)
     builder.uniform("uCounterLight", uniforms.counterLight)
+    builder.uniform("uEdgeShadow", uniforms.edgeShadow)
     builder.uniform("uEdgeLight", uniforms.edgeLight)
     builder.uniform("uBevelPeak", uniforms.bevelPeak)
     builder.uniform(

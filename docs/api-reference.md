@@ -170,6 +170,7 @@ data class GlassStyle(
     val counterLight: Float = 0.35f,
     val edgeLight: Float = 1f,
     val bevelPeak: Float = 0f,
+    val edgeShadow: Float = 0f,
     val fresnel: Float = 0.10f,
     val innerShadow: Float = 0.07f,
     val fallbackSurface: Color = Color(0xF2141416),
@@ -184,13 +185,24 @@ The knobs the shader consumes. `copy()` is the intended way to adjust one.
 zero at the rim, preserving the signature edge; `backdropBlur` is chained ahead of the shader,
 is higher quality, and destroys that edge. See [the two blurs](../README.md#the-two-blurs).
 
-**The rim has four knobs and they are not interchangeable.** `specular` sets the lobe where the
+**The rim has five knobs and they are not interchangeable.** `specular` sets the lobe where the
 bevel faces the light; `counterLight` how much of it reaches the face turned away (a bar lit from
 overhead wants all of it, a free-standing panel a little); `edgeLight` the brightness of the
 outermost line relative to that lobe (a hairline-edged bar wants it well above 1, a soft bead
-near 0); and `bevelPeak` whether the highlight sits on the edge (0, a chamfer) or inside it
-(around 0.4, a bead). `fresnel` is the only omnidirectional one, so on a shape lit from directly
-overhead it is the only thing that lights the left and right sides at all.
+near 0); `bevelPeak` whether the highlight sits on the edge (0, a chamfer) or inside it
+(around 0.4, a bead); and `edgeShadow` the dark contour just inside the boundary.
+
+`edgeShadow` is what defines a shape where nothing is lit. The edge line is **entirely
+directional** — there is no floor, because a line of even brightness reads as a stroke drawn
+round the shape and the reference has none. On a lens lit from overhead that leaves the left and
+right sides dark, and the reference shows exactly that: a one-pixel dark step, then the interior.
+`GlassTabBarStyle.HeldLens` sets it to 0.08, which measures on device as a dip to 21 against an
+interior of 42, against the reference's 24 against 41. `fresnel` is the only omnidirectional
+brightening term.
+
+Note that the contour is drawn 1.5px inside the boundary rather than on it. Coverage only
+reaches 1 at 0.75px, so anything painted on the outermost pixel is multiplied by a partial alpha
+and composited against whatever lies outside, which makes it invisible over a dark ground.
 
 **Presets:** `Regular` (the workhorse), `Chrome` (floating over an app's own content),
 `DarkChrome` (a dark-appearance bar, every number measured off an iOS 26 recording — see

@@ -47,6 +47,7 @@ uniform float   uSpecularPow;
 uniform float   uCounterLight;
 uniform float   uEdgeLight;
 uniform float   uBevelPeak;
+uniform float   uEdgeShadow;   // dark separating contour at the outermost pixel, 0..1
 uniform float4  uTint;
 uniform float   uInnerShadow;
 uniform float   uAdaptive;
@@ -241,10 +242,16 @@ half4 main(float2 coord) {
     float spec = pow(max(facing, 0.0), uSpecularPow) * bevelBand;
     float counter = pow(max(-facing, 0.0), counterPow) * bevelBand * counterLight;
     float edge = smoothstep(2.0, 0.0, depth);
-    float edgeLine = edge * (0.07 + 0.5 * (max(facing, 0.0) + counterLight * max(-facing, 0.0)));
+    float edgeLine = edge * 0.5 * (max(facing, 0.0) + counterLight * max(-facing, 0.0));
     col += half3(half((spec + counter) * uSpecular
         + edgeLine * uSpecular * uEdgeLight
         + fresnel * uFresnel * bevelBand));
+
+    // The dark contour that separates glass from its backdrop. Apple's 2026 revision pairs it
+    // with a brighter specular; the 2025 material has none, so this is 0 on every preset here.
+    // See GlassShaderSource: centred just inside the edge, clear of the coverage ramp.
+    float rimDark = clamp(1.0 - abs(depth - 1.5) / 1.5, 0.0, 1.0);
+    col -= half3(half(rimDark * uEdgeShadow));
 
     return half4(clamp(col, half3(0.0), half3(1.0)), 1.0) * half(coverage);
 }

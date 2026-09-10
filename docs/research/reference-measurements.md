@@ -62,8 +62,9 @@ profile is flat to within one count across its whole height.
 This matters more than it sounds. Give it even a shallow refraction and its rim grows a bright
 ring — the bar's own body, compressed inward — and that ring is the most obvious tell that an
 implementation is a recreation. Apple's own rule for sliders and toggles is the explanation: the
-knob "becomes Liquid Glass for the duration of the gesture and reverts after". The tab bar's
-indicator does the same, and the reverted state is a shape, not a material.
+knob "transforms into Liquid Glass during interaction" ([Adopting Liquid
+Glass](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass)). The
+tab bar's indicator does the same, and the reverted state is a shape, not a material.
 
 ## The held lens
 
@@ -74,7 +75,7 @@ Measured off the native screenshots (IMG_6614–6618), with the video agreeing o
 | Size | 219 px = **73 pt** tall on a 64 pt bar (**1.135×**); about 125 pt wide, one item plus **16 pt** |
 | Position | **centred** on the bar: stands **4.3 pt proud above and 4.3 pt below** |
 | Interior where it overlaps the bar | **52–58, where the bar beside it reads 47–48** — the bar passed through, plus a faint glow that peaks in the middle |
-| Edge | a **one-to-two-pixel line at +85 on top and +68 below**; a one-pixel dark step and nothing else at the sides |
+| Edge | a **one-to-two-pixel line at +85 on top and +68 below**; a **one-pixel dark step** at the sides, reading 24 against an interior of 41, and nothing else |
 | Refraction | **outward**: the bar's top hairline appears **11 px (3.7 pt) lower** inside the lens than outside it, the bottom hairline 9–11 px higher, and the black gap around the bar becomes a **~20 px dark band** just inside the lens's edge |
 | Dispersion | strong: symbols and labels crossing the rim split visibly into red and blue |
 | Bead, mirrored echo, inner shadow | **none** |
@@ -93,6 +94,14 @@ would show a sharp hole through the bar. The reference never does.
 research derived and two published reimplementations contradict: pixels near the rim show what
 lies *outside* the lens, compressed inward. Inward (magnifying) sampling would move the hairlines
 the other way and could not produce the band.
+
+**Its edge line is entirely directional, and the sides are dark.** There is no floor: where the
+normal is perpendicular to an overhead light the rim carries no line at all, and what defines
+the shape there is a dark contour just inside the boundary. This was implemented as
+`GlassStyle.edgeShadow` and measured back on device at a dip to 21 against an interior of 42,
+against the reference's 24 against 41. An independent per-angle reading of the iOS 26 Control
+Center, published by another implementation, reaches the same conclusion from a different app:
+no direction-independent term, and no fixed outline round the shape.
 
 **Its edge is a line, not a bead.** The outermost one or two pixels are bright; the next twenty are
 the compressed exterior (black, when the exterior is the gap around the bar); then the pulled-in

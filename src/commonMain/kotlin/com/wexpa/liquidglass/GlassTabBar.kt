@@ -63,9 +63,9 @@ import kotlinx.coroutines.launch
  *
  *  - **At rest the indicator is not glass.** It is a flat dark inset cut into the bar, with an
  *    edge two or three pixels wide and no optics of any kind. Apple's rule for slider knobs
- *    applies to it: the knob "becomes Liquid Glass for the duration of the gesture and reverts
- *    after". Give it a bend at rest and it grows a bright ring, which is the single most
- *    visible tell that an implementation is not the real thing.
+ *    applies to it: the knob "transforms into Liquid Glass during interaction". Give it a bend
+ *    at rest and it grows a bright ring, which is the single most visible tell that an
+ *    implementation is not the real thing.
  *  - **Touch-down makes it glass.** The inset swells into a lens a few points taller than the
  *    bar, standing proud by the same amount above and below, and about one item plus 16pt
  *    wide. It forms in about a tenth of a second and subsides in about a third.
@@ -601,7 +601,11 @@ data class GlassTabBarStyle(
             specular = 0.06f,
             specularPower = 4f,
             counterLight = 0.8f,
-            edgeLight = 9.5f,
+            edgeLight = 10.8f,
+            // The reference's sides are a one-pixel dark step against an interior of about 44,
+            // dipping to about 24. The edge line is directional and lands nothing there, so
+            // this is what draws them.
+            edgeShadow = 0.08f,
             fresnel = 0f,
             innerShadow = 0f,
             invertsWithBackdrop = false,
@@ -610,5 +614,25 @@ data class GlassTabBarStyle(
 
         /** A dark-appearance bar, every number measured off the reference. */
         val Dark = GlassTabBarStyle()
+
+        /**
+         * [Dark], with the separating contour and brighter highlight Apple's 2026 revision
+         * added.
+         *
+         * The 2026 material was rebuilt around readability: it diffuses busy content behind it
+         * more effectively, and it gains a darkened edge and brighter speculars so an element
+         * stays distinct over that content. Both changes are stated by Apple; **neither number
+         * here is measured**, because the reference captures this library was tuned against
+         * predate the revision. They are a starting point, not a parity claim — everything in
+         * [Dark] is measured and this is not.
+         *
+         * Note also that the 2026 release replaces the earlier Clear/Tinted toggle with a
+         * continuous transparency slider whose default is its midpoint, so there is no longer
+         * one correct opacity to match. Treat [GlassStyle.tint] as the host's to set.
+         */
+        val Ios27: GlassTabBarStyle = Dark.copy(
+            bar = Dark.bar.copy(edgeShadow = 0.06f, specular = 0.09f),
+            lens = Dark.lens.copy(edgeShadow = 0.16f, specular = 0.09f),
+        )
     }
 }

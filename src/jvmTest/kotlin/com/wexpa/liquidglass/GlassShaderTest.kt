@@ -37,7 +37,7 @@ class GlassShaderTest {
             "uFresnel", "uLegibility", "uCornerPower", "uTouch", "uTouchAmt",
             "uMaterialize", "uFrost", "uContrast", "uShapeKind", "uFieldRange", "uFieldScale", "uRefractDepth", "uBevel",
             "uLight", "uSpecular", "uSpecularPow", "uTint", "uInnerShadow", "uAdaptive",
-            "uPad", "uScale", "uFlip", "uCounterLight", "uEdgeLight", "uBevelPeak",
+            "uPad", "uScale", "uFlip", "uCounterLight", "uEdgeLight", "uBevelPeak", "uEdgeShadow",
         )
 
         val missing = setByHost - declared
@@ -130,7 +130,7 @@ class GlassContainerShaderTest {
             "uSize", "uPad", "uBackdrop", "uBase", "uRect", "uRadius", "uCount", "uMerge",
             "uRefractBand", "uRefractDepth", "uAberration", "uIor", "uBevelPower", "uBlur",
             "uBevel", "uLight", "uSpecular", "uSpecularPow", "uFresnel", "uTint",
-            "uInnerShadow", "uAdaptive", "uCounterLight", "uEdgeLight", "uBevelPeak",
+            "uInnerShadow", "uAdaptive", "uCounterLight", "uEdgeLight", "uBevelPeak", "uEdgeShadow",
         )
 
         val unset = declared - setByHost

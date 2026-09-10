@@ -126,6 +126,21 @@ data class GlassStyle(
      * over a bevel about six points wide.
      */
     val bevelPeak: Float = 0f,
+    /**
+     * A dark contour in the outermost pixels, all the way round, independent of the light.
+     *
+     * This is what separates glass from what is behind it in iOS 26.1's successor: Apple's
+     * 2026 revision pairs a darkened edge with a brighter specular so an element stays
+     * distinct over busy content. It sits *outside* the lit edge line rather than over it, so
+     * the two do not cancel.
+     *
+     * It is also what defines a shape where nothing is lit. The edge line above is entirely
+     * directional, so at the sides of a lens lit from overhead it contributes nothing; the
+     * reference shows a one-pixel *dark* step there, which is this. [GlassTabBarStyle.HeldLens]
+     * sets it to the measured 0.08. Raise it further for the 2026 look, which darkens the whole
+     * contour and brightens the specular to match; see [GlassTabBarStyle.Ios27].
+     */
+    val edgeShadow: Float = 0f,
     /** Schlick rim reflectance gain: how much the bevel brightens as it turns away. */
     val fresnel: Float = 0.10f,
     /** Strength of the dark inner line that reads as the thickness of the glass. */
@@ -220,7 +235,7 @@ data class GlassStyle(
             specular = 0.06f,
             specularPower = 4f,
             counterLight = 1f,
-            edgeLight = 4.5f,
+            edgeLight = 5.1f,
             fresnel = 0f,
             innerShadow = 0f,
             invertsWithBackdrop = false,
