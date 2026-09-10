@@ -63,6 +63,7 @@ fun Modifier.liquidGlass(
     light: GlassLight = GlassLight.Default,
     interaction: GlassInteraction? = null,
     materialize: Float = 1f,
+    pressSource: GlassPressSource? = null,
 ): Modifier
 ```
 
@@ -73,6 +74,7 @@ Draws this element as a piece of glass over `state`'s backdrop.
 | `shape` | Rounded rects, capsules and circles are evaluated analytically; `GlassSquircleShape` carries its own corner exponent; anything else is measured. See [Shapes](shapes.md). |
 | `interaction` | Non-null opts into touch response. See `GlassInteraction`. |
 | `materialize` | 0 to 1. Drive this instead of `alpha` — at 0 the shader returns the backdrop untouched, so the element leaves by ceasing to bend light. |
+| `pressSource` | Drive the press from outside, when another node owns the gesture. See `GlassPressSource`. |
 
 Where the platform cannot run the shader this degrades to `style.fallbackSurface` with the same
 rim lighting.
@@ -245,6 +247,34 @@ data class GlassInteraction(
 
 Opt-in, as Apple makes it. `ReducedMotion` is what Apple's setting asks for: no scale, no
 bounce, no gel, glow at half — the feedback survives, the elasticity does not.
+
+### `GlassPressSource`
+
+```kotlin
+@Stable
+class GlassPressSource {
+    fun press(localPosition: Offset)
+    fun release()
+}
+
+@Composable
+fun rememberGlassPressSource(): GlassPressSource
+```
+
+Drives a panel's press response from outside, for when **another node owns the gesture**.
+
+`Modifier.liquidGlass` normally watches its own pointer, which is right for a panel that is also
+the thing you touch. It is wrong for anything a *parent* manipulates — a selection indicator
+inside a tab bar is the case that forced this to exist: the indicator sits beneath the tab
+buttons, so it never sees a touch, and the bar has to drag it. Without a way in, such an element
+can be moved but can never light up.
+
+Pass it as `liquidGlass(..., pressSource = source)` and call `press()` on every pointer move as
+well as on down, so the glow tracks rather than jumps. `release()` deliberately leaves the
+position where it was: the glow fades from where the finger lifted rather than sliding back to
+the middle of the panel.
+
+Positions are in the **panel's** local pixels, not the gesture owner's.
 
 ### `GlassMotion`
 

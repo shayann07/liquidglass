@@ -37,6 +37,39 @@ as glass responding to a touch. It drags a small magnification of the backdrop w
 `interaction` observes but does not consume the gesture, so an element can be interactive glass
 *and* a normal `clickable` without the two fighting.
 
+### When something else owns the gesture
+
+A panel that is also the thing you touch can watch its own pointer, and `interaction` alone is
+enough. A panel that a *parent* manipulates cannot — a selection indicator inside a tab bar sits
+beneath the tab buttons and never sees a touch, so it can be moved but never lights up, which is
+exactly the half-finished feel of an indicator that animates without responding.
+
+Hand it a `GlassPressSource` and drive it from wherever the gesture actually lives:
+
+```kotlin
+val press = rememberGlassPressSource()
+
+Box(Modifier.liquidGlass(glass, shape, style, interaction = …, pressSource = press))
+
+Box(Modifier.fillMaxSize().pointerInput(Unit) {
+    awaitEachGesture {
+        val down = awaitFirstDown(requireUnconsumed = false)
+        val grabbed = awaitHorizontalTouchSlopOrCancellation(down.id) { c, _ -> c.consume() }
+            ?: return@awaitEachGesture           // a tap still reaches the buttons
+        press.press(toPanelLocal(grabbed.position))
+        horizontalDrag(grabbed.id) { change ->
+            press.press(toPanelLocal(change.position))
+            change.consume()
+        }
+        press.release()
+    }
+})
+```
+
+Two details worth copying. Claim nothing until the pointer crosses the touch slop, so a tap
+stays a tap and only a drag becomes a drag. And convert into the **panel's** local pixels, not
+the gesture owner's — the glow is positioned in the panel's own space.
+
 ### Spill onto neighbours
 
 Inside a `LiquidGlassContainer` the falloff is evaluated in the **container's** space, so a press

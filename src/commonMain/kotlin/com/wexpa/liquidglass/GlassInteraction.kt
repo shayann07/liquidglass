@@ -7,6 +7,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -99,15 +100,62 @@ internal object GlassMotion {
 }
 
 /**
+ * Lets a caller that already owns the gesture drive a panel's press response.
+ *
+ * `Modifier.liquidGlass` normally tracks its own pointer, which is right for a panel that is
+ * also the thing you touch. It is wrong whenever some *other* node owns the gesture — a
+ * selection indicator inside a tab bar is the case that forced this: the indicator sits beneath
+ * the tab buttons, so it never sees a touch, and the bar has to drag it. Without a way in, such
+ * an element can be moved but can never light up, which is exactly the half-finished feel of an
+ * indicator that animates but does not respond.
+ *
+ * Positions are in the **panel's** local pixels, not the gesture owner's.
+ */
+@Stable
+class GlassPressSource internal constructor() {
+    internal var localPosition by mutableStateOf(Offset.Zero)
+    internal var isPressed by mutableStateOf(false)
+
+    /** Call on every pointer move as well as on down, so the glow tracks rather than jumps. */
+    fun press(localPosition: Offset) {
+        this.localPosition = localPosition
+        isPressed = true
+    }
+
+    /**
+     * The position is deliberately left where it was: the glow fades from where the finger
+     * lifted rather than sliding back to the middle of the panel.
+     */
+    fun release() {
+        isPressed = false
+    }
+}
+
+@Composable
+fun rememberGlassPressSource(): GlassPressSource = remember { GlassPressSource() }
+
+/**
  * Tracks a press for [Modifier.liquidGlass], returning the point and amount the shader wants.
  *
- * Separate from any `clickable` the caller adds: this observes, it does not consume, so an
- * element can be both interactive glass and a normal button without the two fighting over the
- * gesture.
+ * With no [source] it watches its own pointer, and observes rather than consumes, so an element
+ * can be both interactive glass and a normal button without the two fighting over the gesture.
+ * With one, the caller is driving and this only animates the amount.
  */
 @Composable
-internal fun rememberGlassPress(enabled: Boolean): Pair<GlassPress, Modifier> {
+internal fun rememberGlassPress(
+    enabled: Boolean,
+    source: GlassPressSource?,
+): Pair<GlassPress, Modifier> {
     if (!enabled) return GlassPress.None to Modifier
+
+    if (source != null) {
+        val amount by animateFloatAsState(
+            targetValue = if (source.isPressed) 1f else 0f,
+            animationSpec = if (source.isPressed) GlassMotion.GlowIn else GlassMotion.GlowOut,
+            label = "glass_press_amount_external",
+        )
+        return GlassPress(source.localPosition.x, source.localPosition.y, amount) to Modifier
+    }
 
     var point by remember { mutableStateOf(Offset.Zero) }
     var down by remember { mutableStateOf(false) }

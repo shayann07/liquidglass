@@ -142,10 +142,20 @@ fun Modifier.liquidGlass(
      * becoming glass rather than by becoming opaque.
      */
     materialize: Float = 1f,
+    /**
+     * Drive the press from outside instead of letting this element watch its own pointer.
+     *
+     * For when another node owns the gesture — an indicator inside a bar that the bar drags.
+     * See [GlassPressSource].
+     */
+    pressSource: GlassPressSource? = null,
 ): Modifier = composed {
     val glassLayer = rememberGraphicsLayer()
     var coordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
-    val (press, pressModifier) = rememberGlassPress(enabled = interaction != null)
+    val (press, pressModifier) = rememberGlassPress(
+        enabled = interaction != null,
+        source = pressSource,
+    )
 
     val density = LocalDensity.current
     val direction = LocalLayoutDirection.current
