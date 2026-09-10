@@ -112,8 +112,3 @@ and a 1.5px rim guard, not filtering.
 The shader provably compiles on Skia and the desktop app starts without error, but nobody has
 sat and looked at the material rendering on desktop. Treat desktop as "should work" rather than
 "verified".
-
-## Not published as an artifact
-
-It is a module you copy, not a Maven coordinate. Publishing it is straightforward and has not
-been done.

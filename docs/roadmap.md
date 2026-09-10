@@ -8,7 +8,7 @@ The strategic position, in one paragraph. Two libraries dominate this space and 
 ship components: Kyant0's says so in one sentence in its README, and Haze has declined for three
 years. The only project that ships components *and* real optics has 26 stars and is one month
 old. Meanwhile the only measured tab bar in the field is ours. So the defensible ground is
-optics fidelity plus finished components, and the thing that erodes it is reach: both leaders
+optics fidelity plus a modifier that converts anything, and the thing that erodes it is reach: both leaders
 build for iOS, macOS, web and desktop, and we build for Android and desktop JVM. Fix reach or
 none of the rest matters.
 
@@ -83,19 +83,34 @@ applies an effect to the pixels already drawn behind a node, which is a correct 
 capture cost. It does no optics. Haze wires it in behind a feature flag with a capture fallback;
 we should do the same. Not testable on this device, which is on Android 16.
 
-## P3 — the moat is components
+## P3 — the moat is the modifier, and components are its proof
 
-**The slider: done.** `GlassSlider` and `GlassSliderStyle`. The knob is an opaque shape at rest
-and clear glass for the duration of the drag, it looks *through* the track rather than past it,
-it does not scale on press, and it stretches along the direction of travel in proportion to
-speed. Verified on device: the knob's centre falls from 217 to 73 as it becomes glass, the
-track's own edges bend visibly inside it, and the backdrop text fringes red and blue where the
-rim crosses it.
+**A slider and a toggle were built here, and both were deleted.** They are the reason this
+section is now titled the way it is. The direction that removed them: the point of the library
+was never a catalogue of glass widgets, it is that `Modifier.liquidGlass()` on *any* composable
+turns it into the material — a stock Material 3 `Card` with a transparent container and one
+modifier — and then every component comes for free. A catalogue competes on breadth, which is a
+race, and it dates the moment a host wants a control the catalogue does not have.
 
-That leaves, in order of how often a real app needs them: a navigation bar, a bottom sheet, a
-toggle, a search field, and a floating action button. And for the tab bar itself, the behaviour
-Apple ships and we do not: minimize on scroll, a bottom accessory that moves inline when
-minimized, and a dedicated trailing search tab.
+What replaced them is the ambient state — `LiquidGlassScene`, `ProvideLiquidGlassState`, and
+overloads of `liquidGlass()` and `liquidGlassSource()` that take no state — and
+`MaterialConversionActivity` in the sample as the standing proof. So the API reference has no
+slider in it, and should not.
+
+A component earns its place here only when the modifier alone cannot express it, which means it
+carries behaviour rather than appearance. Two do:
+
+- **`GlassTabBar`**, because a selection lens that stands proud of its bar, looks *through* it,
+  is dragged 1:1 and commits on release is behaviour, not a style. Every default in it is a
+  measurement.
+- **`LiquidGlassContainer`**, because fusing panels is a change to the distance field shared by
+  all of them, which no per-element modifier can reach.
+
+By that test the open candidates are a bottom sheet, a navigation bar and a search field, each
+of which has motion the modifier cannot supply on its own. A toggle and a floating action button
+do not qualify: they are a shape and a modifier. And for the tab bar, the behaviour Apple ships
+and we do not — minimize on scroll, a bottom accessory that moves inline when minimized, and a
+dedicated trailing search tab.
 
 ## P4 — below Android 13
 

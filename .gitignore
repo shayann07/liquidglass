@@ -33,3 +33,6 @@ desktop.ini
 
 # Agent scratch
 .claude/
+
+# The built documentation site (mkdocs build)
+site/

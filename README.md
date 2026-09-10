@@ -3,6 +3,7 @@
 [![Maven Central](https://img.shields.io/maven-central/v/dev.shayxo.liquidglass/liquidglass)](https://central.sonatype.com/artifact/dev.shayxo.liquidglass/liquidglass)
 [![CI](https://github.com/shayann07/liquidglass/actions/workflows/ci.yml/badge.svg)](https://github.com/shayann07/liquidglass/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+[![Docs](https://img.shields.io/badge/docs-shayann07.github.io-informational)](https://shayann07.github.io/liquidglass/)
 
 A refracting glass material for Compose Multiplatform, drawn entirely in a shader. No images,
 no nine-patches, no platform widgets. Drop it on any element and it becomes an optical object
@@ -28,7 +29,7 @@ Apache-2.0. Not affiliated with, endorsed by, or derived from Apple. "Liquid Gla
 name for their design language and is used here only to describe what this material resembles;
 no Apple code, shader or asset is included.
 
-**[Full documentation →](docs/README.md)** · [Getting started](docs/getting-started.md) ·
+**[Full documentation →](https://shayann07.github.io/liquidglass/)** · [Getting started](docs/getting-started.md) ·
 [Shapes](docs/shapes.md) · [Interaction](docs/interaction.md) ·
 [API reference](docs/api-reference.md) · [Limitations](docs/limitations.md) ·
 [Roadmap](docs/roadmap.md) · [The research](docs/research/README.md) ·

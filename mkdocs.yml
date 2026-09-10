@@ -1,0 +1,120 @@
+# The documentation site, published to https://shayann07.github.io/liquidglass/ by
+# .github/workflows/docs.yml on every push to main.
+#
+# The site's home page is docs/README.md, the documentation index. The repository's own
+# README.md is the landing page and stays where GitHub shows it; it is not part of this site.
+# Build it locally with:  pip install mkdocs-material && mkdocs serve
+
+site_name: liquidglass
+site_url: https://shayann07.github.io/liquidglass/
+site_description: >-
+  Liquid Glass for Jetpack Compose and Compose Multiplatform. Real refraction, dispersion and
+  rim lighting in one shader. Documentation, API reference and the optical research behind it.
+site_author: Shayan Khan
+copyright: Apache-2.0. Not affiliated with, endorsed by, or derived from Apple.
+
+repo_url: https://github.com/shayann07/liquidglass
+repo_name: shayann07/liquidglass
+edit_uri: edit/main/docs/
+
+# A link that does not resolve is a broken promise on a documentation site, so the build fails
+# rather than shipping one.
+strict: true
+
+theme:
+  name: material
+  language: en
+  icon:
+    repo: fontawesome/brands/github
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.action.edit
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Follow the system
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light
+
+plugins:
+  - search
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.smartsymbols
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/shayann07/liquidglass
+      name: The repository
+    - icon: fontawesome/solid/cube
+      link: https://central.sonatype.com/artifact/dev.shayxo.liquidglass/liquidglass
+      name: Maven Central
+
+nav:
+  - Home: README.md
+  - Using it:
+      - Getting started: getting-started.md
+      - How it works: how-it-works.md
+      - Shapes: shapes.md
+      - Interaction: interaction.md
+      - Adaptation: adaptation.md
+      - Tab bar: tab-bar.md
+      - Accessibility: accessibility.md
+      - Performance: performance.md
+      - Limitations: limitations.md
+  - Reference:
+      - API reference: api-reference.md
+  - The research:
+      - Overview: research/README.md
+      - Optical model: research/optical-model.md
+      - Motion model: research/motion-model.md
+      - Every parameter: research/parameters.md
+      - Reference measurements: research/reference-measurements.md
+      - Where we diverge: research/divergences.md
+      - Confidence: research/confidence.md
+      - What everyone else built: research/competitive-landscape.md
+  - Project:
+      - Roadmap: roadmap.md
+      - Publishing: publishing.md

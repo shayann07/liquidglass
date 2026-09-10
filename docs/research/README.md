@@ -57,7 +57,7 @@ justified, and knowing which is which is what lets you change it without guessin
 ## What the shipped library took, and what it did not
 
 `synthesised-shader.agsl` is the reference, not the implementation. The shipped shader is
-[`GlassShaderSource.kt`](../../liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/GlassShaderSource.kt).
+[`GlassShaderSource.kt`](https://github.com/shayann07/liquidglass/blob/main/liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/GlassShaderSource.kt).
 
 **Adopted**, because the reasoning held and the device agreed: the wide-epsilon SDF gradient and
 its axis-confidence fade; the superellipse bevel with exact Snell deviation; the C1 seam fade;
