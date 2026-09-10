@@ -223,4 +223,121 @@ class GlassOpticsTest {
         val drop = GlassRender.luma(without[y * lw + x]) - GlassRender.luma(with[y * lw + x])
         assertTrue(drop > 8.0, "the contour must darken a fully covered pixel; drop was $drop")
     }
+
+    @Test
+    fun testTheHighlightKeepsChromaOverASaturatedBackdrop() {
+        // Adding white to a colour moves it toward grey. Over a saturated backdrop that turns a
+        // lit rim into a milky smear, which is the single most common complaint about this
+        // material against the real thing. Raising lightness and chroma in Oklab instead has to
+        // brighten the rim by a comparable amount while keeping more of the colour.
+        //
+        // A deep blue ground, a strong rim highlight, and the brightest lit pixel compared
+        // between the two compositing paths.
+        val pad = 40
+        val w = 220
+        val h = 140
+        val lw = w + pad * 2
+        val blue: (Int, Int) -> Int = { _, _ -> 0xFF1030C0.toInt() }
+
+        fun brightestRim(chroma: Float): Int {
+            val px = GlassRender.render(
+                width = w, height = h, pad = pad,
+                refractBand = 26f, refractDepth = 14f,
+                specular = 0.35f, highlightChroma = chroma,
+                backdrop = blue,
+            )
+            // Down the panel's vertical centre line, through the lit top rim.
+            val column = pad + w / 2
+            return (pad until pad + 20)
+                .map { px[it * lw + column] }
+                .maxBy { GlassRender.luma(it) }
+        }
+
+        fun saturation(argb: Int): Double {
+            val r = (argb ushr 16) and 0xFF
+            val g = (argb ushr 8) and 0xFF
+            val b = argb and 0xFF
+            val hi = maxOf(r, g, b)
+            val lo = minOf(r, g, b)
+            return if (hi == 0) 0.0 else (hi - lo).toDouble() / hi
+        }
+
+        val additive = brightestRim(0f)
+        val perceptual = brightestRim(1f)
+
+        // Both must actually be lit, or the comparison is between two unlit pixels.
+        assertTrue(
+            GlassRender.luma(additive) > GlassRender.luma(blue(0, 0)) + 10.0,
+            "the additive path must brighten the rim at all",
+        )
+        assertTrue(
+            GlassRender.luma(perceptual) > GlassRender.luma(blue(0, 0)) + 10.0,
+            "the perceptual path must brighten the rim at all",
+        )
+        // The point of the change.
+        assertTrue(
+            saturation(perceptual) > saturation(additive) + 0.10,
+            "the perceptual highlight must keep more colour than the additive one; " +
+                "additive ${saturation(additive)}, perceptual ${saturation(perceptual)}",
+        )
+    }
+
+    @Test
+    fun testHalfScaleRendersTheSameMaterialAsFullScale() {
+        // Rendering the material at a reduced resolution means every length the shader is given
+        // has to move into that resolution with it. Miss one -- the bevel, the rim softening,
+        // the sampled field's texel mapping -- and the optics come out subtly wrong rather than
+        // obviously broken, which is the kind of bug that ships.
+        //
+        // So: the same panel described twice, once at full size and once at half, over a
+        // backdrop that is itself scaled. If every length moved correctly the two must agree
+        // once the small one is scaled back up.
+        val w = 240
+        val h = 160
+        val pad = 32
+        // A pattern defined in full-resolution coordinates, so the half-scale render is handed
+        // the same image at half size rather than a different image.
+        fun pattern(x: Float, y: Float): Int {
+            val stripe = if (((x / 12f).toInt() + (y / 12f).toInt()) % 2 == 0) 235 else 25
+            return (0xFF shl 24) or (stripe shl 16) or (stripe shl 8) or stripe
+        }
+
+        val full = GlassRender.render(
+            width = w, height = h, pad = pad,
+            refractBand = 28f, refractDepth = 14f, bevelPower = 2f,
+            radii = FloatArray(4) { 40f },
+            specular = 0.4f, rimSoft = 2f, blur = 4f,
+            backdrop = { x, y -> pattern(x.toFloat(), y.toFloat()) },
+        )
+        val half = GlassRender.render(
+            width = w / 2, height = h / 2, pad = pad / 2,
+            refractBand = 14f, refractDepth = 7f, bevelPower = 2f,
+            radii = FloatArray(4) { 20f },
+            specular = 0.4f, rimSoft = 1f, blur = 2f,
+            backdrop = { x, y -> pattern(x * 2f, y * 2f) },
+        )
+
+        val fullW = w + pad * 2
+        val halfW = w / 2 + pad
+        // Compare the panel's interior and rim, away from the outermost coverage ramp where a
+        // half-pixel of sampling difference is expected and meaningless.
+        var sum = 0.0
+        var n = 0
+        for (y in pad + 3 until pad + h - 3) {
+            for (x in pad + 3 until pad + w - 3) {
+                val a = GlassRender.luma(full[y * fullW + x])
+                val b = GlassRender.luma(half[(y / 2) * halfW + (x / 2)])
+                sum += kotlin.math.abs(a - b)
+                n++
+            }
+        }
+        val meanDifference = sum / n
+        // A half-resolution render of a hard 12px stripe pattern cannot match pixel for pixel;
+        // what it must not do is disagree about where the material is or how hard it bends.
+        assertTrue(
+            meanDifference < 22.0,
+            "half-scale must render the same material as full scale; mean luma difference " +
+                "was $meanDifference",
+        )
+    }
 }

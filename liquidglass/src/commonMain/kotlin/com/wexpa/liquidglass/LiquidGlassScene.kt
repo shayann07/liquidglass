@@ -75,6 +75,7 @@ fun LiquidGlassScene(
     inversion: Float = 0f,
     frost: Float = 0f,
     contrast: Float = 0f,
+    renderScale: Float = 1f,
     content: @Composable BoxScope.() -> Unit,
 ) {
     val state = rememberLiquidGlassState(
@@ -82,6 +83,7 @@ fun LiquidGlassScene(
         inversion = inversion,
         frost = frost,
         contrast = contrast,
+        renderScale = renderScale,
     )
     CompositionLocalProvider(LocalLiquidGlassState provides state) {
         Box(modifier = modifier, content = content)

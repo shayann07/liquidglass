@@ -62,6 +62,7 @@ uniform float   uEdgeShadow;   // dark separating contour at the outermost pixel
 uniform float   uRimSoft;      // px the compressed rim image is smeared along the normal
 uniform float   uTintAbsorb;   // 0 tint as a blend, 1 tint as an absorbing medium
 uniform float   uFresnel;      // Schlick rim reflectance gain
+uniform float   uHiChroma;     // how much of the highlight is lightness rather than white
 uniform float   uInnerShadow;  // strength of the inner thickness line
 
 uniform float4  uTint;         // rgb + strength
@@ -110,6 +111,8 @@ float sdRoundRect(float2 p, float2 halfSize, float4 r) {
 //
 // The closed-form gradient and the wider-radius trick are Kyant0/AndroidLiquidGlass's; the Ln
 // corner, the degenerate guards and the caller's medial-axis handling are ours. See NOTICE.
+$GLASS_OKLAB_SOURCE
+
 float2 gradRoundRect(float2 p, float2 halfSize, float4 r, float power) {
     float2 rr = (p.x > 0.0) ? r.yz : r.xw;
     float radius = (p.y > 0.0) ? rr.y : rr.x;
@@ -483,9 +486,10 @@ half4 main(float2 coord) {
     float edge = smoothstep(2.0, 0.0, depth);
     float edgeLine = edge * 0.5 * (max(facing, 0.0) + counterLight * max(-facing, 0.0));
 
-    col += half3(half(((key + counter) * uSpecular
+    float highlight = ((key + counter) * uSpecular
         + edgeLine * uSpecular * uEdgeLight
-        + fresnel * uFresnel * bevelBand) * mat));
+        + fresnel * uFresnel * bevelBand) * mat;
+    col = applyHighlight(col, highlight, uHiChroma);
 
     // The dark contour that separates glass from its backdrop. Apple's 2026 revision pairs it
     // with a brighter specular; the 2025 material has none, so this is 0 on every preset here.

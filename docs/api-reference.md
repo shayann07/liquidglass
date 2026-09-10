@@ -172,6 +172,7 @@ data class GlassStyle(
     val bevelPeak: Float = 0f,
     val edgeShadow: Float = 0f,
     val fresnel: Float = 0.10f,
+    val highlightChroma: Float = 0.7f,
     val innerShadow: Float = 0.07f,
     val fallbackSurface: Color = Color(0xF2141416),
     val invertsWithBackdrop: Boolean = true,
@@ -199,6 +200,8 @@ right sides dark, and the reference shows exactly that: a one-pixel dark step, t
 `GlassTabBarStyle.HeldLens` sets it to 0.08, which measures on device as a dip to 21 against an
 interior of 42, against the reference's 24 against 41. `fresnel` is the only omnidirectional
 brightening term.
+
+`highlightChroma` decides how the rim highlight is composited. At 0 it is added to the colour, which desaturates: adding white to a saturated backdrop pulls it toward grey, so a lit rim over deep blue reads as a milky smear. At 1 it is applied in Oklab instead, raising lightness and chroma together, so the rim brightens and keeps the hue of what is behind it. Measured on a device, the lit top edge of a panel over a blue ground moves from 0.38 saturation to 0.45. It is 0 on `DarkChrome`, which was measured with the additive highlight and keeps it until there is a capture that says otherwise.
 
 Note that the contour is drawn 1.5px inside the boundary rather than on it. Coverage only
 reaches 1 at 0.75px, so anything painted on the outermost pixel is multiplied by a partial alpha

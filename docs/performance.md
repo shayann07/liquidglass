@@ -83,3 +83,31 @@ Two lessons from tuning this app that generalise:
 - **Quantise slow animations.** Something moving a pixel and a half per second does not need to
   invalidate at 120 Hz. Reading it through a `derivedStateOf` that rounds means the draw is
   invalidated only when a whole pixel actually changes.
+
+## Rendering at reduced resolution
+
+The shader runs once per pixel of a padded layer per panel per frame, so resolution is the one
+knob that changes the cost by a large factor rather than a small one. `renderScale` on
+`LiquidGlassScene` and `rememberLiquidGlassState` records the layers smaller, tells the shader
+smaller lengths, and scales the result back up. Geometry, position and colour are unaffected.
+
+Measured on a Pixel 7, Android 17, scrolling the sample's Material screen — a list of glass
+cards over a backdrop that does not scroll, which is the expensive arrangement:
+
+| | Full resolution | `renderScale = 0.7` |
+| :--- | ---: | ---: |
+| Janky frames | 8.9% | 4.3% |
+| 50th percentile | 26 ms | 16 ms |
+| 90th percentile | 73 ms | 18 ms |
+| 95th percentile | 85 ms | 27 ms |
+
+That is roughly twice the frame budget back. What it costs is the thing this material is best
+at. Measured across a panel's rim on the same device, the steepest luminance step the rim
+carries falls by about half: 61 to 26, 38 to 20, 77 to 53 on successive rows. The panel's own
+outline is unaffected, because that is geometry rather than refracted detail, but the compressed
+image of the surroundings that makes the edge read as glass gets softer.
+
+So the default is 1, and it should stay 1 unless a screen is actually missing frames. If it is,
+0.7 is the value to try first: it halves the pixel count, and on a busy screen the rim detail it
+gives up is competing with everything else for attention anyway. Below about 0.5 the rim stops
+reading as a lens at all.
