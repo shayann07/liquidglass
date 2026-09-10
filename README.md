@@ -1,5 +1,9 @@
 # liquidglass
 
+[![Maven Central](https://img.shields.io/maven-central/v/dev.shayxo.liquidglass/liquidglass)](https://central.sonatype.com/artifact/dev.shayxo.liquidglass/liquidglass)
+[![CI](https://github.com/shayann07/liquidglass/actions/workflows/ci.yml/badge.svg)](https://github.com/shayann07/liquidglass/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+
 A refracting glass material for Compose Multiplatform, drawn entirely in a shader. No images,
 no nine-patches, no platform widgets. Drop it on any element and it becomes an optical object
 sitting over whatever is behind it.
@@ -11,11 +15,12 @@ surface with the same rim lighting — a plainer material, not a broken one.
 implementation("dev.shayxo.liquidglass:liquidglass:0.1.0")
 ```
 
-Published to Maven Central for Android and desktop JVM; a Kotlin Multiplatform module, so one
-dependency line in `commonMain` resolves the right variant for each target. Until the first
-release lands there, `./gradlew publishToMavenLocal` in a clone produces the same artifacts, and
-a project consumes them by adding `mavenLocal { content { includeGroup("dev.shayxo.liquidglass") } }`
-to its repositories. See [Getting started](docs/getting-started.md).
+On [Maven Central](https://central.sonatype.com/artifact/dev.shayxo.liquidglass/liquidglass)
+for Android and desktop JVM; a Kotlin Multiplatform module, so one dependency line in
+`commonMain` resolves the right variant for each target. To try an unreleased change,
+`./gradlew publishToMavenLocal` in a clone produces the same artifacts, and a project consumes
+them by adding `mavenLocal { content { includeGroup("dev.shayxo.liquidglass") } }` to its
+repositories. See [Getting started](docs/getting-started.md).
 
 The `sample/` app is the material on a phone: `./gradlew :sample:installDebug`.
 

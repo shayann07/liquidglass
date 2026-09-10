@@ -86,3 +86,34 @@ To publish from a machine instead:
 
 `publishToMavenCentral` (without `AndRelease`) uploads and stops, leaving the deployment for a
 manual release in the portal, which is the safer choice for a first attempt.
+
+## Notes from the first release
+
+Each of these cost time once, on 2026-09-10, and should not cost it again.
+
+- **The signing passphrase must be plain ASCII.** Gradle's signing plugin hands the passphrase
+  to BouncyCastle as Latin-1 while GnuPG derives the key from UTF-8, so a passphrase with any
+  character outside ASCII fails at `signAndroidPublication` with
+  `PGPException: checksum mismatch in checksum of 20 bytes`, even though gpg itself accepts it.
+  Letters and digits only. Before pushing a tag, run the exact CI code path locally:
+  ```powershell
+  $env:ORG_GRADLE_PROJECT_signingInMemoryKey = (gpg --export-secret-keys --armor KEY_ID | Out-String)
+  $env:ORG_GRADLE_PROJECT_signingInMemoryKeyPassword = [System.Net.NetworkCredential]::new('', (Read-Host 'passphrase' -AsSecureString)).Password
+  .\gradlew.bat :liquidglass:signAndroidPublication --no-configuration-cache
+  ```
+  and once it passes, feed the secrets from those same variables so nothing is retyped:
+  `$env:ORG_GRADLE_PROJECT_signingInMemoryKey | gh secret set SIGNING_KEY --repo shayann07/liquidglass`.
+- **Never export a key with PowerShell's `>`.** It writes UTF-16, which gpg cannot read back.
+  Use `gpg --export-secret-keys --armor --output key.asc KEY_ID`.
+- **On Windows, gpg ships inside Git**: `Set-Alias gpg 'C:\Program Files\Git\usr\bin\gpg.exe'`,
+  and `gpg-connect-agent` is in the same folder. GnuPG 2.4's `keyboxd` cannot start when gpg is
+  launched from PowerShell, so a fresh `~/.gnupg/common.conf` needs its `use-keyboxd` line
+  commented out before the first key can be generated.
+- **Namespace verification is a button, not a poll.** Once the TXT record exists, use the
+  namespace row's menu, Verify Namespace. Check the record on *both* authoritative servers:
+  Dynadot's `ns1` served it within minutes while `ns2` kept the old zone for over an hour on
+  some of its anycast nodes, without bumping the zone serial, so any resolver that happened to
+  ask `ns2` saw nothing.
+- **A failed publish run can be rerun on the same tag** with `gh run rerun <id> --failed`.
+  Nothing reaches Central until signing passes, so a signing failure leaves no partial
+  deployment behind.

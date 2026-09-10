@@ -11,7 +11,7 @@ It is a Kotlin Multiplatform module with Android and desktop JVM variants; Gradl
 each target needs. It depends on Compose Multiplatform's foundation and ui, and on nothing else
 — it does **not** need material3, and it does not care whether your app uses it.
 
-**Before the first Maven Central release**, or to try an unreleased change, build it yourself:
+**To try an unreleased change**, build it yourself:
 
 ```bash
 git clone https://github.com/shayann07/liquidglass && cd liquidglass
