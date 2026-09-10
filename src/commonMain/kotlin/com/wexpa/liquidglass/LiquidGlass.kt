@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.draw.drawWithContent
@@ -185,6 +186,15 @@ fun Modifier.liquidGlass(
     val glassLayer = rememberGraphicsLayer()
     val contentLayer = rememberGraphicsLayer()
     var coordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
+    // The position, held separately as a value.
+    //
+    // `coordinates` is the same LayoutCoordinates instance on every placement, so assigning it
+    // to snapshot state registers no change and never invalidates the draw below. A scroll
+    // re-places this element's existing layer rather than redrawing it, so without a value that
+    // actually changes, a panel inside a list keeps the refraction it was first drawn with and
+    // carries it down the screen like a decal. Reading this in the draw is what ties the two
+    // together.
+    var panelPosition by remember { mutableStateOf(Offset.Unspecified) }
     val (press, pressModifier) = rememberGlassPress(
         enabled = interaction != null,
         source = pressSource,
@@ -224,7 +234,10 @@ fun Modifier.liquidGlass(
     )
 
     this
-        .onGloballyPositioned { coordinates = it }
+        .onGloballyPositioned {
+            coordinates = it
+            panelPosition = it.positionInRoot()
+        }
         .then(pressModifier)
         .graphicsLayer {
             scaleX = pressScale
@@ -234,6 +247,8 @@ fun Modifier.liquidGlass(
             val source = state.layer
             val radii = shape.glassRadii(size, layoutDirection, this)
 
+            // Read the position so this draw depends on it; see the note where it is declared.
+            @Suppress("UNUSED_EXPRESSION") panelPosition
             val delta = panelOffsetInSource(state.sourceCoordinates, coordinates)
 
             if (source != null && delta != null && LiquidGlassSupport.hasShaders) {
