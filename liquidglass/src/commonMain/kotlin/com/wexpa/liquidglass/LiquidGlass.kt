@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.compose.ui.graphics.layer.drawLayer
@@ -78,6 +79,19 @@ class LiquidGlassState internal constructor(
      * thing. The material goes predominantly black or white with a contrasting border.
      */
     val contrast: Float,
+    /**
+     * The fraction of full resolution the material is rendered at, 0.25 to 1.
+     *
+     * The shader is evaluated once per pixel of a padded layer per panel per frame, so this is
+     * the one knob that changes the cost by a large factor rather than a small one: at 0.7 the
+     * shader touches half as many pixels. The result is scaled back up, so geometry, position
+     * and colour are unaffected; what is lost is fine detail in the rim, which is exactly the
+     * part of this material worth having. Measure before lowering it.
+     *
+     * 1 renders at full resolution and is the default, because a library should not quietly
+     * trade away its own signature.
+     */
+    val renderScale: Float,
 ) {
     internal var layer: GraphicsLayer? by mutableStateOf(null)
     internal var sourceCoordinates: LayoutCoordinates? by mutableStateOf(null)
@@ -93,8 +107,9 @@ fun rememberLiquidGlassState(
     inversion: Float = 0f,
     frost: Float = 0f,
     contrast: Float = 0f,
-): LiquidGlassState = remember(background, inversion, frost, contrast) {
-    LiquidGlassState(background, inversion, frost, contrast)
+    renderScale: Float = 1f,
+): LiquidGlassState = remember(background, inversion, frost, contrast, renderScale) {
+    LiquidGlassState(background, inversion, frost, contrast, renderScale)
 }
 
 /**
@@ -271,7 +286,7 @@ fun Modifier.liquidGlass(
                     drawContent()
                     return@drawWithContent
                 }
-                val uniforms = GlassUniforms(
+                val fullUniforms = GlassUniforms(
                         width = size.width,
                         height = size.height,
                         pad = pad,
@@ -325,20 +340,26 @@ fun Modifier.liquidGlass(
                         edgeLight = style.edgeLight,
                         bevelPeak = style.bevelPeak,
                     )
+                // Everything below happens in the reduced space if one is asked for: the layers
+                // are recorded smaller, the shader is told smaller lengths, and the result is
+                // drawn back up. See LiquidGlassState.renderScale.
+                val rs = state.renderScale.coerceIn(0.25f, 1f)
+                val uniforms = fullUniforms.scaledBy(rs)
                 val effect = createGlassRenderEffect(uniforms)
                 if (effect != null) {
                     // Record the padded slice of backdrop beneath this panel, in the panel's own
                     // coordinates offset by the pad, then let the chain blur and refract it.
-                    val padPx = pad.toInt()
                     val paddedSize = IntSize(
-                        (size.width.toInt() + padPx * 2).coerceAtLeast(1),
-                        (size.height.toInt() + padPx * 2).coerceAtLeast(1),
+                        ((size.width + pad * 2f) * rs).toInt().coerceAtLeast(1),
+                        ((size.height + pad * 2f) * rs).toInt().coerceAtLeast(1),
                     )
                     if (refractContent) {
                         // The content, alone and transparent, at the same padded size as the
                         // backdrop so the two passes share one coordinate frame.
                         contentLayer.record(size = paddedSize) {
-                            translate(pad, pad) { this@drawWithContent.drawContent() }
+                            scale(rs, rs, pivot = Offset.Zero) {
+                                translate(pad, pad) { this@drawWithContent.drawContent() }
+                            }
                         }
                     }
                     // The contact shadow, sized and offset the way glassShadow() already says a
@@ -348,6 +369,7 @@ fun Modifier.liquidGlass(
                         val shadowBlur = contactShadow.blurRadius.toPx()
                         val shadowOffset = contactShadow.offsetY.toPx()
                         shadowLayer.record(size = paddedSize) {
+                            scale(rs, rs, pivot = Offset.Zero) {
                             translate(pad, pad + shadowOffset) {
                                 drawRoundRect(
                                     color = Color.Black.copy(alpha = contactShadowAlpha),
@@ -355,13 +377,15 @@ fun Modifier.liquidGlass(
                                     size = size,
                                 )
                             }
+                            }
                         }
                         shadowLayer.renderEffect =
-                            BlurEffect(shadowBlur, shadowBlur, TileMode.Decal)
+                            BlurEffect(shadowBlur * rs, shadowBlur * rs, TileMode.Decal)
                     }
                     val throughLayer = through?.layer
                     val throughDelta = through?.let { panelOffsetInSource(it.sourceCoordinates, coordinates) }
                     glassLayer.record(size = paddedSize) {
+                      scale(rs, rs, pivot = Offset.Zero) {
                     // Fill with the ground first. The padded slice reaches past the backdrop
                     // near a screen edge, and the backdrop is itself transparent wherever the
                     // app painted nothing; blurring either kind of hole drags transparency
@@ -382,6 +406,7 @@ fun Modifier.liquidGlass(
                         if (throughLayer != null && throughDelta != null) {
                             translate(-throughDelta.x + pad, -throughDelta.y + pad) { drawLayer(throughLayer) }
                         }
+                      }
                     }
                     glassLayer.renderEffect = effect
                     // The same shadow again, this time on the page, so the panel actually casts
@@ -389,7 +414,9 @@ fun Modifier.liquidGlass(
                     // viewer sees around the panel. Drawn first, so the material lands on top of
                     // it and the two never show as separate shadows.
                     if (contactShadowAlpha > 0f) {
-                        translate(-pad, -pad) { drawLayer(shadowLayer) }
+                        scale(1f / rs, 1f / rs, pivot = Offset.Zero) {
+                            translate(-pad * rs, -pad * rs) { drawLayer(shadowLayer) }
+                        }
                     }
                     if (style.dimmingLayer > 0f) {
                         drawRoundRect(
@@ -398,12 +425,16 @@ fun Modifier.liquidGlass(
                             size = size,
                         )
                     }
-                    translate(-pad, -pad) { drawLayer(glassLayer) }
+                    scale(1f / rs, 1f / rs, pivot = Offset.Zero) {
+                        translate(-pad * rs, -pad * rs) { drawLayer(glassLayer) }
+                    }
                     // The content pass: the same field and the same bend, over the material.
                     val contentEffect = if (refractContent) createGlassContentRenderEffect(uniforms) else null
                     if (contentEffect != null) {
                         contentLayer.renderEffect = contentEffect
-                        translate(-pad, -pad) { drawLayer(contentLayer) }
+                        scale(1f / rs, 1f / rs, pivot = Offset.Zero) {
+                            translate(-pad * rs, -pad * rs) { drawLayer(contentLayer) }
+                        }
                     } else {
                         drawContent()
                     }
@@ -458,6 +489,41 @@ internal expect fun Shape.cornerRadiiPx(
     layoutDirection: LayoutDirection,
     density: Density,
 ): FloatArray
+
+/**
+ * The same panel described in a smaller coordinate space.
+ *
+ * The shader runs on the pixels of the recorded layer, so rendering the material at a reduced
+ * resolution means every length it is given has to move into that resolution with it. Anything
+ * measured in pixels scales; anything dimensionless does not. `fieldScale` is the exception that
+ * divides: it maps a layer pixel to a texel of a field bitmap that is still stored at full size,
+ * so as layer pixels get larger it has to get smaller.
+ *
+ * Getting one of these wrong produces optics that are subtly off rather than obviously broken,
+ * which is why a rendered test asserts that a half-scale render matches a full-scale one.
+ */
+internal fun GlassUniforms.scaledBy(s: Float): GlassUniforms =
+    if (s >= 1f) {
+        this
+    } else {
+        copy(
+            width = width * s,
+            height = height * s,
+            pad = pad * s,
+            radii = FloatArray(radii.size) { radii[it] * s },
+            refractBand = refractBand * s,
+            refractDepth = refractDepth * s,
+            bevel = bevel * s,
+            backdrop = FloatArray(backdrop.size) { backdrop[it] * s },
+            touchX = touchX * s,
+            touchY = touchY * s,
+            blurRadius = blurRadius * s,
+            backdropBlur = backdropBlur * s,
+            rimSoft = rimSoft * s,
+            fieldRange = fieldRange * s,
+            fieldScale = fieldScale / s,
+        )
+    }
 
 @Stable
 internal data class GlassUniforms(
