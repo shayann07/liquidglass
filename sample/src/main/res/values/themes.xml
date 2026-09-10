@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Dark, edge to edge, with transparent bars. The screens draw their own backdrops right up to
+      the edges so the material has something to refract under the status bar as well.
+    -->
+    <style name="Theme.LiquidGlassSample" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/sample_ground</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

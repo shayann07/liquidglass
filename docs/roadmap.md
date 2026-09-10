@@ -61,11 +61,15 @@ done, it belongs behind a knob defaulting to the current behaviour, the way `edg
 
 ## P2 — reach, which is the real gap
 
-**Consumable: done.** The module publishes as `com.wexpa.liquidglass:liquidglass:0.1.0`, with
-Android and JVM variants, Gradle module metadata, sources jars and a POM, under Apache-2.0. The
-licence is the canonical text, and the README carries a statement of non-affiliation. The
-artifact id is the plain descriptive one for now; if this ever takes a product name of its own,
-that is a one-line change in `build.gradle.kts` before the first public publish.
+**Consumable: done.** The library is its own repository, with the app it was built for consuming
+it as `com.wexpa.liquidglass:liquidglass:0.1.0` from a Maven repository rather than as a module.
+Android and JVM variants, Gradle module metadata, sources jars and a POM, under Apache-2.0; the
+licence is the canonical text and the README carries a statement of non-affiliation. Maven
+Central publishing is wired through the Central Portal and a tag-driven workflow
+([publishing.md](publishing.md)); what remains is the account, the namespace verification and a
+signing key, none of which a build script can create. The artifact id is the plain descriptive
+one; if this ever takes a product name of its own, that is a one-line change to `gradle.properties`
+before the first Central release, and not after.
 
 **Targets: blocked on hardware, not on design.** Kotlin/Native cannot build iOS or macOS targets
 from Windows, so adding them here would mean shipping code nobody has compiled. The desktop path

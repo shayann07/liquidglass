@@ -1,0 +1,41 @@
+name: Publish
+
+# Pushing a tag `vX.Y.Z` publishes that version to Maven Central. The tag must match
+# VERSION_NAME in gradle.properties, or the workflow refuses rather than publishing something
+# under the wrong name. The secrets are described in docs/publishing.md.
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the tag matches VERSION_NAME
+        run: |
+          expected="VERSION_NAME=${GITHUB_REF_NAME#v}"
+          if ! grep -qx "$expected" gradle.properties; then
+            echo "tag $GITHUB_REF_NAME does not match gradle.properties:"
+            grep VERSION_NAME gradle.properties
+            exit 1
+          fi
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Test
+        run: ./gradlew :liquidglass:allTests --stacktrace
+
+      - name: Publish to Maven Central
+        run: ./gradlew publishAndReleaseToMavenCentral --no-configuration-cache --stacktrace
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}

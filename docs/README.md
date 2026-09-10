@@ -31,6 +31,8 @@ change the optics, read [How it works](how-it-works.md) and then
 - [Reference measurements](research/reference-measurements.md) — the one first-hand source:
   numbers read off a recording of a real iOS 26 tab bar, and the three places they overturned a
   derivation.
+- [Publishing](publishing.md) — maintainer notes: coordinates, Maven Central, signing, and the
+  release workflow.
 
 ## The one-paragraph version
 

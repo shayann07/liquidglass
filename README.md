@@ -11,6 +11,14 @@ surface with the same rim lighting — a plainer material, not a broken one.
 implementation("com.wexpa.liquidglass:liquidglass:0.1.0")
 ```
 
+Published to Maven Central for Android and desktop JVM; a Kotlin Multiplatform module, so one
+dependency line in `commonMain` resolves the right variant for each target. Until the first
+release lands there, `./gradlew publishToMavenLocal` in a clone produces the same artifacts, and
+a project consumes them by adding `mavenLocal { content { includeGroup("com.wexpa.liquidglass") } }`
+to its repositories. See [Getting started](docs/getting-started.md).
+
+The `sample/` app is the material on a phone: `./gradlew :sample:installDebug`.
+
 Apache-2.0. Not affiliated with, endorsed by, or derived from Apple. "Liquid Glass" is Apple's
 name for their design language and is used here only to describe what this material resembles;
 no Apple code, shader or asset is included.
@@ -214,4 +222,15 @@ is re-recorded per frame.
 
 `GlassGallery` is the tuning surface: saturated colour, hard stripes and fine text over which
 the differences between the styles — and the mistakes — are obvious. A smooth gradient alone
-hides almost every flaw in a lensing shader.
+hides almost every flaw in a lensing shader. The sample app's first screen opens it.
+
+## Repository
+
+| | |
+| :--- | :--- |
+| `liquidglass/` | The library. Published; depends on Compose foundation and ui only. |
+| `sample/` | An Android app: the gallery, stock Material 3 components converted, and the optics off and on. |
+| `docs/` | The guides, the API reference and the research, including the reference measurements. |
+
+Contributions are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md). Releases are described in
+[docs/publishing.md](docs/publishing.md) and listed in [CHANGELOG.md](CHANGELOG.md).

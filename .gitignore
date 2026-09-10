@@ -1,0 +1,35 @@
+# Gradle
+.gradle/
+build/
+**/build/
+!src/**/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Kotlin
+.kotlin/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Android
+local.properties
+captures/
+*.apk
+*.aab
+
+# Signing. Publishing credentials live in ~/.gradle/gradle.properties, never here.
+*.gpg
+*.asc
+*.keystore
+*.jks
+secring.*
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Agent scratch
+.claude/

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The ground every screen in the sample sits on. Dark, so the first frame is not a flash. -->
+    <color name="sample_ground">#FF0B0E1A</color>
+    <color name="sample_icon_background">#FF1B2A6B</color>
+</resources>

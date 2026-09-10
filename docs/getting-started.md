@@ -2,16 +2,33 @@
 
 ## Install
 
-The module has no dependency on any app — copy `liquidglass/` into your project and add it to
-`settings.gradle.kts`, or publish it to your own Maven repository. It needs Compose
-Multiplatform (foundation and ui); it does **not** need material3.
+```kotlin
+// your module's build.gradle.kts — commonMain for a multiplatform module
+implementation("com.wexpa.liquidglass:liquidglass:0.1.0")
+```
+
+It is a Kotlin Multiplatform module with Android and desktop JVM variants; Gradle picks the one
+each target needs. It depends on Compose Multiplatform's foundation and ui, and on nothing else
+— it does **not** need material3, and it does not care whether your app uses it.
+
+**Before the first Maven Central release**, or to try an unreleased change, build it yourself:
+
+```bash
+git clone https://github.com/shayann07/liquidglass && cd liquidglass
+./gradlew publishToMavenLocal
+```
+
+and let your project see the local repository, restricted to this one group so nothing else in
+`~/.m2` can shadow a real dependency:
 
 ```kotlin
 // settings.gradle.kts
-include(":liquidglass")
-
-// your module's build.gradle.kts
-implementation(project(":liquidglass"))
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+        mavenLocal { content { includeGroup("com.wexpa.liquidglass") } }
+    }
+}
 ```
 
 ## The three-line version
