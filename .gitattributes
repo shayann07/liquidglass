@@ -1,0 +1,6 @@
+# Scripts must keep their platform line endings whatever a contributor's autocrlf says.
+* text=auto
+gradlew text eol=lf
+*.bat text eol=crlf
+*.jar binary
+*.png binary
