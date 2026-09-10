@@ -59,6 +59,8 @@ uniform float   uCounterLight; // how much of the key light reaches the side fac
 uniform float   uEdgeLight;    // brightness of the outermost line relative to the bevel lobe
 uniform float   uBevelPeak;    // where in the bevel the highlight peaks: 0 at the edge (chamfer), 0.4 inside (bead)
 uniform float   uEdgeShadow;   // dark separating contour at the outermost pixel, 0..1
+uniform float   uRimSoft;      // px the compressed rim image is smeared along the normal
+uniform float   uTintAbsorb;   // 0 tint as a blend, 1 tint as an absorbing medium
 uniform float   uFresnel;      // Schlick rim reflectance gain
 uniform float   uInnerShadow;  // strength of the inner thickness line
 
@@ -288,7 +290,37 @@ half4 main(float2 coord) {
     }
 
     float depth = max(-d, 0.0);
-    float e = clamp(depth / max(uRefractBand, 0.001), 0.0, 1.0);
+
+    // A dome field for wide shapes whose band reaches their own centre line.
+    //
+    // Distance-to-edge collapses along the medial axis of a long pill: the two sides cancel, the
+    // gradient has no direction, and the fade above gives up refraction exactly down the spine.
+    // Past an aspect ratio of 1.5, and once the band approaches the inradius, blend the distance
+    // field into a dome instead — a smooth rectangular radius that is zero at the centre and one
+    // on every edge, with a closed-form gradient everywhere and no axis to collapse on. The idea
+    // is chrisbanes/haze's; the blend into our own field and profile is ours.
+    //
+    // Only the refraction reads this. The lighting keeps the true distance, because the lit edge
+    // belongs to the outline and not to the dome.
+    float aspect = max(halfSize.x, halfSize.y) / max(min(halfSize.x, halfSize.y), 1e-4);
+    float domeWeight =
+        smoothstep(1.5, 3.0, aspect) *
+        smoothstep(0.75, 1.0, uRefractBand / max(inradius, 1e-4));
+    float opticalDepth = depth;
+    if (domeWeight > 0.001) {
+        float2 q = p / max(halfSize, float2(1e-4));
+        float2 q2 = q * q;
+        float domeRadius = sqrt(clamp(q2.x + q2.y - q2.x * q2.y, 0.0, 1.0));
+        opticalDepth = mix(depth, (1.0 - domeRadius) * uRefractBand, domeWeight);
+        float2 domeGrad = float2(q.x * (1.0 - q2.y), q.y * (1.0 - q2.x));
+        float domeLen = length(domeGrad);
+        if (domeLen > 1e-4) {
+            n = normalize(mix(n, domeGrad / domeLen, domeWeight));
+        }
+        axisFade = mix(axisFade, 1.0, domeWeight);
+    }
+
+    float e = clamp(opticalDepth / max(uRefractBand, 0.001), 0.0, 1.0);
     float pw = max(uBevelPower, 1.5);
     float slope = bevelSlope(e, pw);
 
@@ -298,6 +330,8 @@ half4 main(float2 coord) {
     // guard stops the outermost antialiased pixel fetching from beyond coverage.
     float bend = snellShift(slope, uIor) / max(snellShift(bevelSlope(0.0, pw), uIor), 1e-4);
     bend *= smoothstep(1.0, 0.75, e) * axisFade * smoothstep(0.0, 1.5, depth);
+    // The dome has no rim of its own, so its bend must still die at the real outline.
+    bend *= mix(1.0, smoothstep(0.0, 2.0, depth), domeWeight);
     bend = clamp(bend, 0.0, 1.0);
 
     float mat = clamp(uMaterialize, 0.0, 1.0);
@@ -323,10 +357,29 @@ half4 main(float2 coord) {
     // a fringe, and past a few percent it stops reading as glass and starts reading as a broken
     // colour channel.
     float split = uAberration * bend;
-    half3 sharp = half3(
-        backdropAt(base + push * (1.0 - split)).r,
-        backdropAt(base + push).g,
-        backdropAt(base + push * (1.0 + split)).b);
+    half3 sharp;
+    float soften = uRimSoft * bend;
+    if (soften > 0.05) {
+        // Smear each channel along the normal, by an amount that grows with the bend.
+        //
+        // Where the rim compresses a hard boundary it lands as a single bright line, which reads
+        // as a drawn stroke rather than as compressed image. Averaging three taps across the
+        // direction the compression runs turns that line into the short gradient the reference
+        // actually shows. After QWEA0/Liquid-Glass-Android, which calls it rimSoft.
+        float2 sm = n * soften;
+        float2 cr = base + push * (1.0 - split);
+        float2 cg = base + push;
+        float2 cb = base + push * (1.0 + split);
+        sharp = half3(
+            (backdropAt(cr).r + backdropAt(cr - sm).r + backdropAt(cr + sm).r) / 3.0,
+            (backdropAt(cg).g + backdropAt(cg - sm).g + backdropAt(cg + sm).g) / 3.0,
+            (backdropAt(cb).b + backdropAt(cb - sm).b + backdropAt(cb + sm).b) / 3.0);
+    } else {
+        sharp = half3(
+            backdropAt(base + push * (1.0 - split)).r,
+            backdropAt(base + push).g,
+            backdropAt(base + push * (1.0 + split)).b);
+    }
 
     // Scatter, keyed to distance from the edge. Squared, so the crisp compressed image stays
     // tight against the rim while the displacement itself still spans the whole band.
@@ -361,7 +414,27 @@ half4 main(float2 coord) {
         + contrast * uLegibility * 0.25
         + clamp(uFrost, 0.0, 1.0) * 0.35;
     strength = clamp(strength * mat, 0.0, 0.95);
-    half3 col = mix(bg, tinted, half(strength));
+    // Two ways to apply a tint, and they differ over textured ground.
+    //
+    // A blend pulls every pixel the same distance toward one colour, which flattens the
+    // backdrop's own light and shade. Multiplying by the tint instead scales what is there, so
+    // the structure survives; a small additive term, strongest where the backdrop is darkest,
+    // keeps the hue readable over black. That is how a coloured transparent medium behaves.
+    // After QWEA0/Liquid-Glass-Android.
+    //
+    // The blend is the default because its strength is fitted to measurement: the value that
+    // lifts pure black by 20 and passes 64% of white text is what pins this material.
+    half3 blended = mix(bg, tinted, half(strength));
+    half3 col;
+    float absorb = clamp(uTintAbsorb, 0.0, 1.0);
+    if (absorb > 0.001) {
+        half3 absorbed = bg * mix(half3(1.0), tinted, half(0.85));
+        half3 scattered = tinted * half(0.38 * (1.0 - clamp(bgLuma, 0.0, 1.0)));
+        half3 medium = mix(bg, clamp(absorbed + scattered, half3(0.0), half3(1.0)), half(strength));
+        col = mix(blended, medium, half(absorb));
+    } else {
+        col = blended;
+    }
 
     float facing = dot(n, uLight);
     // Two rim geometries. At uBevelPeak 0 the bevel is a chamfer: brightest at the very edge,

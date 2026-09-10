@@ -1,0 +1,54 @@
+liquidglass
+Copyright 2026 Shayan
+
+This product includes software developed by the liquidglass project.
+Licensed under the Apache License, Version 2.0. See LICENSE.
+
+This library is not affiliated with, endorsed by, or derived from Apple Inc.
+"Liquid Glass" is Apple's name for a design language of theirs, and is used here
+only descriptively, to say what this material resembles. No Apple code, shader,
+image, symbol or other asset is included in this project.
+
+-------------------------------------------------------------------------------
+Ideas taken from other implementations
+-------------------------------------------------------------------------------
+
+Nothing below is copied verbatim. Each was read from the named project's source,
+understood, and reimplemented against this library's own distance field, bevel
+profile and uniforms. They are listed because the ideas are theirs and the
+attribution is owed either way.
+
+chrisbanes/haze — Apache License 2.0
+  Copyright 2025 Christopher Banes and the Haze project contributors
+  https://github.com/chrisbanes/haze
+
+  The dome field for elongated shapes. Where a long capsule's refraction band
+  reaches its own centre line, the distance-to-edge field collapses and its
+  gradient loses direction. Haze blends the field into a smooth rectangular
+  radius that is zero at the centre and one on every edge, with a closed-form
+  gradient everywhere. See the domeWeight block in GlassShaderSource.kt.
+
+Kyant0/AndroidLiquidGlass — Apache License 2.0
+  Copyright 2025 Kyant
+  https://github.com/Kyant0/AndroidLiquidGlass
+
+  The closed-form gradient of a rounded rectangle, used here as a fast path in
+  place of a central difference, generalised to this library's Ln corner; and the
+  practice of evaluating that gradient against a corner radius wider than the
+  outline's, so the normal rotates smoothly where the corner meets the flat run.
+  See gradRoundRect in GlassShaderSource.kt.
+
+QWEA0/Liquid-Glass-Android — MIT License
+  Copyright (c) 2025 QWEA0
+  https://github.com/QWEA0/Liquid-Glass-Android
+
+  Two things. Rim softening: averaging the compressed rim image along the surface
+  normal, so a hard boundary lands as a short gradient rather than as a single
+  bright line that reads like a drawn stroke. And tint as an absorbing medium:
+  multiplying by the tint rather than blending toward it, so the backdrop's own
+  light and shade survive, with a small scattering term that keeps the hue
+  readable over a dark backdrop. See uRimSoft and uTintAbsorb.
+
+  Their per-angle measurements of the iOS 26 Control Center also corroborated this
+  library's lighting model independently, and identified a direction-independent
+  term in our edge line that should not have been there.

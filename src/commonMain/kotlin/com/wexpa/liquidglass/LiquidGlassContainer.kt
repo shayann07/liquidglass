@@ -146,6 +146,8 @@ fun LiquidGlassContainer(
                             backdropBlur = style.backdropBlur.toPx(),
                             counterLight = style.counterLight,
                             edgeShadow = style.edgeShadow,
+                            rimSoft = style.rimSoftness.toPx(),
+                            tintAbsorb = style.tintAbsorption,
                             edgeLight = style.edgeLight,
                             bevelPeak = style.bevelPeak,
                         )
@@ -205,6 +207,8 @@ internal class GlassContainerUniforms(
     val edgeLight: Float,
     val bevelPeak: Float,
     val edgeShadow: Float,
+    val rimSoft: Float,
+    val tintAbsorb: Float,
 )
 
 internal expect fun createGlassContainerRenderEffect(

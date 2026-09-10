@@ -48,6 +48,8 @@ uniform float   uCounterLight;
 uniform float   uEdgeLight;
 uniform float   uBevelPeak;
 uniform float   uEdgeShadow;   // dark separating contour at the outermost pixel, 0..1
+uniform float   uRimSoft;      // px the compressed rim image is smeared along the normal
+uniform float   uTintAbsorb;   // 0 tint as a blend, 1 tint as an absorbing medium
 uniform float4  uTint;
 uniform float   uInnerShadow;
 uniform float   uAdaptive;

@@ -118,6 +118,94 @@ class GlassOpticsTest {
     }
 
     @Test
+    fun testRimSofteningSpreadsTheCompressionLine() {
+        // Where the rim compresses a hard boundary it lands as one bright line, which reads as a
+        // drawn stroke. Softening averages across the direction the compression runs, so the
+        // steepest step in the rim band must get shallower while the band still carries the
+        // boundary. Measured as the largest single-pixel jump down a column through the rim.
+        val pad = 40
+        val w = 240
+        val h = 140
+        val lw = w + pad * 2
+        val half = { _: Int, y: Int -> if (y < pad - 6) 0xFFFFFF else 0x000000 }
+        fun steepest(soft: Float): Double {
+            val px = GlassRender.render(
+                width = w, height = h, pad = pad,
+                refractBand = 30f, refractDepth = 26f, rimSoft = soft,
+                backdrop = half,
+            )
+            val col = (pad + 1 until pad + 34).map { GlassRender.luma(px[it * lw + pad + w / 2]) }
+            return col.zipWithNext { a, b -> abs(b - a) }.max()
+        }
+        val hard = steepest(0f)
+        val soft = steepest(6f)
+        assertTrue(soft < hard, "softening must reduce the steepest step; $soft against $hard")
+    }
+
+    @Test
+    fun testTintAsAMediumKeepsMoreOfTheBackdropStructure() {
+        // A blend pulls every pixel the same distance toward one colour, which flattens whatever
+        // light and shade the backdrop had. A medium multiplies, so the structure survives. Over
+        // a textured backdrop the medium must leave more variation behind than the blend does.
+        val pad = 24
+        val w = 220
+        val h = 160
+        val lw = w + pad * 2
+        val texture = { x: Int, y: Int ->
+            val v = ((x * 7 + y * 13) % 200) + 30
+            (v shl 16) or (v shl 8) or v
+        }
+        fun spread(absorb: Float): Double {
+            val px = GlassRender.render(
+                width = w, height = h, pad = pad,
+                refractBand = 20f, refractDepth = 8f,
+                tintAbsorb = absorb, tintAlpha = 0.55f, tint = Triple(0.2f, 0.5f, 1f),
+                backdrop = texture,
+            )
+            val vals = (pad + 40 until pad + h - 40).flatMap { y ->
+                (pad + 40 until pad + w - 40).map { x -> GlassRender.luma(px[y * lw + x]) }
+            }
+            val mean = vals.average()
+            return kotlin.math.sqrt(vals.sumOf { (it - mean) * (it - mean) } / vals.size)
+        }
+        val blended = spread(0f)
+        val medium = spread(1f)
+        assertTrue(medium > blended, "the medium must preserve more structure; $medium against $blended")
+    }
+
+    @Test
+    fun testTheDomeFieldKeepsRefractionAtTheSpineOfAWidePill() {
+        // In a long pill whose band reaches its own centre line, distance-to-edge collapses along
+        // that line and the lens has no direction to bend in. The dome field replaces it there.
+        // Over vertical stripes, a row on the axis must still differ from the raw backdrop; if
+        // refraction had died it would be pixel-identical to what lies behind it.
+        val pad = 30
+        val w = 480
+        val h = 80
+        val lw = w + pad * 2
+        val stripes = { x: Int, _: Int -> if ((x / 7) % 2 == 0) 0xFFFFFF else 0x000000 }
+        val px = GlassRender.render(
+            width = w, height = h, pad = pad,
+            refractBand = 40f, // inradius is 40: the band reaches the axis
+            refractDepth = 20f,
+            backdrop = stripes,
+        )
+        val axis = pad + h / 2
+        var differing = 0
+        var total = 0
+        for (x in pad + 40 until pad + w - 40) {
+            val rendered = GlassRender.luma(px[axis * lw + x])
+            val raw = GlassRender.luma(stripes(x, axis) or (0xFF shl 24))
+            if (abs(rendered - raw) > 20.0) differing++
+            total++
+        }
+        assertTrue(
+            differing > total / 10,
+            "refraction must survive on the spine; only $differing of $total pixels moved",
+        )
+    }
+
+    @Test
     fun testTheDarkContourSitsInsideTheCoverageRamp() {
         // edgeShadow drawn on the outermost pixel is multiplied by a partial alpha and
         // composited against whatever lies outside, so over a dark ground it does nothing. It

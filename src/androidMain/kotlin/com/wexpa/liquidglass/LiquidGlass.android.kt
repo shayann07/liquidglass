@@ -101,6 +101,8 @@ internal actual fun createGlassRenderEffect(
     shader.setFloatUniform("uSpecularPow", uniforms.specularPower)
     shader.setFloatUniform("uCounterLight", uniforms.counterLight)
     shader.setFloatUniform("uEdgeShadow", uniforms.edgeShadow)
+    shader.setFloatUniform("uRimSoft", uniforms.rimSoft)
+    shader.setFloatUniform("uTintAbsorb", uniforms.tintAbsorb)
     shader.setFloatUniform("uEdgeLight", uniforms.edgeLight)
     shader.setFloatUniform("uBevelPeak", uniforms.bevelPeak)
     shader.setFloatUniform(
@@ -234,6 +236,8 @@ internal actual fun createGlassContainerRenderEffect(
     shader.setFloatUniform("uSpecularPow", uniforms.specularPower)
     shader.setFloatUniform("uCounterLight", uniforms.counterLight)
     shader.setFloatUniform("uEdgeShadow", uniforms.edgeShadow)
+    shader.setFloatUniform("uRimSoft", uniforms.rimSoft)
+    shader.setFloatUniform("uTintAbsorb", uniforms.tintAbsorb)
     shader.setFloatUniform("uEdgeLight", uniforms.edgeLight)
     shader.setFloatUniform("uBevelPeak", uniforms.bevelPeak)
     shader.setFloatUniform(

@@ -141,6 +141,27 @@ data class GlassStyle(
      * contour and brightens the specular to match; see [GlassTabBarStyle.Ios27].
      */
     val edgeShadow: Float = 0f,
+    /**
+     * How far the compressed rim image is smeared along the surface normal.
+     *
+     * Where the rim compresses a hard boundary it lands as a single bright line, which reads as
+     * a stroke someone drew rather than as an image being squeezed. A little smearing turns that
+     * line into the short gradient the reference shows. Costs three backdrop samples per channel
+     * inside the band instead of one, so it is off by default.
+     */
+    val rimSoftness: Dp = 0.dp,
+    /**
+     * Whether the tint behaves as a blend (0) or as an absorbing medium (1).
+     *
+     * A blend moves every pixel the same distance toward one colour and flattens whatever light
+     * and shade the backdrop had. A medium multiplies, so that structure survives, and scatters
+     * a little of its own colour where the backdrop is dark so the hue still reads over black.
+     *
+     * 0 is the default and it is not a taste decision: the blend's strength is fitted to
+     * measurement, and it is the pair of numbers that pins this material. Raise it for tinted
+     * glass over photographs, where a blend visibly flattens the picture.
+     */
+    val tintAbsorption: Float = 0f,
     /** Schlick rim reflectance gain: how much the bevel brightens as it turns away. */
     val fresnel: Float = 0.10f,
     /** Strength of the dark inner line that reads as the thickness of the glass. */

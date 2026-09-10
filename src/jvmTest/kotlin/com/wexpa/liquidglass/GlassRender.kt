@@ -56,7 +56,10 @@ internal object GlassRender {
         fresnel: Float = 0f,
         innerShadow: Float = 0f,
         edgeShadow: Float = 0f,
+        rimSoft: Float = 0f,
+        tintAbsorb: Float = 0f,
         tintAlpha: Float = 0f,
+        tint: Triple<Float, Float, Float> = Triple(1f, 1f, 1f),
         backdrop: (x: Int, y: Int) -> Int,
     ): IntArray {
         val w = width + pad * 2
@@ -97,9 +100,11 @@ internal object GlassRender {
         b.uniform("uEdgeLight", 1f)
         b.uniform("uBevelPeak", 0f)
         b.uniform("uEdgeShadow", edgeShadow)
+        b.uniform("uRimSoft", rimSoft)
+        b.uniform("uTintAbsorb", tintAbsorb)
         b.uniform("uFresnel", fresnel)
         b.uniform("uInnerShadow", innerShadow)
-        b.uniform("uTint", 1f, 1f, 1f, tintAlpha)
+        b.uniform("uTint", tint.first, tint.second, tint.third, tintAlpha)
         b.uniform("uAdaptive", 0f)
         b.uniform("uLegibility", 0f)
         b.uniform("uScale", 0f)
