@@ -1,0 +1,47 @@
+name: Feature request
+description: Something the material should do and does not.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        One thing worth knowing before you write, because it decides most of these:
+
+        **This is not a catalogue of glass widgets.** `Modifier.liquidGlass()` on any composable
+        turns it into the material, including a stock Material 3 `Card` with a transparent
+        container, so most components do not need to exist here. A component earns a place only
+        when it carries *behaviour* the modifier cannot express — the tab bar's selection lens,
+        the container's shared distance field. A shape with a modifier on it is not a component.
+
+        Requests to match a specific Apple behaviour are welcome and are the most useful kind,
+        especially with a recording or a frame to measure against.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to build, and where does the material stop you?
+      description: Describe the app, not the API you have in mind. The best fix is often not the one requested.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reference
+    attributes:
+      label: Is there a reference for how it should look or move?
+      description: >-
+        A screen recording of iOS, a frame, a timing, a named behaviour from Apple's guidance.
+        Every default in this library traces to a measurement, and a request with a reference
+        attached can be built to the same standard rather than guessed at.
+
+  - type: dropdown
+    id: shape
+    attributes:
+      label: What shape does this take?
+      options:
+        - A new knob on GlassStyle
+        - A behaviour on an existing component
+        - A new component
+        - A new platform or target
+        - Something else
+    validations:
+      required: true

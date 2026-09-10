@@ -1,0 +1,67 @@
+name: Bug report
+description: Something renders wrong, crashes, or does not match what the docs say.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Two things account for most reports, so please check them first:
+
+        - **The material is flat, or the glass shows nothing.** Below Android 13 there is no
+          shader path at all — see [Limitations](https://shayann07.github.io/liquidglass/limitations/).
+        - **The backdrop slides out from under the element as you scroll.** Glass inside a
+          scrolling container whose source is outside it cannot discover its own offset. That
+          section of Limitations explains the two arrangements that do work.
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happens, and what you expected instead
+      placeholder: The rim goes black where the panel crosses the screen edge. I expected it to keep refracting.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: The smallest composable that shows it
+      description: >-
+        Paste the code, including how the state is provided and where `liquidGlassSource` sits.
+        Where the source is relative to the glass is the cause of most rendering reports.
+      render: kotlin
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Library version
+      placeholder: 0.1.0
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: Device and OS version
+      description: For Android, the API level matters more than the model. For desktop, say which JDK.
+      placeholder: Pixel 7, Android 15 (API 35) — or Desktop JVM, Temurin 21 on Windows 11
+    validations:
+      required: true
+
+  - type: dropdown
+    id: shaders
+    attributes:
+      label: What does `LiquidGlassSupport.hasShaders` return?
+      options:
+        - "true — the shader path is active"
+        - "false — the fallback surface is being drawn"
+        - I have not checked
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshot, recording, or stack trace
+      description: For a rendering bug a still is worth more than a description. Drag it in here.
