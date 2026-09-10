@@ -70,6 +70,44 @@ Two details worth copying. Claim nothing until the pointer crosses the touch slo
 stays a tap and only a drag becomes a drag. And convert into the **panel's** local pixels, not
 the gesture owner's — the glow is positioned in the panel's own space.
 
+### Content inside the glass
+
+Content normally sits *on* a panel and is left alone: labels on a button, icons on a bar. Some
+content is what the glass is looking *at*, and has to be bent with everything else it shows.
+The clearest case is Apple's tab bar. The selection indicator there is a lens **above** the
+tabs, and a tab looks selected because you are seeing it through the lens — slide the lens
+halfway across a symbol and the symbol is half one colour and half the other, with the rim
+compressing and colour-splitting its edges as it passes.
+
+`refractContent = true` does that. The element's content is recorded into the backdrop under it
+before the shader runs, so it is displaced at the rim, dispersed, echoed by the mirror band and
+covered by the tint like the rest of the backdrop — and clipped to the shape, so a lens can carry
+a copy of a whole row and show only the part it is over:
+
+```kotlin
+// The lens moves; the row inside it is pinned to the bar's origin so it does not.
+Box(
+    Modifier
+        .offset { IntOffset(lensLeft, lensTop) }
+        .size(lensWidth, lensHeight)
+        .liquidGlass(glass, CircleShape, LensStyle, pressSource = press, refractContent = true),
+) {
+    Box(Modifier.layout { m, c ->
+        val p = m.measure(Constraints.fixed(barWidth, barHeight))
+        layout(c.maxWidth, c.maxHeight) { p.place(-lensLeft, -lensTop) }
+    }) {
+        TabRow(ink = accent)          // the same row the bar draws, in the selected colour
+    }
+}
+```
+
+Keep the two copies geometrically identical — same glyph, same stroke, same weight — or a tab
+half-covered by the lens will not line up with itself.
+
+Where the shader cannot run, the content is drawn on top as it always was; a host that relies
+on the lens to colour its content should colour it directly on that path instead
+(`LiquidGlassSupport.hasShaders`).
+
 ### Spill onto neighbours
 
 Inside a `LiquidGlassContainer` the falloff is evaluated in the **container's** space, so a press

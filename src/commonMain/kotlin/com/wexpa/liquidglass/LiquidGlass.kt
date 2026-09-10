@@ -149,8 +149,28 @@ fun Modifier.liquidGlass(
      * See [GlassPressSource].
      */
     pressSource: GlassPressSource? = null,
+    /**
+     * Draw this element's content *inside* the glass rather than on top of it.
+     *
+     * Normally content sits on the material: labels on a button, icons on a bar. Some content
+     * is the material's subject instead — what a magnifier is held over, the symbol a slider
+     * knob carries, the tab a selection lens has slid across — and that content has to be
+     * bent, colour-split and lit along with everything else the glass shows. Apple's tab bar
+     * does exactly this: as the selection indicator crosses a symbol, the symbol is seen
+     * through the lens, and its edges fringe where the rim refracts them.
+     *
+     * With this on, the content is recorded into the backdrop under the panel before the
+     * shader runs, so the rim compresses it, the dispersion splits it and the mirror echoes
+     * it. It is also clipped to the shape and covered by the tint like any other backdrop.
+     * Anything positioned outside the shape simply is not seen, which is what lets a lens
+     * carry a copy of a whole row and show only the part it is over.
+     *
+     * Where the shader cannot run the content is drawn on top instead, as it always was.
+     */
+    refractContent: Boolean = false,
 ): Modifier = composed {
     val glassLayer = rememberGraphicsLayer()
+    val contentLayer = rememberGraphicsLayer()
     var coordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
     val (press, pressModifier) = rememberGlassPress(
         enabled = interaction != null,
@@ -269,12 +289,19 @@ fun Modifier.liquidGlass(
                     // Record the padded slice of backdrop beneath this panel, in the panel's own
                     // coordinates offset by the pad, then let the chain blur and refract it.
                     val padPx = pad.toInt()
-                    glassLayer.record(
-                        size = IntSize(
-                            (size.width.toInt() + padPx * 2).coerceAtLeast(1),
-                            (size.height.toInt() + padPx * 2).coerceAtLeast(1),
-                        )
-                    ) {
+                    val paddedSize = IntSize(
+                        (size.width.toInt() + padPx * 2).coerceAtLeast(1),
+                        (size.height.toInt() + padPx * 2).coerceAtLeast(1),
+                    )
+                    if (refractContent) {
+                        // The content becomes part of what the glass is looking at. Recorded
+                        // separately first, because a layer cannot be recorded from inside
+                        // another layer's recording.
+                        contentLayer.record(size = paddedSize) {
+                            translate(pad, pad) { this@drawWithContent.drawContent() }
+                        }
+                    }
+                    glassLayer.record(size = paddedSize) {
                     // Fill with the ground first. The padded slice reaches past the backdrop
                     // near a screen edge, and the backdrop is itself transparent wherever the
                     // app painted nothing; blurring either kind of hole drags transparency
@@ -283,6 +310,7 @@ fun Modifier.liquidGlass(
                     // on, which is both correct and cheaper than compensating downstream.
                         drawRect(state.background)
                         translate(-delta.x + pad, -delta.y + pad) { drawLayer(source) }
+                        if (refractContent) drawLayer(contentLayer)
                     }
                     glassLayer.renderEffect = effect
                     if (style.dimmingLayer > 0f) {
@@ -293,7 +321,9 @@ fun Modifier.liquidGlass(
                         )
                     }
                     translate(-pad, -pad) { drawLayer(glassLayer) }
-                    drawContent()
+                    // Refracted content has already been seen through the glass; drawing it
+                    // again on top would put a sharp copy over the bent one.
+                    if (!refractContent) drawContent()
                     return@drawWithContent
                 }
             }

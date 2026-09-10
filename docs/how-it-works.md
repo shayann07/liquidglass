@@ -119,6 +119,11 @@ to make a material like this read as a drawn rectangle.
 The touch magnifier and glow, then Increase Contrast's solid-with-border treatment. See
 [Interaction](interaction.md) and [Accessibility](accessibility.md).
 
+One host-side variation belongs here too: with `refractContent` the element's own content is
+drawn into the padded backdrop before the shader sees it, so it goes through every step above
+as backdrop rather than being painted on top afterwards. See
+[Content inside the glass](interaction.md#content-inside-the-glass).
+
 ---
 
 # The host contract

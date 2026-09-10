@@ -64,6 +64,7 @@ fun Modifier.liquidGlass(
     interaction: GlassInteraction? = null,
     materialize: Float = 1f,
     pressSource: GlassPressSource? = null,
+    refractContent: Boolean = false,
 ): Modifier
 ```
 
@@ -75,6 +76,7 @@ Draws this element as a piece of glass over `state`'s backdrop.
 | `interaction` | Non-null opts into touch response. See `GlassInteraction`. |
 | `materialize` | 0 to 1. Drive this instead of `alpha` — at 0 the shader returns the backdrop untouched, so the element leaves by ceasing to bend light. |
 | `pressSource` | Drive the press from outside, when another node owns the gesture. See `GlassPressSource`. |
+| `refractContent` | Draw the element's content **inside** the glass — recorded into the backdrop and bent, colour-split and lit with it — instead of on top. For content that is the material's subject: what a magnifier is over, the symbol a selection lens is crossing. Clipped to the shape like any backdrop. See [Interaction](interaction.md#content-inside-the-glass). |
 
 Where the platform cannot run the shader this degrades to `style.fallbackSurface` with the same
 rim lighting.

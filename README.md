@@ -90,6 +90,13 @@ backdrop's high frequencies, so their difference stands in for "something busy i
 **The edge is lit, not outlined.** A thin bright line where the edge turns into the light, and
 no dark border. A dark border is the fastest way to make this read as a drawn rectangle.
 
+**Content can sit inside the glass, not only on it.** Some content is what the glass is looking
+*at* — the symbol a selection lens is crossing, whatever a magnifier is over. With
+`refractContent = true` the element's content is recorded into its backdrop before the shader
+runs, so the rim compresses it, the dispersion splits it and the shape clips it. This is how an
+iOS tab bar changes a symbol's colour: the indicator is a lens *above* the tab, and a symbol
+half under it is half one colour and half the other.
+
 ## Merging
 
 `LiquidGlassContainer` renders several panels as one body of glass. Members do not each get
