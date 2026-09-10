@@ -39,6 +39,7 @@ uniform float   uAberration;
 uniform float   uIor;
 uniform float   uBevelPower;
 uniform float   uFresnel;
+uniform float   uHiChroma;
 uniform float   uBlur;
 uniform float   uBevel;
 uniform float2  uLight;
@@ -53,6 +54,8 @@ uniform float   uTintAbsorb;   // 0 tint as a blend, 1 tint as an absorbing medi
 uniform float4  uTint;
 uniform float   uInnerShadow;
 uniform float   uAdaptive;
+
+$GLASS_OKLAB_SOURCE
 
 float sdRoundRectAt(float2 p, float4 rect, float radius) {
     float2 halfSize = rect.zw * 0.5;
@@ -245,9 +248,10 @@ half4 main(float2 coord) {
     float counter = pow(max(-facing, 0.0), counterPow) * bevelBand * counterLight;
     float edge = smoothstep(2.0, 0.0, depth);
     float edgeLine = edge * 0.5 * (max(facing, 0.0) + counterLight * max(-facing, 0.0));
-    col += half3(half((spec + counter) * uSpecular
+    float highlight = (spec + counter) * uSpecular
         + edgeLine * uSpecular * uEdgeLight
-        + fresnel * uFresnel * bevelBand));
+        + fresnel * uFresnel * bevelBand;
+    col = applyHighlight(col, highlight, uHiChroma);
 
     // The dark contour that separates glass from its backdrop. Apple's 2026 revision pairs it
     // with a brighter specular; the 2025 material has none, so this is 0 on every preset here.

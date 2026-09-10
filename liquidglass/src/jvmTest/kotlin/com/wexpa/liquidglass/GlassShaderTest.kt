@@ -34,7 +34,7 @@ class GlassShaderTest {
 
         val setByHost = setOf(
             "uSize", "uRadii", "uRefractBand", "uBackdrop", "uAberration", "uBase", "uBlur", "uIor", "uBevelPower", "uMirror",
-            "uFresnel", "uLegibility", "uCornerPower", "uTouch", "uTouchAmt",
+            "uFresnel", "uHiChroma", "uLegibility", "uCornerPower", "uTouch", "uTouchAmt",
             "uMaterialize", "uFrost", "uContrast", "uShapeKind", "uFieldRange", "uFieldScale", "uRefractDepth", "uBevel",
             "uLight", "uSpecular", "uSpecularPow", "uTint", "uInnerShadow", "uAdaptive",
             "uPad", "uScale", "uFlip", "uCounterLight", "uEdgeLight", "uBevelPeak", "uEdgeShadow", "uRimSoft", "uTintAbsorb",
@@ -129,7 +129,7 @@ class GlassContainerShaderTest {
         val setByHost = setOf(
             "uSize", "uPad", "uBackdrop", "uBase", "uRect", "uRadius", "uCount", "uMerge",
             "uRefractBand", "uRefractDepth", "uAberration", "uIor", "uBevelPower", "uBlur",
-            "uBevel", "uLight", "uSpecular", "uSpecularPow", "uFresnel", "uTint",
+            "uBevel", "uLight", "uSpecular", "uSpecularPow", "uFresnel", "uHiChroma", "uTint",
             "uInnerShadow", "uAdaptive", "uCounterLight", "uEdgeLight", "uBevelPeak", "uEdgeShadow", "uRimSoft", "uTintAbsorb",
         )
 

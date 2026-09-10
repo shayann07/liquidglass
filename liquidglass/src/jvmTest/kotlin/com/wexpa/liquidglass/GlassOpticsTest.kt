@@ -223,4 +223,62 @@ class GlassOpticsTest {
         val drop = GlassRender.luma(without[y * lw + x]) - GlassRender.luma(with[y * lw + x])
         assertTrue(drop > 8.0, "the contour must darken a fully covered pixel; drop was $drop")
     }
+
+    @Test
+    fun testTheHighlightKeepsChromaOverASaturatedBackdrop() {
+        // Adding white to a colour moves it toward grey. Over a saturated backdrop that turns a
+        // lit rim into a milky smear, which is the single most common complaint about this
+        // material against the real thing. Raising lightness and chroma in Oklab instead has to
+        // brighten the rim by a comparable amount while keeping more of the colour.
+        //
+        // A deep blue ground, a strong rim highlight, and the brightest lit pixel compared
+        // between the two compositing paths.
+        val pad = 40
+        val w = 220
+        val h = 140
+        val lw = w + pad * 2
+        val blue: (Int, Int) -> Int = { _, _ -> 0xFF1030C0.toInt() }
+
+        fun brightestRim(chroma: Float): Int {
+            val px = GlassRender.render(
+                width = w, height = h, pad = pad,
+                refractBand = 26f, refractDepth = 14f,
+                specular = 0.35f, highlightChroma = chroma,
+                backdrop = blue,
+            )
+            // Down the panel's vertical centre line, through the lit top rim.
+            val column = pad + w / 2
+            return (pad until pad + 20)
+                .map { px[it * lw + column] }
+                .maxBy { GlassRender.luma(it) }
+        }
+
+        fun saturation(argb: Int): Double {
+            val r = (argb ushr 16) and 0xFF
+            val g = (argb ushr 8) and 0xFF
+            val b = argb and 0xFF
+            val hi = maxOf(r, g, b)
+            val lo = minOf(r, g, b)
+            return if (hi == 0) 0.0 else (hi - lo).toDouble() / hi
+        }
+
+        val additive = brightestRim(0f)
+        val perceptual = brightestRim(1f)
+
+        // Both must actually be lit, or the comparison is between two unlit pixels.
+        assertTrue(
+            GlassRender.luma(additive) > GlassRender.luma(blue(0, 0)) + 10.0,
+            "the additive path must brighten the rim at all",
+        )
+        assertTrue(
+            GlassRender.luma(perceptual) > GlassRender.luma(blue(0, 0)) + 10.0,
+            "the perceptual path must brighten the rim at all",
+        )
+        // The point of the change.
+        assertTrue(
+            saturation(perceptual) > saturation(additive) + 0.10,
+            "the perceptual highlight must keep more colour than the additive one; " +
+                "additive ${saturation(additive)}, perceptual ${saturation(perceptual)}",
+        )
+    }
 }

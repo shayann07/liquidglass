@@ -52,6 +52,7 @@ fun lerpGlassStyle(start: GlassStyle, stop: GlassStyle, fraction: Float): GlassS
         edgeLight = f(start.edgeLight, stop.edgeLight),
         bevelPeak = f(start.bevelPeak, stop.bevelPeak),
         fresnel = f(start.fresnel, stop.fresnel),
+        highlightChroma = f(start.highlightChroma, stop.highlightChroma),
         innerShadow = f(start.innerShadow, stop.innerShadow),
         // Not interpolated: these are decisions, not quantities. A half-inverted element or a
         // half-opaque fallback is not a state anything wants to be in, so they snap at the

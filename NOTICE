@@ -52,3 +52,14 @@ QWEA0/Liquid-Glass-Android — MIT License
   Their per-angle measurements of the iOS 26 Control Center also corroborated this
   library's lighting model independently, and identified a direction-independent
   term in our edge line that should not have been there.
+
+iyinchao/liquid-glass-studio - MIT License
+  Copyright (c) 2024 Charles Yin
+  https://github.com/iyinchao/liquid-glass-studio
+
+  Compositing the rim highlight in a perceptual colour space, raising lightness and
+  chroma rather than adding white. Adding white desaturates, so a lit rim over a
+  saturated backdrop reads as a milky smear; raising lightness keeps the hue, and
+  raising chroma alongside it makes the highlight more saturated than the ground
+  beneath, which is what a specular on a tinted transparent medium does. Theirs is
+  CIE LCH; ours is Oklab, for the cheaper transfer. See GlassOklabSource.kt.

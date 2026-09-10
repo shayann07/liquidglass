@@ -171,6 +171,23 @@ data class GlassStyle(
     val tintAbsorption: Float = 0f,
     /** Schlick rim reflectance gain: how much the bevel brightens as it turns away. */
     val fresnel: Float = 0.10f,
+    /**
+     * How much of the rim highlight is applied as lightness rather than as white.
+     *
+     * At 0 the highlight is added to the colour, which is the cheapest thing to do and also
+     * desaturates: adding white to a saturated backdrop pulls it toward grey, so a lit rim over
+     * a deep blue reads as a milky smear rather than as bright blue glass. At 1 the whole
+     * highlight is applied in Oklab instead, raising lightness and chroma together, so the rim
+     * gets brighter *and* keeps the hue of whatever is behind it.
+     *
+     * Lightness is allowed past its own ceiling on purpose. The core of the lobe still clips to
+     * white, which is what a specular does; only the shoulder stays coloured, and that asymmetry
+     * is most of the difference between glass that glows and a white overlay.
+     *
+     * Off on [DarkChrome], which was measured from a device rather than tuned, until there are
+     * new measurements to move it to.
+     */
+    val highlightChroma: Float = 0.7f,
     /** Strength of the dark inner line that reads as the thickness of the glass. */
     val innerShadow: Float = 0.07f,
     /**
@@ -266,6 +283,9 @@ data class GlassStyle(
             edgeLight = 5.1f,
             fresnel = 0f,
             innerShadow = 0f,
+            // Measured from a device, so it keeps the additive highlight it was measured with
+            // until there is a capture that says otherwise.
+            highlightChroma = 0f,
             invertsWithBackdrop = false,
         )
 

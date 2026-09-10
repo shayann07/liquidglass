@@ -291,6 +291,7 @@ fun Modifier.liquidGlass(
                         field = pathField?.bitmap,
                         mirror = style.mirror,
                         fresnel = style.fresnel,
+                        highlightChroma = style.highlightChroma,
                         legibility = style.legibility,
                         bevel = style.bevel.toPx(),
                         backdrop = bounds,
@@ -443,6 +444,8 @@ internal data class GlassUniforms(
     val field: androidx.compose.ui.graphics.ImageBitmap?,
     val mirror: Float,
     val fresnel: Float,
+    /** Crossfade from an additive white highlight to an Oklab lightness lift. */
+    val highlightChroma: Float,
     val legibility: Float,
     val bevel: Float,
     /** Where inside the padded layer real pixels exist; sampling past it would read nothing. */

@@ -54,6 +54,7 @@ internal object GlassRender {
         blur: Float = 0f,
         specular: Float = 0f,
         fresnel: Float = 0f,
+        highlightChroma: Float = 0f,
         innerShadow: Float = 0f,
         edgeShadow: Float = 0f,
         rimSoft: Float = 0f,
@@ -103,6 +104,7 @@ internal object GlassRender {
         b.uniform("uRimSoft", rimSoft)
         b.uniform("uTintAbsorb", tintAbsorb)
         b.uniform("uFresnel", fresnel)
+        b.uniform("uHiChroma", highlightChroma)
         b.uniform("uInnerShadow", innerShadow)
         b.uniform("uTint", tint.first, tint.second, tint.third, tintAlpha)
         b.uniform("uAdaptive", 0f)

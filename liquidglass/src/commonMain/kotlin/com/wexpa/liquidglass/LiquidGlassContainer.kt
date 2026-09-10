@@ -134,6 +134,7 @@ fun LiquidGlassContainer(
                             ior = style.indexOfRefraction,
                             bevelPower = style.bevelPower,
                             fresnel = style.fresnel,
+                            highlightChroma = style.highlightChroma,
                             bevel = style.bevel.toPx(),
                             lightX = light.x,
                             lightY = light.y,
@@ -193,6 +194,8 @@ internal class GlassContainerUniforms(
     val ior: Float,
     val bevelPower: Float,
     val fresnel: Float,
+    /** Crossfade from an additive white highlight to an Oklab lightness lift. */
+    val highlightChroma: Float,
     val bevel: Float,
     val lightX: Float,
     val lightY: Float,
