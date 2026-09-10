@@ -115,6 +115,7 @@ nav:
       - Where we diverge: research/divergences.md
       - Confidence: research/confidence.md
       - What everyone else built: research/competitive-landscape.md
+      - Reading their source: research/competitor-source-study.md
   - Project:
       - Roadmap: roadmap.md
       - Publishing: publishing.md

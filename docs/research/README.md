@@ -37,6 +37,7 @@ had ever seen render.
 | [divergences.md](divergences.md) | Eleven places Android cannot match Apple, and why. Read this before promising anyone parity. |
 | [confidence.md](confidence.md) | How far to trust each claim, and what observation would falsify it. |
 | [competitive-landscape.md](competitive-landscape.md) | What the other implementations actually do, read from their source rather than their READMEs. Four of them disagree with us about which way the rim samples. |
+| [competitor-source-study.md](competitor-source-study.md) | The same eight repositories read again, with the clones kept this time. What is worth taking, ranked, with the file and line for every claim. Settles the sampling-direction question three ways. |
 | [reference-measurements.md](reference-measurements.md) | The one first-hand source: numbers read off a screen recording of a real iOS 26 tab bar. Where it disagrees with `parameters.md`, it wins. |
 | [synthesised-shader.agsl](synthesised-shader.agsl) | The reference shader the run produced. **Not what ships** — see below. |
 
