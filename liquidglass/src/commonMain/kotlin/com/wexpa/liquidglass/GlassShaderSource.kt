@@ -107,6 +107,9 @@ float sdRoundRect(float2 p, float2 halfSize, float4 r) {
 // checks that before using it. `gradRadius` is deliberately larger than the outline's radius,
 // which rotates the normal through the corner over a wider arc than the outline turns and
 // removes the direction kink where the corner meets the flat run. It does not move the outline.
+//
+// The closed-form gradient and the wider-radius trick are Kyant0/AndroidLiquidGlass's; the Ln
+// corner, the degenerate guards and the caller's medial-axis handling are ours. See NOTICE.
 float2 gradRoundRect(float2 p, float2 halfSize, float4 r, float power) {
     float2 rr = (p.x > 0.0) ? r.yz : r.xw;
     float radius = (p.y > 0.0) ? rr.y : rr.x;
