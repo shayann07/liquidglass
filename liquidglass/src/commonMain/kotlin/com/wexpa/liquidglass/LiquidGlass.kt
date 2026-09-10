@@ -20,6 +20,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.compose.ui.graphics.layer.drawLayer
+import androidx.compose.ui.graphics.BlurEffect
+import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -185,6 +187,9 @@ fun Modifier.liquidGlass(
 ): Modifier = composed {
     val glassLayer = rememberGraphicsLayer()
     val contentLayer = rememberGraphicsLayer()
+    // The panel's own contact shadow, blurred in its own layer so it can be drawn *into* the
+    // recorded backdrop and therefore refracted along with it. See GlassStyle.contactShadow.
+    val shadowLayer = rememberGraphicsLayer()
     var coordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
     // The position, held separately as a value.
     //
@@ -258,6 +263,8 @@ fun Modifier.liquidGlass(
                 val pad = style.refractionDepth.toPx() * 1.4f +
                     maxOf(style.blurRadius.toPx(), style.backdropBlur.toPx())
                 val sizeFactor = elementSizeFactor(size, this)
+                val contactShadow = glassShadow(sizeFactor)
+                val contactShadowAlpha = contactShadow.alpha * style.contactShadow.coerceIn(0f, 1f)
                 val bounds = sampleBounds(pad, delta, size, state.sourceSize)
                 if (!hasSampleRegion(bounds)) {
                     drawGlassFallback(style, light, radii, style.bevel.toPx())
@@ -334,6 +341,24 @@ fun Modifier.liquidGlass(
                             translate(pad, pad) { this@drawWithContent.drawContent() }
                         }
                     }
+                    // The contact shadow, sized and offset the way glassShadow() already says a
+                    // panel of this size should sit off its background, recorded into its own
+                    // layer so a real blur can be applied before it goes into the backdrop.
+                    if (contactShadowAlpha > 0f) {
+                        val shadowBlur = contactShadow.blurRadius.toPx()
+                        val shadowOffset = contactShadow.offsetY.toPx()
+                        shadowLayer.record(size = paddedSize) {
+                            translate(pad, pad + shadowOffset) {
+                                drawRoundRect(
+                                    color = Color.Black.copy(alpha = contactShadowAlpha),
+                                    cornerRadius = CornerRadius(radii.getOrElse(0) { 0f }),
+                                    size = size,
+                                )
+                            }
+                        }
+                        shadowLayer.renderEffect =
+                            BlurEffect(shadowBlur, shadowBlur, TileMode.Decal)
+                    }
                     val throughLayer = through?.layer
                     val throughDelta = through?.let { panelOffsetInSource(it.sourceCoordinates, coordinates) }
                     glassLayer.record(size = paddedSize) {
@@ -345,6 +370,13 @@ fun Modifier.liquidGlass(
                     // on, which is both correct and cheaper than compensating downstream.
                         drawRect(state.background)
                         translate(-delta.x + pad, -delta.y + pad) { drawLayer(source) }
+                        // The panel's own shadow, on the backdrop rather than over it, so the
+                        // rim bends it and the interior scatter defocuses it with everything
+                        // else. Drawn before `through` for the same reason a real shadow is
+                        // under what sits between: it belongs to the ground.
+                        if (contactShadowAlpha > 0f) {
+                            drawLayer(shadowLayer)
+                        }
                         // Whatever sits between this panel and the backdrop goes on top of it,
                         // in this panel's frame, so the rim refracts that too.
                         if (throughLayer != null && throughDelta != null) {
@@ -352,6 +384,13 @@ fun Modifier.liquidGlass(
                         }
                     }
                     glassLayer.renderEffect = effect
+                    // The same shadow again, this time on the page, so the panel actually casts
+                    // one. The copy inside the recording is what the rim bends; this is what a
+                    // viewer sees around the panel. Drawn first, so the material lands on top of
+                    // it and the two never show as separate shadows.
+                    if (contactShadowAlpha > 0f) {
+                        translate(-pad, -pad) { drawLayer(shadowLayer) }
+                    }
                     if (style.dimmingLayer > 0f) {
                         drawRoundRect(
                             color = Color.Black.copy(alpha = style.dimmingLayer),
