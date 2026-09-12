@@ -17,9 +17,9 @@ internal const val MAX_GLASS_MEMBERS = 8
  * Every member is evaluated on every pixel. That is what allows the fields to interact at
  * all, and it is why the member count is capped.
  *
- * The optics match [GLASS_SHADER_SOURCE] — padded sampling, ground-composited reads, dispersion
- * at the rim and a lit rather than outlined edge — so a member looks like the same material
- * whether or not it happens to be inside a container.
+ * The optics match [GLASS_SHADER_SOURCE] — both profiles, the measured fold and two-kernel tone
+ * included — so a member looks like the same material whether or not it happens to be inside a
+ * container. A container is chrome at rest, so its lens formation is 0.
  */
 internal val GLASS_CONTAINER_SHADER_SOURCE = """
 uniform shader content;
@@ -54,6 +54,15 @@ uniform float   uTintAbsorb;   // 0 tint as a blend, 1 tint as an absorbing medi
 uniform float4  uTint;
 uniform float   uInnerShadow;
 uniform float   uAdaptive;
+uniform float   uProfile;      // 0 the legacy Snell bevel, 1 the measured fold lens
+uniform float   uFormation;    // measured lens formation; a container is chrome at rest, 0
+uniform float   uHeldLens;     // GlassProfile.Held: how far the tab-bar lens has formed, 0 to 1
+uniform float   uWideStrip;    // layer row where the quarter-scale blurred copy starts; 0 disables it
+uniform float   uWideScale;    // scale of that copy
+uniform float   uFineShare;    // share of fine detail in the backdrop term
+uniform float   uWideKernel;   // px sigma of the wide kernel; also the fine term's spread across the element
+uniform float   uLift;         // fixed luminance lift after the tint
+uniform float   uLiftAdapt;    // how far the lift falls with the wide-kernel luma
 
 $GLASS_OKLAB_SOURCE
 
@@ -92,6 +101,27 @@ float fieldAt(float2 p) {
     return d;
 }
 
+// The corner weight of whichever member is nearest: in a fused body each member keeps its own
+// runs and arcs, and the fillet between two members takes the nearer one's.
+float nearestCornerWeight(float2 p) {
+    float best = 1e6;
+    float w = 1.0;
+    for (int i = 0; i < $MAX_GLASS_MEMBERS; i++) {
+        if (float(i) < uCount) {
+            float s = sdRoundRectAt(p, uRect[i], uRadius[i]);
+            if (s < best) {
+                best = s;
+                float2 halfSize = uRect[i].zw * 0.5;
+                float r = min(uRadius[i], min(halfSize.x, halfSize.y));
+                float2 q = abs(p - (uRect[i].xy + halfSize)) - halfSize + r;
+                float soft = max(r * 0.2, 1.0);
+                w = smoothstep(-soft, 0.0, min(q.x, q.y));
+            }
+        }
+    }
+    return w;
+}
+
 half3 backdropAt(float2 p) {
     float2 q = clamp(p, uBackdrop.xy, uBackdrop.zw);
     half4 c = content.eval(q);
@@ -122,6 +152,19 @@ half3 blurredAt(float2 p, float radius, float2 rot) {
     if (radius < 0.5) {
         return backdropAt(p);
     }
+    if (radius < 4.0) {
+        // The measured fine kernel is under a point, and a sub-point Gaussian needs no nineteen
+        // taps: a rotated square at 0.8 of the radius plus a double-weighted centre is within
+        // noise of it and costs a quarter as much. Measured on a Pixel 7 with six panels: the
+        // frame time this saves is the difference between the material and the budget.
+        float r = radius * 0.8;
+        half3 sum = backdropAt(p) * half(2.0);
+        sum += backdropAt(p + r * rotate(float2( 1.0,  0.0), rot));
+        sum += backdropAt(p + r * rotate(float2( 0.0,  1.0), rot));
+        sum += backdropAt(p + r * rotate(float2(-1.0,  0.0), rot));
+        sum += backdropAt(p + r * rotate(float2( 0.0, -1.0), rot));
+        return sum * half(1.0 / 6.0);
+    }
     float inner = radius * 0.55;
     half3 sum = backdropAt(p);
     sum += backdropAt(p + inner * rotate(float2( 1.000,  0.000), rot));
@@ -146,6 +189,26 @@ half3 blurredAt(float2 p, float radius, float2 rot) {
     return sum * half(1.0 / 19.0);
 }
 
+// The measured material's fine term is one-dimensional (MODEL.md section 2a, FINDINGS 22): it
+// carries detail along a bar and none at all across it. Two readings of the Photos toolbar pill
+// pin it down. Where the target's 8 px stripe band ends under the pill the detail stops within
+// two rows, so nothing is averaged across; and the target's 20-row black band under the same
+// pill leaves no step at all, though it is a 122-level boundary. Content that does not vary
+// along the bar produces no fine term, which is what a high-pass along one axis does.
+//
+// So the detail is the fine sample minus the backdrop averaged along the element's long axis,
+// five taps spanning the along-axis wide kernel, jittered per pixel so periodic content does not
+// beat against the tap spacing. Five rather than seven: the pair at 2.25 sigma carries 5% of the
+// weight and cost 1.5 ms a frame on an S24.
+half3 axisMeanAt(float2 p, float span, float2 rot) {
+    float2 t = (uSize.x >= uSize.y) ? float2(1.0, 0.0) : float2(0.0, 1.0);
+    float k = span * (0.85 + 0.3 * abs(rot.x));
+    half3 sum = backdropAt(p);
+    half3 acc = (backdropAt(p + t * (0.75 * k)) + backdropAt(p - t * (0.75 * k))) * half(0.7548);
+    acc += (backdropAt(p + t * (1.60 * k)) + backdropAt(p - t * (1.60 * k))) * half(0.4043);
+    return (sum + acc) * half(1.0 / 3.3182);
+}
+
 float luma(half3 c) {
     return dot(float3(c), float3(0.2126, 0.7152, 0.0722));
 }
@@ -165,6 +228,82 @@ float snellShift(float slope, float ior) {
     float st = si / max(ior, 1.0001);
     float ct = sqrt(max(1.0 - st * st, 0.0));
     return (si * ct - ci * st) / max(ci * ct + si * st, 1e-4);
+}
+
+// The measured fold lens; identical text to the panel shader, and checked to be.
+// The lens under a finger on a tab bar (FINDINGS 19; measured model, section 2c). Over the outer
+// half of the band a pixel at depth u shows the exterior from 1.3u - 0.29 W: the content just
+// outside the rim is pulled in and compressed 1.3x (the bar's own edge line lands 10 px inside
+// the lens's rim, the header text above an App Store bar becomes a thin stripe along it). From
+// half the band inward the content is shown where it is. The source content between 0.36 W and
+// 0.5 W is never displayed: the seam hides the bar's end and the gap beside it when the lens
+// hangs over the end of a bar. Blended from identity, so a resting indicator in the same family
+// has no optics at all.
+float heldSource(float u) {
+    return (u < 0.5) ? (1.3 * u - 0.29) : u;
+}
+
+// The lens of chrome at rest, at the curved parts of an outline only (FINDINGS 18). Measured on
+// the Photos toolbar's 70 px ends at Tint 0, 50 and 62 in both appearances and over both targets
+// (identical, spread under 2 px) and on the Lock Screen's round buttons: a pixel at depth
+// u = d/W inside a rounded end shows the ring 0.55 W (0.33 R) inside, the same ring for the
+// whole of 0.14-0.38 W, then eases to identity by 0.76 W (0.46 R); the outer 0.14 W shows
+// slightly deeper content again, a vestige of the fold's mirror. Every ring in the outer third
+// showing the same source ring is what makes the stripes turn into concentric arcs at an end.
+// A straight run shows none of it: the content under it sits where it is (the dock's top edge
+// leaves a boundary 30 px inside in place, and folds nothing over the block above it).
+float restSource(float u) {
+    if (u >= 0.76) {
+        return u;
+    } else if (u >= 0.62) {
+        return 0.64 + 0.857 * (u - 0.62);
+    } else if (u >= 0.38) {
+        return 0.55 + 0.375 * (u - 0.38);
+    } else if (u >= 0.14) {
+        return 0.55;
+    }
+    return 0.55 + 0.93 * (0.14 - u);
+}
+
+// Whether a point's nearest bit of outline is a corner arc (1) or a straight run (0), with a
+// short blend along the run so the rest lens does not begin at a seam. Inside a corner's own
+// quadrant both q components are positive; along a run one is negative by the distance to the
+// arc. A circle is all arc. Radii are clamped as sdRoundRect clamps them.
+float cornerWeight(float2 p, float2 halfSize, float4 r) {
+    float2 rr = (p.x > 0.0) ? r.yz : r.xw;
+    float radius = (p.y > 0.0) ? rr.y : rr.x;
+    radius = min(radius, min(halfSize.x, halfSize.y));
+    float2 q = abs(p) - halfSize + radius;
+    float soft = max(radius * 0.2, 1.0);
+    return smoothstep(-soft, 0.0, min(q.x, q.y));
+}
+
+float foldSource(float u, float formation, float corner) {
+    float full;
+    if (u >= 0.9) {
+        full = u;
+    } else if (u >= 0.52) {
+        full = 0.71 + 0.5 * (u - 0.52);
+    } else if (u >= 0.28) {
+        full = 0.70;
+    } else {
+        full = 0.71 + 1.2857 * (0.28 - u);
+    }
+    // At rest a straight run shows almost nothing: a fast sheet pull shows only a 2-7 px inward
+    // offset across its 90 px band (FINDINGS 1b-iii), and the dock's top edge leaves what is
+    // under it in place. A corner arc at rest shows the measured rest lens (restSource). Both
+    // give way to the full fold as the lens forms under a tracked drag.
+    float straight = u + 0.06 * (1.0 - u) * (1.0 - u);
+    float rest = mix(straight, restSource(u), clamp(corner, 0.0, 1.0));
+    return mix(rest, full, clamp(formation, 0.0, 1.0));
+}
+
+// The wide tone kernel, from the strip the host records beneath the sharp copy.
+half3 wideAt(float2 p) {
+    float2 q = clamp(p, uBackdrop.xy, uBackdrop.zw);
+    float2 c = float2(q.x * uWideScale, uWideStrip + q.y * uWideScale);
+    half4 s = content.eval(c);
+    return (s.a > half(0.004)) ? s.rgb / s.a : half3(uBase);
 }
 
 half3 toneMappedTint(half3 tint, float bgLuma, float adapt) {
@@ -206,21 +345,51 @@ half4 main(float2 coord) {
     float bend = snellShift(slope, uIor) / max(snellShift(bevelSlope(0.0, pw), uIor), 1e-4);
     bend *= smoothstep(1.0, 0.75, e) * axisFade * smoothstep(0.0, 1.5, depth);
     bend = clamp(bend, 0.0, 1.0);
+    float measured = step(0.5, uProfile);
     float2 push = n * bend * uRefractDepth;
-
     float split = uAberration * bend;
+    float2 pushR = push * (1.0 - split);
+    float2 pushB = push * (1.0 + split);
+    if (measured > 0.5) {
+        // The measured profile: inward only, with the fold's dispersion in the mirrored zone.
+        // See the panel shader.
+        float W = max(uRefractBand, 0.001);
+        float u = clamp(depth / W, 0.0, 1.0);
+        float corner = nearestCornerWeight(local);
+        float shift = (depth < W) ? (foldSource(u, uFormation, corner) * W - depth) : 0.0;
+        shift = max(shift, 0.0) * axisFade * smoothstep(0.0, 1.5, depth);
+        float mirrorZone = (1.0 - smoothstep(0.24, 0.32, u)) * clamp(uFormation, 0.0, 1.0);
+        float delta = uAberration * W * 0.5 * mirrorZone;
+        push = -n * shift;
+        pushR = -n * (shift + delta);
+        pushB = -n * max(shift - delta, 0.0);
+    }
     half3 sharp = half3(
-        backdropAt(coord + push * (1.0 - split)).r,
+        backdropAt(coord + pushR).r,
         backdropAt(coord + push).g,
-        backdropAt(coord + push * (1.0 + split)).b
+        backdropAt(coord + pushB).b
     );
     half3 soft = blurredAt(coord + push, uBlur * e, tapRotation(coord));
     float rimSharp = (1.0 - e) * (1.0 - e);
     half3 bg = mix(soft, sharp, half(rimSharp));
 
+    // The measured two-kernel material; see the panel shader.
+    half3 wide = bg;
+    if (uWideStrip >= 1.0) {
+        wide = wideAt(coord);
+        // A high-pass along the long axis, not a share of a second blurred copy: see the note on
+        // axisMeanAt and FINDINGS 22.
+        half3 line = axisMeanAt(coord + push, uWideKernel * 0.7, tapRotation(coord));
+        bg = wide + (bg - line) * half(clamp(uFineShare, 0.0, 1.0));
+    }
+
     float bgLuma = luma(bg);
-    half3 tinted = toneMappedTint(half3(uTint.rgb), bgLuma, uAdaptive);
+    half3 tinted = (measured > 0.5)
+        ? half3(uTint.rgb)
+        : toneMappedTint(half3(uTint.rgb), bgLuma, uAdaptive);
     half3 col = mix(bg, tinted, half(clamp(uTint.a, 0.0, 1.0)));
+    float lift = uLift - uLiftAdapt * luma(wide);
+    col += half3(half((uLiftAdapt > 0.0) ? max(lift, 0.0) : lift));
 
     float facing = dot(n, uLight);
     // Two rim geometries. At uBevelPeak 0 the bevel is a chamfer: brightest at the very edge,

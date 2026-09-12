@@ -53,6 +53,14 @@ internal actual fun createGlassRenderEffect(
         uniforms.radii.getOrElse(2) { 0f },
         uniforms.radii.getOrElse(3) { 0f },
     )
+    shader.setFloatUniform(
+        "uFuse",
+        uniforms.fuse.getOrElse(0) { 0f },
+        uniforms.fuse.getOrElse(1) { 0f },
+        uniforms.fuse.getOrElse(2) { 0f },
+        uniforms.fuse.getOrElse(3) { 0f },
+    )
+    shader.setFloatUniform("uFuseShape", uniforms.fuseRadius, uniforms.fuseWidth)
     shader.setFloatUniform("uRefractBand", uniforms.refractBand)
     shader.setFloatUniform("uAberration", uniforms.aberration)
     shader.setFloatUniform("uIor", uniforms.ior)
@@ -116,23 +124,46 @@ internal actual fun createGlassRenderEffect(
     )
     shader.setFloatUniform("uInnerShadow", uniforms.innerShadow)
     shader.setFloatUniform("uAdaptive", uniforms.adaptivity)
+    shader.setFloatUniform("uProfile", uniforms.profile)
+    shader.setFloatUniform("uFormation", uniforms.formation)
+    shader.setFloatUniform("uHeldLens", uniforms.heldLens)
+    shader.setFloatUniform("uWideStrip", uniforms.wideStrip)
+    shader.setFloatUniform("uWideScale", uniforms.wideScale)
+    shader.setFloatUniform("uFineShare", uniforms.fineShare)
+    shader.setFloatUniform("uWideKernel", uniforms.wideKernel)
+    shader.setFloatUniform("uLift", uniforms.tintLift)
+    shader.setFloatUniform("uLiftAdapt", uniforms.liftAdapt)
 
     // The interior blur is NOT chained ahead of the shader: pre-blurring destroys exactly the
     // detail the rim is supposed to bend. backdropBlur is the opt-in that does pre-blur, for
     // chrome that would rather hide its backdrop than refract it.
     val glass = RenderEffect.createRuntimeShaderEffect(shader, "content")
-    return if (uniforms.backdropBlur > 0f) {
+    val radius = platformBlurRadius(uniforms.backdropSigma, uniforms.backdropBlur)
+    return if (radius > 0f) {
         RenderEffect.createChainEffect(
             glass,
-            RenderEffect.createBlurEffect(
-                uniforms.backdropBlur,
-                uniforms.backdropBlur,
-                Shader.TileMode.CLAMP,
-            ),
+            RenderEffect.createBlurEffect(radius, radius, Shader.TileMode.CLAMP),
         ).asComposeRenderEffect()
     } else {
         glass.asComposeRenderEffect()
     }
+}
+
+/**
+ * Android's blur takes a radius and turns it into a Gaussian sigma of `0.57735 * radius + 0.5`
+ * (Skia's `ConvertRadiusToSigma`). A style that names a sigma has to be inverted through that,
+ * or the same number would blur about 1.7x less here than on the desktop.
+ */
+private fun platformBlurRadius(sigma: Float, radius: Float): Float =
+    if (sigma > 0f) platformBlurRadiusForSigma(sigma) else radius
+
+internal actual fun platformBlurRadiusForSigma(sigma: Float): Float =
+    ((sigma - 0.5f) / 0.57735f).coerceAtLeast(0f)
+
+internal actual fun createWideKernelEffect(sigmaPx: Float): androidx.compose.ui.graphics.RenderEffect? {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return null
+    val radius = platformBlurRadiusForSigma(sigmaPx)
+    return RenderEffect.createBlurEffect(radius, radius, Shader.TileMode.CLAMP).asComposeRenderEffect()
 }
 
 private val contentRuntimeShader: RuntimeShader? by lazy {
@@ -163,6 +194,14 @@ internal actual fun createGlassContentRenderEffect(
     shader.setInputShader("field", uniforms.field?.let { bitmap ->
         ImageShader(bitmap, TileMode.Clamp, TileMode.Clamp)
     } ?: placeholderFieldShader)
+    shader.setFloatUniform(
+        "uFuse",
+        uniforms.fuse.getOrElse(0) { 0f },
+        uniforms.fuse.getOrElse(1) { 0f },
+        uniforms.fuse.getOrElse(2) { 0f },
+        uniforms.fuse.getOrElse(3) { 0f },
+    )
+    shader.setFloatUniform("uFuseShape", uniforms.fuseRadius, uniforms.fuseWidth)
     shader.setFloatUniform("uRefractBand", uniforms.refractBand)
     shader.setFloatUniform("uRefractDepth", uniforms.refractDepth)
     shader.setFloatUniform("uIor", uniforms.ior)
@@ -172,6 +211,9 @@ internal actual fun createGlassContentRenderEffect(
     shader.setFloatUniform("uMaterialize", uniforms.materialize)
     shader.setFloatUniform("uTouch", uniforms.touchX, uniforms.touchY)
     shader.setFloatUniform("uTouchAmt", uniforms.touchAmount)
+    shader.setFloatUniform("uProfile", uniforms.profile)
+    shader.setFloatUniform("uFormation", uniforms.formation)
+    shader.setFloatUniform("uHeldLens", uniforms.heldLens)
     return RenderEffect.createRuntimeShaderEffect(shader, "content").asComposeRenderEffect()
 }
 
@@ -252,19 +294,25 @@ internal actual fun createGlassContainerRenderEffect(
     )
     shader.setFloatUniform("uInnerShadow", uniforms.innerShadow)
     shader.setFloatUniform("uAdaptive", uniforms.adaptivity)
+    shader.setFloatUniform("uProfile", uniforms.profile)
+    shader.setFloatUniform("uFormation", 0f)
+    shader.setFloatUniform("uHeldLens", 0f)
+    shader.setFloatUniform("uWideStrip", uniforms.wideStrip)
+    shader.setFloatUniform("uWideScale", uniforms.wideScale)
+    shader.setFloatUniform("uFineShare", uniforms.fineShare)
+    shader.setFloatUniform("uWideKernel", uniforms.wideKernel)
+    shader.setFloatUniform("uLift", uniforms.tintLift)
+    shader.setFloatUniform("uLiftAdapt", uniforms.liftAdapt)
 
     // The interior blur is NOT chained ahead of the shader: pre-blurring destroys exactly the
     // detail the rim is supposed to bend. backdropBlur is the opt-in that does pre-blur, for
     // chrome that would rather hide its backdrop than refract it.
     val glass = RenderEffect.createRuntimeShaderEffect(shader, "content")
-    return if (uniforms.backdropBlur > 0f) {
+    val radius = platformBlurRadius(uniforms.backdropSigma, uniforms.backdropBlur)
+    return if (radius > 0f) {
         RenderEffect.createChainEffect(
             glass,
-            RenderEffect.createBlurEffect(
-                uniforms.backdropBlur,
-                uniforms.backdropBlur,
-                Shader.TileMode.CLAMP,
-            ),
+            RenderEffect.createBlurEffect(radius, radius, Shader.TileMode.CLAMP),
         ).asComposeRenderEffect()
     } else {
         glass.asComposeRenderEffect()

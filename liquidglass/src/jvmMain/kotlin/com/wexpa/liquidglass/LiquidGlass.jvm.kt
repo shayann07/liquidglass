@@ -52,6 +52,14 @@ internal actual fun createGlassRenderEffect(
         uniforms.radii.getOrElse(2) { 0f },
         uniforms.radii.getOrElse(3) { 0f },
     )
+    builder.uniform(
+        "uFuse",
+        uniforms.fuse.getOrElse(0) { 0f },
+        uniforms.fuse.getOrElse(1) { 0f },
+        uniforms.fuse.getOrElse(2) { 0f },
+        uniforms.fuse.getOrElse(3) { 0f },
+    )
+    builder.uniform("uFuseShape", uniforms.fuseRadius, uniforms.fuseWidth)
     builder.uniform("uRefractBand", uniforms.refractBand)
     builder.uniform("uAberration", uniforms.aberration)
     builder.uniform("uIor", uniforms.ior)
@@ -115,11 +123,22 @@ internal actual fun createGlassRenderEffect(
     )
     builder.uniform("uInnerShadow", uniforms.innerShadow)
     builder.uniform("uAdaptive", uniforms.adaptivity)
+    builder.uniform("uProfile", uniforms.profile)
+    builder.uniform("uFormation", uniforms.formation)
+    builder.uniform("uHeldLens", uniforms.heldLens)
+    builder.uniform("uWideStrip", uniforms.wideStrip)
+    builder.uniform("uWideScale", uniforms.wideScale)
+    builder.uniform("uFineShare", uniforms.fineShare)
+    builder.uniform("uWideKernel", uniforms.wideKernel)
+    builder.uniform("uLift", uniforms.tintLift)
+    builder.uniform("uLiftAdapt", uniforms.liftAdapt)
 
     // See the Android actual: only backdropBlur pre-blurs; the interior blur lives in the
-    // shader so the rim keeps its detail.
-    val prepared = if (uniforms.backdropBlur > 0f) {
-        ImageFilter.makeBlur(uniforms.backdropBlur, uniforms.backdropBlur, FilterTileMode.CLAMP)
+    // shader so the rim keeps its detail. Skia's blur takes a sigma directly, so a named sigma
+    // is passed as is and a legacy radius is passed as the radius it always was.
+    val sigma = if (uniforms.backdropSigma > 0f) uniforms.backdropSigma else uniforms.backdropBlur
+    val prepared = if (sigma > 0f) {
+        ImageFilter.makeBlur(sigma, sigma, FilterTileMode.CLAMP)
     } else {
         null
     }
@@ -129,6 +148,11 @@ internal actual fun createGlassRenderEffect(
         input = prepared,
     ).asComposeRenderEffect()
 }
+
+internal actual fun platformBlurRadiusForSigma(sigma: Float): Float = sigma
+
+internal actual fun createWideKernelEffect(sigmaPx: Float): androidx.compose.ui.graphics.RenderEffect? =
+    ImageFilter.makeBlur(sigmaPx, sigmaPx, FilterTileMode.CLAMP).asComposeRenderEffect()
 
 private val contentEffect: RuntimeEffect? by lazy {
     runCatching { RuntimeEffect.makeForShader(GLASS_CONTENT_SHADER_SOURCE) }.getOrNull()
@@ -158,6 +182,14 @@ internal actual fun createGlassContentRenderEffect(
         org.jetbrains.skia.Image.makeFromBitmap(bitmap.asSkiaBitmap())
             .makeShader(FilterTileMode.CLAMP, FilterTileMode.CLAMP)
     } ?: placeholderFieldShader)
+    builder.uniform(
+        "uFuse",
+        uniforms.fuse.getOrElse(0) { 0f },
+        uniforms.fuse.getOrElse(1) { 0f },
+        uniforms.fuse.getOrElse(2) { 0f },
+        uniforms.fuse.getOrElse(3) { 0f },
+    )
+    builder.uniform("uFuseShape", uniforms.fuseRadius, uniforms.fuseWidth)
     builder.uniform("uRefractBand", uniforms.refractBand)
     builder.uniform("uRefractDepth", uniforms.refractDepth)
     builder.uniform("uIor", uniforms.ior)
@@ -167,6 +199,9 @@ internal actual fun createGlassContentRenderEffect(
     builder.uniform("uMaterialize", uniforms.materialize)
     builder.uniform("uTouch", uniforms.touchX, uniforms.touchY)
     builder.uniform("uTouchAmt", uniforms.touchAmount)
+    builder.uniform("uProfile", uniforms.profile)
+    builder.uniform("uFormation", uniforms.formation)
+    builder.uniform("uHeldLens", uniforms.heldLens)
     return ImageFilter.makeRuntimeShader(
         runtimeShaderBuilder = builder,
         shaderName = "content",
@@ -248,11 +283,21 @@ internal actual fun createGlassContainerRenderEffect(
     )
     builder.uniform("uInnerShadow", uniforms.innerShadow)
     builder.uniform("uAdaptive", uniforms.adaptivity)
+    builder.uniform("uProfile", uniforms.profile)
+    builder.uniform("uFormation", 0f)
+    builder.uniform("uHeldLens", 0f)
+    builder.uniform("uWideStrip", uniforms.wideStrip)
+    builder.uniform("uWideScale", uniforms.wideScale)
+    builder.uniform("uFineShare", uniforms.fineShare)
+    builder.uniform("uWideKernel", uniforms.wideKernel)
+    builder.uniform("uLift", uniforms.tintLift)
+    builder.uniform("uLiftAdapt", uniforms.liftAdapt)
 
     // See the Android actual: only backdropBlur pre-blurs; the interior blur lives in the
     // shader so the rim keeps its detail.
-    val prepared = if (uniforms.backdropBlur > 0f) {
-        ImageFilter.makeBlur(uniforms.backdropBlur, uniforms.backdropBlur, FilterTileMode.CLAMP)
+    val sigma = if (uniforms.backdropSigma > 0f) uniforms.backdropSigma else uniforms.backdropBlur
+    val prepared = if (sigma > 0f) {
+        ImageFilter.makeBlur(sigma, sigma, FilterTileMode.CLAMP)
     } else {
         null
     }

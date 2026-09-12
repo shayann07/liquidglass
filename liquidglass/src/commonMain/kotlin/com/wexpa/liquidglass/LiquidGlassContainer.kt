@@ -15,6 +15,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
@@ -25,6 +26,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.isSpecified
 
 /** One panel taking part in a container's merged field. */
 @Stable
@@ -62,6 +64,8 @@ fun LiquidGlassContainer(
 ) {
     val members = remember { mutableStateListOf<GlassMember>() }
     val glassLayer = rememberGraphicsLayer()
+    // The wide tone kernel's strip; see Modifier.liquidGlass.
+    val wideLayer = rememberGraphicsLayer()
     var coordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
 
     val scope = remember(members) {
@@ -99,12 +103,27 @@ fun LiquidGlassContainer(
                 if (source != null && delta != null &&
                     LiquidGlassSupport.hasShaders && active.isNotEmpty()
                 ) {
-                    val pad = style.refractionDepth.toPx() * 1.4f +
-                    maxOf(style.blurRadius.toPx(), style.backdropBlur.toPx())
+                    val pad = style.padPx(this)
                     val bounds = sampleBounds(pad, delta, size, state.sourceSize)
                     if (!hasSampleRegion(bounds)) {
                         drawContent()
                         return@drawWithContent
+                    }
+                    val padPx = pad.toInt()
+                    val paddedSize = IntSize(
+                        (size.width.toInt() + padPx * 2).coerceAtLeast(1),
+                        (size.height.toInt() + padPx * 2).coerceAtLeast(1),
+                    )
+                    val wideKernelPx = if (style.wideKernel.isSpecified) style.wideKernel.toPx() else 0f
+                    val useWide = style.profile != GlassProfile.Legacy && wideKernelPx >= 1f
+                    val wideScale = 0.25f
+                    val stripSize = if (useWide) {
+                        IntSize(
+                            kotlin.math.ceil(paddedSize.width * wideScale).toInt().coerceAtLeast(1),
+                            kotlin.math.ceil(paddedSize.height * wideScale).toInt().coerceAtLeast(1),
+                        )
+                    } else {
+                        IntSize.Zero
                     }
                     val effect = createGlassContainerRenderEffect(
                         GlassContainerUniforms(
@@ -128,7 +147,17 @@ fun LiquidGlassContainer(
                             },
                             count = active.size.coerceAtMost(MAX_GLASS_MEMBERS).toFloat(),
                             merge = mergeDistance.toPx(),
-                            refractBand = style.refractionBand.toPx(),
+                            // A derived band follows the measured rule from the largest member.
+                            refractBand = if (style.refractionBand.isSpecified) style.refractionBand.toPx()
+                                else GlassMaterial.BEVEL_RATIO * (active.maxOfOrNull { it.radius } ?: 0f),
+                            profile = minOf(style.profile.uniform, 1f),
+                            wideKernel = wideKernelPx,
+                            wideStrip = if (useWide) paddedSize.height.toFloat() else 0f,
+                            wideScale = wideScale,
+                            fineShare = style.fineShare,
+                            tintLift = style.tintLift,
+                            liftAdapt = style.liftAdaptivity,
+                            backdropSigma = if (style.backdropSigma.isSpecified) style.backdropSigma.toPx() else 0f,
                             refractDepth = style.refractionDepth.toPx(),
                             aberration = style.dispersion,
                             ior = style.indexOfRefraction,
@@ -154,17 +183,26 @@ fun LiquidGlassContainer(
                         )
                     )
                     if (effect != null) {
-                        val padPx = pad.toInt()
+                        if (useWide) {
+                            wideLayer.record(size = stripSize) {
+                                drawRect(state.background)
+                                scale(wideScale, wideScale, pivot = Offset.Zero) {
+                                    translate(-delta.x + pad, -delta.y + pad) { drawLayer(source) }
+                                }
+                            }
+                            wideLayer.renderEffect = createWideKernelEffect(wideKernelPx * wideScale)
+                        }
                         glassLayer.record(
-                            size = IntSize(
-                                (size.width.toInt() + padPx * 2).coerceAtLeast(1),
-                                (size.height.toInt() + padPx * 2).coerceAtLeast(1),
-                            )
+                            size = IntSize(paddedSize.width, paddedSize.height + stripSize.height),
                         ) {
                             // See the note in Modifier.liquidGlass: the blur needs an
                             // opaque image or the fused body grows a halo.
                             drawRect(state.background)
                             translate(-delta.x + pad, -delta.y + pad) { drawLayer(source) }
+                            // The strip goes in last, or the ground fill above covers it.
+                            if (useWide) {
+                                translate(0f, paddedSize.height.toFloat()) { drawLayer(wideLayer) }
+                            }
                         }
                         glassLayer.renderEffect = effect
                         translate(-pad, -pad) { drawLayer(glassLayer) }
@@ -212,6 +250,18 @@ internal class GlassContainerUniforms(
     val edgeShadow: Float,
     val rimSoft: Float,
     val tintAbsorb: Float,
+    /** 0 the legacy Snell bevel, 1 the measured fold lens. */
+    val profile: Float = 0f,
+    /** Sigma of the wide tone kernel, px; 0 disables it. */
+    val wideKernel: Float = 0f,
+    /** Layer row where the quarter-scale blurred copy starts; 0 when there is none. */
+    val wideStrip: Float = 0f,
+    val wideScale: Float = 0.25f,
+    val fineShare: Float = 1f,
+    val tintLift: Float = 0f,
+    val liftAdapt: Float = 0f,
+    /** Gaussian sigma of the pre-blur, px; 0 means use [backdropBlur] as the platform radius. */
+    val backdropSigma: Float = 0f,
 )
 
 internal expect fun createGlassContainerRenderEffect(

@@ -2,6 +2,7 @@ package com.wexpa.liquidglass
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -17,10 +18,15 @@ import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.compose.ui.graphics.layer.drawLayer
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.rememberGraphicsLayer
@@ -31,9 +37,12 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpRect
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.isSpecified
 
 /**
  * Shared state linking a backdrop to the glass panels drawn over it.
@@ -199,12 +208,44 @@ fun Modifier.liquidGlass(
      * The element must not be inside that source's subtree, or it would sample itself.
      */
     through: LiquidGlassState? = null,
+    /**
+     * Another rounded rect that this element's outline **fuses** with, in this element's own
+     * coordinates.
+     *
+     * Not a union: where the two outlines cross, the silhouette bows out to meet the other
+     * shape instead of making a crease, and it is one surface from there on — the bevel, the
+     * rim and the refraction all follow the fused outline. iOS 27's tab bar does this with its
+     * selection lens, which is proud of the bar; measured on the reference, the bar's edge sits
+     * 12 px above both outlines where they cross and rejoins the flat run about 40 px away.
+     *
+     * Costs the closed-form normal, which cannot describe a fused outline, so the shader
+     * differences the field instead. Null leaves the outline alone.
+     */
+    fuse: GlassFuse? = null,
+    /**
+     * How far the measured edge lens has formed, 0 to 1.
+     *
+     * On iOS 27 the fold at a cover sheet's edge is not a fixed property of the edge: it is
+     * absent for the first ~117 dp of a tracked pull, fully formed after, and never shown on a
+     * committed animation or on chrome at rest, which draw only a shallow ring at the edge. So
+     * the default is 0. A host tracking a drag drives it from the pull
+     * ([GlassMaterial.lensFormation]) and animates it back to 0 on release. Ignored by the
+     * legacy profile.
+     */
+    lensFormation: Float = 0f,
 ): Modifier = composed {
     val glassLayer = rememberGraphicsLayer()
     val contentLayer = rememberGraphicsLayer()
+    // The wide tone kernel: a quarter-scale copy of the padded backdrop under a real Gaussian
+    // blur, drawn into a strip beneath the sharp copy so the one input shader carries both.
+    val wideLayer = rememberGraphicsLayer()
     // The panel's own contact shadow, blurred in its own layer so it can be drawn *into* the
     // recorded backdrop and therefore refracted along with it. See GlassStyle.contactShadow.
     val shadowLayer = rememberGraphicsLayer()
+    // Effects are rebuilt only when their inputs change: building one binds some fifty
+    // uniforms and allocates, per panel, and on a scrolling screen the inputs are the same
+    // frame after frame (the backdrop changes, the uniforms do not).
+    val effects = remember { GlassEffectCache() }
     var coordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
     // The position, held separately as a value.
     //
@@ -224,10 +265,7 @@ fun Modifier.liquidGlass(
     val direction = LocalLayoutDirection.current
     val measured = coordinates?.let { Size(it.size.width.toFloat(), it.size.height.toFloat()) }
         ?: Size.Zero
-    val padForField = with(density) {
-        style.refractionDepth.toPx() * 1.4f +
-            maxOf(style.blurRadius.toPx(), style.backdropBlur.toPx())
-    }
+    val padForField = style.padPx(density)
     // Measured once per shape and size, never per frame. Null for every shape that has a closed
     // form, which is all of them until someone reaches for a path.
     val pathField = if (shape.needsSampledField(measured, direction, density)) {
@@ -235,7 +273,7 @@ fun Modifier.liquidGlass(
             shape = shape,
             size = measured,
             pad = padForField,
-            band = with(density) { style.refractionBand.toPx() },
+            band = with(density) { if (style.refractionBand.isSpecified) style.refractionBand.toPx() else 0f },
             density = density,
             layoutDirection = direction,
         )
@@ -275,8 +313,21 @@ fun Modifier.liquidGlass(
                 // Apple's material samples "an area larger than itself" — that is what makes it
                 // lens rather than merely blur. Record that margin, or displacement at the rim
                 // clamps against the panel's own edge and the lensing has nothing to bend.
-                val pad = style.refractionDepth.toPx() * 1.4f +
-                    maxOf(style.blurRadius.toPx(), style.backdropBlur.toPx())
+                val bandPx = style.bandPx(radii, size, this)
+                // The held lens samples outward by up to 0.29 W: record that much more.
+                var pad = maxOf(style.padPx(this), if (style.profile == GlassProfile.Held) bandPx * 0.3f else 0f)
+                // A fused outline reaches wherever the other shape does, plus the fusion's own
+                // bulge, and the rim has to be inside the layer to be drawn at all.
+                if (fuse != null) {
+                    val f = fuse.toPx(size, this)
+                    pad = maxOf(
+                        pad,
+                        maxOf(
+                            maxOf(-(f[0] - f[2]) + size.width / 2f, (f[0] + f[2]) - size.width / 2f),
+                            maxOf(-(f[1] - f[3]) + size.height / 2f, (f[1] + f[3]) - size.height / 2f),
+                        ) + f[5] * 0.25f + bandPx,
+                    )
+                }
                 val sizeFactor = elementSizeFactor(size, this)
                 val contactShadow = glassShadow(sizeFactor)
                 val contactShadowAlpha = contactShadow.alpha * style.contactShadow.coerceIn(0f, 1f)
@@ -297,9 +348,20 @@ fun Modifier.liquidGlass(
                             0f
                         },
                         radii = radii,
-                        refractBand = style.refractionBand.toPx(),
+                        refractBand = bandPx,
                         refractDepth = style.refractionDepth.toPx(),
                         aberration = style.dispersion,
+                        profile = style.profile.uniform,
+                        formation = lensFormation.coerceIn(0f, 1f),
+                        heldLens = style.heldLens.coerceIn(0f, 1f),
+                        wideKernel = if (style.wideKernel.isSpecified) style.wideKernel.toPx() else 0f,
+                        fuse = fuse?.toPx(size, this)?.copyOf(4) ?: EMPTY_FUSE,
+                        fuseRadius = fuse?.toPx(size, this)?.get(4) ?: 0f,
+                        fuseWidth = fuse?.toPx(size, this)?.get(5) ?: 0f,
+                        fineShare = style.fineShare,
+                        tintLift = style.tintLift,
+                        liftAdapt = style.liftAdaptivity,
+                        backdropSigma = if (style.backdropSigma.isSpecified) style.backdropSigma.toPx() else 0f,
                         ior = style.indexOfRefraction,
                         bevelPower = style.bevelPower,
                         cornerPower = if (shape is GlassSquircleShape) {
@@ -344,15 +406,29 @@ fun Modifier.liquidGlass(
                 // are recorded smaller, the shader is told smaller lengths, and the result is
                 // drawn back up. See LiquidGlassState.renderScale.
                 val rs = state.renderScale.coerceIn(0.25f, 1f)
-                val uniforms = fullUniforms.scaledBy(rs)
-                val effect = createGlassRenderEffect(uniforms)
-                if (effect != null) {
-                    // Record the padded slice of backdrop beneath this panel, in the panel's own
-                    // coordinates offset by the pad, then let the chain blur and refract it.
-                    val paddedSize = IntSize(
-                        ((size.width + pad * 2f) * rs).toInt().coerceAtLeast(1),
-                        ((size.height + pad * 2f) * rs).toInt().coerceAtLeast(1),
+                // The padded slice of backdrop beneath this panel, in the panel's own
+                // coordinates offset by the pad.
+                val paddedSize = IntSize(
+                    ((size.width + pad * 2f) * rs).toInt().coerceAtLeast(1),
+                    ((size.height + pad * 2f) * rs).toInt().coerceAtLeast(1),
+                )
+                val scaled = fullUniforms.scaledBy(rs)
+                val useWide = style.profile != GlassProfile.Legacy && scaled.wideKernel >= 1f
+                val wideScale = 0.25f
+                val stripSize = if (useWide) {
+                    IntSize(
+                        kotlin.math.ceil(paddedSize.width * wideScale).toInt().coerceAtLeast(1),
+                        kotlin.math.ceil(paddedSize.height * wideScale).toInt().coerceAtLeast(1),
                     )
+                } else {
+                    IntSize.Zero
+                }
+                val uniforms = scaled.copy(
+                    wideStrip = if (useWide) paddedSize.height.toFloat() else 0f,
+                    wideScale = wideScale,
+                )
+                val effect = effects.panel(uniforms)
+                if (effect != null) {
                     if (refractContent) {
                         // The content, alone and transparent, at the same padded size as the
                         // backdrop so the two passes share one coordinate frame.
@@ -379,12 +455,23 @@ fun Modifier.liquidGlass(
                             }
                             }
                         }
-                        shadowLayer.renderEffect =
-                            BlurEffect(shadowBlur * rs, shadowBlur * rs, TileMode.Decal)
+                        shadowLayer.renderEffect = effects.shadow(shadowBlur * rs)
                     }
                     val throughLayer = through?.layer
                     val throughDelta = through?.let { panelOffsetInSource(it.sourceCoordinates, coordinates) }
-                    glassLayer.record(size = paddedSize) {
+                    if (useWide) {
+                        wideLayer.record(size = stripSize) {
+                            drawRect(state.background)
+                            scale(wideScale * rs, wideScale * rs, pivot = Offset.Zero) {
+                                translate(-delta.x + pad, -delta.y + pad) { drawLayer(source) }
+                                if (throughLayer != null && throughDelta != null) {
+                                    translate(-throughDelta.x + pad, -throughDelta.y + pad) { drawLayer(throughLayer) }
+                                }
+                            }
+                        }
+                        wideLayer.renderEffect = effects.wide(uniforms.wideKernel * wideScale)
+                    }
+                    glassLayer.record(size = IntSize(paddedSize.width, paddedSize.height + stripSize.height)) {
                       scale(rs, rs, pivot = Offset.Zero) {
                     // Fill with the ground first. The padded slice reaches past the backdrop
                     // near a screen edge, and the backdrop is itself transparent wherever the
@@ -405,7 +492,16 @@ fun Modifier.liquidGlass(
                         // in this panel's frame, so the rim refracts that too.
                         if (throughLayer != null && throughDelta != null) {
                             translate(-throughDelta.x + pad, -throughDelta.y + pad) { drawLayer(throughLayer) }
+                            // And a share of the raw backdrop again, added on top (rawShare).
+                            if (style.rawShare > 0.001f) {
+                                drawAdded(source, -delta.x + pad, -delta.y + pad, style.rawShare)
+                            }
                         }
+                      }
+                      // The strip goes in LAST: the ground fill and the backdrop above are drawn
+                      // over the whole layer, strip rows included, and would paint over it.
+                      if (useWide) {
+                          translate(0f, paddedSize.height.toFloat()) { drawLayer(wideLayer) }
                       }
                     }
                     glassLayer.renderEffect = effect
@@ -429,7 +525,7 @@ fun Modifier.liquidGlass(
                         translate(-pad * rs, -pad * rs) { drawLayer(glassLayer) }
                     }
                     // The content pass: the same field and the same bend, over the material.
-                    val contentEffect = if (refractContent) createGlassContentRenderEffect(uniforms) else null
+                    val contentEffect = if (refractContent) effects.content(uniforms) else null
                     if (contentEffect != null) {
                         contentLayer.renderEffect = contentEffect
                         scale(1f / rs, 1f / rs, pivot = Offset.Zero) {
@@ -446,6 +542,119 @@ fun Modifier.liquidGlass(
             drawContent()
         }
 }
+
+/**
+ * A rounded rect that an element's outline fuses with, given in that element's own coordinates.
+ *
+ * [bounds] is where it sits relative to the element's top-left corner, [cornerRadius] its corner,
+ * and [smoothing] how wide the fusion is: the surface bows out by about a quarter of it where the
+ * two outlines cross, and beyond it each shape is untouched. iOS 27's tab bar fuses at 16 dp.
+ */
+@Immutable
+class GlassFuse(
+    val bounds: DpRect,
+    val cornerRadius: Dp,
+    val smoothing: Dp = 16.dp,
+) {
+    /** centre x, centre y (relative to the element's centre), half width, half height, radius, smoothing. */
+    internal fun toPx(size: Size, density: Density): FloatArray = with(density) {
+        val l = bounds.left.toPx()
+        val t = bounds.top.toPx()
+        val r = bounds.right.toPx()
+        val b = bounds.bottom.toPx()
+        floatArrayOf(
+            (l + r) / 2f - size.width / 2f,
+            (t + b) / 2f - size.height / 2f,
+            (r - l) / 2f,
+            (b - t) / 2f,
+            cornerRadius.toPx(),
+            smoothing.toPx(),
+        )
+    }
+
+    override fun equals(other: Any?): Boolean =
+        other is GlassFuse && bounds == other.bounds && cornerRadius == other.cornerRadius &&
+            smoothing == other.smoothing
+
+    override fun hashCode(): Int =
+        (bounds.hashCode() * 31 + cornerRadius.hashCode()) * 31 + smoothing.hashCode()
+}
+
+internal val EMPTY_FUSE = FloatArray(4)
+
+/**
+ * A [share] of a layer added (not blended) on top of what is already drawn: how the measured
+ * tab-bar lens shows the raw content behind the bar over the bar's own output
+ * ([GlassStyle.rawShare]).
+ */
+private fun DrawScope.drawAdded(layer: GraphicsLayer, dx: Float, dy: Float, share: Float) {
+    drawIntoCanvas { canvas ->
+        val paint = Paint().apply {
+            alpha = share.coerceIn(0f, 1f)
+            blendMode = BlendMode.Plus
+        }
+        // Bounds are a hint; Skia intersects them with the clip.
+        canvas.saveLayer(Rect(-1e4f, -1e4f, 1e4f, 1e4f), paint)
+        translate(dx, dy) { drawLayer(layer) }
+        canvas.restore()
+    }
+}
+
+/**
+ * The render effects of one panel, rebuilt only when their inputs change. [GlassUniforms]
+ * compares every field, so a frame whose backdrop moved but whose panel did not reuses the
+ * effect it already has.
+ */
+internal class GlassEffectCache {
+    private var panelUniforms: GlassUniforms? = null
+    private var panelEffect: androidx.compose.ui.graphics.RenderEffect? = null
+    private var contentUniforms: GlassUniforms? = null
+    private var contentEffect: androidx.compose.ui.graphics.RenderEffect? = null
+    private var wideSigma: Float = Float.NaN
+    private var wideEffect: androidx.compose.ui.graphics.RenderEffect? = null
+    private var shadowSigma: Float = Float.NaN
+    private var shadowEffect: androidx.compose.ui.graphics.RenderEffect? = null
+
+    fun panel(uniforms: GlassUniforms): androidx.compose.ui.graphics.RenderEffect? {
+        if (uniforms != panelUniforms) {
+            panelEffect = createGlassRenderEffect(uniforms)
+            panelUniforms = uniforms
+        }
+        return panelEffect
+    }
+
+    fun content(uniforms: GlassUniforms): androidx.compose.ui.graphics.RenderEffect? {
+        if (uniforms != contentUniforms) {
+            contentEffect = createGlassContentRenderEffect(uniforms)
+            contentUniforms = uniforms
+        }
+        return contentEffect
+    }
+
+    fun wide(sigmaPx: Float): androidx.compose.ui.graphics.RenderEffect? {
+        if (sigmaPx != wideSigma) {
+            wideEffect = createWideKernelEffect(sigmaPx)
+            wideSigma = sigmaPx
+        }
+        return wideEffect
+    }
+
+    fun shadow(blurPx: Float): androidx.compose.ui.graphics.RenderEffect {
+        if (blurPx != shadowSigma) {
+            shadowEffect = BlurEffect(blurPx, blurPx, TileMode.Decal)
+            shadowSigma = blurPx
+        }
+        return shadowEffect!!
+    }
+}
+
+/** The profile as the shader reads it: 0 legacy, 1 measured fold, 2 the held-lens family. */
+internal val GlassProfile.uniform: Float
+    get() = when (this) {
+        GlassProfile.Legacy -> 0f
+        GlassProfile.Measured -> 1f
+        GlassProfile.Held -> 2f
+    }
 
 /** What the current platform can do, so callers can choose a design that survives the gap. */
 expect object LiquidGlassSupport {
@@ -513,6 +722,11 @@ internal fun GlassUniforms.scaledBy(s: Float): GlassUniforms =
             radii = FloatArray(radii.size) { radii[it] * s },
             refractBand = refractBand * s,
             refractDepth = refractDepth * s,
+            wideKernel = wideKernel * s,
+            fuse = FloatArray(fuse.size) { fuse[it] * s },
+            fuseRadius = fuseRadius * s,
+            fuseWidth = fuseWidth * s,
+            backdropSigma = backdropSigma * s,
             bevel = bevel * s,
             backdrop = FloatArray(backdrop.size) { backdrop[it] * s },
             touchX = touchX * s,
@@ -539,6 +753,31 @@ internal data class GlassUniforms(
     val refractBand: Float,
     val refractDepth: Float,
     val aberration: Float,
+    /** 0 the legacy Snell bevel, 1 the measured fold lens. */
+    val profile: Float = 0f,
+    /** Measured lens formation, 0 committed to 1 fully formed. */
+    val formation: Float = 1f,
+    /** [GlassProfile.Held]: how far the tab-bar lens has formed, 0 to 1. */
+    val heldLens: Float = 0f,
+    /** Sigma of the wide tone kernel, px; 0 disables it. */
+    val wideKernel: Float = 0f,
+    /** A rounded rect the outline fuses with: centre x, centre y, half width, half height, px. */
+    val fuse: FloatArray = EMPTY_FUSE,
+    /** That rect's corner radius and the fusion width, px. Width 0 means no fusion. */
+    val fuseRadius: Float = 0f,
+    val fuseWidth: Float = 0f,
+    /** Layer row where the quarter-scale blurred copy starts; 0 when there is none. */
+    val wideStrip: Float = 0f,
+    /** Scale of that copy relative to the layer. */
+    val wideScale: Float = 0.25f,
+    /** Share of the fine kernel in the backdrop term. */
+    val fineShare: Float = 1f,
+    /** Fixed luminance lift after the tint. */
+    val tintLift: Float = 0f,
+    /** How far the lift falls with the wide-kernel luma. */
+    val liftAdapt: Float = 0f,
+    /** Gaussian sigma of the pre-blur, px; 0 means use [backdropBlur] as the platform radius. */
+    val backdropSigma: Float = 0f,
     val ior: Float,
     val bevelPower: Float,
     val cornerPower: Float,
@@ -603,7 +842,14 @@ internal data class GlassUniforms(
             backdropBlur == other.backdropBlur &&
             counterLight == other.counterLight && edgeLight == other.edgeLight &&
             bevelPeak == other.bevelPeak && edgeShadow == other.edgeShadow &&
-            rimSoft == other.rimSoft && tintAbsorb == other.tintAbsorb
+            rimSoft == other.rimSoft && tintAbsorb == other.tintAbsorb &&
+            profile == other.profile && formation == other.formation && heldLens == other.heldLens &&
+            wideKernel == other.wideKernel && fineShare == other.fineShare &&
+            fuse.contentEquals(other.fuse) && fuseRadius == other.fuseRadius &&
+            fuseWidth == other.fuseWidth &&
+            wideStrip == other.wideStrip && wideScale == other.wideScale &&
+            tintLift == other.tintLift && liftAdapt == other.liftAdapt &&
+            backdropSigma == other.backdropSigma
 
     override fun hashCode(): Int = width.hashCode() * 31 + height.hashCode() + radii.contentHashCode()
 }
@@ -611,6 +857,21 @@ internal data class GlassUniforms(
 internal expect fun createGlassRenderEffect(
     uniforms: GlassUniforms,
 ): androidx.compose.ui.graphics.RenderEffect?
+
+/**
+ * The wide tone kernel's effect: a Gaussian blur of [sigmaPx] of the strip, in the layer's own
+ * (sRGB) space. A linear-light blur was tried against the phone and rejected: it lifts the
+ * material over dark content by 7-13 levels more than the phone does while gaining almost
+ * nothing over light content (measured model, section 11).
+ */
+internal expect fun createWideKernelEffect(sigmaPx: Float): androidx.compose.ui.graphics.RenderEffect?
+
+/**
+ * The platform's blur radius for a Gaussian sigma in px. Android's blur takes a radius and turns
+ * it into a sigma of `0.57735 * radius + 0.5`; Skia takes the sigma itself. Every blur that a
+ * measurement names by its sigma goes through this so it means the same thing everywhere.
+ */
+internal expect fun platformBlurRadiusForSigma(sigma: Float): Float
 
 /**
  * The content pass — see [GLASS_CONTENT_SHADER_SOURCE]. Takes the same uniforms as the material
@@ -714,6 +975,34 @@ internal fun sampleBounds(
  */
 internal fun hasSampleRegion(bounds: FloatArray): Boolean =
     bounds[2] - bounds[0] > 1f && bounds[3] - bounds[1] > 1f
+
+/**
+ * The refraction band in px: the style's own if it set one, else the measured 0.6 of the corner
+ * radius, capped at the inradius. A sharp-cornered rectangle, or a path shape whose radii cannot
+ * be read, gets no band unless the style names one.
+ */
+internal fun GlassStyle.bandPx(radii: FloatArray, size: Size, density: Density): Float = with(density) {
+    if (refractionBand.isSpecified) return refractionBand.toPx()
+    val r = radii.maxOrNull() ?: 0f
+    val cap = minOf(size.width, size.height) / 2f
+    GlassMaterial.BEVEL_RATIO * minOf(r, cap)
+}
+
+/**
+ * How much backdrop to record beyond each edge. The legacy bevel samples outward by up to
+ * 1.4x its depth; the measured lens samples inward only, so its pad is whatever the blurs and
+ * the wide kernel reach.
+ */
+internal fun GlassStyle.padPx(density: Density): Float = with(density) {
+    val sigma = if (backdropSigma.isSpecified) backdropSigma.toPx() * 2f else 0f
+    val blur = maxOf(blurRadius.toPx(), backdropBlur.toPx(), sigma)
+    if (profile == GlassProfile.Legacy) {
+        refractionDepth.toPx() * 1.4f + blur
+    } else {
+        val wide = if (wideKernel.isSpecified) wideKernel.toPx() * 0.75f else 0f
+        maxOf(blur, wide, 2f)
+    }
+}
 
 internal fun elementSizeFactor(size: Size, density: Density): Float {
     val minEdgeDp = with(density) { minOf(size.width, size.height).toDp().value }
