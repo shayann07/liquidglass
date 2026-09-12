@@ -46,8 +46,10 @@ import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpRect
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.isSpecified
 import androidx.compose.ui.unit.lerp
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -211,7 +213,8 @@ fun GlassTabBar(
         )
         val pillHeight: Dp = with(density) { maxHeight } - style.pillInset * 2
         val lensHeight: Dp = with(density) { maxHeight } + style.lensOverflow * 2
-        val selectorWidth: Dp = lerp(slotWidthDp, slotWidthDp + style.lensExtraWidth, lift)
+        val pillWidthDp: Dp = if (style.pillWidth.isSpecified) maxOf(style.pillWidth, slotWidthDp) else slotWidthDp
+        val selectorWidth: Dp = lerp(pillWidthDp, pillWidthDp + style.lensExtraWidth, lift)
         val selectorHeight: Dp = lerp(pillHeight, lensHeight, lift)
         val selectorWidthPx = with(density) { selectorWidth.toPx() }
         val selectorHeightPx = with(density) { selectorHeight.toPx() }
@@ -341,29 +344,91 @@ fun GlassTabBar(
                 },
         ) {
             // The bar: plate and items, recorded so the lens can look through them. The lens is
-            // a sibling of this box, not a child, or it would sample itself.
-            Box(modifier = Modifier.matchParentSize().liquidGlassSource(barState)) {
+            // a sibling of this box, not a child, or it would sample itself. While held the
+            // whole bar grows about its centre and its material lifts (1.05 and +16/255 on the
+            // iOS 27 reference), so the recording is laid out with a margin to grow into: the
+            // plate is laid out at the grown size, so its backdrop stays 1:1, and the items
+            // scale with it.
+            val barScale = 1f + (style.heldScale - 1f) * lift
+            // The lens's outline, in the plate's own coordinates: the plate is laid out at the
+            // grown size and centred, so the outer origin sits (1 - barScale) / 2 inside it.
+            val barFuse = if (lift > 0.01f && style.lensFuse > 0.dp) {
+                val lw = selectorWidthPx * (1f + gel)
+                val lh = selectorHeightPx * (1f - gel)
+                val cx = selectorLeft() + selectorWidthPx / 2f - barWidthPx * (1f - barScale) / 2f
+                val cy = selectorTop() + selectorHeightPx / 2f - barHeightPx * (1f - barScale) / 2f
+                with(density) {
+                    GlassFuse(
+                        bounds = DpRect(
+                            left = (cx - lw / 2f).toDp(),
+                            top = (cy - lh / 2f).toDp(),
+                            right = (cx + lw / 2f).toDp(),
+                            bottom = (cy + lh / 2f).toDp(),
+                        ),
+                        cornerRadius = (minOf(lw, lh) / 2f).toDp(),
+                        smoothing = style.lensFuse * lift,
+                    )
+                }
+            } else {
+                null
+            }
+            val margin = (style.heldScale - 1f).coerceAtLeast(0f)
+            val barStyle = if (style.heldLift != 0f) {
+                style.bar.copy(tintLift = style.bar.tintLift + style.heldLift * lift)
+            } else {
+                style.bar
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .layout { measurable, constraints ->
+                        val w = constraints.maxWidth
+                        val h = constraints.maxHeight
+                        val gw = (w * (1f + margin)).roundToInt()
+                        val gh = (h * (1f + margin)).roundToInt()
+                        val placeable = measurable.measure(Constraints.fixed(gw, gh))
+                        layout(w, h) { placeable.place((w - gw) / 2, (h - gh) / 2) }
+                    }
+                    .liquidGlassSource(barState),
+            ) {
                 Box(
                     modifier = Modifier
-                        .matchParentSize()
+                        .align(Alignment.Center)
+                        .fillMaxSize(fraction = barScale / (1f + margin))
                         .liquidGlass(
                             state = state,
                             shape = barShape,
-                            style = style.bar,
+                            style = barStyle,
                             light = style.light,
-                            // The bar itself does not respond to touch on the reference: no
-                            // scale, no glow. The lens is the response.
+                            // The bar does not glow or bounce under the finger on the reference;
+                            // it grows and lifts, which is done above. The lens is the response.
                             interaction = null,
                             materialize = materialize,
+                            // The lens is proud of the bar, and on the reference the bar's own
+                            // outline does not simply end under it: it bows out to meet it, one
+                            // liquid silhouette with no crease (measured model, section 2d).
+                            fuse = barFuse,
                         ),
                 )
-                ItemRow(
-                    count = itemCount,
-                    inset = style.contentPadding,
-                    selectedFor = { index -> !lensCarriesInk && index == activeIndex },
-                    onClick = { index -> select(index) },
-                    item = item,
-                )
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .fillMaxSize(fraction = 1f / (1f + margin))
+                        .graphicsLayer {
+                            scaleX = barScale
+                            scaleY = barScale
+                        },
+                ) {
+                    ItemRow(
+                        count = itemCount,
+                        inset = style.contentPadding,
+                        selectedFor = { index -> !lensCarriesInk && index == activeIndex },
+                        onClick = { index -> select(index) },
+                        item = item,
+                        emphasisIndex = activeIndex,
+                        emphasis = 1f + (style.selectedScale - 1f) * lift,
+                    )
+                }
             }
 
             // The selector. Positioned explicitly with unbounded constraints: it is taller than
@@ -408,13 +473,27 @@ fun GlassTabBar(
                                 }
                             },
                         ) {
-                            ItemRow(
-                                count = itemCount,
-                                inset = style.contentPadding,
-                                selectedFor = { true },
-                                onClick = null,
-                                item = item,
-                            )
+                            // Grown with the bar, about the bar's centre, and the tab under the
+                            // lens grown again about its own centre, exactly as the copy on the
+                            // bar is, so the two copies stay on top of each other.
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .graphicsLayer {
+                                        scaleX = barScale
+                                        scaleY = barScale
+                                    },
+                            ) {
+                                ItemRow(
+                                    count = itemCount,
+                                    inset = style.contentPadding,
+                                    selectedFor = { true },
+                                    onClick = null,
+                                    item = item,
+                                    emphasisIndex = activeIndex,
+                                    emphasis = 1f + (style.selectedScale - 1f) * lift,
+                                )
+                            }
                         }
                     }
                 }
@@ -430,6 +509,9 @@ private fun ItemRow(
     selectedFor: (Int) -> Boolean,
     onClick: ((Int) -> Unit)?,
     item: @Composable (index: Int, selected: Boolean) -> Unit,
+    /** The tab under the lens, grown by [emphasis] about its own centre; the rest stay at 1. */
+    emphasisIndex: Int = -1,
+    emphasis: Float = 1f,
 ) {
     Row(
         modifier = Modifier
@@ -455,7 +537,25 @@ private fun ItemRow(
                     ),
                 contentAlignment = Alignment.Center,
             ) {
-                item(index, selectedFor(index))
+                // Sprung per item, so the growth walks from tab to tab under a drag instead of
+                // jumping; both copies of the row animate the same targets on the same clock.
+                val itemScale by animateFloatAsState(
+                    targetValue = if (index == emphasisIndex) emphasis else 1f,
+                    animationSpec = spring(dampingRatio = 0.85f, stiffness = 900f),
+                    label = "glass_tab_bar_item_scale",
+                )
+                if (itemScale != 1f) {
+                    Box(
+                        modifier = Modifier.graphicsLayer {
+                            scaleX = itemScale
+                            scaleY = itemScale
+                        },
+                    ) {
+                        item(index, selectedFor(index))
+                    }
+                } else {
+                    item(index, selectedFor(index))
+                }
             }
         }
     }
@@ -508,7 +608,7 @@ data class GlassTabBarStyle(
     val pillInset: Dp = 3.dp,
     /** How far the held lens stands proud of the bar, above and below alike: 4.3pt measured. */
     val lensOverflow: Dp = 4.dp,
-    /** How much wider than one item the held lens is: 16pt measured. */
+    /** How much wider than the resting inset the held lens is: 16pt on the iOS 26 reference, 21pt on iOS 27. */
     val lensExtraWidth: Dp = 16.dp,
     /** Vertical offset of the held lens. The native reference is centred; the earlier video read 5pt high. */
     val lensRise: Dp = 0.dp,
@@ -524,10 +624,39 @@ data class GlassTabBarStyle(
     val settle: AnimationSpec<Float> = spring(dampingRatio = 0.72f, stiffness = 520f),
     /** Release speed past which the selector carries on to the next tab. */
     val flingVelocity: Dp = 420.dp,
-    /** Peak stretch along the travel, as a fraction, reached at [gelReference] per second. */
-    val gel: Float = 0.06f,
-    val gelReference: Dp = 1200.dp,
+    /**
+     * Peak stretch along the travel, as a fraction, reached at [gelReference] per second.
+     *
+     * Measured on the iOS 27 recording, which is what set both numbers: the lens stands 13 px
+     * proud of the bar at rest and 7 to 8 px proud above 300 pt a second, so it loses about 5%
+     * of its height at that speed and gains it back when it stops. The reference was 1200 dp a
+     * second before, four times too fast to show at any speed a finger actually drags at.
+     */
+    val gel: Float = 0.05f,
+    val gelReference: Dp = 300.dp,
     val gelSpring: AnimationSpec<Float> = spring(dampingRatio = 0.6f, stiffness = 500f),
+    /**
+     * The resting inset's width; the wider of this and one item's slot is used. iOS 27 sizes
+     * its indicator to the item's label plus about 57pt, which on a five-tab bar is 84pt, wider
+     * than the slot (measured model, section 2c). Unspecified means the slot, which is what the
+     * iOS 26 reference of [Dark] showed.
+     */
+    val pillWidth: Dp = Dp.Unspecified,
+    /** How much the whole bar, plate and items, grows about its centre while held: 1.05 on iOS 27. */
+    val heldScale: Float = 1f,
+    /** Additive lift of the bar's material while held, as a fraction of white: 16/255 on iOS 27. */
+    val heldLift: Float = 0f,
+    /** How much the tab under the lens grows about its own centre while held: 1.18 on iOS 27. */
+    val selectedScale: Float = 1f,
+    /**
+     * How wide the fusion between the bar's outline and the lens's is.
+     *
+     * The lens is proud of the bar and on iOS 27 the two are one silhouette: where the outlines
+     * cross, the bar's edge bows out by about a quarter of this to meet the lens instead of
+     * making a crease. Measured at 16pt on the reference; 0 leaves the lens sitting on top of
+     * the bar as a separate shape.
+     */
+    val lensFuse: Dp = 0.dp,
 ) {
     companion object {
         // Declaration order matters here: the constructor's defaults read RestingInset and
@@ -612,8 +741,113 @@ data class GlassTabBarStyle(
             fallbackSurface = Color(0x3DFFFFFF),
         )
 
+        /**
+         * The resting indicator on the measured material, from the iOS 27 tab-bar recordings
+         * (measured model, section 2c). It looks through the bar and shows the bar's output at
+         * 0.857 minus 17/255: 10 over black where the bar reads 32, 40 over the App Store's
+         * content where the bar reads 67. No optics ([GlassProfile.Held] at 0 is identity), no
+         * rim, a soft edge of about a point. Dark appearance; the light one was not captured.
+         */
+        val RestingInsetMeasured: GlassStyle = GlassStyle(
+            profile = GlassProfile.Held,
+            heldLens = 0f,
+            blurRadius = 0.dp,
+            wideKernel = 0.dp,
+            fineShare = 1f,
+            dispersion = 0f,
+            mirror = 0f,
+            tint = Color.Black.copy(alpha = 0.143f),
+            tintLift = -17.4f / 255f,
+            bevel = 0.dp,
+            specular = 0f,
+            edgeLight = 0f,
+            fresnel = 0f,
+            innerShadow = 0f,
+            contactShadow = 0f,
+            invertsWithBackdrop = false,
+            fallbackSurface = Color(0x3DFFFFFF),
+        )
+
+        /**
+         * The held lens on the measured material, from the same recordings.
+         *
+         *  - Its interior is the bar's output plus 0.11 of the raw content behind the bar and a
+         *    1% white: +2 over the held bar over black, +12 over the App Store's content.
+         *  - Its band, the outer half of 0.6 R, pulls the exterior in and compresses it 1.3x;
+         *    the bar's own edge line lands 10 px inside the lens's rim, and a seam at half the
+         *    band hides what lies between it and the interior, which is shown as it is
+         *    ([GlassStyle.heldLens]).
+         *  - A 3 px edge line of +68 over black at the top and bottom, none at the sides, where
+         *    a two-pixel dark step of about -30 marks the outline; the line trails a glow that
+         *    decays over about 5 pt inward.
+         *  - Colour fringes along the band, blue outermost, about 2-3 px at the runs.
+         */
+        val HeldLensMeasured: GlassStyle = GlassStyle(
+            profile = GlassProfile.Held,
+            heldLens = 1f,
+            rawShare = 0.11f,
+            // A little scatter, so the raw share reads as through the bar's frost rather than
+            // as a sharp print of the content behind it.
+            blurRadius = 1.5.dp,
+            wideKernel = 0.dp,
+            fineShare = 1f,
+            // Measured at the rim rather than fitted on the band: over the reference's black
+            // keypad the lens's edge line peaks at 67 and its channels never separate by more
+            // than 16 levels, blue just outside the line and red just inside. At 0.07 the
+            // library split them by 98 and drew a saturated blue stroke (FINDINGS 24).
+            dispersion = 0.006f,
+            mirror = 0f,
+            tint = Color.White.copy(alpha = 0.01f),
+            tintLift = 0f,
+            // The rim: a chamfer two points wide at 0.30, falling with the cosine to the light
+            // (68, 57, 37 over black at 3x), the same at the bottom; no two-pixel edge line.
+            bevel = 2.dp,
+            bevelPeak = 0f,
+            specular = 0.30f,
+            specularPower = 1f,
+            counterLight = 1f,
+            edgeLight = 0f,
+            edgeShadow = 0.12f,
+            fresnel = 0f,
+            innerShadow = 0f,
+            contactShadow = 0f,
+            invertsWithBackdrop = false,
+            fallbackSurface = Color(0x3DFFFFFF),
+        )
+
         /** A dark-appearance bar, every number measured off the reference. */
         val Dark = GlassTabBarStyle()
+
+        /**
+         * The bar on the measured material.
+         *
+         * The bar of an iOS 27 tab bar is the same role as the Photos toolbar, which was
+         * measured through the calibration target at every Tint Amount in both appearances
+         * (`docs/research/measured-model.md`, section 2), so [GlassStyle.toolbar] is the bar. The
+         * resting inset and the held lens keep the 0.1 numbers, which were read off native
+         * screenshots of an iOS 26 tab bar rather than through the target; they look through the
+         * bar and are independent of its material. A tab bar over the target has not been
+         * captured yet, so the indicator is the one part of this preset that is not measured
+         * the same way.
+         */
+        fun Measured(dark: Boolean = true, tintAmount: Float = GlassMaterial.DEFAULT_TINT_AMOUNT): GlassTabBarStyle =
+            Dark.copy(
+                bar = GlassStyle.toolbar(dark = dark, tintAmount = tintAmount),
+                pill = RestingInsetMeasured,
+                lens = HeldLensMeasured,
+                // iOS 27, from the Phone and App Store tab bars in the screen recording: the
+                // inset 4pt inside the bar and 84pt wide on a five-tab bar; the lens 5.3pt proud
+                // of the bar and 21pt wider than the inset; the bar grown 1.05 and lifted 16/255
+                // while held; the tab under the lens grown 1.18 about its own centre.
+                pillInset = 4.dp,
+                pillWidth = 84.dp,
+                lensOverflow = 5.dp,
+                lensExtraWidth = 21.dp,
+                heldScale = 1.05f,
+                heldLift = 16f / 255f,
+                selectedScale = 1.18f,
+                lensFuse = 16.dp,
+            )
 
         /**
          * [Dark], with the separating contour and brighter highlight Apple's 2026 revision
