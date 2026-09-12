@@ -16,6 +16,10 @@ material could be measured rather than eyeballed (`docs/research/measured-model.
 - **The in-app rim re-read with matched outlines**: a bead peaking one pixel in at +60, a tight
   lobe, a glow tail; `inApp` and `toolbar` retuned to it. The calibration render's boxes now sit
   on the phone's pill (they were 19 px low).
+- **The lens now takes as long to go as the phone's does.** `GlassTabBarStyle.subside` was a
+  spring at stiffness 600, which dropped the lens in 83 ms: it blinked out, and a press read as
+  though it had not happened. The reference takes 367 ms from nine tenths of the travel to one
+  tenth. Now stiffness 60, measured at 383 ms on an S24+.
 - **The held lens's colour fringe cut from 0.07 to 0.006.** Read at the rim rather than fitted on
   the band, the phone's channels separate by at most 16 levels on a line peaking at 65; the
   library was separating them by 98 and drawing a saturated blue stroke. Measured back on an

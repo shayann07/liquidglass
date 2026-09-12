@@ -41,7 +41,9 @@ The bar grows 1.05 about its centre and its material lifts 16/255; the tab under
 and the lens rises through it, above and below. The reference also fillets the two together
 where they cross, and `lensFuse` will do that, but it is off by default - at the measured 16 dp
 it reads as the bar swelling to make room rather than as the lens emerging, which is the wrong
-impression. And the lens is a gel — it flattens by about 5% at 300 dp a second and rounds back up when it stops (`gel`,
+impression. It takes about four tenths of a second to subside once the finger leaves, which is what the
+reference takes; at the library's old spring it went in under a tenth and the press did not
+register as having happened. And the lens is a gel — it flattens by about 5% at 300 dp a second and rounds back up when it stops (`gel`,
 `gelReference`).
 
 ## What it does, and where each part comes from

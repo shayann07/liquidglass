@@ -616,8 +616,17 @@ data class GlassTabBarStyle(
     val lensInteraction: GlassInteraction = GlassInteraction(pressScale = 1f, illumination = 0.5f, gel = false),
     /** The lens forms in about a tenth of a second: two frames at 30fps in the reference. */
     val form: AnimationSpec<Float> = spring(dampingRatio = 0.80f, stiffness = 1400f),
-    /** And subsides over about a third: ten to fourteen frames. */
-    val subside: AnimationSpec<Float> = spring(dampingRatio = 0.80f, stiffness = 600f),
+    /**
+     * And subsides over about four tenths.
+     *
+     * Measured off the reference's own release (LOLL8185, the lens at rest on a tab, finger
+     * lifted at frame 1944): the lens stands 13 px proud of the bar and reaches the flat inset
+     * 30 frames later, 22 of them between nine tenths and one tenth of the travel, which is
+     * 367 ms. At stiffness 600 the library did it in 83 ms, so the lens blinked out instead of
+     * settling and the press read as never having happened. Stiffness 60 measures 383 ms on an
+     * S24+ by the same nine-to-one measure.
+     */
+    val subside: AnimationSpec<Float> = spring(dampingRatio = 1f, stiffness = 60f),
     /** Touch-down sends the selector to the finger's tab: stiff, so it is there before the drag. */
     val arrive: AnimationSpec<Float> = spring(dampingRatio = 0.85f, stiffness = 1400f),
     /** Release settles it onto a tab carrying whatever velocity the finger left it with. */
