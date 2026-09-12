@@ -110,6 +110,12 @@ private fun Home(open: (KClass<out Activity>) -> Unit) {
                     "shown off and on against the same backdrop.",
                 style = GlassStyle.Clear,
             ) { open(ImprovementsActivity::class) }
+            Door(
+                title = "Calibration",
+                detail = "The iOS 27 test image with the measured chrome at the reference " +
+                    "positions, for screenshot-to-number comparison against the phone.",
+                style = GlassStyle.inApp(dark = true),
+            ) { open(CalibrationActivity::class) }
         }
     }
 }
