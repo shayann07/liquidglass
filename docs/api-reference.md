@@ -100,8 +100,9 @@ making a crease, and the bevel, rim and refraction all follow the fused outline 
 
 This is what iOS 27's tab bar does with its selection lens, which stands proud of the bar; on the
 reference the bar's edge sits 12 px above both outlines where they cross and rejoins the flat run
-about 40 px away, which is 16 pt of smoothing (measured model, section 2d). `GlassTabBarStyle`
-applies it for you through `lensFuse`.
+about 40 px away, which is 16 pt of smoothing (measured model, section 2d). `GlassTabBarStyle` exposes it as
+`lensFuse`, off by default: at the measured width it reads as the bar swelling to make room for
+the lens rather than as the lens rising out of the bar.
 
 Costs the closed-form normal, which cannot describe a fused outline, so the shader differences
 the distance field instead. Null leaves the outline alone.

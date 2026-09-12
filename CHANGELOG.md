@@ -20,10 +20,11 @@ material could be measured rather than eyeballed (`docs/research/measured-model.
   the band, the phone's channels separate by at most 16 levels on a line peaking at 65; the
   library was separating them by 98 and drawing a saturated blue stroke. Measured back on an
   S24+: 17 levels against the phone's 16, blue outside the line and red inside.
-- **Fused outlines** (`GlassFuse` on `Modifier.liquidGlass`, `GlassTabBarStyle.lensFuse`). A tab
-  bar's selection lens is proud of the bar, and on iOS 27 the two are one silhouette: where the
-  outlines cross the bar's edge bows out to meet the lens instead of making a crease. Measured at
-  16 pt of smoothing; the bevel, rim and refraction all follow the fused outline.
+- **Fused outlines** (`GlassFuse` on `Modifier.liquidGlass`, `GlassTabBarStyle.lensFuse`). Two
+  outlines can bow out to meet each other where they cross instead of making a crease, and the
+  bevel, rim and refraction follow the merged silhouette. iOS 27's tab bar does this with its
+  selection lens at about 16 pt. Off by default on the tab bar: at that width it reads as the bar
+  swelling to make room rather than as the lens rising out of it.
 - **The gel reference retuned from 1200 dp a second to 300**, which is what the recording shows:
   the lens stands 13 px proud of the bar at rest and 7 to 8 px above 300 pt a second. At the old
   reference the deformation never showed at any speed a finger drags at.

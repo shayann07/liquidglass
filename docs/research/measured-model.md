@@ -51,7 +51,9 @@ measured value is 0.006.
 and the two outlines are fused, not overlapped: where they cross, the bar's edge bows out to meet
 the lens rather than making a crease. At the settled lens the silhouette stands 12 px above both
 outlines at the crossing and rejoins the flat run about 40 px away, a polynomial smooth minimum
-at 48 px (16 pt). The lens is also gel: 13 px proud at rest, 7 to 8 px above 300 pt a second,
+at 48 px (16 pt). Implemented as `GlassFuse`, but off by default on the tab bar: at the measured
+width the bar reads as swelling to make room for the lens rather than the lens rising out of the
+bar, which is the wrong impression even though the silhouette is right. The lens is also gel: 13 px proud at rest, 7 to 8 px above 300 pt a second,
 about 5% of its height, gained back along the travel. `GlassFuse` and `GlassTabBarStyle.lensFuse`
 carry the first; `gel` and `gelReference` the second.
 

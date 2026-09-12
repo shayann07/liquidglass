@@ -37,9 +37,11 @@ Put the shadow on the bar's `modifier` with `clip = false`. The held lens is tal
 
 The bar grows 1.05 about its centre and its material lifts 16/255; the tab under the lens grows
 1.18 about its own centre; the resting indicator swells into a lens 5 pt proud of the bar and
-21 pt wider. The lens does not sit on top of the bar: the two outlines **fuse**, so the bar's own
-edge bows out to meet it and there is no crease (`lensFuse`, 16 dp measured). And the lens is a
-gel — it flattens by about 5% at 300 dp a second and rounds back up when it stops (`gel`,
+21 pt wider. The lens stands out of the bar rather than pushing it aside: the bar keeps its own outline
+and the lens rises through it, above and below. The reference also fillets the two together
+where they cross, and `lensFuse` will do that, but it is off by default - at the measured 16 dp
+it reads as the bar swelling to make room rather than as the lens emerging, which is the wrong
+impression. And the lens is a gel — it flattens by about 5% at 300 dp a second and rounds back up when it stops (`gel`,
 `gelReference`).
 
 ## What it does, and where each part comes from

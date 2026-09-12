@@ -846,7 +846,6 @@ data class GlassTabBarStyle(
                 heldScale = 1.05f,
                 heldLift = 16f / 255f,
                 selectedScale = 1.18f,
-                lensFuse = 16.dp,
             )
 
         /**
