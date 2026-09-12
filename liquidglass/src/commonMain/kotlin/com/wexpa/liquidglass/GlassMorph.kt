@@ -7,6 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.isUnspecified
 import androidx.compose.ui.unit.lerp
 
 /**
@@ -27,17 +28,28 @@ import androidx.compose.ui.unit.lerp
  */
 fun lerpGlassStyle(start: GlassStyle, stop: GlassStyle, fraction: Float): GlassStyle {
     val t = fraction.coerceIn(0f, 1f)
-    fun f(a: Float, b: Float) = a + (b - a) * t
-    fun d(a: Dp, b: Dp) = lerp(a, b, t)
+    // Exact at both ends, so a morph that arrives lands on the stop style bit for bit.
+    fun f(a: Float, b: Float) = if (t <= 0f) a else if (t >= 1f) b else a + (b - a) * t
+    // An unspecified band or sigma means "derived", which cannot be interpolated; it snaps with
+    // the rest of the identity at the midpoint.
+    fun d(a: Dp, b: Dp) = if (a.isUnspecified || b.isUnspecified) (if (t < 0.5f) a else b) else lerp(a, b, t)
     return GlassStyle(
+        profile = if (t < 0.5f) start.profile else stop.profile,
         blurRadius = d(start.blurRadius, stop.blurRadius),
         backdropBlur = d(start.backdropBlur, stop.backdropBlur),
+        backdropSigma = d(start.backdropSigma, stop.backdropSigma),
         refractionBand = d(start.refractionBand, stop.refractionBand),
+        wideKernel = d(start.wideKernel, stop.wideKernel),
+        fineShare = f(start.fineShare, stop.fineShare),
+        tintLift = f(start.tintLift, stop.tintLift),
+        liftAdaptivity = f(start.liftAdaptivity, stop.liftAdaptivity),
         refractionDepth = d(start.refractionDepth, stop.refractionDepth),
         indexOfRefraction = f(start.indexOfRefraction, stop.indexOfRefraction),
         bevelPower = f(start.bevelPower, stop.bevelPower),
         cornerPower = f(start.cornerPower, stop.cornerPower),
         dispersion = f(start.dispersion, stop.dispersion),
+        heldLens = f(start.heldLens, stop.heldLens),
+        rawShare = f(start.rawShare, stop.rawShare),
         mirror = f(start.mirror, stop.mirror),
         bevel = d(start.bevel, stop.bevel),
         tint = lerp(start.tint, stop.tint, t),

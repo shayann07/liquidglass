@@ -6,23 +6,50 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
+ * Which optical model the shader runs.
+ *
+ * [Measured] is the material fitted from calibration captures of iOS 27 (see [GlassMaterial]
+ * and `docs/research/measured-model.md`): an inward fold lens whose width follows the corner
+ * radius, a two-kernel backdrop, a per-appearance tint with a fixed lift, and dispersion only in
+ * the mirrored zone. [Legacy] is the 0.1 model: an outward Snell bevel, a soft mirrored echo, a
+ * single interior scatter and a tone-mapped tint. The presets that were tuned against the 0.1
+ * model keep it so their look does not move under them.
+ */
+enum class GlassProfile {
+    Legacy,
+    Measured,
+    /**
+     * The family of the lens that forms under a finger on a tab bar (measured model, section 2c):
+     * identity at rest and, as [GlassStyle.heldLens] rises to 1, an outer band that pulls the
+     * exterior inward and compresses it, a seam that hides what lies between that band and the
+     * interior, and the interior shown as it is. The material is otherwise the measured one. A
+     * resting indicator and the lens it swells into both sit in this family, so the morph
+     * between them never crosses into the fold.
+     */
+    Held,
+}
+
+/**
  * The physical parameters of a piece of glass.
  *
- * These are the knobs the shader consumes. The presets mirror the variants Apple's material
- * exposes plus one of ours for floating chrome. Apple publishes no numeric rendering parameter
- * for any of this — the single number in the whole HIG is the clear variant's 35% dimming
- * layer — so every value here is ours, chosen against the gallery and against the one figure
- * anyone has published from a side-by-side comparison with a real device.
+ * These are the knobs the shader consumes. The constructor defaults are the measured in-app
+ * material in a light appearance at the default Tint Amount, so `GlassStyle()` is a navigation
+ * pill as iOS 27 draws one; the factories on the companion build the other measured roles, and
+ * the [GlassProfile.Legacy] presets keep the 0.1 material for hosts tuned against it.
  */
 @Immutable
 data class GlassStyle(
+    /** Which optical model the shader runs. See [GlassProfile]. */
+    val profile: GlassProfile = GlassProfile.Measured,
     /**
      * Radius of the interior scatter, which tapers to nothing at the rim so the edge stays
-     * sharp. This is the blur that keeps the material readable as glass: the rim goes on
-     * carrying a crisp, compressed image of what lies just outside while the middle softens.
-     * A rotating tap disc inside the shader, so it is cheap but grainy at large radii.
+     * sharp. A rotating tap disc inside the shader, so it is cheap but grainy at large radii.
+     *
+     * In the measured model this is the *fine* kernel, and it is small: the detail seen through
+     * iOS 27's glass is blurred by half a point, not ten. What softens the material is the wide
+     * kernel, [wideKernel], which decides tone and leaves detail alone.
      */
-    val blurRadius: Dp = 10.dp,
+    val blurRadius: Dp = 1.5.dp,
     /**
      * Radius of a blur applied to the backdrop before the shader sees it.
      *
@@ -32,8 +59,23 @@ data class GlassStyle(
      * to show its backdrop.
      */
     val backdropBlur: Dp = 0.dp,
-    /** Width of the band, measured in from the rim, over which refraction acts. */
-    val refractionBand: Dp = 26.dp,
+    /**
+     * Gaussian sigma of a blur applied to the backdrop before the shader sees it, the measured
+     * way of saying [backdropBlur]: the system backdrops behind Control Center, App Library and
+     * the Today view are a 7.7 dp sigma over app content. Set either; when both are set this one
+     * wins. It is converted to the platform's own blur radius at bind time, so the same number
+     * means the same blur on Android and on the desktop.
+     */
+    val backdropSigma: Dp = Dp.Unspecified,
+    /**
+     * Width of the band, measured in from the rim, over which refraction acts.
+     *
+     * Unspecified means *derived from the shape*: the measured bevel is 0.6 of the corner
+     * radius for every element from a 15 dp icon to a 47 dp sheet corner, so a capsule gets a
+     * band 0.3 of its height and a sharp-cornered rectangle gets none. Set it explicitly to
+     * override that, which the legacy presets do.
+     */
+    val refractionBand: Dp = Dp.Unspecified,
     /**
      * Peak displacement of the sampled backdrop, reached at the rim.
      *
@@ -44,6 +86,22 @@ data class GlassStyle(
      * reads as a rendering defect rather than as glass.
      */
     val refractionDepth: Dp = 14.dp,
+    /**
+     * Sigma of the wide kernel, the second of the measured material's two blurs.
+     *
+     * Across a hard edge inside a navigation pill the tone follows a 10 dp kernel while 16 px
+     * stripes under the same glass keep a third of their contrast at the default Tint Amount,
+     * which one blur cannot do. So the backdrop term is a mix of the fine kernel and this one,
+     * weighted by [fineShare]. Rendered once per frame as a quarter-scale blurred copy of the
+     * backdrop; set it to 0 to switch it off.
+     */
+    val wideKernel: Dp = 10.dp,
+    /**
+     * Share of the fine kernel in the backdrop term, 0 to 1; the rest is the wide kernel.
+     * Measured as `0.95 (1 - t/100)^1.5` against Tint Amount t: 0.95 at Clear, 0.34 at the
+     * default, 0 at Tinted, the same in both appearances. See [GlassMaterial.fineShare].
+     */
+    val fineShare: Float = 0.34f,
     /**
      * Index of refraction. Because the bend is normalised by its own value at the rim, this
      * sets the *shape* of the falloff rather than its magnitude; 1.5 is window glass.
@@ -61,27 +119,69 @@ data class GlassStyle(
      */
     val cornerPower: Float = 2f,
     /**
-     * How far red and blue split from green at the rim, as a fraction of the displacement.
-     * Faint on purpose: real UI glass shows almost no prismatic fringe, and past a few percent
-     * this stops reading as glass and starts reading as a broken colour channel.
+     * How far red and blue split from green.
+     *
+     * Legacy: as a fraction of the displacement, everywhere in the band, and faint. Measured:
+     * as a fraction of the bevel width, and only in the mirrored zone — the outer 0.28 of the
+     * band — where red shows content 0.07 of the band deeper than blue; the stretched zone has
+     * no colour split at all. That is the rainbow fringe on the cover sheet's edge.
      */
-    val dispersion: Float = 0.018f,
+    val dispersion: Float = 0.07f,
+    /**
+     * How far the held lens of [GlassProfile.Held] has formed, 0 (identity) to 1 (the measured
+     * lens under a finger). Ignored by the other profiles. Fitted on the Phone and App Store
+     * tab bars of iOS 27 (measured model, section 2c): over the outer half of the band a pixel
+     * at depth u shows the exterior from 1.3u - 0.29 W, so the content just outside the rim is
+     * pulled in and compressed; from half the band inward the content is shown where it is,
+     * and the source content between 0.36 W and 0.5 W is never displayed. The modifier records
+     * the wider margin this needs.
+     */
+    val heldLens: Float = 0f,
+    /**
+     * A share of the raw backdrop added on top of the glass this element looks
+     * [through][liquidGlass], 0 to 1. The measured tab-bar lens shows the bar's output plus
+     * 0.11 of the content behind the bar, which is what makes its interior read clearer than
+     * the bar around it (+12 levels over the App Store's content) while adding nothing over
+     * black. Ignored without `through`.
+     */
+    val rawShare: Float = 0f,
     /**
      * Amplitude of the mirrored edge band — the broad, soft, upside-down echo of nearby content
      * over roughly the outer third of the surface. A thin band reads as a hard streak; this one
      * is what makes the edge read as liquid rather than as a bevel.
      */
-    val mirror: Float = 0.18f,
-    /** Width of the lit bevel. The refraction band is four to seven times this. */
-    val bevel: Dp = 4.dp,
-    /** Tint colour; its alpha is the strength. */
-    val tint: Color = Color.White.copy(alpha = 0.10f),
+    val mirror: Float = 0f,
+    /** Width of the lit bevel. The measured pill's bright edge line is 2-4 px, about a point. */
+    val bevel: Dp = 1.5.dp,
+    /**
+     * Tint colour; its alpha is the opacity `a`.
+     *
+     * Measured: the material is `(1 - a) * backdrop + a * tint + lift`. In a light appearance
+     * the tint is a constant 241/255 grey and the lift is 0; in a dark appearance the tint is
+     * black and the lift is 35/255. The opacity follows Tint Amount from about 0.43 to 0.73 in
+     * both. See [GlassMaterial.opacity].
+     */
+    val tint: Color = Color(0xFFF1F1F1).copy(alpha = 0.565f),
+    /**
+     * A fixed luminance lift added after the tint, 0 to 1. The dark in-app material's 35/255;
+     * the base of the system backdrops' adaptive lift, 142/255.
+     *
+     * May be negative when the lift does not adapt ([liftAdaptivity] 0): the resting tab-bar
+     * indicator is the bar's output at 0.857 minus 17/255, over black and over content alike.
+     */
+    val tintLift: Float = 0f,
+    /**
+     * How far the lift falls with the wide-kernel luma of what is behind the glass, per unit
+     * luma. The system backdrops measure 0.864: over the dark test image they lift black to 60,
+     * over the light one to 10, with the same gain. In-app glass measures 0.
+     */
+    val liftAdaptivity: Float = 0f,
     /**
      * How strongly the tint reacts to the backdrop's brightness. At 0 the tint is fixed; at 1
      * the glass darkens over bright content and lifts over dark content, which is what keeps
      * whatever sits on the glass readable as the backdrop scrolls beneath it.
      */
-    val adaptivity: Float = 0.65f,
+    val adaptivity: Float = 0f,
     /**
      * How far local backdrop contrast raises the tint.
      *
@@ -232,8 +332,165 @@ data class GlassStyle(
     val dimmingLayer: Float = 0f,
 ) {
     companion object {
-        /** Carries controls. Tinted enough to keep content on top legible. */
+        /** In-app glass, light appearance, default Tint Amount: the measured navigation pill. */
         val Regular = GlassStyle()
+
+        /**
+         * In-app glass — a navigation pill, round buttons, a toolbar — for one appearance and
+         * one Tint Amount. Every number is measured (`docs/research/measured-model.md`, section
+         * 2): opacity from the pill's black and white levels, the fine share from the toolbar's
+         * stripes, the tint colour and lift per appearance, the edge line per appearance.
+         */
+        fun inApp(dark: Boolean, tintAmount: Float = GlassMaterial.DEFAULT_TINT_AMOUNT): GlassStyle {
+            val a = GlassMaterial.opacity(dark, tintAmount)
+            return GlassStyle(
+                tint = if (dark) Color.Black.copy(alpha = a) else GlassMaterial.lightTint.copy(alpha = a),
+                tintLift = if (dark) GlassMaterial.DARK_LIFT else 0f,
+                fineShare = GlassMaterial.fineShare(tintAmount),
+                // The scatter disc's sigma is about 0.6 of its radius.
+                blurRadius = GlassMaterial.fineKernel(tintAmount) / 0.6f,
+                // The edge line, read around the pill's ends with the outlines matched (rim fit,
+                // 2026-09-12): a bead peaking one pixel in at +60 over whatever is beneath, then
+                // +40, +22, +10 over the next three pixels and gone by 8, the same in both
+                // appearances and at the bottom as at the top; a tight lobe, +16 at 30 degrees
+                // off the light and +8 at 45. The outermost pixel is a dark contour, not yet
+                // drawn. Additive white, so over white in a light appearance it clips away,
+                // which is what the phone shows.
+                bevel = 1.33.dp,
+                bevelPeak = 0.25f,
+                specular = 0.25f,
+                specularPower = 6f,
+                counterLight = 1f,
+                edgeLight = 0f,
+                highlightChroma = 0f,
+                fresnel = 0f,
+                innerShadow = 0f,
+                // The phone's pill over flat white reads 247-249 at every tint: no shadow is cast
+                // into the backdrop beneath it. The 0.1 contact shadow darkened the backdrop
+                // under the panel by ~20 levels at Clear, which the phone does not do.
+                contactShadow = 0f,
+                invertsWithBackdrop = false,
+            )
+        }
+
+        /**
+         * A toolbar or tab bar: the Photos toolbar's role, solved from its medians over the test
+         * image's stripes with the pill's kernels (`docs/research/measured-model.md`, section 2,
+         * "The toolbar role"). It is the pill's material with its own tint. Light: white (the
+         * pill's is 241) at 0.55-0.67 opacity against the pill's 0.44-0.73, so at Clear it reads
+         * about 142 over black where the pill reads 105. Dark: black at 0.55 at Clear, 0.41 at
+         * the default and 0.63 at Tinted over the pill's 35/255 lift, so at Clear its white side
+         * reads 152 where the pill's reads 180. Both are more opaque than the pill at Clear and
+         * respond less to Tint Amount.
+         */
+        fun toolbar(dark: Boolean, tintAmount: Float = GlassMaterial.DEFAULT_TINT_AMOUNT): GlassStyle {
+            val a = GlassMaterial.toolbarOpacity(dark, tintAmount)
+            return inApp(dark = dark, tintAmount = tintAmount).copy(
+                tint = if (dark) Color.Black.copy(alpha = a) else GlassMaterial.toolbarLightTint.copy(alpha = a),
+            )
+        }
+
+        /**
+         * A full-screen system backdrop: Control Center, App Library, the Today view. A 7.7 dp
+         * sigma over app content (11 dp at Tinted), gain 0.32, and a lift that adapts to what is
+         * behind it — 60/255 over the dark test image, 10/255 over the light one — so it reads
+         * light over dark content and dark over light. No lens: a full-screen layer has no rim.
+         */
+        fun systemBackdrop(tintAmount: Float = GlassMaterial.DEFAULT_TINT_AMOUNT): GlassStyle = GlassStyle(
+            backdropSigma = GlassMaterial.systemBackdropSigma(tintAmount),
+            refractionBand = 0.dp,
+            wideKernel = 0.dp,
+            fineShare = 1f,
+            tint = Color.Black.copy(alpha = 0.68f),
+            tintLift = 142f / 255f,
+            liftAdaptivity = 0.864f,
+            bevel = 0.dp,
+            specular = 0f,
+            edgeLight = 0f,
+            fresnel = 0f,
+            innerShadow = 0f,
+            contactShadow = 0f,
+            invertsWithBackdrop = false,
+        )
+
+        /**
+         * A menu or popover: the system blur (9.5 dp sigma) with a dark tint, gain 0.24 and a
+         * lift of 48/255 that does not adapt to its backdrop, on a screen the host has dimmed to
+         * 0.52 behind it (`dimmingLayer` is drawn under the panel, so the host dims the screen).
+         */
+        fun menu(): GlassStyle = GlassStyle(
+            contactShadow = 0f,
+            backdropSigma = 9.5.dp,
+            wideKernel = 0.dp,
+            fineShare = 1f,
+            tint = Color.Black.copy(alpha = 0.76f),
+            tintLift = 48f / 255f,
+            bevel = 1.dp,
+            specular = 0.15f,
+            edgeLight = 1.5f,
+            counterLight = 1f,
+            invertsWithBackdrop = false,
+        )
+
+        /**
+         * A Clear-style Home Screen icon over a wallpaper: 2.2 dp sigma, gain about 0.5 with a
+         * lift of about 60/255 of the dimmed wallpaper, a rim on the top edge and a darker
+         * contour below. Shell glass: it ignores light/dark and never inverts.
+         */
+        fun shellIcon(): GlassStyle = GlassStyle(
+            contactShadow = 0f,
+            blurRadius = 4.dp,
+            wideKernel = 0.dp,
+            fineShare = 1f,
+            tint = Color.Black.copy(alpha = 0.5f),
+            tintLift = 60f / 255f,
+            bevel = 1.5.dp,
+            specular = 0.35f,
+            counterLight = 0.1f,
+            edgeLight = 1.5f,
+            edgeShadow = 0.06f,
+            invertsWithBackdrop = false,
+        )
+
+        /**
+         * The dock: nearly clear, a 1 dp sigma, gain 0.85 with a lift of 13/255, and stripes that
+         * bend only over its rounded ends. Shell glass.
+         */
+        fun dock(): GlassStyle = GlassStyle(
+            contactShadow = 0f,
+            blurRadius = 2.dp,
+            wideKernel = 0.dp,
+            fineShare = 1f,
+            tint = Color.Black.copy(alpha = 0.15f),
+            tintLift = 13f / 255f,
+            bevel = 1.dp,
+            specular = 0.12f,
+            counterLight = 1f,
+            edgeLight = 1.2f,
+            invertsWithBackdrop = false,
+        )
+
+        /**
+         * The cover sheet's edge: a sharp, undimmed interior (the sheet shows its own content
+         * at 0.97) with the full fold lens along its rim, a thin dark line over bright content
+         * and a faint bright rim over dark. What the sheet covers is dimmed by
+         * [GlassMaterial.coverSheetDim], which the host draws beneath the sheet's edge, not
+         * under the sheet. Drive `lensFormation` from the tracked pull.
+         */
+        fun coverSheet(): GlassStyle = GlassStyle(
+            blurRadius = 0.dp,
+            wideKernel = 0.dp,
+            fineShare = 1f,
+            tint = Color.Black.copy(alpha = 0.03f),
+            bevel = 3.dp,
+            specular = 0.10f,
+            counterLight = 1f,
+            edgeLight = 1.5f,
+            edgeShadow = 0.10f,
+            innerShadow = 0.04f,
+            contactShadow = 0f,
+            invertsWithBackdrop = false,
+        )
 
         /**
          * Floating chrome: tab bars, toolbars, accessory pills, over an app's own content.
@@ -246,6 +503,7 @@ data class GlassStyle(
          * crisp rim but makes what comes through unreadable instead of distracting.
          */
         val Chrome = GlassStyle(
+            profile = GlassProfile.Legacy,
             blurRadius = 0.dp,
             backdropBlur = 14.dp,
             refractionBand = 14.dp,
@@ -281,6 +539,7 @@ data class GlassStyle(
          * `tint.rgb x tint.alpha` reproduces the measured lift over black.
          */
         val DarkChrome = GlassStyle(
+            profile = GlassProfile.Legacy,
             blurRadius = 0.dp,
             backdropBlur = 3.dp,
             refractionBand = 12.dp,
@@ -311,6 +570,7 @@ data class GlassStyle(
          * react to contrast, never flips — and therefore *requires* the dimming layer.
          */
         val Clear = GlassStyle(
+            profile = GlassProfile.Legacy,
             blurRadius = 4.dp,
             refractionBand = 28.dp,
             refractionDepth = 16.dp,
@@ -329,6 +589,7 @@ data class GlassStyle(
 
         /** Heavier: a sheet or a dialog that must hold a lot of content. */
         val Thick = GlassStyle(
+            profile = GlassProfile.Legacy,
             blurRadius = 16.dp,
             refractionBand = 22.dp,
             refractionDepth = 12.dp,
