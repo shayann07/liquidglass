@@ -38,6 +38,8 @@ class GlassShaderTest {
             "uMaterialize", "uFrost", "uContrast", "uShapeKind", "uFieldRange", "uFieldScale", "uRefractDepth", "uBevel",
             "uLight", "uSpecular", "uSpecularPow", "uTint", "uInnerShadow", "uAdaptive",
             "uPad", "uScale", "uFlip", "uCounterLight", "uEdgeLight", "uBevelPeak", "uEdgeShadow", "uRimSoft", "uTintAbsorb",
+            "uProfile", "uFormation", "uHeldLens", "uWideStrip", "uWideScale", "uFineShare", "uWideKernel", "uLift", "uLiftAdapt",
+            "uFuse", "uFuseShape",
         )
 
         val missing = setByHost - declared
@@ -70,7 +72,8 @@ class GlassContentShaderTest {
         val setByHost = setOf(
             "uSize", "uPad", "uRadii", "uCornerPower", "uShapeKind", "uFieldRange", "uFieldScale",
             "uRefractBand", "uRefractDepth", "uIor", "uBevelPower", "uAberration", "uScale",
-            "uMaterialize", "uTouch", "uTouchAmt",
+            "uMaterialize", "uTouch", "uTouchAmt", "uProfile", "uFormation", "uHeldLens",
+            "uFuse", "uFuseShape",
         )
         val unset = declared - setByHost - setOf("content", "field")
         assertTrue(unset.isEmpty(), "content shader declares uniforms nothing sets: $unset")
@@ -84,7 +87,7 @@ class GlassContentShaderTest {
         // shaders. A change to one that is not mirrored in the other would refract the content
         // through a different lens than the backdrop, which shows up as the symbol sliding
         // against the list behind it as the element moves.
-        for (name in listOf("float lnNorm(", "float sdRoundRect(", "float bevelSlope(", "float snellShift(")) {
+        for (name in listOf("float lnNorm(", "float sdRoundRect(", "float smin(", "float bevelSlope(", "float snellShift(", "float foldSource(", "float restSource(", "float cornerWeight(", "float heldSource(")) {
             val a = functionBody(GLASS_SHADER_SOURCE, name)
             val b = functionBody(GLASS_CONTENT_SHADER_SOURCE, name)
             assertTrue(a.isNotEmpty() && a == b, "$name differs between the panel and content shaders")
@@ -131,6 +134,7 @@ class GlassContainerShaderTest {
             "uRefractBand", "uRefractDepth", "uAberration", "uIor", "uBevelPower", "uBlur",
             "uBevel", "uLight", "uSpecular", "uSpecularPow", "uFresnel", "uHiChroma", "uTint",
             "uInnerShadow", "uAdaptive", "uCounterLight", "uEdgeLight", "uBevelPeak", "uEdgeShadow", "uRimSoft", "uTintAbsorb",
+            "uProfile", "uFormation", "uHeldLens", "uWideStrip", "uWideScale", "uFineShare", "uWideKernel", "uLift", "uLiftAdapt",
         )
 
         val unset = declared - setByHost
