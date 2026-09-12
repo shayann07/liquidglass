@@ -58,3 +58,18 @@ Where displacement is steep the sampling Jacobian passes through zero — a caus
 - No spring constants for the interactive scale/bounce, no shimmer rate, no materialize duration; all ours.
 - No layer count or per-layer definition for "a number of layers"; this shader is one pass and does not claim to reproduce a layer stack it cannot see.
 - No gyroscope coupling is claimed as universal, because Apple's own wording is "in some cases" and no Apple API exposes a motion input.
+
+## Divergences settled by measurement (2026-09-12)
+
+- **Sampling direction.** 0.1 argued outward from Apple's "an area larger than itself". The
+  captures show nothing outside an edge is ever sampled; the rim shows content from inside,
+  folded. Outward sampling is now the legacy profile only.
+- **One blur.** 0.1 had a single interior scatter tapering at the rim. The material is two
+  kernels, a fine one under a point and a wide one of 10 dp, mixed by a share that falls with
+  Tint Amount.
+- **Tint as tone mapping.** The in-app material is a plain blend with a constant tint colour
+  per appearance and a fixed lift; the adaptive tone belongs to the full-screen system
+  backdrops, whose lift falls with the mean luma behind them.
+- **The mirrored echo.** Real, but it is the fold's mirrored zone, at full strength, in a
+  tracked sheet only; static chrome shows none.
+- **Dispersion.** 0.07 of the band, in the mirrored zone only; the stretched zone has no split.

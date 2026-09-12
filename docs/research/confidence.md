@@ -62,3 +62,13 @@ Every timing, every spring, every threshold, every intensity: the 0.60/0.44 flip
 
 ### What I refuse to claim
 This is a faithful implementation of Apple's *published architecture*, tuned to *third-party device measurements*. It is not a reconstruction of Apple's shader, because no such source exists: Apple has published no shader, no kernel, no filter graph, no layer definition and no rendering constant. Every Apple code sample across all four WWDC25 sessions and the whole documentation set is API-adoption Swift. Any spec that presents an Apple-specific refractive index, blur radius, spring constant or luminance threshold is presenting an invention as a citation.
+
+## After the calibration study (2026-09-12)
+
+The confidence table above is the 0.1 model's. The measured model replaces "sourced",
+"inferred" and "chosen" with one grade for everything in it: **measured**, with the frame and
+tool named. Where the two disagree — the sampling direction, the single scatter, the mirrored
+echo, the dispersion everywhere in the band, the fixed 26 dp band — the measurement wins and
+the 0.1 behaviour survives only as `GlassProfile.Legacy`. See
+[ios27-calibration-study.md](ios27-calibration-study.md), section 6, for the three corrections
+the implementation itself forced, and section 8 for what is still unmeasured.

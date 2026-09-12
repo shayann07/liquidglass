@@ -94,3 +94,14 @@ effect would silently stop working exactly when it is needed. Drive it from the 
 `inversion` so the two cannot drift.
 
 It samples nothing and has no backdrop of its own. It costs a gradient.
+
+## What the measurements say about appearance
+
+Two families, measured on iOS 27 (see [the calibration study](research/ios27-calibration-study.md)):
+shell glass — Home Screen icons, the dock, Control Center's tiles and backdrop, App Library,
+cards — ignores the Light/Dark setting entirely and takes its tone from the wallpaper behind it;
+in-app glass — a navigation pill, buttons, a toolbar — follows the app's colour scheme
+strongly (light: a constant 241/255 tint at 0.43-0.73 opacity; dark: black at that opacity plus
+a 35/255 lift). Filled shell panels such as Spotlight shift their base colour with appearance
+but keep their blur. So `inversion` is an input to in-app material tone, and the shell-role
+factories (`shellIcon`, `dock`, `systemBackdrop`) set `invertsWithBackdrop = false`.

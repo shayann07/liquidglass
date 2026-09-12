@@ -161,3 +161,18 @@ Follow the pattern the market leader already set: a descriptive repository name,
 artifact name, the Apple term used only descriptively in prose, and a short statement of
 non-affiliation. None of this is legal advice, and the naming question is worth thirty minutes
 of a trademark attorney's time before the library carries commercial weight.
+
+## After the calibration study (0.2)
+
+Open, in order of value: the wide term's asymmetry (the phone lifts more over a brightening
+neighbourhood than it drops over a darkening one; a luminance-adaptive lift is the candidate);
+the sheet material's own dependence on Tint Amount (confounded in the captures by a
+notification dim); a toolbar over a flat region of the target, to split the toolbar role's
+opacity from its fine share (its stripes fix only the product); elements under 15 dp of corner
+radius; widget glass; and whether the highlights respond to device tilt. Each needs a capture
+before it needs code. Added 2026-09-12: whether the fine term's sharp axis is the
+screen's x or the element's long axis (every element it was measured on is a horizontal bar; a
+vertical one over stripes settles it); the pill's one-pixel dark contour; the light
+appearance of the tab bar's indicator and lens; and, on the performance side, a system trace of
+the UI thread, since caching the render effects across frames moved nothing (six panels 6.2 ms
+before and after, Vitals 2.9 ms), so the per-panel cost is in the layer records or in layout.

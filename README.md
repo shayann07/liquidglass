@@ -12,6 +12,11 @@ sitting over whatever is behind it.
 Runs on Android 13+ (AGSL) and Desktop/JVM (Skia). Below Android 13 it degrades to a tinted
 surface with the same rim lighting — a plainer material, not a broken one.
 
+Since 0.2 the material is **measured, not tuned**: the optics were fitted from calibration
+captures of iOS 27 on a real device, taken through a known test image, and the library is
+checked against those captures with the same tools. See
+[the measured model](docs/research/measured-model.md).
+
 ```kotlin
 implementation("dev.shayxo.liquidglass:liquidglass:0.1.0")
 ```

@@ -112,3 +112,55 @@ and a 1.5px rim guard, not filtering.
 The shader provably compiles on Skia and the desktop app starts without error, but nobody has
 sat and looked at the material rendering on desktop. Treat desktop as "should work" rather than
 "verified".
+
+## Containers are chrome at rest
+
+`LiquidGlassContainer` runs the measured optics too, but a container has no drag to track, so
+its lens formation is fixed at 0: fused bodies get the two-kernel tone, the lift and the
+inward rest profile, never the fold. Its members also share one style, so a container cannot
+mix roles.
+
+## The measured tone is within a few levels, not exact
+
+Against the phone, same test image, same tools: light in-app glass lands within 6 levels of
+the reference at every Tint Amount and the edge profile within 5; dark in-app glass over white
+reads 6-11 levels low above the default Tint Amount. The phone's tone responds more to a
+brightening neighbourhood than to a darkening one, which a symmetric blur in either sRGB or
+linear light does not reproduce; the residual is documented in the measured model's section 11
+and in [the calibration study](research/ios27-calibration-study.md).
+
+## The rest lens is measured at two sizes
+
+The corner lens of chrome at rest was measured on 70 px ends and 82-92 px round buttons and
+scales as a fraction of the corner radius in the library. Larger arcs (the dock's 126 px ends)
+did not measure through the Home Screen wallpaper's warped reference, and the width of the
+blend between an arc and a straight run cannot be seen over vertical stripes; the library
+blends over 0.2 R along the edge. Both are on the capture list.
+
+The toolbar role (`GlassStyle.toolbar`) matches the phone within 4 levels at every slider
+position, but over the stripes it was measured on; its opacity and fine share were solved with
+the kernels held at the pill's, and a different split (a 230 grey at 0.70 with more fine
+detail) fits the same stripes. Over a flat backdrop the two readings differ by up to 15
+levels. A capture of a toolbar over a flat region settles it.
+
+## The tab-bar lens carries its content a frame late while it moves
+
+The lens draws the selected copy of the row through its own optics, pinned to the bar so it
+lands on the resting copy; held still — on a tab or between two — the copies coincide. While
+the lens is moving the copy inside it lags a frame, so a glyph shows two colours for that
+frame. The reference does the same (its content sits 12-20 px toward the lens centre mid-drag
+in the iOS 27 recording), so it is left as it is.
+
+## The detail's sharp axis is assumed to be the element's long one
+
+The material's fine term is a high-pass along a bar and nothing across it, which is what the
+phone does (measured model, section 2a). Both elements it was measured on are horizontal bars,
+so the captures cannot say whether the sharp axis is the screen's x or the element's own long
+axis. The shader takes the long axis, which is the same thing for every bar and toolbar and a
+guess for a tall element. A vertical glass element over a striped backdrop would settle it.
+
+## The pill's dark contour is not drawn
+
+The phone's pill has a one-pixel dark contour at its outermost pixel. It is not drawn, because
+the shader's contour sits 1.5 px inside the edge where the measured bead peaks (measured model,
+FINDINGS 21).

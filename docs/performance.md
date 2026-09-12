@@ -111,3 +111,63 @@ So the default is 1, and it should stay 1 unless a screen is actually missing fr
 0.7 is the value to try first: it halves the pixel count, and on a busy screen the rim detail it
 gives up is competing with everything else for attention anyway. Below about 0.5 the rim stops
 reading as a lens at all.
+
+## Two phones, six measured panels
+
+The sample's Calibration screen with its six measured panels (a pill, four round buttons and
+the toolbar capsule) re-rendering every frame at full resolution, the tint sweeping so that
+every frame is new, from `dumpsys gfxinfo` over ten seconds:
+
+| Device | median | 90th | 99th | GPU median |
+| :--- | ---: | ---: | ---: | ---: |
+| Pixel 7, 1080x2400, Android 15 | 19 ms | 31 ms | 44 ms | 10 ms |
+| Galaxy S24+, 1440x3120, Android 16 | 17 ms | 28 ms | 38 ms | 7 ms |
+
+Neither holds 60 Hz with six full-resolution panels on screen at once; both hold it with the
+one or two a real screen carries. The wide strip costs nothing measurable on either.
+
+Where the time goes, from `gfxinfo framestats` on the S24+ (six panels, medians): 6.2 ms on
+the UI thread (measure, layout and recording six glass layers, about 1 ms per panel), 0.1 ms
+sync, 2.4 ms issuing draw commands on the render thread, 7.3 ms on the GPU (about 1.2 ms per
+panel), the rest waiting for vsync. Without the wide strip: 6.4 / 1.2 / 7.2 ms — the strip is
+inside the noise. The real Vitals screen, scrolled by flings: 9.9 ms vsync to completion, 3.1
+ms UI thread, 3.8 ms GPU.
+
+The first candidate for that UI-thread time was the render effects: each panel bound some fifty
+uniforms and built a new effect every frame. They are now cached and rebuilt only when their
+inputs change (`GlassEffectCache`), which on a scrolling screen is never. It moved nothing
+measurable: six panels 6.2 ms on the UI thread before and after (the sweep changes the tint
+every frame, so that scene never hits the cache by design), Vitals scrolled 2.9 ms before and
+2.9 after, 10.3 ms vsync to completion against 9.9 (`tools/framestats.py` over
+`analysis/s24_framestats_*`). So the cost is in recording the layers or in layout, not in the
+effect objects; the next step is a system trace, and the candidate after it is one recorded
+backdrop shared by every panel on screen instead of one per panel.
+
+## The wide kernel's strip
+
+With the measured profile and `wideKernel` above 0, each panel records its padded backdrop a
+second time at quarter scale under a Gaussian blur, into a strip beneath the sharp copy. That
+is one extra record and one small blur per panel per frame; the shader then reads it with a
+single bilinear tap. At a quarter of the padded area and a quarter of the sigma the blur is
+cheap, but it scales with panel count like everything else here. Set `wideKernel = 0.dp` (and
+`fineShare = 1f`) on a style to drop it, at the cost of the tone the phone shows.
+
+The strip also brings the along-axis high-pass with it: five extra backdrop taps per pixel where
+`wideKernel` is on. Five rather than seven because the pair at 2.25 sigma carries 5% of the
+weight. Measured on an S24+ scrolling Vitals, 120 frames, with the directional kernel, the fused
+outline and the retuned fringe all in: UI 1.8 ms, record 1.3, GPU 2.8, total 6.4, 2.2% janky
+frames, against 10.3 total for the build before them. Not a like-for-like A/B — the two runs are
+days apart on a device doing other things — but the material is not costing frames.
+
+Measured on a Pixel 7 (1080x2400, `renderScale = 1`) with the sample's Calibration screen
+sweeping Tint Amount so that all six measured panels re-render every frame: 19 ms median, 31 ms
+at the 90th percentile, 44 ms at the 99th, GPU 10 ms median, and the same numbers with the strip
+switched off. The strip is not where the time goes; six full-resolution panels are. Lower
+`renderScale` before dropping the strip.
+
+Where the rest goes: replacing the nineteen-tap scatter with five taps under 4 px, which is
+where the measured fine kernel always is, took the median from 21 to 19 ms and the GPU median
+from 12 to 10, so the per-pixel shader is about a tenth of the frame. The other nine tenths are
+the per-panel layer records, the blur pass on each strip and the render-effect passes, which is
+CPU and driver time rather than fill rate. That is the next thing to profile; the knob that
+exists today is `renderScale`.

@@ -3,136 +3,141 @@
 One fragment shader, in the SkSL dialect shared by AGSL (Android 13+) and Skia (Desktop), over a
 backdrop the host records for it. This walks the shader in the order it runs.
 
-The single sentence to keep in mind: **displacement first, blur second.** Apple's own framing is
-that inversion — earlier materials scattered light, this one bends and concentrates it — and
-almost every way an implementation looks wrong traces back to getting that ordering backwards.
+Since 0.2 the shader carries two optical models and a switch, `GlassStyle.profile`. The default,
+`Measured`, is the material fitted from calibration captures of iOS 27 on a real device (see
+[the measured model](research/measured-model.md)); every number below in that path is a
+measurement. `Legacy` is the 0.1 model, kept for the presets that were tuned against it and
+described at the end.
 
 ## 0. Geometry — a distance field, not a mask
 
 `d = sdShape(p)`, negative inside. `depth = max(-d, 0)` is distance inward from the rim, and
-`e = depth / band` is normalised position across the refraction band: 0 at the rim, 1 at its
-inner edge.
+`u = depth / W` is normalised position across the refraction band: 0 at the rim, 1 at its inner
+edge. `W` is `refractionBand`, and when that is unspecified it is **0.6 of the corner radius**:
+the measured bevel scales with the corner from a 15 dp icon (band 9 dp) to a 47 dp sheet corner
+(band 30 dp), and a sharp-cornered rectangle gets none.
 
 The field's **gradient is the surface normal**, which gives refraction its direction and
-specular its angle, and stays correct through corners where a per-edge normal pops.
+specular its angle, and stays correct through corners where a per-edge normal pops. It is
+central-differenced at a wide epsilon so the medial axis of a capsule does not leave a seam; see
+the container notes below.
 
-That gradient is central-differenced at a **wide epsilon**, `clamp(band * 0.3, 1, 16)` px, and
-this is not an optimisation — it is a correctness fix. At one pixel the gradient magnitude of an
-exact rounded-rect field collapses from 1 to 0 to 1 within two pixels across the medial axis,
-leaving a one-pixel seam of zero refraction down the spine of every capsule. A wide epsilon lets
-the two sides cancel gradually, and the magnitude that falls out doubles as a confidence term
-(`axisFade`) that fades the lens toward the axis rather than letting its direction flip.
+## 1. Refraction — an inward fold, measured
 
-In a `LiquidGlassContainer` the neck between two fused members is *entirely* medial axis, so
-this matters most exactly where the fusion is supposed to read.
-
-## 1. Refraction — the exact Snell deviation
-
-The bevel is a **superellipse height field**, and what the shader needs from it is the slope:
-zero in the flat interior, diverging at the rim.
-
-The displacement is the exact Snell deviation for that slope, computed through the
-tangent-difference identity so it contains no transcendental at all:
+Nothing outside the edge is ever sampled. The stripes right below a cover sheet's edge stay
+crisp and unshifted in every frame of every capture, so the rim shows content from *inside* the
+element, and `foldSource(u)` says which content: a pixel at depth `u` shows backdrop from depth
+`s = foldSource(u) · W`.
 
 ```
-sinθ  = slope/√(1+slope²)      cosθ  = 1/√(1+slope²)
-sinθ' = sinθ/n                 cosθ' = √(1−sinθ'²)
-bend  = tan(θ−θ') = (sinθ·cosθ' − cosθ·sinθ') / (cosθ·cosθ' + sinθ·sinθ')
+u >= 0.9          s = u                          identity
+0.52 <= u < 0.9   s = 0.71 + 0.5 (u - 0.52)      a 2x stretch of 0.71-0.9 W
+0.28 <= u < 0.52  s = 0.70                       a stationary seam
+u < 0.28          s = 0.71 + 1.29 (0.28 - u)     0.71-1.07 W, upside down
 ```
 
-Why not the near-universal shortcut `slope · (1 − 1/n)`? Because it overestimates by about a
-fifth at this profile's own peak and **diverges at the rim**, which is why every shader that
-uses it also carries an ad-hoc clamp and an ad-hoc fudge factor. The exact form is
-self-bounding: as the slope goes vertical it tends to √(n²−1), so no clamp is needed and the
-index of refraction becomes a knob on the *shape* of the falloff rather than on its magnitude.
+Content 0-0.69 W inside the edge is never displayed and content 0.62-0.96 W is displayed twice,
+once stretched and once mirrored: that fold is the whole visible signature of the sheet's edge,
+and it comes out of one lookup with no separate "mirror" term.
 
-The result is normalised by its own value at the rim, so `refractionDepth` is literally the peak
-displacement in pixels, and faded over the inner quarter of the band so the warp field is C1
-where it meets the flat interior. That last step matters: a C0 kink in a resampling field tears
-the backdrop into a visible ring.
-
-**Direction: outward.** The sample point moves *along the outward normal*, so the rim shows a
-compressed image of what lies just **outside** the element. This is the point of genuine
-disagreement between implementations — several published ones displace inward, magnifying the
-interior instead. Apple's own statement settles it: the material "is achieved by sampling
-content from an area larger than itself", and only outward sampling needs an area larger than
-itself. It is also what forces the host contract below.
+**It is not always there.** The fold forms while a finger drags the surface, past about 117 dp
+of pull, and never on a committed animation or on chrome at rest, which show only a slight
+inward offset. `lensFormation` blends between the two; it is 0 by default, a host tracking a
+drag drives it from the pull ([`GlassMaterial.lensFormation`](api-reference.md)) and animates it
+back on release.
 
 ## 2. Dispersion
 
-Red, green and blue sample at slightly different fractions of the same displacement, with blue
-landing furthest out because it carries the higher index.
+Red shows content 0.07 W deeper than blue, and only in the mirrored zone; the stretched zone has
+no colour split at all. That is the rainbow fringe on the sheet's edge and nowhere else.
+`dispersion` is that fraction of the band.
 
-Kept faint — around 0.018 of the displacement. The one implementation calibrated side-by-side
-against an iOS 26 device reports that real UI glass shows almost no prismatic rainbow, and a
-larger split reads as a broken colour channel rather than as glass.
+## 3. Two kernels — detail and tone
 
-## 3. Scatter — the blur, keyed to depth
+The measured material is not one blur. Across a hard black/white edge inside a navigation pill
+the tone follows a kernel about 10 dp wide, while 16 px stripes under the same glass keep a
+third of their contrast at the default Tint Amount, which a single 10 dp blur would leave at
+nothing. So the backdrop term is
 
-Radius `blurRadius × e`: **zero at the rim, full in the interior.**
+```
+B = w · G_fine(backdrop) + (1 - w) · G_wide(backdrop)
+```
 
-This is the ordering claim and it is load-bearing. A backdrop blurred before the shader sees it
-cannot produce the compressed legible edge band, because the detail the rim exists to bend has
-already been destroyed. The rim/interior crossfade is squared, so the crisp compressed image
-stays tight against the rim while the displacement itself still spans the whole band.
+with the fine sigma under a point (`blurRadius`, a rotating tap disc in the shader), the wide
+sigma 10 dp (`wideKernel`, rendered once per frame as a quarter-scale blurred copy of the
+padded backdrop in a strip beneath it, sampled with one tap), and `fineShare` w = 0.95 (1 −
+t/100)^1.5 against Tint Amount t: 0.95 at Clear, 0.34 at the default, 0 at Tinted.
 
-Implemented as nineteen taps — three rings of six plus the centre — with the whole pattern
-rotated by a per-pixel hash angle. Nineteen taps cannot blur legible text on their own:
-unrotated they land as discrete ghosts of it, rotated they land as noise, and noise reads as
-blur.
+The fine term is one-dimensional. The phone keeps detail that runs **along** a bar and none at
+all across it, so what the shader adds is not a share of a second blurred copy but a high-pass
+along the element's long axis: the fine sample minus the backdrop averaged along that axis, five
+taps at 0.7 of the wide sigma. Backdrop that does not vary along the bar cancels and is left to
+the wide kernel, which is why a boundary crossing a bar leaves no step, on the phone or here.
+Backdrop that does not vary across it behaves exactly as the mix above. It applies only where
+`wideKernel` is on, so the fold and the held lens are untouched.
 
-Physically this term is not glass. A smooth plane-parallel slab does not blur. It stands in for
-two real things at once — footprint integration through a curved surface, and Apple's "softer
-scattering of light" on thicker glass — and it is an authored frost term, not a derived one.
+## 4. Tint — a blend with a lift
 
-## 4. The mirrored edge band
+```
+out = (1 - a) · B + a · tint + lift
+```
 
-A broad, soft, upside-down echo of nearby content over roughly the outer third of the surface,
-with a squared falloff.
+Light in-app glass: `tint` is a constant 241/255 grey and `lift` is 0. Dark: `tint` is black and
+`lift` is 35/255. The opacity `a` follows Tint Amount from about 0.43 to 0.73 in both
+([`GlassMaterial.opacity`](api-reference.md)). System backdrops lift by 142/255 minus 0.864 of
+the wide kernel's luma (`liftAdaptivity`), which is what makes Control Center read light over
+dark content and dark over light; in-app glass does not adapt that way. Two facts the captures
+settled: shell glass (icons, dock, Control Center, cards) ignores the Light/Dark setting and takes
+its tone from the wallpaper, and in-app glass follows the app's scheme strongly. The legacy tone
+mapping (`adaptivity`) is off on this path.
 
-This band's width and falloff shape is the one geometric figure in the whole model that comes
-from a documented side-by-side comparison against a real device. A thin, sharply-falling band
-instead reads as a hard streak rather than as liquid. It is the detail that makes an edge read
-as glass rather than as a bevel.
+## 5. Lighting
 
-## 5. Adaptation
+The bevel is lit, not outlined. A navigation pill's edge over black reads +33 at 2 px, +13 at
+4, +8 at 6 and nothing by 16, additive white, so over white in a light appearance it clips away
+and there is no line at all; in a dark appearance the same line shows on both sides. There is no
+dark inner line: the profile decays smoothly into the interior. The in-app factory sets the
+`bevel`, `specular`, `edgeLight` and `highlightChroma` that reproduce that profile; shell roles
+carry their own (a Control Center tile's outermost pixels are *unlifted*, a dark contour, which
+is `edgeShadow`).
 
-Two mechanisms, deliberately not merged — see [Adaptation](adaptation.md). Tint is a per-pixel
-tone mapping; light/dark inversion is one decision for the whole element, supplied by the host.
+## 6. Legibility, interaction, accessibility
 
-## 6. Legibility
+Unchanged from 0.1: the rim and interior samples bracket the backdrop's high frequencies, so
+their luma difference raises the tint a little as text scrolls underneath; the touch magnifier
+and glow, and Increase Contrast's solid-with-border treatment, sit on top of either optical
+model. See [Interaction](interaction.md) and [Accessibility](accessibility.md).
 
-Free: the rim sample and the interior sample already bracket the backdrop's high frequencies, so
-`|luma(sharp) − luma(soft)|` stands in for "text is scrolling underneath" and raises the tint.
-
-## 7. Lighting
-
-An inner thickness line just inside the bevel, a key specular lobe where the normal faces the
-light, a weaker counter-lobe opposite it, a Schlick rim term, and a thin bright edge line.
-
-The counter-lobe is not decoration: a bead of glass lit from one side only reads as a gradient
-rather than as a solid. And the edge is **lit, not outlined** — a dark border is the fastest way
-to make a material like this read as a drawn rectangle.
-
-## 8. Interaction and accessibility
-
-The touch magnifier and glow, then Increase Contrast's solid-with-border treatment. See
-[Interaction](interaction.md) and [Accessibility](accessibility.md).
-
-One host-side variation belongs here too: with `refractContent` the element's own content is run
-through a **second pass** that shares steps 0, 1 and 2 above — the same field, the same bevel,
-the same dispersion — and nothing else, then composited over the material. It is bent like the
-backdrop but not tinted, dimmed or scattered like it. See
-[Content inside the glass](interaction.md#content-inside-the-glass).
+With `refractContent` the element's own content is run through a **second pass** that shares
+steps 0 and 1 above — the same field and the same fold — and nothing else, then composited
+over the material. A test pins the two passes together: the functions that decide where a pixel
+samples from, `foldSource` included, must be identical text in both shaders.
 
 `through` adds a second layer to the padded backdrop — whatever glass sits between this panel
 and the content — so a panel on top of other glass refracts that glass rather than seeing past
 it. It is how a selection lens sees its bar.
 
-A test pins the two passes together: the four functions that decide where a pixel samples from
-must be identical text in both shaders, because a change to one that is not mirrored in the other
-would refract the content through a different lens than its backdrop — which shows up on a device
-as the symbol sliding against the content behind it as the element moves.
+## The legacy profile
+
+At rest the lens lives at the corner arcs only. A pixel in an arc's own quadrant shows the
+backdrop from the ring 0.33 R inside — the same ring for the whole outer third, which turns
+anything under the corner into concentric arcs — easing to identity by 0.46 R; a pixel along a
+straight run shows what is under it, plus a few px of inward offset. The blend between the two
+runs over 0.2 R along the edge. `lensFormation` then carries both toward the full fold while a
+finger tracks the surface.
+
+`LiquidGlassContainer` runs the same two paths with one difference: a fused body is chrome at
+rest, so its lens formation is always 0.
+
+`GlassProfile.Legacy` is the 0.1 material, kept so `Chrome`, `DarkChrome`, `Clear`, `Thick` and
+the tab bar styles keep the look they were tuned to: an *outward* Snell deviation through a
+superellipse bevel normalised so `refractionDepth` is the peak displacement, a faint dispersion
+everywhere in the band, a single interior scatter that tapers to zero at the rim, a soft
+mirrored echo (`mirror`) over the outer third, and a tint tone-mapped against the backdrop's
+brightness (`adaptivity`). The 0.1 write-up is preserved unedited in
+[optical-model.md](research/optical-model.md). The measured captures contradicted its two
+central claims — the rim samples inward, and the material is a two-kernel blend rather than a
+displacement-first scatter — which is why the default moved.
 
 ---
 
@@ -140,6 +145,15 @@ as the symbol sliding against the content behind it as the element moves.
 
 Two obligations, and both fail as *apparent shader bugs*. They were both bugs here first.
 
+
+The lens a finger raises on a tab bar is a third family (`GlassProfile.Held`). Its outer band —
+half of the 0.6 R band — pulls the exterior inward and compresses it: the bar's own edge line
+lands a tenth of the radius inside the lens's rim, and text above the bar becomes a thin stripe
+along it. A seam then hides the content between the band and the interior, which is shown
+where it is; the bar itself has grown 1.05 and lifted under the finger, and the tab under the
+lens has grown again about its own centre, which is where the magnified look comes from. The
+lens also adds a share of the raw content behind the bar to the bar's output, so it reads a
+little clearer than the bar around it.
 ## The recorded layer must be opaque
 
 A backdrop layer is transparent wherever the app painted nothing — its ground is normally
@@ -155,10 +169,9 @@ filtering error at the layer's own boundary and reconstruct through it.
 
 ## Samples must be bounded by the backdrop, not by the layer
 
-The padded slice is deliberately larger than the panel — that is what gives the rim something to
-reach — and near a screen edge that margin hangs off the end of the recorded backdrop. Those
-pixels are not merely dark; they are the flat fill. A panel that samples them grows a band of
-solid colour at the rim.
+The padded slice is deliberately larger than the panel, and near a screen edge that margin
+hangs off the end of the recorded backdrop. Those pixels are not merely dark; they are the flat
+fill. A panel that samples them grows a band of solid colour at the rim.
 
 `sampleBounds` is the intersection of the recorded backdrop with the layer, inset half a pixel
 so bilinear filtering stays off both boundaries. It is also guaranteed never to invert — an
@@ -167,6 +180,16 @@ solid block of nothing.
 
 ## Padding
 
-`refractionDepth × 1.4 + max(blurRadius, backdropBlur)` px on every side. The 1.4 covers the
-1.25× size gain plus dispersion reach. Every pixel of it is re-recorded per frame, so it is
-sized to what the shader actually reads rather than rounded up for comfort.
+Measured profile: `max(blurRadius, backdropBlur, 2 · backdropSigma, 0.75 · wideKernel)` px on
+every side — the lens samples inward only, so only the blurs need a margin. Legacy profile:
+`refractionDepth × 1.4 + max(blurRadius, backdropBlur)`, because its bevel reaches outward. Every
+pixel of it is re-recorded per frame, so it is sized to what the shader actually reads rather
+than rounded up for comfort.
+
+## The wide strip
+
+When the measured profile's `wideKernel` is on, the padded layer is taller by a quarter of its
+height: the host records the same padded backdrop again at quarter scale under a Gaussian blur
+of a quarter of the sigma and draws it into the strip below the sharp copy. The shader finds it
+through `uWideStrip` and `uWideScale`, samples it with one bilinear tap, and returns transparent
+there, so the strip is never seen. It costs one small blur per panel per frame.

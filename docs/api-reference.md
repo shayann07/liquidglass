@@ -66,6 +66,7 @@ fun Modifier.liquidGlass(
     pressSource: GlassPressSource? = null,
     refractContent: Boolean = false,
     through: LiquidGlassState? = null,
+    lensFormation: Float = 0f,
 ): Modifier
 ```
 
@@ -78,12 +79,32 @@ Draws this element as a piece of glass over `state`'s backdrop.
 | `materialize` | 0 to 1. Drive this instead of `alpha` — at 0 the shader returns the backdrop untouched, so the element leaves by ceasing to bend light. |
 | `pressSource` | Drive the press from outside, when another node owns the gesture. See `GlassPressSource`. |
 | `refractContent` | Draw the element's content **inside** the glass — bent and colour-split through the same bevel the backdrop goes through, clipped to the shape — instead of on top. For content that is the material's subject: what a magnifier is over, the symbol a selection lens is crossing. See [Interaction](interaction.md#content-inside-the-glass). |
+| `lensFormation` | 0 to 1. How far the measured edge fold has formed. At 0 the corner arcs show the measured rest lens (the ring 0.33 R inside, mapped onto the whole outer third) and straight runs show nothing but a few px of inward offset; on iOS 27 the full fold appears only while a finger tracks a surface past about 117 dp of pull and never on chrome at rest or a committed animation, so the default is 0; a host tracking a drag drives it from the pull with `GlassMaterial.lensFormation` and animates it back on release. Ignored by the legacy profile. |
 | `through` | Glass this element looks **through**. A lens on a tab bar sees the bar, not past it: record the bar with `liquidGlassSource` into a second state and pass it here, and it is composited over the backdrop before this element's shader runs. The element must not be inside that source's subtree. See [Tab bar](tab-bar.md). |
 
 Where the platform cannot run the shader this degrades to `style.fallbackSurface` with the same
 rim lighting.
 
 ---
+
+### `GlassFuse`
+
+```kotlin
+class GlassFuse(bounds: DpRect, cornerRadius: Dp, smoothing: Dp = 16.dp)
+```
+
+Passed to `Modifier.liquidGlass(fuse = ...)`. Another rounded rect, in this element's own
+coordinates, that the element's outline **fuses** with. Not a union: where the two outlines cross
+the silhouette bows out by about a quarter of `smoothing` to meet the other shape instead of
+making a crease, and the bevel, rim and refraction all follow the fused outline from there on.
+
+This is what iOS 27's tab bar does with its selection lens, which stands proud of the bar; on the
+reference the bar's edge sits 12 px above both outlines where they cross and rejoins the flat run
+about 40 px away, which is 16 pt of smoothing (measured model, section 2d). `GlassTabBarStyle`
+applies it for you through `lensFuse`.
+
+Costs the closed-form normal, which cannot describe a fused outline, so the shader differences
+the distance field instead. Null leaves the outline alone.
 
 ## Components
 
@@ -117,6 +138,13 @@ release. Every default is measured off an iOS 26 tab bar; see [Tab bar](tab-bar.
 Put a shadow on `modifier` with `clip = false`; the held lens is taller than the bar.
 
 ### `GlassTabBarStyle`
+
+`GlassTabBarStyle.Measured(dark, tintAmount)` is `Dark` with its bar on the measured material and, since
+2026-09-12, the indicator and lens of the iOS 27 recording: `pill = RestingInsetMeasured`, `lens =
+HeldLensMeasured`, `pillInset` 4dp, `pillWidth` 84dp, `lensOverflow` 5dp, `lensExtraWidth` 21dp, `heldScale`
+1.05, `heldLift` 16/255, `selectedScale` 1.18 (see [the tab bar](tab-bar.md)). Its base
+(`GlassStyle.inApp`); see [Tab bar](tab-bar.md#the-measured-bar). `Dark` and `Ios27` keep the
+0.1 optics.
 
 ```kotlin
 @Immutable
@@ -152,18 +180,24 @@ morphs between, exposed so a host can start from them.
 ```kotlin
 @Immutable
 data class GlassStyle(
-    val blurRadius: Dp = 10.dp,
+    val profile: GlassProfile = GlassProfile.Measured,
+    val blurRadius: Dp = 1.5.dp,
     val backdropBlur: Dp = 0.dp,
-    val refractionBand: Dp = 26.dp,
+    val backdropSigma: Dp = Dp.Unspecified,
+    val refractionBand: Dp = Dp.Unspecified,
     val refractionDepth: Dp = 14.dp,
+    val wideKernel: Dp = 10.dp,
+    val fineShare: Float = 0.34f,
     val indexOfRefraction: Float = 1.5f,
     val bevelPower: Float = 2f,
     val cornerPower: Float = 2f,
-    val dispersion: Float = 0.018f,
-    val mirror: Float = 0.18f,
-    val bevel: Dp = 4.dp,
-    val tint: Color = Color.White.copy(alpha = 0.10f),
-    val adaptivity: Float = 0.65f,
+    val dispersion: Float = 0.07f,
+    val mirror: Float = 0f,
+    val bevel: Dp = 1.5.dp,
+    val tint: Color = Color(0xFFF1F1F1).copy(alpha = 0.565f),
+    val tintLift: Float = 0f,
+    val liftAdaptivity: Float = 0f,
+    val adaptivity: Float = 0f,
     val legibility: Float = 0.6f,
     val specular: Float = 0.55f,
     val specularPower: Float = 6f,
@@ -180,7 +214,27 @@ data class GlassStyle(
 )
 ```
 
-The knobs the shader consumes. `copy()` is the intended way to adjust one.
+The knobs the shader consumes. `copy()` is the intended way to adjust one. The defaults are the
+measured in-app material in a light appearance at the default Tint Amount; see
+[the measured model](research/measured-model.md) and [How it works](how-it-works.md).
+
+**`profile`** picks the optical model. `Measured` (default): an inward fold lens whose band is
+0.6 of the corner radius when `refractionBand` is unspecified, a two-kernel backdrop (`blurRadius`
+fine, `wideKernel` wide, mixed by `fineShare`), `tint` as `(1 - a) * backdrop + a * tint +
+tintLift` with `liftAdaptivity` lowering the lift as the wide kernel's luma rises, and
+`dispersion` as a fraction of the band in the mirrored zone only. `refractionDepth`, `mirror`,
+`adaptivity` and `indexOfRefraction` are read by the `Legacy` profile only.
+
+**`backdropSigma`** is a pre-blur named by its Gaussian sigma and converted to each platform's
+own radius at bind time, so it means the same blur on Android and the desktop; `backdropBlur` is
+the legacy radius and is used when `backdropSigma` is unspecified.
+
+**Factories** (every number measured): `inApp(dark, tintAmount)` for a navigation pill or
+buttons; `toolbar(dark, tintAmount)` for a toolbar or tab bar, the pill's kernels with the
+toolbar's own tint (white at 0.55-0.67 in light; black at 0.41-0.63 over the 35/255 lift in
+dark, more opaque than the pill at Clear and less responsive to Tint Amount);
+`systemBackdrop(tintAmount)` for a full-screen layer such as Control Center; `menu()`;
+`shellIcon()`; `dock()`; `coverSheet()`. `Regular` is `inApp(dark = false)`.
 
 **The two blurs are not interchangeable.** `blurRadius` runs inside the shader and tapers to
 zero at the rim, preserving the signature edge; `backdropBlur` is chained ahead of the shader,
@@ -207,11 +261,48 @@ Note that the contour is drawn 1.5px inside the boundary rather than on it. Cove
 reaches 1 at 0.75px, so anything painted on the outermost pixel is multiplied by a partial alpha
 and composited against whatever lies outside, which makes it invisible over a dark ground.
 
-**Presets:** `Regular` (the workhorse), `Chrome` (floating over an app's own content),
+**Legacy presets** (`GlassProfile.Legacy`, the 0.1 optics, unchanged): `Chrome` (floating over an app's own content),
 `DarkChrome` (a dark-appearance bar, every number measured off an iOS 26 recording — see
 [reference measurements](research/reference-measurements.md)), `Clear` (Apple's non-adaptive
 variant — its zeros are deliberate and it requires its dimming layer), `Thick` (sheets and
 dialogs).
+
+### `GlassProfile.Held`, `heldLens`, `rawShare`
+
+The third optical family, for the lens a finger raises on a tab bar (measured model, section
+2c). `GlassProfile.Held` with `heldLens = 0` is identity — no rest lens at the arcs, no fold —
+and at `heldLens = 1` the outer half of the band pulls the exterior in, compressed 1.3x, with a
+seam hiding the content between the band and the interior; the modifier records the extra
+margin the outward sampling needs. A resting indicator and the lens it swells into both sit in
+this family so the morph never crosses into the fold. `rawShare` adds that share of the raw
+backdrop on top of the glass the element looks `through` (the measured lens: 0.11); it is
+ignored without `through`. `tintLift` may be negative when `liftAdaptivity` is 0 (the resting
+indicator is the bar's output at 0.857 minus 17/255).
+
+### `GlassMaterial`
+
+```kotlin
+object GlassMaterial {
+    const val DEFAULT_TINT_AMOUNT: Float = 50f
+    const val BEVEL_RATIO: Float = 0.6f
+    val wideKernel: Dp = 10.dp
+    val lightTint: Color = Color(0xFFF1F1F1)
+    const val DARK_LIFT: Float = 35f / 255f
+    fun opacity(dark: Boolean, tintAmount: Float = 50f): Float
+    val toolbarLightTint: Color = Color.White
+    fun toolbarOpacity(dark: Boolean, tintAmount: Float = 50f): Float
+    fun fineShare(tintAmount: Float = 50f): Float
+    fun fineKernel(tintAmount: Float = 50f): Dp
+    fun systemBackdropSigma(tintAmount: Float = 50f): Dp
+    fun coverSheetDim(pull: Dp): Float
+    fun lensFormation(trackedPull: Dp): Float
+}
+```
+
+The measured material as formulas, for hosts that build their own styles: tint opacity and fine
+share against the Tint Amount slider (and the toolbar role's own opacity and tint), the kernels, the system backdrop's blur, the dim a cover
+sheet applies to what it covers as a function of pull, and the lens formation a tracked drag
+should pass to `lensFormation`.
 
 ### `GlassLight`
 
@@ -318,6 +409,31 @@ every pixel, which is exactly what lets the fields interact.
 The handle the container keeps per member. Created by `glassMember`; you never construct one.
 
 ---
+
+## Sheets
+
+### `LiquidGlassCoverSheet`
+
+```kotlin
+@Composable
+fun LiquidGlassCoverSheet(
+    pull: Dp,
+    tracked: Boolean,
+    modifier: Modifier = Modifier,
+    shape: Shape = RoundedCornerShape(bottomStart = 47.dp, bottomEnd = 47.dp),
+    background: Color = Color.Black,
+    style: GlassStyle = GlassStyle.coverSheet(),
+    light: GlassLight = GlassLight.Default,
+    content: @Composable BoxScope.() -> Unit,
+)
+```
+
+A cover sheet as iOS 27 draws one. The sheet is opaque and shows [content] — its own surface,
+recorded as a backdrop of its own — with the measured fold at its bottom edge; what it covers
+is dimmed by `GlassMaterial.coverSheetDim(pull)`, which saturates at 0.706 after about 230 dp.
+`pull` is how far the sheet has come down; `tracked` is true while a finger holds it, which is
+the only time the fold shows (`GlassMaterial.lensFormation(pull)`), and false once released,
+when the lens eases out. The app beneath is neither sampled nor needed.
 
 ## Interaction
 

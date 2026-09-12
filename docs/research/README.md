@@ -31,7 +31,9 @@ had ever seen render.
 
 | File | What it is |
 | :--- | :--- |
-| [optical-model.md](optical-model.md) | The layer-by-layer model, as the shader runs it. The core document. |
+| [measured-model.md](measured-model.md) | **The material as measured on iOS 27**, and what the 0.2 optics implement. Read this first. |
+| [ios27-calibration-study.md](ios27-calibration-study.md) | How those numbers were obtained: the test image, the captures, the two mistakes, the tools, the findings in order, and what is open. |
+| [optical-model.md](optical-model.md) | The 0.1 layer-by-layer model, preserved unedited. Its outward sampling and single scatter were contradicted by the measurements; kept as the `Legacy` profile. |
 | [parameters.md](parameters.md) | Every constant, with a provenance tag: `[apple]`, `[measured]`, `[derived]` or `[ours]`. |
 | [motion-model.md](motion-model.md) | Merge, morph, materialize, press, scroll response, highlight motion. |
 | [divergences.md](divergences.md) | Eleven places Android cannot match Apple, and why. Read this before promising anyone parity. |

@@ -33,6 +33,15 @@ click handling on it (the bar owns the gesture and calls `onSelected`).
 
 Put the shadow on the bar's `modifier` with `clip = false`. The held lens is taller than the bar.
 
+## What happens under a finger
+
+The bar grows 1.05 about its centre and its material lifts 16/255; the tab under the lens grows
+1.18 about its own centre; the resting indicator swells into a lens 5 pt proud of the bar and
+21 pt wider. The lens does not sit on top of the bar: the two outlines **fuse**, so the bar's own
+edge bows out to meet it and there is no crease (`lensFuse`, 16 dp measured). And the lens is a
+gel — it flattens by about 5% at 300 dp a second and rounds back up when it stops (`gel`,
+`gelReference`).
+
 ## What it does, and where each part comes from
 
 Everything below was read off native screenshots of an iOS 26 tab bar at 3px/pt, cross-checked
@@ -117,3 +126,38 @@ works.
 
 `motionEnabled = false` disables the lens, the gel and the fling. Taps and drags still select,
 and the indicator jumps to the selection without animating.
+
+## The measured bar
+
+`GlassTabBarStyle.Measured(dark, tintAmount)` puts the bar on the measured material: the
+Photos toolbar is the same role and was measured through the calibration target at every Tint
+Amount in both appearances, so the bar is `GlassStyle.toolbar` — the pill's kernels with the
+toolbar's own tint, white at 0.55-0.67 opacity in light and black at 0.41-0.63 over the 35/255
+lift in dark, which is more opaque than the navigation pill at Clear and responds less to the
+slider (the table is in the measured model, section 2).
+
+The indicator and the lens were measured on 2026-09-12 from the iOS 27 screen recording of the
+Phone and App Store tab bars being dragged (measured model, section 2c), and `Measured` carries
+those numbers; `Dark` and `Ios27` keep this page's iOS 26 ones. What the recording shows, and
+what the preset does about it:
+
+- **The whole bar grows and lifts while a finger is down** — 1.05 about its centre and +16/255
+  — and the tab under the lens grows 1.18 more about its own centre (`heldScale`, `heldLift`,
+  `selectedScale`). The bar's plate is laid out at the grown size so its backdrop stays 1:1; the
+  items scale, in both copies of the row, so they stay on top of each other.
+- **The resting inset** is 4pt inside the bar (`pillInset`) and wider than a slot on a five-tab
+  bar: iOS sizes it to the label plus about 57pt, 84pt on the App Store's bar, which is
+  `pillWidth`'s default (the wider of it and the slot is used). It is the bar's output at 0.857
+  minus 17/255, with no optics (`RestingInsetMeasured`, `GlassProfile.Held` at 0).
+- **The held lens** stands 5pt proud of the bar (`lensOverflow`) and 21pt wider than the inset
+  (`lensExtraWidth`). Its interior shows the bar as it is plus 0.11 of the raw content behind the
+  bar (`rawShare`) and a 1% white. Its outer band, half of 0.6 of the corner radius, pulls the
+  exterior in and compresses it 1.3x — the bar's own edge line lands a tenth of the radius inside
+  the lens's rim — and a seam hides what lies between the band and the interior
+  (`HeldLensMeasured`, `heldLens` = 1). A 3-4px edge line of +68 over black at the top and
+  bottom with a glow trailing inward, a dark two-pixel step at the sides, colour fringes along
+  the band.
+- **What is not done**: the reference's lens carries its content a frame late while it moves;
+  the library's copies of the row coincide when held still and lag by a frame mid-drag in the
+  same way, which is left as it is. The light appearance of the inset and lens was not captured;
+  `Measured(dark = false)` uses the dark numbers.

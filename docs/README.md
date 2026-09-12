@@ -36,7 +36,12 @@ change the optics, read [How it works](how-it-works.md) and then
 
 ## The one-paragraph version
 
-Liquid Glass is **displacement-first, blur-second**. Apple's own framing is that inversion:
+Since 0.2 the default material is **measured, not tuned**: an inward fold lens, a two-kernel
+tone and a per-appearance tint fitted from calibration captures of iOS 27 (see
+[the measured model](research/measured-model.md)). The 0.1 framing below survives as the
+`Legacy` profile.
+
+Liquid Glass was first modelled here as **displacement-first, blur-second**. Apple's own framing is that inversion:
 earlier materials scattered light, this one bends and concentrates it. A thin bevel around the
 rim bends a *sharp* backdrop inward, compressing the surroundings into a legible band at the
 edge, while the flat interior scatters and tints. Almost everything that makes an
