@@ -79,6 +79,7 @@ internal actual fun createGlassRenderEffect(
     shader.setFloatUniform("uMaterialize", uniforms.materialize)
     shader.setFloatUniform("uFrost", uniforms.frost)
     shader.setFloatUniform("uContrast", uniforms.contrast)
+    shader.setFloatUniform("uDebugCoverage", uniforms.debugCoverage)
     shader.setFloatUniform("uMirror", uniforms.mirror)
     shader.setFloatUniform("uFresnel", uniforms.fresnel)
     shader.setFloatUniform("uHiChroma", uniforms.highlightChroma)

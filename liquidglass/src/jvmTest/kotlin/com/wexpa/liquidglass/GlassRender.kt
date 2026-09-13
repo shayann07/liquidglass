@@ -81,6 +81,8 @@ internal object GlassRender {
         fuse: FloatArray? = null,
         fuseRadius: Float = 0f,
         fuseStrength: Float = 0f,
+        /** 1 renders flat magenta times coverage (the padding diagnostic), 0 the material. */
+        debugCoverage: Float = 0f,
         backdrop: (x: Int, y: Int) -> Int,
     ): IntArray {
         val w = width + pad * 2
@@ -182,6 +184,7 @@ internal object GlassRender {
         b.uniform("uMaterialize", 1f)
         b.uniform("uFrost", 0f)
         b.uniform("uContrast", 0f)
+        b.uniform("uDebugCoverage", debugCoverage)
 
         val surface = Surface.makeRasterN32Premul(w, h)
         val canvas: Canvas = surface.canvas

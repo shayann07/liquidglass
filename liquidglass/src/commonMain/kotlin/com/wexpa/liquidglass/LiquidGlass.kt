@@ -150,6 +150,9 @@ fun Modifier.liquidGlassSource(state: LiquidGlassState): Modifier = composed {
  * cannot — see [LiquidGlassSupport] — it degrades to a tinted surface with the same rim
  * lighting, which is a plainer material rather than a broken one.
  */
+// Reads LiquidGlassDiagnostics, which is off by default: with no rig running, debugCoverage is 0 and the
+// pad is the style's own, so this path is exactly the production one.
+@OptIn(LiquidGlassDiagnosticApi::class)
 fun Modifier.liquidGlass(
     state: LiquidGlassState,
     shape: Shape = RectangleShape,
@@ -386,6 +389,7 @@ fun Modifier.liquidGlass(
                         materialize = materialize.coerceIn(0f, 1f),
                         frost = state.frost,
                         contrast = state.contrast,
+                        debugCoverage = if (LiquidGlassDiagnostics.coverageOnly) 1f else 0f,
                         lightX = light.x,
                         lightY = light.y,
                         specular = style.specular,
@@ -801,6 +805,8 @@ internal data class GlassUniforms(
     val materialize: Float,
     val frost: Float,
     val contrast: Float,
+    /** Diagnostic only (see [LiquidGlassDiagnostics]): 1 renders flat colour times coverage. */
+    val debugCoverage: Float = 0f,
     val lightX: Float,
     val lightY: Float,
     val specular: Float,
@@ -831,7 +837,7 @@ internal data class GlassUniforms(
             touchX == other.touchX &&
             touchY == other.touchY && touchAmount == other.touchAmount &&
             materialize == other.materialize && frost == other.frost &&
-            contrast == other.contrast &&
+            contrast == other.contrast && debugCoverage == other.debugCoverage &&
             fresnel == other.fresnel && legibility == other.legibility &&
             background == other.background &&
             bevel == other.bevel && lightX == other.lightX && lightY == other.lightY &&
@@ -994,6 +1000,7 @@ internal fun GlassStyle.bandPx(radii: FloatArray, size: Size, density: Density):
  * rounded up to a whole number of layer pixels in the space the layer is recorded in
  * (`pad * renderScale`), so no consumer sits half a pixel from another.
  */
+@OptIn(LiquidGlassDiagnosticApi::class)
 internal fun GlassStyle.recordPad(
     radii: FloatArray,
     size: Size,
@@ -1014,7 +1021,53 @@ internal fun GlassStyle.recordPad(
         )
     }
     val rs = renderScale.coerceIn(0.25f, 1f)
+    LiquidGlassDiagnostics.recordPadOverridePx?.let { return kotlin.math.ceil(it * rs) / rs }
     return kotlin.math.ceil(pad * rs) / rs
+}
+
+/**
+ * Opting in to [LiquidGlassDiagnostics], which exists for measurement rigs and instrumented tests and
+ * changes what the material draws. Nothing in a normal app should need it.
+ */
+@RequiresOptIn(
+    message = "LiquidGlassDiagnostics changes what the material renders. It is for measurement rigs and tests, not for production code.",
+    level = RequiresOptIn.Level.ERROR,
+)
+@Retention(AnnotationRetention.BINARY)
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY)
+annotation class LiquidGlassDiagnosticApi
+
+/**
+ * Switches for the padding/coordinate diagnostic (Astra round 7). Both default to off and the material
+ * behaves exactly as it does in production until one is set: an override changes only the recorded pad,
+ * leaving every material uniform (blur radius included) as the style defines it, and coverage-only
+ * rendering replaces the material with a flat colour times coverage. Call [reset] when a measurement
+ * finishes, so a rig cannot leak its settings into whatever renders next.
+ */
+@LiquidGlassDiagnosticApi
+object LiquidGlassDiagnostics {
+    /** When set, the recorded pad in px before render-scale rounding; null in production. */
+    var recordPadOverridePx: Float? = null
+
+    /** When true, the panel shader outputs flat magenta times its coverage. */
+    var coverageOnly: Boolean = false
+
+    /** Back to the production defaults: no pad override, no coverage-only rendering. */
+    fun reset() {
+        recordPadOverridePx = null
+        coverageOnly = false
+    }
+
+    /** Runs [block] with these settings and resets them afterwards, whatever [block] does. */
+    fun <T> withDiagnostics(recordPadOverridePx: Float? = null, coverageOnly: Boolean = false, block: () -> T): T {
+        this.recordPadOverridePx = recordPadOverridePx
+        this.coverageOnly = coverageOnly
+        try {
+            return block()
+        } finally {
+            reset()
+        }
+    }
 }
 
 /**

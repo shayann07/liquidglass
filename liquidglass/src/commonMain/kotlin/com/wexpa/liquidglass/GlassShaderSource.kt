@@ -88,6 +88,7 @@ uniform float   uTouchAmt;     // press amount, 0..1
 uniform float   uMaterialize;  // 0 the shader is a pass-through of the backdrop, 1 full material
 uniform float   uFrost;        // Reduce Transparency, 0..1
 uniform float   uContrast;     // Increase Contrast, 0..1
+uniform float   uDebugCoverage;// diagnostic only: 1 = constant magenta times the production coverage, no material
 
 // The Ln norm. At n = 2 this is `length`, so the rounded rect below is bit-identical to a
 // circular-cornered one; at n = 4 the corner becomes the superellipse Apple actually uses.
@@ -411,6 +412,12 @@ half4 main(float2 coord) {
     float coverage = 1.0 - smoothstep(-0.75, 0.75, d);
     if (coverage <= 0.0) {
         return half4(0.0);
+    }
+    if (uDebugCoverage > 0.5) {
+        // Padding/coordinate diagnostic (Astra round 7): the geometry, field, recording and draw-back path
+        // exactly as in production, with the material replaced by a flat colour, so a silhouette can be read
+        // from coverage alone.
+        return half4(1.0, 0.0, 1.0, 1.0) * half(coverage);
     }
 
     float scale = clamp(uScale, 0.0, 1.0);

@@ -36,9 +36,23 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.DpRect
+import androidx.compose.ui.unit.LayoutDirection
+import com.wexpa.liquidglass.GlassFuse
 import com.wexpa.liquidglass.GlassMaterial
+import com.wexpa.liquidglass.GlassProfile
 import com.wexpa.liquidglass.GlassStyle
+import com.wexpa.liquidglass.LiquidGlassDiagnosticApi
+import com.wexpa.liquidglass.LiquidGlassDiagnostics
 import com.wexpa.liquidglass.LiquidGlassScene
+import com.wexpa.liquidglass.LocalLiquidGlassState
 import com.wexpa.liquidglass.liquidGlass
 import com.wexpa.liquidglass.liquidGlassSource
 
@@ -54,6 +68,8 @@ import com.wexpa.liquidglass.liquidGlassSource
  * `--ei tint 50 --ez dark true --es target light`; `--ez wide false` switches the wide tone
  * kernel off and `--ei wideDp 10` sets its sigma, for calibration experiments.
  */
+// This screen is a measurement rig: it is where opting in to the diagnostics is the point.
+@OptIn(LiquidGlassDiagnosticApi::class)
 class CalibrationActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(
@@ -72,7 +88,22 @@ class CalibrationActivity : ComponentActivity() {
         val unit0 = intent.getBooleanExtra("unit", false)
         // `--ei offsetY -180` shifts the whole scene up so the bottom row fits a 2400 px screen at 1:1.
         val offsetY0 = intent.getIntExtra("offsetY", 0)
-        setContent { Calibration(tint0, dark0, target0, wide0, wideDp0, animate0, unit0, offsetY0) }
+        // Path-backed device fixture (padding contract, Astra round 6): `--es fixture path --ef renderScale 0.5
+        // --ef padPx 22.5` draws four 1:1 panels over the target whose pad is set by padPx alone (wide kernel off,
+        // blur radius = padPx): a closed-form capsule, the same capsule as a sampled-field path, a held-profile
+        // path capsule and a fused closed-form capsule, at the given render scale.
+        val fixture0 = intent.getStringExtra("fixture")
+        val renderScale0 = intent.getFloatExtra("renderScale", 1f)
+        val padPx0 = intent.getFloatExtra("padPx", 22.5f)
+        // Astra round 7 diagnostic: `--ef padOverride 23` changes only the recorded pad (all material uniforms,
+        // blur radius included, stay as the style defines them); `--ez coverage true` renders flat magenta times
+        // the production coverage through the same geometry, field, recording and draw-back path.
+        LiquidGlassDiagnostics.recordPadOverridePx = if (intent.hasExtra("padOverride")) intent.getFloatExtra("padOverride", 0f) else null
+        LiquidGlassDiagnostics.coverageOnly = intent.getBooleanExtra("coverage", false)
+        setContent {
+            if (fixture0 == "path") PathFixture(renderScale0, padPx0, target0)
+            else Calibration(tint0, dark0, target0, wide0, wideDp0, animate0, unit0, offsetY0)
+        }
     }
 }
 
@@ -155,5 +186,57 @@ private fun Calibration(tint0: Int, dark0: Boolean, target0: String, wide0: Bool
                 style = TextStyle(color = Color(0xFFFF00FF), fontSize = 10.sp),
             )
         }
+    }
+}
+
+/** A capsule delivered as a generic path, so the material takes the sampled-field route. */
+private class PathCapsule : Shape {
+    override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline =
+        Outline.Generic(Path().apply { addRoundRect(RoundRect(0f, 0f, size.width, size.height, CornerRadius(size.height / 2f, size.height / 2f))) })
+}
+
+/** Declared 1:1 boxes of the path fixture, in target px (all inside a 1080-px-wide screen). */
+// Diagnostic layout (Astra round 7): every panel and the whole fused union over the target's black half
+// (x < 585, rows ~100..320), fully inside the 1080 px screen, with >= 60 px between panels and windows.
+internal val fixtureBoxes = listOf(
+    Triple("closed", 40, 150), Triple("path", 330, 150), Triple("held_path", 40, 250), Triple("fused_closed", 330, 250),
+)
+internal const val FIXTURE_W = 200
+internal const val FIXTURE_H = 60
+internal const val FIXTURE_FUSED_W = 120
+internal const val FIXTURE_FUSE_GAP = 20
+internal const val FIXTURE_FUSE_SIB_W = 60
+
+@OptIn(LiquidGlassDiagnosticApi::class)
+@Composable
+private fun PathFixture(renderScale: Float, padPx: Float, target0: String) {
+    val density = LocalDensity.current
+    fun px(v: Int): Dp = with(density) { v.toDp() }
+    // Style whose recorded pad is padPx exactly: wide kernel off, blur radius padPx px (dp = px / density).
+    val base = GlassStyle.inApp(dark = true, tintAmount = 50f).copy(
+        wideKernel = 0.dp, fineShare = 1f, blurRadius = with(density) { padPx.toDp() }, bevel = with(density) { (2f * 3f).toDp() },
+    )
+    val held = base.copy(profile = GlassProfile.Held)
+    LiquidGlassScene(background = Color.Black, renderScale = renderScale, modifier = Modifier.fillMaxSize().background(Color.Black)) {
+        Image(
+            painter = painterResource(if (target0 == "light") R.drawable.calibration_target_light else R.drawable.calibration_target_dark),
+            contentDescription = null, contentScale = ContentScale.FillWidth,
+            modifier = Modifier.wrapContentSize(Alignment.TopStart, unbounded = true).size(px(1170), px(2532)).liquidGlassSource(),
+        )
+        for ((kind, x0, y0) in fixtureBoxes) {
+            val w = if (kind == "fused_closed") FIXTURE_FUSED_W else FIXTURE_W
+            val shape: Shape = if (kind == "closed" || kind == "fused_closed") RoundedCornerShape(px(FIXTURE_H / 2)) else PathCapsule()
+            val fuse = if (kind == "fused_closed") GlassFuse(
+                // A sibling 20 px to the right of the fused capsule (screen x 470..530), inside the screen and over black,
+                // so the whole fused union and its measurement windows are visible.
+                bounds = DpRect(left = px(w + FIXTURE_FUSE_GAP), top = px(0), right = px(w + FIXTURE_FUSE_GAP + FIXTURE_FUSE_SIB_W), bottom = px(FIXTURE_H)),
+                cornerRadius = px(20), smoothing = px(16),
+            ) else null
+            Box(
+                modifier = Modifier.offset(px(x0), px(y0)).size(px(w), px(FIXTURE_H))
+                    .liquidGlass(state = LocalLiquidGlassState.current!!, shape = shape, style = if (kind == "held_path") held else base, fuse = fuse),
+            )
+        }
+        BasicText("fixture path rs=%.2f pad=%.1f override=%s coverage=%s".format(renderScale, padPx, LiquidGlassDiagnostics.recordPadOverridePx?.toString() ?: "-", LiquidGlassDiagnostics.coverageOnly), Modifier.align(Alignment.BottomEnd).padding(px(8)), style = TextStyle(color = Color(0xFFFF00FF), fontSize = 10.sp))
     }
 }
