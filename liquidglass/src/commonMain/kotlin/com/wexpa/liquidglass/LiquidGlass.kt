@@ -265,7 +265,17 @@ fun Modifier.liquidGlass(
     val direction = LocalLayoutDirection.current
     val measured = coordinates?.let { Size(it.size.width.toFloat(), it.size.height.toFloat()) }
         ?: Size.Zero
-    val padForField = style.padPx(density)
+    // The field is rasterised at the same origin the layer is recorded at: one pad, computed by
+    // one function, so the shader's uPad addresses the field where it was drawn (a field built
+    // with ceil(padPx) while the layer used ceil(pad * rs) / rs put the two on different origins:
+    // 23 versus 24 full-resolution pixels for a 22.5 px pad at half scale).
+    val padForField = style.recordPad(
+        radii = shape.glassRadii(measured, direction, density),
+        size = measured,
+        fuse = fuse,
+        density = density,
+        renderScale = state.renderScale,
+    )
     // Measured once per shape and size, never per frame. Null for every shape that has a closed
     // form, which is all of them until someone reaches for a path.
     val pathField = if (shape.needsSampledField(measured, direction, density)) {
@@ -314,20 +324,10 @@ fun Modifier.liquidGlass(
                 // lens rather than merely blur. Record that margin, or displacement at the rim
                 // clamps against the panel's own edge and the lensing has nothing to bend.
                 val bandPx = style.bandPx(radii, size, this)
-                // The held lens samples outward by up to 0.29 W: record that much more.
-                var pad = maxOf(style.padPx(this), if (style.profile == GlassProfile.Held) bandPx * 0.3f else 0f)
-                // A fused outline reaches wherever the other shape does, plus the fusion's own
-                // bulge, and the rim has to be inside the layer to be drawn at all.
-                if (fuse != null) {
-                    val f = fuse.toPx(size, this)
-                    pad = maxOf(
-                        pad,
-                        maxOf(
-                            maxOf(-(f[0] - f[2]) + size.width / 2f, (f[0] + f[2]) - size.width / 2f),
-                            maxOf(-(f[1] - f[3]) + size.height / 2f, (f[1] + f[3]) - size.height / 2f),
-                        ) + f[5] * 0.25f + bandPx,
-                    )
-                }
+                // Coordinate contract: the recorded layer, the shader's pad uniform, the sampled
+                // field and the draw-back translate all use this one pad (see recordPad).
+                val rs = state.renderScale.coerceIn(0.25f, 1f)
+                val pad = style.recordPad(radii, size, fuse, this, state.renderScale)
                 val sizeFactor = elementSizeFactor(size, this)
                 val contactShadow = glassShadow(sizeFactor)
                 val contactShadowAlpha = contactShadow.alpha * style.contactShadow.coerceIn(0f, 1f)
@@ -405,7 +405,6 @@ fun Modifier.liquidGlass(
                 // Everything below happens in the reduced space if one is asked for: the layers
                 // are recorded smaller, the shader is told smaller lengths, and the result is
                 // drawn back up. See LiquidGlassState.renderScale.
-                val rs = state.renderScale.coerceIn(0.25f, 1f)
                 // The padded slice of backdrop beneath this panel, in the panel's own
                 // coordinates offset by the pad.
                 val paddedSize = IntSize(
@@ -986,6 +985,36 @@ internal fun GlassStyle.bandPx(radii: FloatArray, size: Size, density: Density):
     val r = radii.maxOrNull() ?: 0f
     val cap = minOf(size.width, size.height) / 2f
     GlassMaterial.BEVEL_RATIO * minOf(r, cap)
+}
+
+/**
+ * The pad every consumer of the padded layer agrees on: the recording, the shader's `uPad`, the
+ * sampled distance field and the draw-back translate. It is the blur/kernel reach ([padPx]),
+ * enlarged for the held lens's outward sampling (0.3 of the band) and for a fused outline, then
+ * rounded up to a whole number of layer pixels in the space the layer is recorded in
+ * (`pad * renderScale`), so no consumer sits half a pixel from another.
+ */
+internal fun GlassStyle.recordPad(
+    radii: FloatArray,
+    size: Size,
+    fuse: GlassFuse?,
+    density: Density,
+    renderScale: Float,
+): Float {
+    val bandPx = bandPx(radii, size, density)
+    var pad = maxOf(padPx(density), if (profile == GlassProfile.Held) bandPx * 0.3f else 0f)
+    if (fuse != null) {
+        val f = fuse.toPx(size, density)
+        pad = maxOf(
+            pad,
+            maxOf(
+                maxOf(-(f[0] - f[2]) + size.width / 2f, (f[0] + f[2]) - size.width / 2f),
+                maxOf(-(f[1] - f[3]) + size.height / 2f, (f[1] + f[3]) - size.height / 2f),
+            ) + f[5] * 0.25f + bandPx,
+        )
+    }
+    val rs = renderScale.coerceIn(0.25f, 1f)
+    return kotlin.math.ceil(pad * rs) / rs
 }
 
 /**

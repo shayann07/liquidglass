@@ -1,5 +1,6 @@
 package com.wexpa.liquidglass
 
+import androidx.compose.ui.graphics.asSkiaBitmap
 import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.Canvas
 import org.jetbrains.skia.ColorAlphaType
@@ -74,6 +75,12 @@ internal object GlassRender {
         counterLight: Float = 1f,
         edgeLight: Float = 1f,
         legibility: Float = 0f,
+        /** A sampled distance field for the panel's shape; when given, uShapeKind is 1 and the shader reads the field through [pad]. */
+        field: GlassPathField? = null,
+        /** Fused sibling: centre x, y, half-width, half-height (px, panel coordinates) and the fusion's radius and strength. */
+        fuse: FloatArray? = null,
+        fuseRadius: Float = 0f,
+        fuseStrength: Float = 0f,
         backdrop: (x: Int, y: Int) -> Int,
     ): IntArray {
         val w = width + pad * 2
@@ -114,22 +121,32 @@ internal object GlassRender {
 
         val b = RuntimeShaderBuilder(effect)
         b.child("content", srcShader)
-        b.child("field", srcShader) // bound but unread while uShapeKind is 0
+        if (field != null) {
+            val fb = field.bitmap.asSkiaBitmap()
+            b.child("field", Image.makeFromBitmap(fb).makeShader(FilterTileMode.CLAMP, FilterTileMode.CLAMP, SamplingMode.LINEAR))
+        } else {
+            b.child("field", srcShader) // bound but unread while uShapeKind is 0
+        }
         b.uniform("uSize", width.toFloat(), height.toFloat())
         b.uniform("uPad", pad.toFloat())
         b.uniform("uBackdrop", 0f, 0f, w.toFloat(), h.toFloat())
         b.uniform("uBase", 0f, 0f, 0f)
         b.uniform("uRadii", radii[0], radii[1], radii[2], radii[3])
-        b.uniform("uFuse", 0f, 0f, 0f, 0f)
-        b.uniform("uFuseShape", 0f, 0f)
+        if (fuse != null) {
+            b.uniform("uFuse", fuse[0], fuse[1], fuse[2], fuse[3])
+            b.uniform("uFuseShape", fuseRadius, fuseStrength)
+        } else {
+            b.uniform("uFuse", 0f, 0f, 0f, 0f)
+            b.uniform("uFuseShape", 0f, 0f)
+        }
         b.uniform("uRefractBand", refractBand)
         b.uniform("uRefractDepth", refractDepth)
         b.uniform("uIor", ior)
         b.uniform("uBevelPower", bevelPower)
         b.uniform("uCornerPower", cornerPower)
-        b.uniform("uShapeKind", 0f)
-        b.uniform("uFieldRange", 1f)
-        b.uniform("uFieldScale", 1f)
+        b.uniform("uShapeKind", if (field != null) 1f else 0f)
+        b.uniform("uFieldRange", field?.range ?: 1f)
+        b.uniform("uFieldScale", field?.scale ?: 1f)
         b.uniform("uAberration", aberration)
         b.uniform("uMirror", mirror)
         b.uniform("uBlur", blur)

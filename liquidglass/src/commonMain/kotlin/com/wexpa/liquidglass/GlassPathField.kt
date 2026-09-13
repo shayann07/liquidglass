@@ -88,25 +88,44 @@ internal fun buildPathField(
     val fh = (layerHeight / FIELD_SCALE).coerceAtLeast(1)
     if (fw < 2 || fh < 2) return null
 
-    // Rasterise the outline into the padded layer, at the panel's offset inside it.
-    val mask = ImageBitmap(fw, fh)
+    // Rasterise the outline at the layer's own resolution, at the panel's offset inside it, and
+    // take the distance down to the field's resolution afterwards. Rasterising at field
+    // resolution put the outline on a half texel whenever the pad was odd (the pad is a whole
+    // number of layer pixels, not of texels), and the boolean mask then rounded it: the sampled
+    // silhouette sat a full pixel off the closed form for pads 23 and 25 and exactly on it for 22
+    // and 24. A full-resolution mask keeps the outline where the layer has it.
+    val mask = ImageBitmap(layerWidth, layerHeight)
     val canvas = Canvas(mask)
     val paint = Paint().apply { color = Color.White }
     canvas.save()
-    canvas.translate(pad / FIELD_SCALE, pad / FIELD_SCALE)
-    canvas.scale(1f / FIELD_SCALE, 1f / FIELD_SCALE)
+    canvas.translate(pad, pad)
     canvas.drawPath(path, paint)
     canvas.restore()
 
     val pixels = mask.toPixelMap()
-    val inside = BooleanArray(fw * fh)
-    for (y in 0 until fh) {
-        for (x in 0 until fw) {
-            inside[y * fw + x] = pixels[x, y].alpha > 0.5f
+    val inside = BooleanArray(layerWidth * layerHeight)
+    for (y in 0 until layerHeight) {
+        for (x in 0 until layerWidth) {
+            inside[y * layerWidth + x] = pixels[x, y].alpha > 0.5f
         }
     }
 
-    val distance = signedDistance(inside, fw, fh)
+    val full = signedDistance(inside, layerWidth, layerHeight)
+    // A texel covers FIELD_SCALE x FIELD_SCALE layer pixels and is sampled at its centre, which
+    // is the mean of the pixel centres it covers; distance is smooth, so the mean is the value.
+    val distance = FloatArray(fw * fh)
+    for (y in 0 until fh) {
+        for (x in 0 until fw) {
+            var acc = 0f; var n = 0
+            for (dy in 0 until FIELD_SCALE) for (dx in 0 until FIELD_SCALE) {
+                val xx = x * FIELD_SCALE + dx; val yy = y * FIELD_SCALE + dy
+                if (xx < layerWidth && yy < layerHeight) { acc += full[yy * layerWidth + xx]; n++ }
+            }
+            distance[y * fw + x] = if (n > 0) acc / n / FIELD_SCALE else 0f
+        }
+    }
+    // `full` is in layer pixels; the field's encoding below is in texels (range / FIELD_SCALE), so
+    // the distance is divided by FIELD_SCALE above to keep the stored units unchanged.
 
     // The shader only reads within the band, so spending the eight bits there rather than on
     // the far interior is what keeps the quantisation under a pixel.
