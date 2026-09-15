@@ -1,7 +1,7 @@
 name: Docs
 
 # Builds the documentation site from docs/ and publishes it to GitHub Pages at
-# https://shayann07.github.io/liquidglass/. The build runs on pull requests too, without
+# https://liquidglass.shayxo.dev/. The build runs on pull requests too, without
 # deploying, so a broken link is caught in review rather than on the live site — mkdocs.yml
 # sets strict mode, which turns a bad link into a failed build.
 on:
