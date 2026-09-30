@@ -8,7 +8,7 @@ body:
         Two things account for most reports, so please check them first:
 
         - **The material is flat, or the glass shows nothing.** Below Android 13 there is no
-          shader path at all — see [Limitations](https://shayann07.github.io/liquidglass/limitations/).
+          shader path at all — see [Limitations](https://liquidglass.shayxo.dev/limitations/).
         - **The backdrop slides out from under the element as you scroll.** Glass inside a
           scrolling container whose source is outside it cannot discover its own offset. That
           section of Limitations explains the two arrangements that do work.

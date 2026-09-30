@@ -1,4 +1,4 @@
-# The documentation site, published to https://shayann07.github.io/liquidglass/ by
+# The documentation site, published to https://liquidglass.shayxo.dev/ by
 # .github/workflows/docs.yml on every push to main.
 #
 # The site's home page is docs/README.md, the documentation index. The repository's own
@@ -6,7 +6,7 @@
 # Build it locally with:  pip install mkdocs-material && mkdocs serve
 
 site_name: liquidglass
-site_url: https://shayann07.github.io/liquidglass/
+site_url: https://liquidglass.shayxo.dev/
 site_description: >-
   Liquid Glass for Jetpack Compose and Compose Multiplatform. Real refraction, dispersion and
   rim lighting in one shader. Documentation, API reference and the optical research behind it.

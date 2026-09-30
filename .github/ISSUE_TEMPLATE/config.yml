@@ -4,8 +4,8 @@ contact_links:
     url: https://github.com/shayann07/liquidglass/discussions
     about: Anything that is not a defect or a request. Screenshots of it running are welcome.
   - name: Documentation
-    url: https://shayann07.github.io/liquidglass/
+    url: https://liquidglass.shayxo.dev/
     about: Guides, the API reference, and the research behind every parameter.
   - name: Read the limitations first
-    url: https://shayann07.github.io/liquidglass/limitations/
+    url: https://liquidglass.shayxo.dev/limitations/
     about: What Android cannot do here, and why. Most surprises are covered.
