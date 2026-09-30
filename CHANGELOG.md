@@ -1,10 +1,77 @@
 # Changelog
 
+## Astra r13 review (2026-10-01, unreleased)
+
+- Shared anchored Pullable material: stationary layout/content, bounded deformation, level wide bars.
+- Full-screen excursion fixes: unclipped Live material, perpendicular-axis strain and endpoint resistance.
+- Reduced held squeeze, native selected ink, compact rest layout and opt-in held side recovery.
+- Generic integration guide, physical review evidence and preserved alternative approaches.
+- No claim of complete iOS parity and no Maven Central release.
+
 ## 0.2.0 (unreleased)
 
-The optics are now measured, not tuned. Every number in the default material comes from
-calibration captures of iOS 27 on a real device, taken through a known test image so the
-material could be measured rather than eyeballed (`docs/research/measured-model.md`).
+- **Reduced held-bubble drag sensitivity:** lower speed response, maximum spine stretch and
+  squeeze, with a gentler bounded off-axis response. Small movements remain continuous;
+  resting-tap dynamics, press expansion and standalone glass behavior are preserved.
+
+- **A deforming tab-bar selector, opt-in** (`GlassTabBarStyle.selector = GlassSelectorSpec()`, or
+  the `GlassTabBarStyle.V3(...)` preset; default null, which keeps the capsule selector this
+  component shipped with). The selected Astra path uses a two-dimensional pose body with
+  separate centre, spine, pressure and strain state. Its outline, normal, source coordinates
+  and coverage share that body. Rest geometry fits compact end slots; taps deform within the
+  bar and genuine holds can protrude. Resting taps have separate distance-dependent shape
+  recovery. The earlier two-disk controller remains available through `poseMotion = false`.
+  Dynamics are authored design constants, not recovered Apple constants; the pose path uses
+  `GlassPoseSpec`, while `GlassSelectorSpec` retains the earlier controller's parameters.
+- **Astra reference corrections:** calm expansion preserves the capsule's straight spine;
+  native ink magnification no longer compounds with a second selected-item scale; dark Phone
+  material follows the sampled 32→44 rest/hold plateaus. The raised rim is visible again,
+  calibrated with production lighting fields and lossless physical captures. Rim colour and
+  the side profile remain partial; see `docs/implementation-status.md` for current verification.
+- **Semantic ink is composited as a complete endpoint** on that path. The selector's through-source
+  carries the bar's material alone, with no icon or label in it, and the selected ink is composited
+  once as `C = (1-m)·C0 + m·(c1 + (1-a1)·B1)` instead of being alpha-overed on separately mixed
+  material. The difference is `m(1-m)(a1-a0)(B1-B0)`, which is largest exactly at a moving rim, and
+  it is what made a label under the lens read as a ghosted second copy. Ink is rasterised at native
+  layer resolution whatever `renderScale` the backdrop uses, and takes one sharp sample by default:
+  a maximum over three channels' alphas is not correct coloured transmission
+  (`GlassStyle.inkDispersion`).
+- **A straight-run fold for the measured profile** (`GlassStyle.edgeFold`, default 0). `f(u) = u +
+  a(1-u)^3` joins identity in value and both derivatives and, for `a > 1/3`, folds once at
+  `1 - 1/sqrt(3a)`; page structure then appears twice near a straight edge with opposite
+  orientation, which is what makes text bend and stretch into the edge instead of showing through
+  it. The measured resting-corner table remains the authority at a corner and the two are blended
+  through a geometric arc/run transition. `a` is authored, not measured.
+- **The held lens's ink map is continuous through the middle of its band** when asked
+  (`GlassStyle.heldInkContinuous`, default false). The shipped map steps by about 0.14 W at half
+  the band; the captures never established that the step was a real discontinuity, and a smooth
+  path across one source plane has a continuous source coordinate.
+- **A measured resting-corner source map, opt-in** (`GlassStyle.restMap = GlassRestMap.Measured`;
+  default `Legacy`). Fitted in the closeout on 190 display-to-source landmark pairs read off the
+  Photos toolbar's 72 px ends in both appearances over both calibration targets, and compiled as a
+  12-knot table in the shader's own band (`GlassRestMapTable`): the shipping map is 6-7 px off the
+  phone at every depth from 6 to 26 px, the table within 1 px. Changes only the resting corner
+  of the measured profile; the fold, the held family and everything else are untouched, and the
+  default leaves every existing style pixel-identical. At any radius other than the one measured (72 reference px, carried as the 24 dp design unit) it is a documented scale extrapolation.
+- **The content and container shaders take the panel's closed-form normal** for an analytic rounded
+  rectangle on the measured profile (`GlassNormalSource.kt`, one shared text and one shared decision).
+  They used to difference the field with a 0.3 W epsilon, which put a measured-profile content pass up
+  to 1.5 px from the material it sits in at a corner; the three shaders now sample from the same place
+  to the readback's 0.016 px, at every tested size, render scale, rest map and formation. The held lens's
+  content pass and the legacy profile are unchanged.
+- **A cancelled tab-bar gesture selects nothing.** A pointer taken over by another node, a vertical
+  scroll, a second finger or the node going away no longer commits the tab under the lens; the lens
+  settles back to the selection. A tap is the item's own click, once (the bar's handler no longer selects
+  it a second time), and a drag commits from the lift of the pointer that drove it.
+- **Two tab-bar release fixes** from the closeout's motion audit. The lift is now fed to the
+  velocity tracker, so a finger that stops, holds and lifts releases from a standstill instead of
+  with the velocity it had before it stopped (which could fling the lens a tab further). And a
+  press or selection change while the lens is still settling retargets the spring from its
+  running velocity instead of snapping it to zero.
+
+Material calibration uses original iOS captures of known test images. Measured quantities,
+inherited parameters and authored approximations remain distinct; not every constant is an
+Apple measurement (`docs/research/measured-model.md`, `docs/implementation-status.md`).
 
 - **The tab-bar lens under a finger** (`GlassProfile.Held`, `GlassStyle.heldLens`, `rawShare`;
   `GlassTabBarStyle.Measured` with `RestingInsetMeasured`, `HeldLensMeasured`, `pillWidth`,

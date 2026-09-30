@@ -33,8 +33,12 @@ fun lerpGlassStyle(start: GlassStyle, stop: GlassStyle, fraction: Float): GlassS
     // An unspecified band or sigma means "derived", which cannot be interpolated; it snaps with
     // the rest of the identity at the midpoint.
     fun d(a: Dp, b: Dp) = if (a.isUnspecified || b.isUnspecified) (if (t < 0.5f) a else b) else lerp(a, b, t)
+    // An unspecified ink split means "follow dispersion", which is an identity rather than a
+    // quantity, so it snaps with the rest of the identity instead of interpolating into NaN.
+    fun s(a: Float, b: Float) = if (a.isNaN() || b.isNaN()) (if (t < 0.5f) a else b) else f(a, b)
     return GlassStyle(
         profile = if (t < 0.5f) start.profile else stop.profile,
+        restMap = if (t < 0.5f) start.restMap else stop.restMap,
         blurRadius = d(start.blurRadius, stop.blurRadius),
         backdropBlur = d(start.backdropBlur, stop.backdropBlur),
         backdropSigma = d(start.backdropSigma, stop.backdropSigma),
@@ -49,10 +53,13 @@ fun lerpGlassStyle(start: GlassStyle, stop: GlassStyle, fraction: Float): GlassS
         cornerPower = f(start.cornerPower, stop.cornerPower),
         dispersion = f(start.dispersion, stop.dispersion),
         heldLens = f(start.heldLens, stop.heldLens),
+        heldMagnification = f(start.heldMagnification, stop.heldMagnification),
+        heldGlow = f(start.heldGlow, stop.heldGlow),
+        heldEdgeRecovery = d(start.heldEdgeRecovery, stop.heldEdgeRecovery),
         rawShare = f(start.rawShare, stop.rawShare),
         mirror = f(start.mirror, stop.mirror),
         bevel = d(start.bevel, stop.bevel),
-        tint = lerp(start.tint, stop.tint, t),
+        tint = lerpTintPremultiplied(start.tint, stop.tint, t),
         adaptivity = f(start.adaptivity, stop.adaptivity),
         legibility = f(start.legibility, stop.legibility),
         specular = f(start.specular, stop.specular),
@@ -65,6 +72,7 @@ fun lerpGlassStyle(start: GlassStyle, stop: GlassStyle, fraction: Float): GlassS
         bevelPeak = f(start.bevelPeak, stop.bevelPeak),
         fresnel = f(start.fresnel, stop.fresnel),
         highlightChroma = f(start.highlightChroma, stop.highlightChroma),
+        contactShadow = f(start.contactShadow, stop.contactShadow),
         innerShadow = f(start.innerShadow, stop.innerShadow),
         // Not interpolated: these are decisions, not quantities. A half-inverted element or a
         // half-opaque fallback is not a state anything wants to be in, so they snap at the
@@ -72,6 +80,15 @@ fun lerpGlassStyle(start: GlassStyle, stop: GlassStyle, fraction: Float): GlassS
         fallbackSurface = if (t < 0.5f) start.fallbackSurface else stop.fallbackSurface,
         invertsWithBackdrop = if (t < 0.5f) start.invertsWithBackdrop else stop.invertsWithBackdrop,
         dimmingLayer = f(start.dimmingLayer, stop.dimmingLayer),
+        // A fold strength is a quantity and interpolates; a <= 1/3 simply has no turning point,
+        // so passing through it is continuous in the map as well as in the number.
+        edgeFold = f(start.edgeFold, stop.edgeFold),
+        inkDispersion = s(start.inkDispersion, stop.inkDispersion),
+        // A decision, like the profile and the rest map beside it: it snaps at the midpoint. Two
+        // styles a component morphs between must therefore agree on it, or the ink's source map
+        // changes shape halfway through the morph. `GlassTabBarStyleTest` asserts that for the
+        // presets this library ships.
+        heldInkContinuous = if (t < 0.5f) start.heldInkContinuous else stop.heldInkContinuous,
     )
 }
 
@@ -99,3 +116,24 @@ fun animateGlassStyle(
 
 private fun lerp(start: Color, stop: Color, fraction: Float): Color =
     androidx.compose.ui.graphics.lerp(start, stop, fraction)
+
+/**
+ * The tint interpolated **premultiplied**, so what it does to the material is linear in [t].
+ *
+ * The resting pill is a black tint at alpha 0.143 and the held lens a white one at 0.01. Lerping
+ * colour and alpha separately puts a mid-grey at alpha 0.077 at the midpoint, which darkens the
+ * bar by almost nothing: the pill's darkness then arrives in the last third of the morph, and on
+ * the phone a released lens stayed bright for 170 ms and went dark in the next 60 (FABLE run 2,
+ * `human-FABLE-r5/regrab.mp4`), while the recording's lens darkens as it shrinks. Interpolating
+ * the premultiplied colour keeps the darkening proportional to the formation.
+ */
+internal fun lerpTintPremultiplied(a: Color, b: Color, t: Float): Color {
+    if (t <= 0f) return a
+    if (t >= 1f) return b
+    val aa = a.alpha
+    val ba = b.alpha
+    val alpha = aa + (ba - aa) * t
+    if (alpha <= 1e-5f) return Color(b.red, b.green, b.blue, alpha)
+    fun ch(x: Float, y: Float) = ((x * aa + (y * ba - x * aa) * t) / alpha).coerceIn(0f, 1f)
+    return Color(ch(a.red, b.red), ch(a.green, b.green), ch(a.blue, b.blue), alpha)
+}

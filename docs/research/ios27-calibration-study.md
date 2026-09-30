@@ -9,7 +9,7 @@ Dates: captures 2026-09-10 and 11, analysis and fitting 2026-09-11 and 12. Devic
 iOS 27.0 (24A5430a), 1170×2532 at 3×, Reduce Transparency, Increase Contrast and Reduce Motion
 all off, Tint Amount at the default 50 unless stated. The raw captures, the frame catalogue,
 the analysis tools and every intermediate number live in the capture repository
-(`liquidglass-captures`, not part of this library); the file names below refer to it.
+(`research/datasets/ios27-phone/`, kept in this repository but outside the published site); the file names below refer to it.
 
 ## 1. Why a calibration target
 

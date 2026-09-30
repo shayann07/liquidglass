@@ -1,0 +1,106 @@
+Starting a Gradle Daemon, 2 incompatible and 1 stopped Daemons could not be reused, use --status for details
+Calculating task graph as no cached configuration is available for tasks: :liquidglass:jvmTest --tests *GlassExtremeInteractionTest* --tests *GlassPullTest* publishToMavenLocal
+> Task :liquidglass:generateExpectResourceCollectorsForCommonMain SKIPPED
+> Task :liquidglass:androidPreBuild UP-TO-DATE
+> Task :liquidglass:generateComposeResClass SKIPPED
+> Task :liquidglass:preAndroidMainBuild UP-TO-DATE
+> Task :liquidglass:copyNonXmlValueResourcesForCommonMain NO-SOURCE
+> Task :liquidglass:convertXmlValueResourcesForAndroidMain NO-SOURCE
+> Task :liquidglass:convertXmlValueResourcesForJvmMain NO-SOURCE
+> Task :liquidglass:convertXmlValueResourcesForJvmTest NO-SOURCE
+> Task :liquidglass:copyNonXmlValueResourcesForCommonTest NO-SOURCE
+> Task :liquidglass:convertXmlValueResourcesForCommonMain NO-SOURCE
+> Task :liquidglass:copyNonXmlValueResourcesForJvmTest NO-SOURCE
+> Task :liquidglass:convertXmlValueResourcesForCommonTest NO-SOURCE
+> Task :liquidglass:copyNonXmlValueResourcesForAndroidMain NO-SOURCE
+> Task :liquidglass:prepareComposeResourcesTaskForCommonMain NO-SOURCE
+> Task :liquidglass:generateResourceAccessorsForCommonMain SKIPPED
+> Task :liquidglass:prepareComposeResourcesTaskForCommonTest NO-SOURCE
+> Task :liquidglass:prepareComposeResourcesTaskForJvmTest NO-SOURCE
+> Task :liquidglass:generateResourceAccessorsForCommonTest SKIPPED
+> Task :liquidglass:generateResourceAccessorsForJvmTest SKIPPED
+> Task :liquidglass:copyNonXmlValueResourcesForJvmMain NO-SOURCE
+> Task :liquidglass:prepareComposeResourcesTaskForAndroidMain NO-SOURCE
+> Task :liquidglass:prepareComposeResourcesTaskForJvmMain NO-SOURCE
+> Task :liquidglass:generateResourceAccessorsForJvmMain SKIPPED
+> Task :liquidglass:generateActualResourceCollectorsForJvmMain SKIPPED
+> Task :liquidglass:generateResourceAccessorsForAndroidMain SKIPPED
+> Task :liquidglass:generateActualResourceCollectorsForAndroidMain SKIPPED
+> Task :liquidglass:checkJvmMainComposeLibrariesCompatibility
+> Task :liquidglass:checkJvmTestComposeLibrariesCompatibility
+> Task :liquidglass:kmpPartiallyResolvedDependenciesChecker
+> Task :liquidglass:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :liquidglass:prepareAndroidMainArtProfile UP-TO-DATE
+> Task :liquidglass:androidEmptyJavadocJar UP-TO-DATE
+> Task :liquidglass:mergeAndroidMainJniLibFolders UP-TO-DATE
+> Task :liquidglass:assembleJvmTestResources UP-TO-DATE
+> Task :liquidglass:prepareLintJarForPublish UP-TO-DATE
+> Task :liquidglass:assembleJvmMainResources UP-TO-DATE
+> Task :liquidglass:generateAndroidMainEmptyResourceFiles UP-TO-DATE
+> Task :liquidglass:mergeAndroidMainNativeLibs NO-SOURCE
+> Task :liquidglass:jvmProcessResources UP-TO-DATE
+> Task :liquidglass:processJvmMainResources SKIPPED
+> Task :liquidglass:writeAndroidMainAarMetadata UP-TO-DATE
+> Task :liquidglass:copyAndroidMainJniLibsProjectOnly UP-TO-DATE
+> Task :liquidglass:jvmTestProcessResources UP-TO-DATE
+> Task :liquidglass:processAndroidMainManifest UP-TO-DATE
+> Task :liquidglass:processJvmTestResources SKIPPED
+> Task :liquidglass:metadataCommonMainProcessResources NO-SOURCE
+> Task :liquidglass:jvmEmptyJavadocJar UP-TO-DATE
+> Task :liquidglass:generateProjectStructureMetadata UP-TO-DATE
+> Task :liquidglass:generatePomFileForKotlinMultiplatformPublication
+> Task :liquidglass:kotlinMultiplatformEmptyJavadocJar UP-TO-DATE
+> Task :liquidglass:buildKotlinToolingMetadata UP-TO-DATE
+> Task :liquidglass:jvmSourcesJar
+> Task :liquidglass:androidSourcesJar
+> Task :liquidglass:sourcesJar
+> Task :liquidglass:transformCommonMainDependenciesMetadata UP-TO-DATE
+> Task :liquidglass:compileCommonMainKotlinMetadata SKIPPED
+> Task :liquidglass:generatePomFileForJvmPublication
+> Task :liquidglass:generatePomFileForAndroidPublication
+> Task :liquidglass:metadataCommonMainClasses UP-TO-DATE
+> Task :liquidglass:checkAndroidMainAarMetadata UP-TO-DATE
+> Task :liquidglass:allMetadataJar UP-TO-DATE
+> Task :liquidglass:generateMetadataFileForKotlinMultiplatformPublication
+> Task :liquidglass:extractAndroidMainAnnotations UP-TO-DATE
+> Task :liquidglass:publishKotlinMultiplatformPublicationToMavenLocal
+
+> Task :liquidglass:compileKotlinJvm
+w: file:///D:/Work/AndroidStudioProjects/SideProjects/kmp/astra/liquidglass/liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/GlassTabBar.kt:650:73 Unnecessary non-null assertion (!!) on a non-null receiver of type 'PointerInputChange'.
+w: file:///D:/Work/AndroidStudioProjects/SideProjects/kmp/astra/liquidglass/liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/GlassTabBar.kt:801:38 Unnecessary non-null assertion (!!) on a non-null receiver of type 'GlassSelectorSpec'.
+w: file:///D:/Work/AndroidStudioProjects/SideProjects/kmp/astra/liquidglass/liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/LiquidGlass.kt:406:46 Condition is always 'true'.
+w: file:///D:/Work/AndroidStudioProjects/SideProjects/kmp/astra/liquidglass/liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/LiquidGlass.kt:886:1 'expect'/'actual' classes (including interfaces, objects, annotations, enums, and 'actual' typealiases) are in Beta. Consider using the '-Xexpect-actual-classes' flag to suppress this warning. Also see: https://youtrack.jetbrains.com/issue/KT-61573
+w: file:///D:/Work/AndroidStudioProjects/SideProjects/kmp/astra/liquidglass/liquidglass/src/jvmMain/kotlin/com/wexpa/liquidglass/LiquidGlass.jvm.kt:16:1 'expect'/'actual' classes (including interfaces, objects, annotations, enums, and 'actual' typealiases) are in Beta. Consider using the '-Xexpect-actual-classes' flag to suppress this warning. Also see: https://youtrack.jetbrains.com/issue/KT-61573
+
+> Task :liquidglass:compileJvmMainJava NO-SOURCE
+> Task :liquidglass:jvmMainClasses
+
+> Task :liquidglass:compileAndroidMain
+w: file:///D:/Work/AndroidStudioProjects/SideProjects/kmp/astra/liquidglass/liquidglass/src/androidMain/kotlin/com/wexpa/liquidglass/LiquidGlass.android.kt:18:1 'expect'/'actual' classes (including interfaces, objects, annotations, enums, and 'actual' typealiases) are in Beta. Consider using the '-Xexpect-actual-classes' flag to suppress this warning. Also see: https://youtrack.jetbrains.com/issue/KT-61573
+w: file:///D:/Work/AndroidStudioProjects/SideProjects/kmp/astra/liquidglass/liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/GlassTabBar.kt:650:73 Unnecessary non-null assertion (!!) on a non-null receiver of type 'PointerInputChange'.
+w: file:///D:/Work/AndroidStudioProjects/SideProjects/kmp/astra/liquidglass/liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/GlassTabBar.kt:801:38 Unnecessary non-null assertion (!!) on a non-null receiver of type 'GlassSelectorSpec'.
+w: file:///D:/Work/AndroidStudioProjects/SideProjects/kmp/astra/liquidglass/liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/LiquidGlass.kt:406:46 Condition is always 'true'.
+w: file:///D:/Work/AndroidStudioProjects/SideProjects/kmp/astra/liquidglass/liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/LiquidGlass.kt:886:1 'expect'/'actual' classes (including interfaces, objects, annotations, enums, and 'actual' typealiases) are in Beta. Consider using the '-Xexpect-actual-classes' flag to suppress this warning. Also see: https://youtrack.jetbrains.com/issue/KT-61573
+
+> Task :liquidglass:mergeAndroidMainGeneratedProguardFiles UP-TO-DATE
+> Task :liquidglass:processAndroidMainJavaRes UP-TO-DATE
+> Task :liquidglass:mergeAndroidMainConsumerProguardFiles UP-TO-DATE
+> Task :liquidglass:mergeAndroidMainJavaResource UP-TO-DATE
+> Task :liquidglass:jvmJar
+> Task :liquidglass:generateMetadataFileForJvmPublication
+> Task :liquidglass:publishJvmPublicationToMavenLocal
+> Task :liquidglass:syncAndroidMainLibJars
+> Task :liquidglass:bundleAndroidMainAar
+> Task :liquidglass:generateMetadataFileForAndroidPublication
+> Task :liquidglass:publishAndroidPublicationToMavenLocal
+> Task :liquidglass:publishToMavenLocal
+> Task :liquidglass:compileTestKotlinJvm
+> Task :liquidglass:compileJvmTestJava NO-SOURCE
+> Task :liquidglass:jvmTestClasses
+> Task :liquidglass:jvmTest
+
+[Incubating] Problems report is available at: file:///D:/Work/AndroidStudioProjects/SideProjects/kmp/astra/liquidglass/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 58s
+46 actionable tasks: 22 executed, 24 up-to-date
+Configuration cache entry stored.

@@ -30,6 +30,9 @@
         <activity
             android:name=".CalibrationActivity"
             android:exported="true" />
+        <activity
+            android:name=".TabBarFixtureActivity"
+            android:exported="true" />
     </application>
 
 </manifest>

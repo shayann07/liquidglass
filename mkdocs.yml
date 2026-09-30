@@ -99,6 +99,7 @@ nav:
       - How it works: how-it-works.md
       - Shapes: shapes.md
       - Interaction: interaction.md
+      - Generic interaction: generic-interaction.md
       - Adaptation: adaptation.md
       - Tab bar: tab-bar.md
       - Accessibility: accessibility.md
@@ -108,6 +109,9 @@ nav:
       - API reference: api-reference.md
   - The research:
       - Overview: research/README.md
+      - The full record: research/the-record.md
+      - The measured model: research/measured-model.md
+      - The calibration study: research/ios27-calibration-study.md
       - Optical model: research/optical-model.md
       - Motion model: research/motion-model.md
       - Every parameter: research/parameters.md
@@ -118,5 +122,6 @@ nav:
       - Reading their source: research/competitor-source-study.md
       - iOS 27 measurements (raw): research/ios27-measurements-raw.md
   - Project:
+      - Implementation status: implementation-status.md
       - Roadmap: roadmap.md
       - Publishing: publishing.md

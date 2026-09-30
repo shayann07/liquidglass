@@ -1,0 +1,41 @@
+{
+  "physicalSerial": "28121FDH2006ZF",
+  "case": "regrab",
+  "screen": [
+    1080,
+    2400
+  ],
+  "centres": [
+    150.0,
+    344.5,
+    539.5,
+    734.5,
+    929.5
+  ],
+  "y": 2187.5,
+  "points": [
+    [
+      0,
+      539.5,
+      2187.5
+    ],
+    [
+      400,
+      539.5,
+      2187.5
+    ],
+    [
+      850,
+      1,
+      2187.5
+    ],
+    [
+      1200,
+      1,
+      2187.5
+    ]
+  ],
+  "physicalReachable": true,
+  "note": "Outside-display coordinates are synthetic robustness probes, not claimed finger-reachable.",
+  "apkSha256": "68fbd61da1f08e368a10de7bcee3b99696043f8c613f0e689435f949bb1dc79a"
+}

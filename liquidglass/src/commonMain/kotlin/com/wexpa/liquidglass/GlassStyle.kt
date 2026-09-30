@@ -138,6 +138,28 @@ data class GlassStyle(
      */
     val heldLens: Float = 0f,
     /**
+     * Interior magnification of the held lens, as the zoom fraction at full formation: 0.2 shows
+     * the content under the lens at 1 / (1 - 0.2) = 1.25x about the body's centre, rising and
+     * falling with [heldLens]. Authored from the calm held references (6717, 6721, and the
+     * recording's g7/g14 holds), where the held item reads about 1.25x its neighbours and the
+     * bar's own edge is carried outward inside the lens. Zero leaves the interior sampled 1:1,
+     * which is what every profile other than [GlassProfile.Held] does.
+     */
+    val heldMagnification: Float = 0f,
+    /**
+     * How much of the held lens's inward rim glow is drawn, 0 to 1. The glow is the measured
+     * "+16 falling to +1 over 15 px" behind the lens's lit edge line; a lens that is meant to show
+     * nothing but the exterior compressed into its band, with colour separation where content
+     * crosses it, sets this to 0 together with [specular], [counterLight] and [edgeShadow].
+     */
+    val heldGlow: Float = 1f,
+    /**
+     * Inward recovery length of the held lens's dark side edge. Zero keeps the historical
+     * narrow contour. V3 opts into a short shoulder and tail derived from original Phone
+     * profiles; the curve is authored, not an identified Apple optical formula.
+     */
+    val heldEdgeRecovery: Dp = 0.dp,
+    /**
      * A share of the raw backdrop added on top of the glass this element looks
      * [through][liquidGlass], 0 to 1. The measured tab-bar lens shows the bar's output plus
      * 0.11 of the content behind the bar, which is what makes its interior read clearer than
@@ -330,6 +352,50 @@ data class GlassStyle(
      * under it — at 35%, the one number the HIG actually gives.
      */
     val dimmingLayer: Float = 0f,
+    /**
+     * Which source map the resting corner lens of the measured profile uses. See [GlassRestMap]: the
+     * default is the map that shipped; [GlassRestMap.Measured] is the resting-corner table fitted on the
+     * Photos toolbar's 72 px ends, for the toolbar/bar role that path was measured on. Ignored by the
+     * legacy profile and by the held family. Last on purpose: every constructor parameter that existed
+     * before it keeps its position, so positional call sites written against 0.1 still compile.
+     */
+    val restMap: GlassRestMap = GlassRestMap.Legacy,
+    /**
+     * Straight-run fold strength, the `a` of `f(u) = u + a (1 - u)^3` on the measured profile.
+     *
+     * The measured resting *corner* table is untouched by this: the two profiles are blended
+     * through a geometric arc/run transition, so a corner keeps its measured source map and only
+     * a straight edge takes this candidate. For `a > 1/3` the profile folds once, at
+     * `uFold = 1 - 1/sqrt(3a)`, with minimum source depth `1 - 2/(3 sqrt(3a))`; page structure
+     * therefore appears twice near the edge with opposite orientation, which is the mechanism
+     * behind the stretched, reversed page text at a straight edge. 0 keeps the shallow inward
+     * offset a committed sheet pull measured, which is what every existing consumer has.
+     *
+     * The number is **authored**, not a recovered optical constant. Its intended range is
+     * 0.55 to 1.20 (V3-MODEL.md section 10.2).
+     */
+    val edgeFold: Float = 0f,
+    /**
+     * Per-channel split for this element's semantic [refracted content][liquidGlass], as a
+     * fraction of the displacement.
+     *
+     * Unspecified (NaN) means "whatever [dispersion] is", which is what the material has always
+     * done. 0 takes one sharp sample instead, which is the only form whose alpha is exactly the
+     * glyph's own: a maximum over three channels' alphas is not correct coloured transmission
+     * over an arbitrary background, and it is what turns a white glyph into an opaque blocker of
+     * green and blue. Set it explicitly when ink and page material should not split alike.
+     */
+    val inkDispersion: Float = Float.NaN,
+    /**
+     * Whether the held lens's **ink** map is continuous through the middle of its band.
+     *
+     * The shipped held source steps by about 0.14 W at half the band. The captures did not
+     * decisively establish a true discontinuity there, and a smooth path across one source plane
+     * has a continuous source coordinate, so the sharp ink map connects the outward branch to the
+     * interior across 0.45..0.55 instead (V3-MODEL.md section 10.3). The page material's own map
+     * is unaffected; this is one coordinate blend, not a blend of two glyph images.
+     */
+    val heldInkContinuous: Boolean = false,
 ) {
     companion object {
         /** In-app glass, light appearance, default Tint Amount: the measured navigation pill. */

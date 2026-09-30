@@ -15,9 +15,12 @@ build/
 
 # Android
 local.properties
-captures/
+.cxx/
 *.apk
 *.aab
+*.hprof
+# Android Studio's profiler capture directory. Not the research material, which is research/ below.
+captures/
 
 # Signing. Publishing credentials live in ~/.gradle/gradle.properties, never here.
 *.gpg
@@ -36,3 +39,41 @@ desktop.ini
 
 # The built documentation site (mkdocs build)
 site/
+
+# Python, for the measurement and figure tools under research/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# research/ - the measurement material and the record written from it.
+#
+# The WRITING is repository content and is tracked: research/README.md (the full record), every
+# analysis document, every packet, and the measurement and capture tools that produced the numbers.
+# About 2.5 MB of text, so the claims in docs/ can always be traced to the work behind them.
+#
+# The MATERIAL is not: iOS captures, the mac rig session, device captures, decoded arrays, figures
+# and APKs come to about 6 GB, and the competitor clones are other projects' repositories. They live
+# in the working tree on purpose (AGENTS.md and research/README.md explain why) but GitHub cannot
+# carry them.
+#
+# The leading slash anchors these to the repository root, so docs/research/ - the published
+# write-ups - is untouched by them.
+/research/**
+!/research/**/
+!/research/**/*.md
+!/research/**/*.py
+!/research/**/*.sh
+!/research/**/*.csv
+!/research/**/*.txt
+# The before/after figures the record's argument rests on: 1.6 MB, and a claim about what the page
+# does at a bar's edge is worth little without the picture of it.
+!/research/analysis/v3/figures/*.png
+# ...except these, which are data or other people's code however they are spelled.
+/research/datasets/
+/research/competitors/
+/research/**/__pycache__/
+
+# Private iterative corpus; curated final evidence is published in review/.
+/research/analysis/v3/astra-independent/

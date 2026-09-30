@@ -37,6 +37,25 @@ as glass responding to a touch. It drags a small magnification of the backdrop w
 `interaction` observes but does not consume the gesture, so an element can be interactive glass
 *and* a normal `clickable` without the two fighting.
 
+### Press and pull
+
+The unreleased `GlassInteraction.Pullable` preset adds per-side press growth and continuous
+drag deformation. The target becomes progressively resistant before it enters the animation,
+so a distant pointer cannot store unlimited hidden travel. Stretch and squeeze use the
+support widths along and across the pull; wide panels therefore do not lose a large fraction
+of their width just because they are pulled along their short axis. The material now deforms
+around a fixed centre. Ordinary labels, icons, layout and hit targets stay still. Wide bars
+keep their spine horizontal; round controls retain diagonal stretch. This anchored policy
+supersedes the earlier free-body translation extrapolation. See [generic interaction](generic-interaction.md)
+for complete integration examples and gesture ownership.
+
+Allow the glass to draw beyond its resting layout. In particular, Compose shadows clip by
+default when elevation is positive. Use `shadow(..., clip = false)` on an interactive glass
+ancestor; a clipping shadow can cut off the expanded material during a pull.
+
+These authored input limits and the rectangular extrapolation do not establish full iOS
+parity. See [implementation status](implementation-status.md) for the current evidence.
+
 ### When something else owns the gesture
 
 A panel that is also the thing you touch can watch its own pointer, and `interaction` alone is

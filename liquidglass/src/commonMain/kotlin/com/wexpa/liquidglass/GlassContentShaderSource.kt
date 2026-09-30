@@ -18,7 +18,7 @@ package com.wexpa.liquidglass
  * `bevelSlope`, `snellShift` or the `bend` construction there has to land here too, or the
  * content will bend differently from the backdrop it sits in.
  */
-internal const val GLASS_CONTENT_SHADER_SOURCE = """
+internal val GLASS_CONTENT_SHADER_SOURCE = """
 uniform shader content;        // the element's content, transparent, recorded with uPad around it
 uniform shader field;          // sampled distance field, used only when uShapeKind is 1
 
@@ -42,16 +42,29 @@ uniform float   uMaterialize;
 uniform float   uProfile;
 uniform float   uFormation;
 uniform float   uHeldLens;     // GlassProfile.Held: how far the tab-bar lens has formed, 0 to 1
+uniform float   uHeldMagnification; // interior zoom of the held lens at full formation (GlassStyle.heldMagnification)
+uniform float   uRestMap;      // resting-corner source map: 0 legacy, 1 the measured table (GlassRestMap)
 
 uniform float2  uTouch;
 uniform float   uTouchAmt;
 
-float lnNorm(float2 v, float n) {
-    if (n <= 2.001 && n >= 1.999) {
-        return length(v);
-    }
-    return pow(pow(v.x, n) + pow(v.y, n), 1.0 / n);
-}
+uniform float4  uBody;         // V3 body: left centre x, right centre x, left radius, right radius, centred frame
+uniform float   uBodyY;
+uniform float   uBodyKind;     // 1 = V3 two-disk body, 2 = the pose body, 0 = uRadii
+uniform float4  uPoseA;        // the 2x2 pose matrix A, row major
+uniform float4  uPoseAInv;     // its inverse
+uniform float4  uPoseC;        // (cx, cy) reference centre, (bx, by) = k / R
+uniform float4  uPoseD;        // (spine, radius, scaleX, band)
+uniform float   uEndpointAlpha;// 1 emits the ink premultiplied and unmasked, for endpoint composition
+uniform float   uEdgeFold;     // straight-run fold strength, shared with the panel pass
+uniform float   uInkSplit;     // per-channel split for semantic ink; 0 means one sharp sample
+uniform float   uHeldInk;      // 1 uses the continuous held ink map instead of the seamed one
+
+$GLASS_ANALYTIC_NORMAL_SKSL
+
+$GLASS_BODY_SKSL
+
+$GLASS_POSE_SKSL
 
 float sdRoundRect(float2 p, float2 halfSize, float4 r) {
     float2 rr = (p.x > 0.0) ? r.yz : r.xw;
@@ -67,6 +80,12 @@ float smin(float a, float b, float k) {
 }
 
 float sdShape(float2 p, float2 halfSize) {
+    if (uBodyKind > 1.5) {
+        return poseQuery(p, uPoseA, uPoseAInv, uPoseC, uPoseD).x;
+    }
+    if (uBodyKind > 0.5) {
+        return bodyQuery(p, uBody, uBodyY).x;
+    }
     if (uShapeKind < 0.5) {
         float d = sdRoundRect(p, halfSize, uRadii);
         if (uFuseShape.y > 0.0) {
@@ -94,72 +113,7 @@ float snellShift(float slope, float ior) {
     return (si * ct - ci * st) / max(ci * ct + si * st, 1e-4);
 }
 
-// The lens under a finger on a tab bar (FINDINGS 19; measured model, section 2c). Over the outer
-// half of the band a pixel at depth u shows the exterior from 1.3u - 0.29 W: the content just
-// outside the rim is pulled in and compressed 1.3x (the bar's own edge line lands 10 px inside
-// the lens's rim, the header text above an App Store bar becomes a thin stripe along it). From
-// half the band inward the content is shown where it is. The source content between 0.36 W and
-// 0.5 W is never displayed: the seam hides the bar's end and the gap beside it when the lens
-// hangs over the end of a bar. Blended from identity, so a resting indicator in the same family
-// has no optics at all.
-float heldSource(float u) {
-    return (u < 0.5) ? (1.3 * u - 0.29) : u;
-}
-
-// The lens of chrome at rest, at the curved parts of an outline only (FINDINGS 18). Measured on
-// the Photos toolbar's 70 px ends at Tint 0, 50 and 62 in both appearances and over both targets
-// (identical, spread under 2 px) and on the Lock Screen's round buttons: a pixel at depth
-// u = d/W inside a rounded end shows the ring 0.55 W (0.33 R) inside, the same ring for the
-// whole of 0.14-0.38 W, then eases to identity by 0.76 W (0.46 R); the outer 0.14 W shows
-// slightly deeper content again, a vestige of the fold's mirror. Every ring in the outer third
-// showing the same source ring is what makes the stripes turn into concentric arcs at an end.
-// A straight run shows none of it: the content under it sits where it is (the dock's top edge
-// leaves a boundary 30 px inside in place, and folds nothing over the block above it).
-float restSource(float u) {
-    if (u >= 0.76) {
-        return u;
-    } else if (u >= 0.62) {
-        return 0.64 + 0.857 * (u - 0.62);
-    } else if (u >= 0.38) {
-        return 0.55 + 0.375 * (u - 0.38);
-    } else if (u >= 0.14) {
-        return 0.55;
-    }
-    return 0.55 + 0.93 * (0.14 - u);
-}
-
-// Whether a point's nearest bit of outline is a corner arc (1) or a straight run (0), with a
-// short blend along the run so the rest lens does not begin at a seam. Inside a corner's own
-// quadrant both q components are positive; along a run one is negative by the distance to the
-// arc. A circle is all arc. Radii are clamped as sdRoundRect clamps them.
-float cornerWeight(float2 p, float2 halfSize, float4 r) {
-    float2 rr = (p.x > 0.0) ? r.yz : r.xw;
-    float radius = (p.y > 0.0) ? rr.y : rr.x;
-    radius = min(radius, min(halfSize.x, halfSize.y));
-    float2 q = abs(p) - halfSize + radius;
-    float soft = max(radius * 0.2, 1.0);
-    return smoothstep(-soft, 0.0, min(q.x, q.y));
-}
-
-float foldSource(float u, float formation, float corner) {
-    float full;
-    if (u >= 0.9) {
-        full = u;
-    } else if (u >= 0.52) {
-        full = 0.71 + 0.5 * (u - 0.52);
-    } else if (u >= 0.28) {
-        full = 0.70;
-    } else {
-        full = 0.71 + 1.2857 * (0.28 - u);
-    }
-    // At rest a straight run shows almost nothing: a fast sheet pull shows only a 2-7 px inward
-    // offset across its 90 px band (FINDINGS 1b-iii), and the dock's top edge leaves what is
-    // under it in place. A corner arc at rest shows the measured rest lens (restSource). Both
-    // give way to the full fold as the lens forms under a tracked drag.
-    float straight = u + 0.06 * (1.0 - u) * (1.0 - u);
-    float rest = mix(straight, restSource(u), clamp(corner, 0.0, 1.0));
-    return mix(rest, full, clamp(formation, 0.0, 1.0));
-}
+$GLASS_SOURCE_MAP_SKSL
 
 half4 main(float2 coord) {
     float2 local = coord - float2(uPad);
@@ -174,15 +128,35 @@ half4 main(float2 coord) {
 
     float scale = clamp(uScale, 0.0, 1.0);
 
-    float eps = clamp(uRefractBand * 0.3, 1.0, 16.0);
-    float2 ex = float2(eps, 0.0);
-    float2 ey = float2(0.0, eps);
-    float2 g = float2(
-        sdShape(p + ex, halfSize) - sdShape(p - ex, halfSize),
-        sdShape(p + ey, halfSize) - sdShape(p - ey, halfSize));
-    float gLen = length(g);
-    float2 n = g / max(gLen, 1e-5);
-    float axisFade = smoothstep(0.15, 0.80, gLen / (2.0 * eps));
+    // The measured fold profile takes the panel's closed-form normal under the panel's own decision, so
+    // the content bends exactly as the material it sits in (closeout Phase 3). The held lens and the
+    // legacy profile keep the differenced field they shipped with; their output is unchanged.
+    float2 n;
+    float axisFade;
+    if (uBodyKind > 1.5) {
+        // The pose body's own transformed normal, from the same shared query as its distance.
+        float4 pq = poseQuery(p, uPoseA, uPoseAInv, uPoseC, uPoseD);
+        n = float2(pq.y, pq.z);
+        axisFade = 1.0;
+    } else if (uBodyKind > 0.5) {
+        // The body's own exact normal, from the same shared query as its distance.
+        float4 bq = bodyQuery(p, uBody, uBodyY);
+        n = float2(bq.y, bq.z);
+        axisFade = 1.0;
+    } else if (abs(uProfile - 1.0) < 0.5 && analyticNormalEligible(uShapeKind, uRefractBand, halfSize, uFuseShape.y) > 0.5) {
+        n = analyticNormal(p, halfSize, uRadii, uCornerPower, uProfile);
+        axisFade = 1.0;
+    } else {
+        float eps = clamp(uRefractBand * 0.3, 1.0, 16.0);
+        float2 ex = float2(eps, 0.0);
+        float2 ey = float2(0.0, eps);
+        float2 g = float2(
+            sdShape(p + ex, halfSize) - sdShape(p - ex, halfSize),
+            sdShape(p + ey, halfSize) - sdShape(p - ey, halfSize));
+        float gLen = length(g);
+        n = g / max(gLen, 1e-5);
+        axisFade = smoothstep(0.15, 0.80, gLen / (2.0 * eps));
+    }
 
     float depth = max(-d, 0.0);
     float e = clamp(depth / max(uRefractBand, 0.001), 0.0, 1.0);
@@ -201,24 +175,38 @@ half4 main(float2 coord) {
     float touchFall = exp(-dot(touchDelta, touchDelta) / (touchSigma * touchSigma))
         * clamp(uTouchAmt, 0.0, 1.0);
     float2 base = coord - touchDelta * (touchFall * 0.17);
+    // Interior magnification of the held lens ([GlassStyle.heldMagnification]): the aperture
+    // zooms about the body's centre, so the held item reads larger and the bar's own edge is
+    // carried outward inside the lens, which is what the calm held references show. Zero for
+    // every other profile, and it rises and falls with the lens itself.
+    if (uHeldMagnification > 0.0 && uProfile >= 1.5) {
+        float2 magCentre = (uBodyKind > 1.5) ? uPoseC.xy
+            : ((uBodyKind > 0.5) ? float2((uBody.x + uBody.y) * 0.5, uBodyY) : float2(0.0));
+        base -= (p - magCentre) * (uHeldMagnification * clamp(uHeldLens, 0.0, 1.0) * mat);
+    }
 
     float2 push = n * bend * lens;
-    float split = uAberration * bend;
+    float split = uInkSplit * bend;
     float2 pushR = push * (1.0 - split);
     float2 pushB = push * (1.0 + split);
     if (uProfile >= 0.5) {
         // The same inward fold the backdrop goes through; see the panel shader.
         float W = max(uRefractBand, 0.001);
         float u = clamp(depth / W, 0.0, 1.0);
-        float corner = (uShapeKind < 0.5) ? cornerWeight(p, halfSize, uRadii) : 1.0;
+        float corner = (uBodyKind > 1.5)
+            ? poseCorner(p, uPoseAInv, uPoseC, uPoseD)
+            : ((uBodyKind > 0.5)
+                ? bodyCorner(p, uBody, uBodyY)
+                : ((uShapeKind < 0.5) ? cornerWeight(p, halfSize, uRadii) : 1.0));
         float heldFamily = step(1.5, uProfile);
         float held = heldFamily * clamp(uHeldLens, 0.0, 1.0);
-        float src = mix(foldSource(u, uFormation, corner), mix(u, heldSource(u), held), heldFamily);
+        float heldMap = (uHeldInk > 0.5) ? heldSourceContinuous(u) : heldSource(u);
+        float src = mix(foldSource(u, uFormation, corner), mix(u, heldMap, held), heldFamily);
         float shift = (depth < W) ? (src * W - depth) : 0.0;
         shift = mix(max(shift, 0.0), shift, heldFamily) * mat * axisFade * smoothstep(0.0, 1.5, depth);
         float mirrorZone = mix((1.0 - smoothstep(0.24, 0.32, u)) * clamp(uFormation, 0.0, 1.0),
             (1.0 - smoothstep(0.45, 0.55, u)) * held, heldFamily);
-        float delta = uAberration * W * 0.5 * mirrorZone * mat;
+        float delta = uInkSplit * W * 0.5 * mirrorZone * mat;
         push = -n * shift;
         // The fold shows red the deeper content; the held lens shows blue the deeper content,
         // so blue's copy of the pulled-in edge lands outermost (FINDINGS 19).
@@ -227,14 +215,24 @@ half4 main(float2 coord) {
         pushB = -n * mix(max(shift - delta, 0.0), shift + delta, heldFamily);
     }
 
-    // Three taps of a transparent image, each channel from its own. Coverage is the widest of
-    // the three, so where one channel's tap has left the glyph and another's has not, the
-    // pixel keeps the colour that is still there — which is what a colour fringe is.
-    half4 r = content.eval(base + pushR);
-    half4 gg = content.eval(base + push);
-    half4 b = content.eval(base + pushB);
-    half a = max(max(r.a, gg.a), b.a);
-    half3 rgb = half3(r.r, gg.g, b.b);
-    return half4(min(rgb, half3(a)), a) * half(coverage);
+    // One sharp sample is the default for semantic ink: a maximum-of-three-alpha union is not
+    // correct per-channel transmission over an arbitrary background, so bulk ink dispersion is
+    // off unless a consumer asks for it (V3-MODEL section 8.3). uAberration still drives the
+    // page material's split in the panel pass; uInkSplit is this pass's own, and 0 there means
+    // the alpha below is exactly the glyph's own.
+    half4 col;
+    if (uInkSplit > 0.0001) {
+        half4 r = content.eval(base + pushR);
+        half4 gg = content.eval(base + push);
+        half4 b = content.eval(base + pushB);
+        half a = max(max(r.a, gg.a), b.a);
+        col = half4(min(half3(r.r, gg.g, b.b), half3(a)), a);
+    } else {
+        col = content.eval(base + push);
+    }
+    // Endpoint mode returns the ink premultiplied and unmasked, to be composited once over the
+    // opaque endpoint material before one aperture coverage is applied to the whole endpoint.
+    float outAlpha = (uEndpointAlpha > 0.5) ? 1.0 : coverage;
+    return col * half(outAlpha);
 }
 """

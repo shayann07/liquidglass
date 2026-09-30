@@ -1,0 +1,134 @@
+Starting a Gradle Daemon, 1 busy and 1 incompatible and 2 stopped Daemons could not be reused, use --status for details
+
+> Task :verifyAstraDependency
+ASTRA_PRIVATE_RUNTIME dev.shayxo.liquidglass:liquidglass-android:0.2.0-astra.13-SNAPSHOT D:\Work\AndroidStudioProjects\SideProjects\kmp\astra\gradle-home\caches\modules-2\files-2.1\dev.shayxo.liquidglass\liquidglass-android\0.2.0-astra.13-SNAPSHOT\e9ee1434f470ab2002b755fad3cad4188565d3dc\liquidglass.aar
+ASTRA_PRIVATE_PUBLICATION D:\Work\AndroidStudioProjects\SideProjects\kmp\astra\maven-local\dev\shayxo\liquidglass\liquidglass-android\0.2.0-astra.13-SNAPSHOT\liquidglass-android-0.2.0-astra.13-SNAPSHOT.aar SHA256 31701609f9c39589f969705fe2e4990d37d3238f61958262e7ea9eeea78405f0
+
+> Task :androidApp:preBuild UP-TO-DATE
+> Task :androidApp:preDebugBuild UP-TO-DATE
+> Task :androidApp:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :androidApp:generateDebugResources UP-TO-DATE
+> Task :androidApp:packageDebugResources UP-TO-DATE
+> Task :shared:androidPreBuild UP-TO-DATE
+> Task :shared:preAndroidMainBuild UP-TO-DATE
+> Task :shared:generateAndroidMainEmptyResourceFiles UP-TO-DATE
+> Task :androidApp:processDebugNavigationResources UP-TO-DATE
+> Task :androidApp:parseDebugLocalResources UP-TO-DATE
+> Task :androidApp:generateDebugRFile UP-TO-DATE
+> Task :shared:kmpPartiallyResolvedDependenciesChecker
+> Task :shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :shared:convertXmlValueResourcesForAndroidMain NO-SOURCE
+> Task :shared:copyNonXmlValueResourcesForAndroidMain NO-SOURCE
+> Task :shared:prepareComposeResourcesTaskForAndroidMain NO-SOURCE
+> Task :shared:generateResourceAccessorsForAndroidMain NO-SOURCE
+> Task :shared:convertXmlValueResourcesForCommonMain NO-SOURCE
+> Task :shared:copyNonXmlValueResourcesForCommonMain UP-TO-DATE
+> Task :shared:prepareComposeResourcesTaskForCommonMain UP-TO-DATE
+> Task :shared:generateResourceAccessorsForCommonMain UP-TO-DATE
+> Task :shared:generateActualResourceCollectorsForAndroidMain UP-TO-DATE
+> Task :shared:copyAndroidMainComposeResourcesToAndroidAssets UP-TO-DATE
+> Task :shared:packageAndroidMainResources UP-TO-DATE
+> Task :shared:parseAndroidMainLocalResources UP-TO-DATE
+> Task :shared:generateAndroidMainRFile UP-TO-DATE
+> Task :shared:generateCommonMainVitalsDatabaseInterface UP-TO-DATE
+> Task :shared:generateComposeResClass UP-TO-DATE
+> Task :shared:generateExpectResourceCollectorsForCommonMain UP-TO-DATE
+> Task :androidApp:javaPreCompileDebug UP-TO-DATE
+> Task :androidApp:generateDebugAssets UP-TO-DATE
+> Task :shared:generateAndroidMainAssets UP-TO-DATE
+> Task :shared:mergeAndroidMainAssets UP-TO-DATE
+> Task :androidApp:mergeDebugAssets UP-TO-DATE
+> Task :androidApp:compressDebugAssets UP-TO-DATE
+> Task :androidApp:generateDebugGlobalSynthetics UP-TO-DATE
+> Task :androidApp:checkDebugDuplicateClasses UP-TO-DATE
+> Task :androidApp:desugarDebugFileDependencies UP-TO-DATE
+> Task :shared:writeAndroidMainAarMetadata UP-TO-DATE
+> Task :androidApp:checkDebugAarMetadata UP-TO-DATE
+> Task :androidApp:mapDebugSourceSetPaths UP-TO-DATE
+> Task :androidApp:compileDebugNavigationResources UP-TO-DATE
+> Task :androidApp:mergeDebugResources UP-TO-DATE
+> Task :androidApp:createDebugCompatibleScreenManifests
+> Task :androidApp:extractDeepLinksDebug UP-TO-DATE
+> Task :shared:processAndroidMainManifest UP-TO-DATE
+> Task :androidApp:processDebugMainManifest
+> Task :androidApp:processDebugManifest
+> Task :shared:mapAndroidMainSourceSetPaths UP-TO-DATE
+> Task :shared:compileAndroidMainLibraryResources UP-TO-DATE
+> Task :androidApp:mergeDebugJniLibFolders UP-TO-DATE
+> Task :shared:mergeAndroidMainJniLibFolders UP-TO-DATE
+> Task :shared:mergeAndroidMainNativeLibs NO-SOURCE
+> Task :shared:copyAndroidMainJniLibsProjectOnly UP-TO-DATE
+> Task :androidApp:mergeDebugNativeLibs UP-TO-DATE
+> Task :androidApp:stripDebugDebugSymbols UP-TO-DATE
+> Task :androidApp:validateSigningDebug UP-TO-DATE
+> Task :androidApp:writeDebugAppMetadata UP-TO-DATE
+> Task :androidApp:writeDebugSigningConfigVersions UP-TO-DATE
+> Task :shared:checkJvmMainComposeLibrariesCompatibility
+> Task :shared:convertXmlValueResourcesForJvmMain NO-SOURCE
+> Task :shared:copyNonXmlValueResourcesForJvmMain NO-SOURCE
+> Task :shared:prepareComposeResourcesTaskForJvmMain NO-SOURCE
+> Task :shared:generateResourceAccessorsForJvmMain NO-SOURCE
+> Task :shared:generateActualResourceCollectorsForJvmMain UP-TO-DATE
+> Task :shared:checkJvmTestComposeLibrariesCompatibility
+> Task :shared:convertXmlValueResourcesForCommonTest NO-SOURCE
+> Task :shared:copyNonXmlValueResourcesForCommonTest NO-SOURCE
+> Task :shared:prepareComposeResourcesTaskForCommonTest NO-SOURCE
+> Task :shared:generateResourceAccessorsForCommonTest NO-SOURCE
+> Task :shared:convertXmlValueResourcesForJvmTest NO-SOURCE
+> Task :shared:copyNonXmlValueResourcesForJvmTest NO-SOURCE
+> Task :shared:prepareComposeResourcesTaskForJvmTest NO-SOURCE
+> Task :androidApp:processDebugManifestForPackage
+> Task :shared:compileAndroidMain
+> Task :shared:generateResourceAccessorsForJvmTest NO-SOURCE
+> Task :shared:assembleJvmMainResources UP-TO-DATE
+> Task :shared:jvmProcessResources UP-TO-DATE
+> Task :shared:processJvmMainResources SKIPPED
+> Task :shared:assembleJvmTestResources UP-TO-DATE
+> Task :shared:jvmTestProcessResources UP-TO-DATE
+> Task :shared:processJvmTestResources SKIPPED
+> Task :androidApp:mergeExtDexDebug
+> Task :androidApp:processDebugResources
+
+> Task :shared:compileAndroidMain
+w: file:///D:/Work/AndroidStudioProjects/SideProjects/kmp/astra/Vitals/shared/src/androidMain/kotlin/com/wexpa/vitals/data/repository/AndroidTelemetryRepositories.kt:536:42 'val supportedHdrTypes: IntArray!' is deprecated. Deprecated in Java.
+w: file:///D:/Work/AndroidStudioProjects/SideProjects/kmp/astra/Vitals/shared/src/androidMain/kotlin/com/wexpa/vitals/data/repository/AndroidTelemetryRepositories.kt:579:46 Unnecessary safe call on a non-null receiver of type 'Context'.
+w: file:///D:/Work/AndroidStudioProjects/SideProjects/kmp/astra/Vitals/shared/src/androidMain/kotlin/com/wexpa/vitals/data/repository/AndroidTelemetryRepositories.kt:580:49 'val connectionInfo: WifiInfo!' is deprecated. Deprecated in Java.
+w: file:///D:/Work/AndroidStudioProjects/SideProjects/kmp/astra/Vitals/shared/src/androidMain/kotlin/com/wexpa/vitals/data/repository/AndroidTelemetryRepositories.kt:721:60 Condition is always 'true'.
+w: file:///D:/Work/AndroidStudioProjects/SideProjects/kmp/astra/Vitals/shared/src/androidMain/kotlin/com/wexpa/vitals/data/repository/AndroidTelemetryRepositories.kt:723:32 'fun unsafeCheckOpNoThrow(p0: String, p1: Int, p2: String): Int' is deprecated. Deprecated in Java.
+w: file:///D:/Work/AndroidStudioProjects/SideProjects/kmp/astra/Vitals/shared/src/androidMain/kotlin/com/wexpa/vitals/data/repository/AndroidTelemetryRepositories.kt:957:20 'static field TYPE_ORIENTATION: Int' is deprecated. Deprecated in Java.
+w: file:///D:/Work/AndroidStudioProjects/SideProjects/kmp/astra/Vitals/shared/src/androidMain/kotlin/com/wexpa/vitals/data/repository/AndroidTelemetryRepositories.kt:961:20 'static field TYPE_TEMPERATURE: Int' is deprecated. Deprecated in Java.
+w: file:///D:/Work/AndroidStudioProjects/SideProjects/kmp/astra/Vitals/shared/src/androidMain/kotlin/com/wexpa/vitals/data/repository/AndroidTelemetryRepositories.kt:1506:20 'fun unsafeCheckOpNoThrow(p0: String, p1: Int, p2: String): Int' is deprecated. Deprecated in Java.
+w: file:///D:/Work/AndroidStudioProjects/SideProjects/kmp/astra/Vitals/shared/src/androidMain/kotlin/com/wexpa/vitals/data/repository/AndroidTelemetryRepositories.kt:1823:20 'fun unsafeCheckOpNoThrow(p0: String, p1: Int, p2: String): Int' is deprecated. Deprecated in Java.
+
+> Task :shared:bundleAndroidMainClassesToCompileJar UP-TO-DATE
+> Task :shared:processAndroidMainJavaRes UP-TO-DATE
+> Task :shared:bundleLibRuntimeToDirAndroidMain UP-TO-DATE
+> Task :androidApp:mergeLibDexDebug UP-TO-DATE
+> Task :androidApp:compileDebugKotlin
+> Task :androidApp:compileDebugJavaWithJavac NO-SOURCE
+> Task :androidApp:processDebugJavaRes UP-TO-DATE
+> Task :androidApp:dexBuilderDebug UP-TO-DATE
+> Task :androidApp:mergeProjectDexDebug UP-TO-DATE
+> Task :androidApp:mergeDebugJavaResource
+> Task :androidApp:packageDebug
+> Task :androidApp:createDebugApkListingFileRedirect
+> Task :androidApp:assembleDebug
+> Task :shared:compileKotlinJvm
+> Task :shared:compileJvmMainJava NO-SOURCE
+> Task :shared:jvmMainClasses
+> Task :shared:jvmJar UP-TO-DATE
+> Task :shared:compileTestKotlinJvm
+> Task :shared:compileJvmTestJava NO-SOURCE
+> Task :shared:jvmTestClasses
+> Task :shared:jvmTest
+
+[Incubating] Problems report is available at: file:///D:/Work/AndroidStudioProjects/SideProjects/kmp/astra/Vitals/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.5.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 1m 40s
+72 actionable tasks: 18 executed, 54 up-to-date

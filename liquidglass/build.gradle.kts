@@ -32,6 +32,8 @@ kotlin {
         jvmTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(compose.desktop.currentOs)
+            @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
+            implementation(compose.uiTest)
         }
     }
 }
@@ -62,4 +64,5 @@ mavenPublishing {
 tasks.withType<Test>().configureEach {
     (project.findProperty("liquidglass.calibration") as String?)?.let { systemProperty("liquidglass.calibration", it) }
     (project.findProperty("liquidglass.wideClamp") as String?)?.let { systemProperty("liquidglass.wideClamp", it) }
+    (project.findProperty("liquidglass.restMap") as String?)?.let { systemProperty("liquidglass.restMap", it) }
 }

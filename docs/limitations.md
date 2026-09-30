@@ -129,19 +129,64 @@ brightening neighbourhood than to a darkening one, which a symmetric blur in eit
 linear light does not reproduce; the residual is documented in the measured model's section 11
 and in [the calibration study](research/ios27-calibration-study.md).
 
-## The rest lens is measured at two sizes
+## The rest lens is measured at one size, and selected per style
 
-The corner lens of chrome at rest was measured on 70 px ends and 82-92 px round buttons and
-scales as a fraction of the corner radius in the library. Larger arcs (the dock's 126 px ends)
-did not measure through the Home Screen wallpaper's warped reference, and the width of the
-blend between an arc and a straight run cannot be seen over vertical stripes; the library
-blends over 0.2 R along the edge. Both are on the capture list.
+The corner lens of chrome at rest has two source maps, selected by `GlassStyle.restMap`.
+`GlassRestMap.Legacy`, the default, is the map that shipped: the ring 0.55 W inside mapped onto
+the outer band. `GlassRestMap.Measured` is the resting-corner table fitted in the closeout on
+190 display-to-source landmark pairs read off the Photos toolbar's 72 px ends (24 pt on the phone, the library's 24 dp design unit by convention) in both
+appearances over both calibration targets; against the same pairs the shipping map is 6-7 px
+off at every depth from 6 to 26 px and the table is within 1 px. It changes only the resting
+corner: the fully formed fold, the straight-run term, the held-lens family, coverage, padding,
+normals, dispersion and lighting are untouched, and formation blends it toward the same fold.
+
+What it does not establish: any other radius. The table is dimensionless in `u = d / W`, so at
+another radius the shader evaluates the same curve scaled by the band — an explicit scale
+extrapolation, verified for implementation consistency on the JVM and on a Pixel 7 at the
+Vitals nav bar's 31 dp corner, not measured against the phone there. The shallow region under
+the rim (`d < 6` reference px) is a constant extension of the first knot, also unmeasured. The
+width of the blend between an arc and a straight run cannot be seen over vertical stripes; the
+library blends over 0.2 R along the edge. Larger arcs (the dock's 126 px ends) did not measure
+through the Home Screen wallpaper's warped reference. All three are on the capture list.
+
+Two things the closeout's render comparison also shows and this map does not fix: the library's
+interior stripe rendering under the toolbar has less contrast than the phone's, so the landmark
+estimator cannot localise the render at depths past about 26 px (a photometry question, not a
+geometry one); and the content and container shaders difference the distance field for their
+normal where the panel shader uses the closed form, which puts the three within 1.5 px of each
+other at a corner rather than within a quarter pixel.
 
 The toolbar role (`GlassStyle.toolbar`) matches the phone within 4 levels at every slider
 position, but over the stripes it was measured on; its opacity and fine share were solved with
 the kernels held at the pill's, and a different split (a 230 grey at 0.70 with more fine
 detail) fits the same stripes. Over a flat backdrop the two readings differ by up to 15
 levels. A capture of a toolbar over a flat region settles it.
+
+## The deforming selector costs several milliseconds a frame under a continuous drag
+
+The opt-in deforming selector (`GlassTabBarStyle.selector`) steps a small constrained body on a
+1/240 s clock and composites its ink through one more offscreen layer than the capsule selector
+does. Measured on a Pixel 7 against the same scene and the same injected drag, alternated, 30 s
+runs: its **median completion latency is 4 to 6 ms higher** than the capsule path's, and its p95
+frame cost is higher too. Neither selector meets a 90 Hz budget while a lens is being dragged, and
+that part is the baseline's own limitation.
+
+Where the cost is has **not** been established, and an earlier version of this page said otherwise.
+The extra time shows up in the animation/frame-callback stage (about +1.2 ms mean), in draw
+recording (about +1.0 ms) and in GPU time (about +0.6 ms mean) — so it is not "entirely CPU-side",
+and no trace attributes the completion-latency delta to any one of them. The idea that a small
+per-frame cost is *amplified* by a pipeline already over budget is a plausible explanation, not a
+measurement.
+
+If those milliseconds matter more than the deformation, leave `selector` null.
+
+## The straight-run fold's strength is authored
+
+`GlassStyle.edgeFold` produces the right structure at a straight edge — one fold, page content
+appearing twice with opposite orientation, which is what makes text bend into the edge instead of
+showing through it — and its turning point and paired-image separation are verified against the
+polynomial that defines it. But the strength itself is a design constant. It was not fitted to a
+capture, and the reference stills it was compared against are over a different page than ours.
 
 ## The tab-bar lens carries its content a frame late while it moves
 
@@ -164,3 +209,12 @@ guess for a tall element. A vertical glass element over a striped backdrop would
 The phone's pill has a one-pixel dark contour at its outermost pixel. It is not drawn, because
 the shader's contour sits 1.5 px inside the edge where the measured bead peaks (measured model,
 FINDINGS 21).
+
+## Astra review limits
+
+The shared anchored interaction is documented in [generic interaction](generic-interaction.md).
+The nav pose controller and generic material transform remain distinct. Parent-driven
+`GlassPressSource` does not expose a generic pull channel. Rim chroma and exact original
+pointer timing remain unresolved. The strict endpoint error is 1.4256 code values against a
+1.0 limit; the internal 1.5 tolerance is not a strict pass. Optional glass cards stay off by
+default because their measured cost is high. See [implementation status](implementation-status.md).

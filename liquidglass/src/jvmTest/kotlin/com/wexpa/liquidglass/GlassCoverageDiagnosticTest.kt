@@ -214,7 +214,7 @@ class GlassCoverageDiagnosticTest {
         json.append(" \"worst_vs_declared\": ${"%.3f".format(worst)}, \"worst_where\": \"$worstWhere\",\n")
         json.append(" \"provenance\": {\"harness\": \"GlassRender + debugCoverage=1\", \"density\": 2.75, \"device_counterpart\": \"fixture_r7_xiaomi\"}\n}\n")
         // The research record is written only when asked for:
-        // -Dliquidglass.coverageRecord=D:/liquidglass-captures/analysis/inverse-v1/E1_fixture_path_r7_jvm.json
+        // -Dliquidglass.coverageRecord=research/analysis/inverse-v1/E1_fixture_path_r7_jvm.json
         System.getProperty("liquidglass.coverageRecord")?.let { File(it).writeText(json.toString()) }
         println(report)
         println("worst vs declared $worst at $worstWhere; worst path - closed $worstPathClosed")

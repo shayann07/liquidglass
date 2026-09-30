@@ -1,0 +1,15 @@
+{
+  "owner": "Astra",
+  "branch": "codex/astra-ios-parity",
+  "physicalSerial": "28121FDH2006ZF",
+  "apkPath": "D:\\Work\\AndroidStudioProjects\\SideProjects\\kmp\\astra\\liquidglass\\research\\analysis\\v3\\astra-independent\\anchored-r13\\Vitals-ASTRA-r13.apk",
+  "sha256": "68fbd61da1f08e368a10de7bcee3b99696043f8c613f0e689435f949bb1dc79a",
+  "installedSha256": "68fbd61da1f08e368a10de7bcee3b99696043f8c613f0e689435f949bb1dc79a",
+  "package": "com.wexpa.vitals",
+  "utc": "2026-09-30T19:55:01.875101+00:00",
+  "fingerprint": "google/panther/panther:17/CP2A.260705.006/15641320:user/release-keys",
+  "model": "Pixel 7",
+  "foreground": "com.wexpa.vitals/.MainActivity",
+  "rootBar": "five tabs verified",
+  "transportSerial": "28121FDH2006ZF"
+}

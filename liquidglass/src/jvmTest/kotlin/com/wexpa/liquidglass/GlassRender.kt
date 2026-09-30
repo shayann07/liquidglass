@@ -66,6 +66,11 @@ internal object GlassRender {
         profile: Float = 0f,
         formation: Float = 1f,
         heldLens: Float = 0f,
+        heldMagnification: Float = 0f,
+        heldGlow: Float = 1f,
+        heldEdgeRecovery: Float = 0f,
+        /** 0 the legacy rest map, 1 the measured resting-corner table (uRestMap). */
+        restMap: Float = 0f,
         wide: Float = 0f,
         fineShare: Float = 1f,
         lift: Float = 0f,
@@ -83,6 +88,12 @@ internal object GlassRender {
         fuseStrength: Float = 0f,
         /** 1 renders flat magenta times coverage (the padding diagnostic), 0 the material. */
         debugCoverage: Float = 0f,
+        /** The V3 two-disk body, in the panel's own (uncentred) coordinates; null keeps [radii]. */
+        body: GlassBody? = null,
+        /** Straight-run fold strength on the measured profile; 0 keeps the shallow rest offset. */
+        edgeFold: Float = 0f,
+        /** 1 emits the opaque endpoint B1 instead of B1 premultiplied by coverage. */
+        endpointAlpha: Float = 0f,
         backdrop: (x: Int, y: Int) -> Int,
     ): IntArray {
         val w = width + pad * 2
@@ -171,6 +182,10 @@ internal object GlassRender {
         b.uniform("uProfile", profile)
         b.uniform("uFormation", formation)
         b.uniform("uHeldLens", heldLens)
+        b.uniform("uHeldMagnification", heldMagnification)
+        b.uniform("uHeldGlow", heldGlow)
+        b.uniform("uHeldEdgeRecovery", heldEdgeRecovery)
+        b.uniform("uRestMap", restMap)
         b.uniform("uWideStrip", if (stripH > 0) h.toFloat() else 0f)
         b.uniform("uWideScale", wideScale)
         b.uniform("uFineShare", fineShare)
@@ -185,6 +200,23 @@ internal object GlassRender {
         b.uniform("uFrost", 0f)
         b.uniform("uContrast", 0f)
         b.uniform("uDebugCoverage", debugCoverage)
+        if (body != null) {
+            b.uniform("uBody", body.leftCentreX - width / 2f, body.rightCentreX - width / 2f, body.leftRadius, body.rightRadius)
+            b.uniform("uBodyY", body.cy - height / 2f)
+            b.uniform("uBodyKind", 1f)
+        } else {
+            b.uniform("uBody", 0f, 0f, 0f, 0f)
+            b.uniform("uBodyY", 0f)
+            b.uniform("uBodyKind", 0f)
+            // The pose body is off in these fixtures; the uniforms still have to be
+            // set, because a declared uniform left unbound reads whatever was there.
+            b.uniform("uPoseA", 1f, 0f, 0f, 1f)
+            b.uniform("uPoseAInv", 1f, 0f, 0f, 1f)
+            b.uniform("uPoseC", 0f, 0f, 0f, 0f)
+            b.uniform("uPoseD", 1f, 1f, 1f, 0f)
+        }
+        b.uniform("uEdgeFold", edgeFold)
+        b.uniform("uEndpointAlpha", endpointAlpha)
 
         val surface = Surface.makeRasterN32Premul(w, h)
         val canvas: Canvas = surface.canvas

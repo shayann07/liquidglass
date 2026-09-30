@@ -1,0 +1,42 @@
+Calculating task graph as configuration cache cannot be reused because Gradle property 'VERSION_NAME' has changed.
+> Task :liquidglass:generateExpectResourceCollectorsForCommonMain SKIPPED
+> Task :liquidglass:copyNonXmlValueResourcesForCommonMain NO-SOURCE
+> Task :liquidglass:convertXmlValueResourcesForCommonTest NO-SOURCE
+> Task :liquidglass:copyNonXmlValueResourcesForJvmMain NO-SOURCE
+> Task :liquidglass:convertXmlValueResourcesForJvmTest NO-SOURCE
+> Task :liquidglass:generateComposeResClass SKIPPED
+> Task :liquidglass:convertXmlValueResourcesForCommonMain NO-SOURCE
+> Task :liquidglass:copyNonXmlValueResourcesForCommonTest NO-SOURCE
+> Task :liquidglass:copyNonXmlValueResourcesForJvmTest NO-SOURCE
+> Task :liquidglass:kmpPartiallyResolvedDependenciesChecker
+> Task :liquidglass:checkJvmTestComposeLibrariesCompatibility
+> Task :liquidglass:convertXmlValueResourcesForJvmMain NO-SOURCE
+> Task :liquidglass:checkJvmMainComposeLibrariesCompatibility
+> Task :liquidglass:prepareComposeResourcesTaskForCommonMain NO-SOURCE
+> Task :liquidglass:prepareComposeResourcesTaskForJvmTest NO-SOURCE
+> Task :liquidglass:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :liquidglass:generateResourceAccessorsForCommonMain SKIPPED
+> Task :liquidglass:prepareComposeResourcesTaskForJvmMain NO-SOURCE
+> Task :liquidglass:generateResourceAccessorsForJvmTest SKIPPED
+> Task :liquidglass:generateResourceAccessorsForJvmMain SKIPPED
+> Task :liquidglass:prepareComposeResourcesTaskForCommonTest NO-SOURCE
+> Task :liquidglass:assembleJvmMainResources UP-TO-DATE
+> Task :liquidglass:generateActualResourceCollectorsForJvmMain SKIPPED
+> Task :liquidglass:jvmProcessResources UP-TO-DATE
+> Task :liquidglass:processJvmMainResources SKIPPED
+> Task :liquidglass:generateResourceAccessorsForCommonTest SKIPPED
+> Task :liquidglass:assembleJvmTestResources UP-TO-DATE
+> Task :liquidglass:compileKotlinJvm UP-TO-DATE
+> Task :liquidglass:jvmTestProcessResources UP-TO-DATE
+> Task :liquidglass:processJvmTestResources SKIPPED
+> Task :liquidglass:compileJvmMainJava NO-SOURCE
+> Task :liquidglass:jvmMainClasses UP-TO-DATE
+> Task :liquidglass:jvmJar UP-TO-DATE
+> Task :liquidglass:compileTestKotlinJvm UP-TO-DATE
+> Task :liquidglass:compileJvmTestJava NO-SOURCE
+> Task :liquidglass:jvmTestClasses UP-TO-DATE
+> Task :liquidglass:jvmTest
+
+BUILD SUCCESSFUL in 8m 59s
+11 actionable tasks: 4 executed, 7 up-to-date
+Configuration cache entry stored.

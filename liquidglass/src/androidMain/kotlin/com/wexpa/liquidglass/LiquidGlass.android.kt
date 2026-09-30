@@ -128,6 +128,25 @@ internal actual fun createGlassRenderEffect(
     shader.setFloatUniform("uProfile", uniforms.profile)
     shader.setFloatUniform("uFormation", uniforms.formation)
     shader.setFloatUniform("uHeldLens", uniforms.heldLens)
+    shader.setFloatUniform("uHeldMagnification", uniforms.heldMagnification)
+    shader.setFloatUniform("uHeldGlow", uniforms.heldGlow)
+    shader.setFloatUniform("uHeldEdgeRecovery", uniforms.heldEdgeRecovery)
+    shader.setFloatUniform("uRestMap", uniforms.restMap)
+    shader.setFloatUniform(
+        "uBody",
+        uniforms.body.getOrElse(0) { 0f },
+        uniforms.body.getOrElse(1) { 0f },
+        uniforms.body.getOrElse(2) { 0f },
+        uniforms.body.getOrElse(3) { 0f },
+    )
+    shader.setFloatUniform("uBodyY", uniforms.bodyY)
+    shader.setFloatUniform("uBodyKind", uniforms.bodyKind)
+    shader.setFloatUniform("uPoseA", uniforms.poseA[0], uniforms.poseA[1], uniforms.poseA[2], uniforms.poseA[3])
+    shader.setFloatUniform("uPoseAInv", uniforms.poseAInv[0], uniforms.poseAInv[1], uniforms.poseAInv[2], uniforms.poseAInv[3])
+    shader.setFloatUniform("uPoseC", uniforms.poseC[0], uniforms.poseC[1], uniforms.poseC[2], uniforms.poseC[3])
+    shader.setFloatUniform("uPoseD", uniforms.poseD[0], uniforms.poseD[1], uniforms.poseD[2], uniforms.poseD[3])
+    shader.setFloatUniform("uEndpointAlpha", uniforms.endpointAlpha)
+    shader.setFloatUniform("uEdgeFold", uniforms.edgeFold)
     shader.setFloatUniform("uWideStrip", uniforms.wideStrip)
     shader.setFloatUniform("uWideScale", uniforms.wideScale)
     shader.setFloatUniform("uFineShare", uniforms.fineShare)
@@ -215,7 +234,78 @@ internal actual fun createGlassContentRenderEffect(
     shader.setFloatUniform("uProfile", uniforms.profile)
     shader.setFloatUniform("uFormation", uniforms.formation)
     shader.setFloatUniform("uHeldLens", uniforms.heldLens)
+    shader.setFloatUniform("uHeldMagnification", uniforms.heldMagnification)
+    shader.setFloatUniform("uRestMap", uniforms.restMap)
+    shader.setFloatUniform(
+        "uBody",
+        uniforms.body.getOrElse(0) { 0f },
+        uniforms.body.getOrElse(1) { 0f },
+        uniforms.body.getOrElse(2) { 0f },
+        uniforms.body.getOrElse(3) { 0f },
+    )
+    shader.setFloatUniform("uBodyY", uniforms.bodyY)
+    shader.setFloatUniform("uBodyKind", uniforms.bodyKind)
+    shader.setFloatUniform("uPoseA", uniforms.poseA[0], uniforms.poseA[1], uniforms.poseA[2], uniforms.poseA[3])
+    shader.setFloatUniform("uPoseAInv", uniforms.poseAInv[0], uniforms.poseAInv[1], uniforms.poseAInv[2], uniforms.poseAInv[3])
+    shader.setFloatUniform("uPoseC", uniforms.poseC[0], uniforms.poseC[1], uniforms.poseC[2], uniforms.poseC[3])
+    shader.setFloatUniform("uPoseD", uniforms.poseD[0], uniforms.poseD[1], uniforms.poseD[2], uniforms.poseD[3])
+    shader.setFloatUniform("uEndpointAlpha", uniforms.endpointAlpha)
+    shader.setFloatUniform("uEdgeFold", uniforms.edgeFold)
+    shader.setFloatUniform("uInkSplit", uniforms.inkSplit)
+    shader.setFloatUniform("uHeldInk", uniforms.heldInk)
     return RenderEffect.createRuntimeShaderEffect(shader, "content").asComposeRenderEffect()
+}
+
+private val endpointRuntimeShader: RuntimeShader? by lazy {
+    if (!LiquidGlassSupport.hasShaders) null
+    else runCatching { RuntimeShader(GLASS_ENDPOINT_SHADER_SOURCE) }.getOrNull()
+}
+
+internal actual fun createGlassEndpointRenderEffect(
+    uniforms: GlassUniforms,
+): androidx.compose.ui.graphics.RenderEffect? {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return null
+    val shader = endpointRuntimeShader ?: return null
+    if (uniforms.width <= 0f || uniforms.height <= 0f) return null
+
+    shader.setFloatUniform("uSize", uniforms.width, uniforms.height)
+    shader.setFloatUniform("uPad", uniforms.pad)
+    shader.setFloatUniform(
+        "uRadii",
+        uniforms.radii.getOrElse(0) { 0f },
+        uniforms.radii.getOrElse(1) { 0f },
+        uniforms.radii.getOrElse(2) { 0f },
+        uniforms.radii.getOrElse(3) { 0f },
+    )
+    shader.setFloatUniform(
+        "uFuse",
+        uniforms.fuse.getOrElse(0) { 0f },
+        uniforms.fuse.getOrElse(1) { 0f },
+        uniforms.fuse.getOrElse(2) { 0f },
+        uniforms.fuse.getOrElse(3) { 0f },
+    )
+    shader.setFloatUniform("uFuseShape", uniforms.fuseRadius, uniforms.fuseWidth)
+    shader.setFloatUniform("uCornerPower", uniforms.cornerPower)
+    shader.setFloatUniform("uShapeKind", uniforms.shapeKind)
+    shader.setFloatUniform("uFieldRange", uniforms.fieldRange)
+    shader.setFloatUniform("uFieldScale", uniforms.fieldScale)
+    shader.setInputShader("field", uniforms.field?.let { bitmap ->
+        ImageShader(bitmap, TileMode.Clamp, TileMode.Clamp)
+    } ?: placeholderFieldShader)
+    shader.setFloatUniform(
+        "uBody",
+        uniforms.body.getOrElse(0) { 0f },
+        uniforms.body.getOrElse(1) { 0f },
+        uniforms.body.getOrElse(2) { 0f },
+        uniforms.body.getOrElse(3) { 0f },
+    )
+    shader.setFloatUniform("uBodyY", uniforms.bodyY)
+    shader.setFloatUniform("uBodyKind", uniforms.bodyKind)
+    shader.setFloatUniform("uPoseA", uniforms.poseA[0], uniforms.poseA[1], uniforms.poseA[2], uniforms.poseA[3])
+    shader.setFloatUniform("uPoseAInv", uniforms.poseAInv[0], uniforms.poseAInv[1], uniforms.poseAInv[2], uniforms.poseAInv[3])
+    shader.setFloatUniform("uPoseC", uniforms.poseC[0], uniforms.poseC[1], uniforms.poseC[2], uniforms.poseC[3])
+    shader.setFloatUniform("uPoseD", uniforms.poseD[0], uniforms.poseD[1], uniforms.poseD[2], uniforms.poseD[3])
+    return RenderEffect.createRuntimeShaderEffect(shader, "endpoint").asComposeRenderEffect()
 }
 
 internal actual fun Shape.cornerRadiiPx(
@@ -298,6 +388,7 @@ internal actual fun createGlassContainerRenderEffect(
     shader.setFloatUniform("uProfile", uniforms.profile)
     shader.setFloatUniform("uFormation", 0f)
     shader.setFloatUniform("uHeldLens", 0f)
+    shader.setFloatUniform("uRestMap", uniforms.restMap)
     shader.setFloatUniform("uWideStrip", uniforms.wideStrip)
     shader.setFloatUniform("uWideScale", uniforms.wideScale)
     shader.setFloatUniform("uFineShare", uniforms.fineShare)

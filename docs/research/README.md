@@ -1,5 +1,11 @@
 # The research behind the material
 
+
+!!! abstract "Start here: [the full record](the-record.md)"
+    The complete research record — the mathematics of the deforming selector, the measured material
+    model, the identifiability result, every source file and test, and the device results including
+    the gate that fails. The pages below are the shorter, topic-by-topic write-ups.
+
 Apple ships Liquid Glass and documents almost none of it. There is no published shader, no
 kernel, no filter graph, and **not one numeric rendering parameter** anywhere in the HIG, the
 API reference, or WWDC25 sessions 219, 284, 323 and 356. The single number Apple gives is the

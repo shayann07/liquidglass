@@ -29,7 +29,7 @@ package com.wexpa.liquidglass
  *  5. **The edge is lit, not outlined.** A dark border is the fastest way to make a material
  *     like this read as a drawn rectangle rather than a solid.
  */
-internal const val GLASS_SHADER_SOURCE = """
+internal val GLASS_SHADER_SOURCE = """
 uniform shader content;        // padded backdrop, opaque by construction, unblurred
 uniform shader field;          // sampled distance field, used only when uShapeKind is 1
 
@@ -56,6 +56,10 @@ uniform float   uBlur;         // px radius of the fine interior scatter, taperi
 uniform float   uProfile;      // 0 the legacy Snell bevel, 1 the measured fold lens (MODEL.md section 5)
 uniform float   uFormation;    // measured lens: 0 a committed pull (small inward offset), 1 the fully formed fold
 uniform float   uHeldLens;     // GlassProfile.Held: how far the tab-bar lens has formed, 0 to 1
+uniform float   uHeldMagnification; // interior zoom of the held lens at full formation (GlassStyle.heldMagnification)
+uniform float   uHeldGlow;     // share of the held lens inward rim glow that is drawn (GlassStyle.heldGlow)
+uniform float   uHeldEdgeRecovery; // layer-pixel recovery length; 0 preserves the narrow side contour
+uniform float   uRestMap;      // resting-corner source map: 0 legacy, 1 the measured table (GlassRestMap)
 uniform float   uWideStrip;    // layer row where a quarter-scale blurred copy of the backdrop starts; 0 disables it
 uniform float   uWideScale;    // scale of that copy (0.25)
 uniform float   uFineShare;    // share of fine detail in the backdrop term, w(t) = 0.78 (1 - t/100)
@@ -90,14 +94,21 @@ uniform float   uFrost;        // Reduce Transparency, 0..1
 uniform float   uContrast;     // Increase Contrast, 0..1
 uniform float   uDebugCoverage;// diagnostic only: 1 = constant magenta times the production coverage, no material
 
-// The Ln norm. At n = 2 this is `length`, so the rounded rect below is bit-identical to a
-// circular-cornered one; at n = 4 the corner becomes the superellipse Apple actually uses.
-float lnNorm(float2 v, float n) {
-    if (n <= 2.001 && n >= 1.999) {
-        return length(v);
-    }
-    return pow(pow(v.x, n) + pow(v.y, n), 1.0 / n);
-}
+uniform float4  uBody;         // V3 body: left centre x, right centre x, left radius, right radius, in the centred frame
+uniform float   uBodyY;        // that body's shared centre y, same frame
+uniform float   uBodyKind;     // 1 = V3 two-disk body, 2 = the pose body, 0 = uRadii
+uniform float4  uPoseA;        // the 2x2 pose matrix A, row major
+uniform float4  uPoseAInv;     // its inverse
+uniform float4  uPoseC;        // (cx, cy) reference centre, (bx, by) = k / R
+uniform float4  uPoseD;        // (spine, radius, scaleX, band)
+uniform float   uEndpointAlpha;// 1 emits the opaque endpoint B1 instead of B1 premultiplied by coverage
+uniform float   uEdgeFold;     // straight-run fold strength a in f(u) = u + a (1-u)^3; 0 keeps the shallow rest offset
+
+$GLASS_ANALYTIC_NORMAL_SKSL
+
+$GLASS_BODY_SKSL
+
+$GLASS_POSE_SKSL
 
 // A rounded rectangle whose corners are Lame curves rather than circular arcs.
 //
@@ -128,39 +139,7 @@ float smin(float a, float b, float k) {
     return mix(b, a, h) - k * h * (1.0 - h);
 }
 
-// The outward unit normal of sdRoundRect, in closed form.
-//
-// Only valid away from the medial axis, where the true gradient is discontinuous; the caller
-// checks that before using it. `gradRadius` is deliberately larger than the outline's radius,
-// which rotates the normal through the corner over a wider arc than the outline turns and
-// removes the direction kink where the corner meets the flat run. It does not move the outline.
-//
-// The closed-form gradient and the wider-radius trick are Kyant0/AndroidLiquidGlass's; the Ln
-// corner, the degenerate guards and the caller's medial-axis handling are ours. See NOTICE.
 $GLASS_OKLAB_SOURCE
-
-float2 gradRoundRect(float2 p, float2 halfSize, float4 r, float power, float widen) {
-    float2 rr = (p.x > 0.0) ? r.yz : r.xw;
-    float radius = (p.y > 0.0) ? rr.y : rr.x;
-    radius = min(radius, min(halfSize.x, halfSize.y));
-    float gradRadius = min(radius * widen, min(halfSize.x, halfSize.y));
-    float2 q = abs(p) - halfSize + gradRadius;
-    float2 s = float2(p.x < 0.0 ? -1.0 : 1.0, p.y < 0.0 ? -1.0 : 1.0);
-    if (q.x > 0.0 && q.y > 0.0) {
-        float L = lnNorm(q, power);
-        if (L <= 1e-5) {
-            return s * float2(0.70710678, 0.70710678);
-        }
-        float2 w = float2(
-            pow(q.x / L, power - 1.0),
-            pow(q.y / L, power - 1.0));
-        float wl = length(w);
-        return (wl <= 1e-5) ? s * float2(0.70710678, 0.70710678) : s * (w / wl);
-    }
-    // Flat run: the nearest edge is whichever of the two is closer.
-    float ax = step(q.y, q.x);
-    return s * float2(ax, 1.0 - ax);
-}
 
 // One backdrop sample, bounded by the region that actually holds recorded pixels.
 //
@@ -176,6 +155,12 @@ float2 gradRoundRect(float2 p, float2 halfSize, float4 r, float power, float wid
 // The two paths are interchangeable from here on: everything downstream asks the same two
 // questions of whichever one is in play.
 float sdShape(float2 p, float2 halfSize) {
+    if (uBodyKind > 1.5) {
+        return poseQuery(p, uPoseA, uPoseAInv, uPoseC, uPoseD).x;
+    }
+    if (uBodyKind > 0.5) {
+        return bodyQuery(p, uBody, uBodyY).x;
+    }
     if (uShapeKind < 0.5) {
         float d = sdRoundRect(p, halfSize, uRadii);
         if (uFuseShape.y > 0.0) {
@@ -305,79 +290,7 @@ float snellShift(float slope, float ior) {
     return (si * ct - ci * st) / max(ci * ct + si * st, 1e-4);
 }
 
-// The lens under a finger on a tab bar (FINDINGS 19; measured model, section 2c). Over the outer
-// half of the band a pixel at depth u shows the exterior from 1.3u - 0.29 W: the content just
-// outside the rim is pulled in and compressed 1.3x (the bar's own edge line lands 10 px inside
-// the lens's rim, the header text above an App Store bar becomes a thin stripe along it). From
-// half the band inward the content is shown where it is. The source content between 0.36 W and
-// 0.5 W is never displayed: the seam hides the bar's end and the gap beside it when the lens
-// hangs over the end of a bar. Blended from identity, so a resting indicator in the same family
-// has no optics at all.
-float heldSource(float u) {
-    return (u < 0.5) ? (1.3 * u - 0.29) : u;
-}
-
-// The lens of chrome at rest, at the curved parts of an outline only (FINDINGS 18). Measured on
-// the Photos toolbar's 70 px ends at Tint 0, 50 and 62 in both appearances and over both targets
-// (identical, spread under 2 px) and on the Lock Screen's round buttons: a pixel at depth
-// u = d/W inside a rounded end shows the ring 0.55 W (0.33 R) inside, the same ring for the
-// whole of 0.14-0.38 W, then eases to identity by 0.76 W (0.46 R); the outer 0.14 W shows
-// slightly deeper content again, a vestige of the fold's mirror. Every ring in the outer third
-// showing the same source ring is what makes the stripes turn into concentric arcs at an end.
-// A straight run shows none of it: the content under it sits where it is (the dock's top edge
-// leaves a boundary 30 px inside in place, and folds nothing over the block above it).
-float restSource(float u) {
-    if (u >= 0.76) {
-        return u;
-    } else if (u >= 0.62) {
-        return 0.64 + 0.857 * (u - 0.62);
-    } else if (u >= 0.38) {
-        return 0.55 + 0.375 * (u - 0.38);
-    } else if (u >= 0.14) {
-        return 0.55;
-    }
-    return 0.55 + 0.93 * (0.14 - u);
-}
-
-// Whether a point's nearest bit of outline is a corner arc (1) or a straight run (0), with a
-// short blend along the run so the rest lens does not begin at a seam. Inside a corner's own
-// quadrant both q components are positive; along a run one is negative by the distance to the
-// arc. A circle is all arc. Radii are clamped as sdRoundRect clamps them.
-float cornerWeight(float2 p, float2 halfSize, float4 r) {
-    float2 rr = (p.x > 0.0) ? r.yz : r.xw;
-    float radius = (p.y > 0.0) ? rr.y : rr.x;
-    radius = min(radius, min(halfSize.x, halfSize.y));
-    float2 q = abs(p) - halfSize + radius;
-    float soft = max(radius * 0.2, 1.0);
-    return smoothstep(-soft, 0.0, min(q.x, q.y));
-}
-
-// The measured cover-sheet lens, as a lookup: a pixel at depth u = d/W inside the edge shows
-// backdrop content from depth s = foldSource(u) * W. Fitted on 13k frames of a real finger pull
-// and reproduced at Tint 0, 50 and 100 (MODEL.md section 5): identity from 0.9 W inward; a 2x
-// stretch over 0.52-0.9 W showing 0.71-0.9 W; a stationary seam at 0.70 W over 0.28-0.52 W;
-// and the outer 0.28 W showing 0.71-1.07 W upside down. Content 0-0.69 W inside the edge is never
-// displayed and nothing outside the edge is sampled. Static chrome and a committed (fast) pull
-// show none of it, only a slight inward offset, so `formation` blends between the two.
-float foldSource(float u, float formation, float corner) {
-    float full;
-    if (u >= 0.9) {
-        full = u;
-    } else if (u >= 0.52) {
-        full = 0.71 + 0.5 * (u - 0.52);
-    } else if (u >= 0.28) {
-        full = 0.70;
-    } else {
-        full = 0.71 + 1.2857 * (0.28 - u);
-    }
-    // At rest a straight run shows almost nothing: a fast sheet pull shows only a 2-7 px inward
-    // offset across its 90 px band (FINDINGS 1b-iii), and the dock's top edge leaves what is
-    // under it in place. A corner arc at rest shows the measured rest lens (restSource). Both
-    // give way to the full fold as the lens forms under a tracked drag.
-    float straight = u + 0.06 * (1.0 - u) * (1.0 - u);
-    float rest = mix(straight, restSource(u), clamp(corner, 0.0, 1.0));
-    return mix(rest, full, clamp(formation, 0.0, 1.0));
-}
+$GLASS_SOURCE_MAP_SKSL
 
 // The wide tone kernel. The host records a quarter-scale copy of the padded backdrop under a
 // real Gaussian blur into a strip below the sharp copy; sampling it is one bilinear tap. It only
@@ -433,11 +346,22 @@ half4 main(float2 coord) {
     float inradius = min(halfSize.x, halfSize.y);
     float2 n;
     float axisFade;
-    if (uShapeKind < 0.5 && uRefractBand < inradius * 0.75 && uFuseShape.y <= 0.0) {
-        // The measured lens maps a corner's rim onto the ring inside it, so its normal has to be
-        // the true one (radial from the corner's centre); the wider arc that smooths the legacy
-        // profile's direction kink would bend the ring.
-        n = gradRoundRect(p, halfSize, uRadii, uCornerPower, mix(1.5, 1.0, step(0.5, uProfile)));
+    if (uBodyKind > 1.5) {
+        // The pose body carries its own transformed normal from the same shared query that
+        // produced d, so a deforming outline never falls back to a differenced estimate.
+        float4 pq = poseQuery(p, uPoseA, uPoseAInv, uPoseC, uPoseD);
+        n = float2(pq.y, pq.z);
+        axisFade = 1.0;
+    } else if (uBodyKind > 0.5) {
+        // The V3 body carries its own exact normal from the same shared query that produced d,
+        // so a deforming outline never falls back to a differenced estimate of itself.
+        float4 bq = bodyQuery(p, uBody, uBodyY);
+        n = float2(bq.y, bq.z);
+        axisFade = 1.0;
+    } else if (analyticNormalEligible(uShapeKind, uRefractBand, halfSize, uFuseShape.y) > 0.5) {
+        // The shared closed-form normal (GlassNormalSource.kt); the content and container shaders take
+        // the same decision for equivalent geometry, so the three paths bend alike.
+        n = analyticNormal(p, halfSize, uRadii, uCornerPower, uProfile);
         axisFade = 1.0;
     } else {
         float eps = clamp(uRefractBand * 0.3, 1.0, 16.0);
@@ -465,7 +389,7 @@ half4 main(float2 coord) {
     // Only the refraction reads this. The lighting keeps the true distance, because the lit edge
     // belongs to the outline and not to the dome.
     float aspect = max(halfSize.x, halfSize.y) / max(min(halfSize.x, halfSize.y), 1e-4);
-    float domeWeight =
+    float domeWeight = (uBodyKind > 0.5) ? 0.0 :
         smoothstep(1.5, 3.0, aspect) *
         smoothstep(0.75, 1.0, uRefractBand / max(inradius, 1e-4));
     float opticalDepth = depth;
@@ -509,6 +433,17 @@ half4 main(float2 coord) {
     float touchFall = exp(-dot(touchDelta, touchDelta) / (touchSigma * touchSigma))
         * clamp(uTouchAmt, 0.0, 1.0);
     float2 base = coord - touchDelta * (touchFall * 0.17);
+    // Interior magnification of the held lens ([GlassStyle.heldMagnification]): the aperture
+    // zooms about the body's centre, so the held item reads larger and the bar's own edge is
+    // carried outward inside the lens, which is what the calm held references show. Zero for
+    // every other profile, and it rises and falls with the lens itself.
+    // The held magnification belongs to the INK pass only. Magnifying the material here carried
+    // the bar's own edge outward inside the lens, and the strip between that edge and the rim
+    // read as a grey haze over the page (FABLE r10 optics audit, items 2 and 13); in every
+    // reference the bar's hairline lands 11-12 px INSIDE the rim and the overhang shows the
+    // page. uHeldMagnification stays declared for the shared uniform contract.
+    float magUnused = uHeldMagnification * 0.0;
+    base += float2(magUnused, 0.0);
 
     // Sampling outward pulls the surroundings inward and compresses them into the rim band.
     // That is the only direction consistent with sampling "an area larger than itself", and it
@@ -526,7 +461,11 @@ half4 main(float2 coord) {
         float W = max(uRefractBand, 0.001);
         float u = clamp(depth / W, 0.0, 1.0);
         // Chrome at rest lenses at its corner arcs only; a field shape has no runs to exempt.
-        float corner = (uShapeKind < 0.5) ? cornerWeight(p, halfSize, uRadii) : 1.0;
+        float corner = (uBodyKind > 1.5)
+            ? poseCorner(p, uPoseAInv, uPoseC, uPoseD)
+            : ((uBodyKind > 0.5)
+                ? bodyCorner(p, uBody, uBodyY)
+                : ((uShapeKind < 0.5) ? cornerWeight(p, halfSize, uRadii) : 1.0));
         // The fold family, or the held-lens family blended from identity (GlassProfile.Held).
         float heldFamily = step(1.5, uProfile);
         float held = heldFamily * clamp(uHeldLens, 0.0, 1.0);
@@ -722,7 +661,8 @@ half4 main(float2 coord) {
     // The measured rim line trails a faint glow inward, decaying over about a bevel width: on
     // the pill +10 at 4 px falling to +3 at 8 (rim fit, 2026-09-12); on the held tab-bar lens
     // 16 -> 1 over 15 px (FINDINGS 19). Top and bottom alike, nothing at the sides.
-    float glowAmt = (uProfile >= 0.5) ? mix(0.05, 0.063, heldAmt) : 0.0;
+    float glowAmt = ((uProfile >= 0.5) ? mix(0.05, 0.063, heldAmt) : 0.0)
+        * mix(1.0, clamp(uHeldGlow, 0.0, 1.0), heldAmt);
     float heldGlow = glowAmt * exp(-max(depth - 0.67 * uBevel, 0.0) / max(uBevel, 1.0))
         * (max(facing, 0.0) + counterLight * max(-facing, 0.0));
     float highlight = ((key + counter) * uSpecular
@@ -740,6 +680,17 @@ half4 main(float2 coord) {
     // whatever is outside — invisible when that is dark. The reference's step is one solid
     // pixel just inside the boundary.
     float rimDark = clamp(1.0 - abs(depth - 1.5) / 1.5, 0.0, 1.0);
+    if (heldAmt > 0.0 && uHeldEdgeRecovery > 0.0 && depth > 1.5) {
+        // Original IMG_6756 settled side profiles recover over several pixels after their
+        // dark minimum. The former triangular contour ended in two. Preserve its outer
+        // edge/peak and add an authored short shoulder plus exponential recovery inward.
+        // Explicit opt-in leaves historical presets unchanged; never blur the source ink.
+        float q = (depth - 1.5) / max(uHeldEdgeRecovery, 0.001);
+        float recovery = (q < 8.0)
+            ? 0.75 * exp(-0.5 * q * q / (0.45 * 0.45)) + 0.25 * exp(-q)
+            : 0.0;
+        rimDark = mix(rimDark, recovery, heldAmt);
+    }
     // On the held lens the step belongs to the sides only; the lit line owns the top and bottom.
     rimDark *= mix(1.0, 1.0 - abs(facing), heldAmt);
     col -= half3(half(rimDark * uEdgeShadow * mat));
@@ -756,6 +707,10 @@ half4 main(float2 coord) {
     col = mix(col, solid, half(contrastBoost * 0.88));
     col += half3(half(contrastBoost * edge * ((bgLuma > 0.5) ? 0.85 : -0.85)));
 
-    return half4(clamp(col, half3(0.0), half3(1.0)), 1.0) * half(coverage);
+    // Endpoint mode emits the opaque material B1 so semantic ink can be composited over it once
+    // and the complete endpoint then replaced under one aperture coverage
+    // (V3-MODEL section 8). Production mode is unchanged: B1 premultiplied by coverage.
+    float outAlpha = (uEndpointAlpha > 0.5) ? 1.0 : coverage;
+    return half4(clamp(col, half3(0.0), half3(1.0)), 1.0) * half(outAlpha);
 }
 """

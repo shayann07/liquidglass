@@ -17,6 +17,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 
 /** Where the finger is on a panel and how far the press has come up, for the shader. */
 @Immutable
@@ -24,6 +28,11 @@ internal data class GlassPress(
     val x: Float,
     val y: Float,
     val amount: Float,
+    /** The finger's travel since it went down, in the panel's px, while it is still down. */
+    val pullX: Float = 0f,
+    val pullY: Float = 0f,
+    /** Whether the finger is down and still owns the gesture (a scroll that takes it ends this). */
+    val pulling: Boolean = false,
 ) {
     companion object {
         /** Far enough off-panel that the Gaussian is zero, so an idle panel costs nothing. */
@@ -47,32 +56,70 @@ internal data class GlassPress(
  */
 @Immutable
 data class GlassInteraction(
-    /** Peak scale while held. Apple gives no number; this is a press you can see and not feel. */
+    /** Legacy press response. Use [Pullable] for the reference-derived balloon/pull. */
     val pressScale: Float = 1.04f,
-    /** Luminance lift under the fingertip at the peak. Past about 0.1 this reads as a flash. */
     val illumination: Float = 1f,
-    /** Whether the element squashes along the drag axis while it is moved. */
     val gel: Boolean = true,
+    /** Zero preserves the Legacy proportional scale; opt-in uses absolute per-side growth. */
+    val pressGrowth: Dp = 0.dp,
+    val pressLift: Float = 0f,
+    /**
+     * Press-and-pull: the material stretches around its fixed layout centre. [pullFollow]
+     * controls input resistance, not translation of the control. It lengthens by [pullElongation] of the pull's
+     * length (relative to its own extent) and thins across it [pullWidthRatio] times as fast,
+     * and springs back under-damped on release (`GlassMotion.PullRelease`). The input gains
+     * are authored; the recording constrains body deformation ([glassPullDeformation]). A scroll or another node taking the gesture ends the
+     * pull at once. Off by default: an element inside a list would squish for the first few
+     * pixels of every scroll.
+     */
+    val pull: Boolean = false,
+    val pullFollow: Float = 0.78f,
+    /** Elongation as a share of the pull's length, in px of the element's extent (0.45). */
+    val pullElongation: Float = 0.45f,
+    /** How much faster the width thins than the length grows (1.1). */
+    val pullWidthRatio: Float = 1.1f,
+    /** Input resistance budget in pressed short-side lengths; the rendered centre remains anchored. */
+    val pullLimit: Float = Float.POSITIVE_INFINITY,
 ) {
     companion object {
         val Default = GlassInteraction()
-
+        val Pullable = GlassInteraction(
+            // Original S01: 186 -> 238 peak -> 234 settled; independent K01: 234 -> 286
+            // peak -> 282 settled. Eight points per side is the equilibrium, not 8.7.
+            pressScale = 1.26f, pressGrowth = 8.dp, pressLift = 0.2f, pull = true,
+            // Authored input compliance; 0.217 / 0.35 = 0.62 length change per body travel.
+            pullFollow = 0.35f, pullElongation = 0.217f, pullWidthRatio = 1f, pullLimit = 0.5f,
+        )
         /**
          * What Apple's Reduce Motion asks for: "decreases the intensity of some effects and
-         * disables any elastic properties". So the scale, the bounce and the gel go, and the
-         * glow stays at half strength — the feedback survives, the elasticity does not.
+         * disables any elastic properties". So the scale, the bounce, the gel and the pull go,
+         * and the glow stays at half strength — the feedback survives, the elasticity does not.
          */
-        val ReducedMotion = GlassInteraction(pressScale = 1f, illumination = 0.5f, gel = false)
+        val ReducedMotion = GlassInteraction(pressScale = 1f, illumination = 0.5f, pressLift = 0f, gel = false, pull = false)
     }
 }
 
 /** Springs and timings for the press, kept together so the three channels cannot drift apart. */
 internal object GlassMotion {
-    /** One visible overshoot of about a percent, settling in roughly 220ms. */
+    /**
+     * The Legacy press is unchanged. The opt-in balloon is fitted to native-PTS S01 extent:
+     * 0.62 damping, 644 stiffness, RMS 0.83 px. Independent K01 width gives 0.63 / 595 and
+     * confirms the same 8 pt settled growth. The visible peak is about 8% above that growth,
+     * not the equilibrium. Evidence: refinement-r6/press-fit-and-holdout.json.
+     */
     val PressDown = spring<Float>(dampingRatio = 0.55f, stiffness = 900f)
-
+    val BalloonDown = spring<Float>(dampingRatio = 0.62f, stiffness = 644f)
     /** Coming back is calmer than going down; a bouncy release reads as a bug. */
     val PressUp = spring<Float>(dampingRatio = 0.72f, stiffness = 700f)
+    /** The pull tracks the finger stiffly while it is down. */
+    val PullFollow = spring<Float>(dampingRatio = 1f, stiffness = 2500f)
+    /**
+     * Native-PTS centroid fit of IMG_6756 S01: decay 8.39/s, damped frequency 14.1 rad/s.
+     * Stiffness is alpha^2 + omegaD^2, NOT omegaD^2. Display-threshold sensitivity gives
+     * 268–286 and damping 0.49–0.51; use the two low-threshold fits (RMS 1.2–1.3 px).
+     * Evidence: astra-independent/refinement-r6/original-release-fit.json.
+     */
+    val PullRelease = spring<Float>(dampingRatio = 0.51f, stiffness = 269f)
 
     /** Geometry during a morph: no visible overshoot on a large surface. */
     val Morph = spring<Float>(dampingRatio = 0.82f, stiffness = 380f)
@@ -154,11 +201,14 @@ internal fun rememberGlassPress(
             animationSpec = if (source.isPressed) GlassMotion.GlowIn else GlassMotion.GlowOut,
             label = "glass_press_amount_external",
         )
-        return GlassPress(source.localPosition.x, source.localPosition.y, amount) to Modifier
+        return GlassPress(source.localPosition.x, source.localPosition.y, amount, pulling = source.isPressed) to Modifier
     }
 
     var point by remember { mutableStateOf(Offset.Zero) }
     var down by remember { mutableStateOf(false) }
+    var downPoint by remember { mutableStateOf(Offset.Zero) }
+    var pull by remember { mutableStateOf(Offset.Zero) }
+    var pulling by remember { mutableStateOf(false) }
     val amount by animateFloatAsState(
         targetValue = if (down) 1f else 0f,
         animationSpec = if (down) GlassMotion.GlowIn else GlassMotion.GlowOut,
@@ -166,23 +216,26 @@ internal fun rememberGlassPress(
     )
 
     val modifier = Modifier.pointerInput(Unit) {
-        awaitPointerEventScope {
-            while (true) {
-                val event = awaitPointerEvent()
-                val change = event.changes.firstOrNull()
-                if (change == null) continue
-                if (change.pressed) {
-                    // Track continuously: a drag should carry the highlight with it.
+        awaitEachGesture {
+            val first = awaitFirstDown(requireUnconsumed = false)
+            point = first.position
+            downPoint = first.position
+            pull = Offset.Zero
+            down = true
+            pulling = true
+            try {
+                while (true) {
+                    val change = awaitPointerEvent().changes.firstOrNull { it.id == first.id } ?: break
+                    if (!change.pressed || (change.isConsumed && change.position != change.previousPosition)) break
                     point = change.position
-                    down = true
-                } else {
-                    // Freeze where the finger left, and let the glow fade from there rather
-                    // than snapping back to the centre of the panel.
-                    down = false
+                    pull = change.position - downPoint
                 }
+            } finally {
+                down = false
+                pulling = false
             }
         }
     }
 
-    return GlassPress(point.x, point.y, amount) to modifier
+    return GlassPress(point.x, point.y, amount, pull.x, pull.y, pulling) to modifier
 }

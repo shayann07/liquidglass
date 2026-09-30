@@ -28,6 +28,13 @@ class GlassCalibrationRenderTest {
         Box(342, 2304, 828, 2448, 72), Box(84, 2304, 230, 2448, 73), Box(940, 2304, 1086, 2448, 73),
     )
 
+    /**
+     * Which boxes render with the measured resting-corner map: `-Dliquidglass.restMap=toolbar` for the
+     * toolbar capsule only (the role it was measured on), `all` for every box (the pill R66 and the round
+     * buttons R73 as scale-extrapolation controls), anything else for the shipping map everywhere.
+     */
+    private val restMapMode = System.getProperty("liquidglass.restMap") ?: "legacy"
+
     @Test
     fun renderTheReferenceChromeOverTheCalibrationTargets() {
         val dir = System.getProperty("liquidglass.calibration") ?: return
@@ -43,7 +50,10 @@ class GlassCalibrationRenderTest {
                     val style = GlassStyle.inApp(dark = dark, tintAmount = tint)
                     val toolbar = GlassStyle.toolbar(dark = dark, tintAmount = tint)
                     // The fourth box is the toolbar capsule; the rest are the pill and buttons.
-                    boxes.forEachIndexed { i, b -> drawPanel(src, composite, b, if (i == 3) toolbar else style) }
+                    boxes.forEachIndexed { i, b ->
+                        val measuredRest = restMapMode == "all" || (restMapMode == "toolbar" && i == 3)
+                        drawPanel(src, composite, b, if (i == 3) toolbar else style, if (measuredRest) 1f else 0f)
+                    }
                     val name = "C1a-lib%03d-%s-%s.png".format(tint.toInt(), target, if (dark) "dark" else "light")
                     ImageIO.write(composite, "png", File(out, name))
                 }
@@ -51,7 +61,7 @@ class GlassCalibrationRenderTest {
         }
     }
 
-    private fun drawPanel(src: BufferedImage, dst: BufferedImage, b: Box, style: GlassStyle) {
+    private fun drawPanel(src: BufferedImage, dst: BufferedImage, b: Box, style: GlassStyle, restMap: Float) {
         val w = b.x1 - b.x0
         val h = b.y1 - b.y0
         val pad = 60
@@ -67,7 +77,7 @@ class GlassCalibrationRenderTest {
             specular = style.specular, fresnel = style.fresnel, highlightChroma = style.highlightChroma,
             innerShadow = style.innerShadow, edgeShadow = style.edgeShadow,
             tintAlpha = style.tint.alpha, tint = Triple(style.tint.red, style.tint.green, style.tint.blue),
-            profile = 1f, formation = 0f,
+            profile = 1f, formation = 0f, restMap = restMap,
             wide = style.wideKernel.value * px, fineShare = style.fineShare,
             lift = style.tintLift, liftAdapt = style.liftAdaptivity,
             bevel = style.bevel.value * px, specularPower = style.specularPower,

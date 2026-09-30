@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import com.wexpa.liquidglass.GlassFuse
 import com.wexpa.liquidglass.GlassMaterial
 import com.wexpa.liquidglass.GlassProfile
+import com.wexpa.liquidglass.GlassRestMap
 import com.wexpa.liquidglass.GlassStyle
 import com.wexpa.liquidglass.LiquidGlassDiagnosticApi
 import com.wexpa.liquidglass.LiquidGlassDiagnostics
@@ -88,6 +89,9 @@ class CalibrationActivity : ComponentActivity() {
         val unit0 = intent.getBooleanExtra("unit", false)
         // `--ei offsetY -180` shifts the whole scene up so the bottom row fits a 2400 px screen at 1:1.
         val offsetY0 = intent.getIntExtra("offsetY", 0)
+        // Phase 2: `--ez restMap true` draws the toolbar capsule with the measured resting-corner map
+        // (GlassRestMap.Measured); the pill and buttons keep the shipping map, as in the JVM harness.
+        val restMap0 = intent.getBooleanExtra("restMap", false)
         // Path-backed device fixture (padding contract, Astra round 6): `--es fixture path --ef renderScale 0.5
         // --ef padPx 22.5` draws four 1:1 panels over the target whose pad is set by padPx alone (wide kernel off,
         // blur radius = padPx): a closed-form capsule, the same capsule as a sampled-field path, a held-profile
@@ -102,7 +106,7 @@ class CalibrationActivity : ComponentActivity() {
         LiquidGlassDiagnostics.coverageOnly = intent.getBooleanExtra("coverage", false)
         setContent {
             if (fixture0 == "path") PathFixture(renderScale0, padPx0, target0)
-            else Calibration(tint0, dark0, target0, wide0, wideDp0, animate0, unit0, offsetY0)
+            else Calibration(tint0, dark0, target0, wide0, wideDp0, animate0, unit0, offsetY0, restMap0)
         }
     }
 }
@@ -119,7 +123,7 @@ private val panels = listOf(
 )
 
 @Composable
-private fun Calibration(tint0: Int, dark0: Boolean, target0: String, wide0: Boolean, wideDp0: Int, animate0: Boolean, unit0: Boolean = false, offsetY0: Int = 0) {
+private fun Calibration(tint0: Int, dark0: Boolean, target0: String, wide0: Boolean, wideDp0: Int, animate0: Boolean, unit0: Boolean = false, offsetY0: Int = 0, restMap0: Boolean = false) {
     var tint by remember { mutableIntStateOf(tint0) }
     // `--ez animate true` sweeps the Tint Amount continuously so every panel re-renders every
     // frame, for frame-time readings with `dumpsys gfxinfo`.
@@ -154,6 +158,7 @@ private fun Calibration(tint0: Int, dark0: Boolean, target0: String, wide0: Bool
     val style = GlassStyle.inApp(dark = dark, tintAmount = tint.toFloat()).wideSwitch().calibrated()
     // The fourth box is the toolbar capsule, which is its own role.
     val toolbar = GlassStyle.toolbar(dark = dark, tintAmount = tint.toFloat()).wideSwitch().calibrated()
+        .copy(restMap = if (restMap0) GlassRestMap.Measured else GlassRestMap.Legacy)
 
     LiquidGlassScene(background = Color.Black, modifier = Modifier.fillMaxSize().background(Color.Black)) {
         Image(
@@ -180,7 +185,7 @@ private fun Calibration(tint0: Int, dark0: Boolean, target0: String, wide0: Bool
         Box(Modifier.align(Alignment.BottomStart).size(px(160), px(140)).clickable { target = if (target == "light") "dark" else "light" })
         Row(Modifier.align(Alignment.BottomEnd).padding(px(8))) {
             BasicText(
-                "t=$tint ${if (dark) "dark" else "light"} $target  a=%.2f w=%.2f".format(
+                "t=$tint ${if (dark) "dark" else "light"} $target${if (restMap0) " restMap=M" else ""}  a=%.2f w=%.2f".format(
                     GlassMaterial.opacity(dark, tint.toFloat()), GlassMaterial.fineShare(tint.toFloat()),
                 ),
                 style = TextStyle(color = Color(0xFFFF00FF), fontSize = 10.sp),

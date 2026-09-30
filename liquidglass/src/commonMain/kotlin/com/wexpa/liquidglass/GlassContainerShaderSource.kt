@@ -57,6 +57,7 @@ uniform float   uAdaptive;
 uniform float   uProfile;      // 0 the legacy Snell bevel, 1 the measured fold lens
 uniform float   uFormation;    // measured lens formation; a container is chrome at rest, 0
 uniform float   uHeldLens;     // GlassProfile.Held: how far the tab-bar lens has formed, 0 to 1
+uniform float   uRestMap;      // resting-corner source map: 0 legacy, 1 the measured table (GlassRestMap)
 uniform float   uWideStrip;    // layer row where the quarter-scale blurred copy starts; 0 disables it
 uniform float   uWideScale;    // scale of that copy
 uniform float   uFineShare;    // share of fine detail in the backdrop term
@@ -65,6 +66,8 @@ uniform float   uLift;         // fixed luminance lift after the tint
 uniform float   uLiftAdapt;    // how far the lift falls with the wide-kernel luma
 
 $GLASS_OKLAB_SOURCE
+
+$GLASS_ANALYTIC_NORMAL_SKSL
 
 float sdRoundRectAt(float2 p, float4 rect, float radius) {
     float2 halfSize = rect.zw * 0.5;
@@ -243,27 +246,7 @@ float heldSource(float u) {
     return (u < 0.5) ? (1.3 * u - 0.29) : u;
 }
 
-// The lens of chrome at rest, at the curved parts of an outline only (FINDINGS 18). Measured on
-// the Photos toolbar's 70 px ends at Tint 0, 50 and 62 in both appearances and over both targets
-// (identical, spread under 2 px) and on the Lock Screen's round buttons: a pixel at depth
-// u = d/W inside a rounded end shows the ring 0.55 W (0.33 R) inside, the same ring for the
-// whole of 0.14-0.38 W, then eases to identity by 0.76 W (0.46 R); the outer 0.14 W shows
-// slightly deeper content again, a vestige of the fold's mirror. Every ring in the outer third
-// showing the same source ring is what makes the stripes turn into concentric arcs at an end.
-// A straight run shows none of it: the content under it sits where it is (the dock's top edge
-// leaves a boundary 30 px inside in place, and folds nothing over the block above it).
-float restSource(float u) {
-    if (u >= 0.76) {
-        return u;
-    } else if (u >= 0.62) {
-        return 0.64 + 0.857 * (u - 0.62);
-    } else if (u >= 0.38) {
-        return 0.55 + 0.375 * (u - 0.38);
-    } else if (u >= 0.14) {
-        return 0.55;
-    }
-    return 0.55 + 0.93 * (0.14 - u);
-}
+$GLASS_REST_SOURCE_SKSL
 
 // Whether a point's nearest bit of outline is a corner arc (1) or a straight run (0), with a
 // short blend along the run so the rest lens does not begin at a seam. Inside a corner's own
@@ -329,13 +312,27 @@ half4 main(float2 coord) {
     // epsilon matters more here than for a single panel: the neck between two members is all
     // medial axis, and at a one-pixel epsilon the gradient collapses right where the fusion is
     // supposed to read.
-    float eps = clamp(uRefractBand * 0.3, 1.0, 16.0);
-    float2 g = float2(
-        fieldAt(local + float2(eps, 0.0)) - fieldAt(local - float2(eps, 0.0)),
-        fieldAt(local + float2(0.0, eps)) - fieldAt(local - float2(0.0, eps)));
-    float gLen = length(g);
-    float2 n = g / max(gLen, 1e-5);
-    float axisFade = smoothstep(0.15, 0.80, gLen / (2.0 * eps));
+    //
+    // A single, unfused member on the measured profile is exactly the panel's analytic rounded rectangle
+    // (circular corners: the container's field is an L2 field), and takes the shared closed-form normal
+    // under the same decision (closeout Phase 3). Fused bodies, several members and the legacy profile
+    // keep the merged-field gradient.
+    float2 n;
+    float axisFade;
+    float2 member0Half = uRect[0].zw * 0.5;
+    float2 member0Centre = uRect[0].xy + member0Half;
+    if (uCount < 1.5 && uProfile >= 0.5 && analyticNormalEligible(0.0, uRefractBand, member0Half, 0.0) > 0.5) {
+        n = analyticNormal(local - member0Centre, member0Half, float4(uRadius[0]), 2.0, uProfile);
+        axisFade = 1.0;
+    } else {
+        float eps = clamp(uRefractBand * 0.3, 1.0, 16.0);
+        float2 g = float2(
+            fieldAt(local + float2(eps, 0.0)) - fieldAt(local - float2(eps, 0.0)),
+            fieldAt(local + float2(0.0, eps)) - fieldAt(local - float2(0.0, eps)));
+        float gLen = length(g);
+        n = g / max(gLen, 1e-5);
+        axisFade = smoothstep(0.15, 0.80, gLen / (2.0 * eps));
+    }
 
     float depth = max(-d, 0.0);
     float e = clamp(depth / max(uRefractBand, 0.001), 0.0, 1.0);

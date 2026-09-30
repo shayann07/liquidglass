@@ -1,0 +1,159 @@
+{
+  "protocol": "Same Pixel only. Actual mode-1 event timestamps; 12s warm-up, 16s trajectory; no screenrecord, no refresh change. Every .7s framestats ring deduplicated and bounded to event uptime. HWUI completion latency is not photon latency or pure GPU cost.",
+  "trials": [
+    {
+      "scenario": "live",
+      "trial": "pixel-performance-live-1",
+      "build": "r11",
+      "physicalSerial": "28121FDH2006ZF",
+      "frames": 1395,
+      "durationSeconds": 15.999,
+      "coveredSeconds": 15.914428667,
+      "inputEvents": 1978,
+      "medianInputIntervalMs": 8.0,
+      "medianMs": 13.87321,
+      "p95Ms": 23.372435499999998,
+      "p99Ms": 35.880063019999916,
+      "over20msPercent": 31.32616487455197,
+      "deadlineMissPercent": 0.6451612903225806,
+      "medianSubmissionIntervalMs": 11.0740205,
+      "p95SubmissionIntervalMs": 11.084555850000001,
+      "states": {
+        "before": {
+          "batteryC": 33.8,
+          "thermalStatus": 0.0,
+          "displayHz": 90.0
+        },
+        "after": {
+          "batteryC": 34.2,
+          "thermalStatus": 0.0,
+          "displayHz": 90.0
+        }
+      }
+    },
+    {
+      "scenario": "live",
+      "trial": "pixel-performance-live-1",
+      "build": "r13",
+      "physicalSerial": "28121FDH2006ZF",
+      "frames": 1390,
+      "durationSeconds": 16.0,
+      "coveredSeconds": 15.618477322,
+      "inputEvents": 1978,
+      "medianInputIntervalMs": 8.0,
+      "medianMs": 14.5818475,
+      "p95Ms": 18.774824349999996,
+      "p99Ms": 31.10085244999999,
+      "over20msPercent": 4.316546762589928,
+      "deadlineMissPercent": 0.7913669064748201,
+      "medianSubmissionIntervalMs": 11.068505,
+      "p95SubmissionIntervalMs": 11.0841252,
+      "states": {
+        "before": {
+          "batteryC": 34.2,
+          "thermalStatus": 0.0,
+          "displayHz": 90.0
+        },
+        "after": {
+          "batteryC": 34.5,
+          "thermalStatus": 0.0,
+          "displayHz": 60.0
+        }
+      }
+    },
+    {
+      "scenario": "nav",
+      "trial": "pixel-performance-nav-2",
+      "build": "r13",
+      "physicalSerial": "28121FDH2006ZF",
+      "frames": 1432,
+      "durationSeconds": 15.999,
+      "coveredSeconds": 15.859259975,
+      "inputEvents": 1978,
+      "medianInputIntervalMs": 8.0,
+      "medianMs": 16.32707,
+      "p95Ms": 21.953765100000002,
+      "p99Ms": 29.347102520000004,
+      "over20msPercent": 9.217877094972067,
+      "deadlineMissPercent": 0.13966480446927373,
+      "medianSubmissionIntervalMs": 11.066471,
+      "p95SubmissionIntervalMs": 11.075298499999999,
+      "states": {
+        "before": {
+          "batteryC": 34.9,
+          "thermalStatus": 0.0,
+          "displayHz": 90.0
+        },
+        "after": {
+          "batteryC": 34.9,
+          "thermalStatus": 1.0,
+          "displayHz": 60.0
+        }
+      }
+    },
+    {
+      "scenario": "nav",
+      "trial": "pixel-performance-nav-2",
+      "build": "r11",
+      "physicalSerial": "28121FDH2006ZF",
+      "frames": 1433,
+      "durationSeconds": 15.999,
+      "coveredSeconds": 15.860624432,
+      "inputEvents": 1978,
+      "medianInputIntervalMs": 8.0,
+      "medianMs": 15.8202,
+      "p95Ms": 21.508396799999986,
+      "p99Ms": 29.801161520000015,
+      "over20msPercent": 8.304256803907887,
+      "deadlineMissPercent": 0.13956734124214934,
+      "medianSubmissionIntervalMs": 11.067418,
+      "p95SubmissionIntervalMs": 11.076229450000001,
+      "states": {
+        "before": {
+          "batteryC": 35.1,
+          "thermalStatus": 1.0,
+          "displayHz": 90.0
+        },
+        "after": {
+          "batteryC": 35.4,
+          "thermalStatus": 1.0,
+          "displayHz": 60.0
+        }
+      }
+    }
+  ],
+  "medianAcrossTrials": {
+    "live": {
+      "r11": {
+        "medianMs": 13.87321,
+        "p95Ms": 23.372435499999998,
+        "over20msPercent": 31.32616487455197,
+        "deadlineMissPercent": 0.6451612903225806,
+        "medianSubmissionIntervalMs": 11.0740205
+      },
+      "r13": {
+        "medianMs": 14.5818475,
+        "p95Ms": 18.774824349999996,
+        "over20msPercent": 4.316546762589928,
+        "deadlineMissPercent": 0.7913669064748201,
+        "medianSubmissionIntervalMs": 11.068505
+      }
+    },
+    "nav": {
+      "r11": {
+        "medianMs": 15.8202,
+        "p95Ms": 21.508396799999986,
+        "over20msPercent": 8.304256803907887,
+        "deadlineMissPercent": 0.13956734124214934,
+        "medianSubmissionIntervalMs": 11.067418
+      },
+      "r13": {
+        "medianMs": 16.32707,
+        "p95Ms": 21.953765100000002,
+        "over20msPercent": 9.217877094972067,
+        "deadlineMissPercent": 0.13966480446927373,
+        "medianSubmissionIntervalMs": 11.066471
+      }
+    }
+  }
+}

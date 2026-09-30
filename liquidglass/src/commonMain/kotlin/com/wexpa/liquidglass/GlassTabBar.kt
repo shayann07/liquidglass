@@ -10,6 +10,7 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.awaitHorizontalTouchSlopOrCancellation
 import androidx.compose.foundation.gestures.horizontalDrag
+import androidx.compose.foundation.gestures.drag
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,11 +40,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.AwaitPointerEventScope
+import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.SemanticsPropertyKey
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpRect
@@ -52,8 +60,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.isSpecified
 import androidx.compose.ui.unit.lerp
 import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.launch
 
 /**
@@ -83,7 +94,9 @@ import kotlinx.coroutines.launch
  *    over, so a tab half under it is half one colour and half the other, and its edges fringe
  *    where the rim refracts them.
  *  - **The lens is the thing you drag.** It goes exactly where the finger goes, previews the
- *    tab it is over, and commits once, on release — a flick carries it to the next tab.
+ *    tab it is over, and commits once, on release — a flick carries it to the next tab. A tap is
+ *    the item's own click, once; a gesture another node takes over, a vertical scroll, a second
+ *    finger or the node going away selects nothing and settles the lens back on the selection.
  *
  * [item] is called for every tab twice on the shader path — `selected = false` for the copy on
  * the bar and `selected = true` for the copy inside the lens — and once, with the real
@@ -126,8 +139,10 @@ fun GlassTabBar(
     // Nothing here clips: the lens stands proud of the bar while it is held.
     BoxWithConstraints(modifier = modifier.height(style.height)) {
         val density = LocalDensity.current
-        val barWidthPx = with(density) { maxWidth.toPx() }
-        val barHeightPx = with(density) { maxHeight.toPx() }
+        val barWidthDp: Dp = maxWidth
+        val barHeightDp: Dp = maxHeight
+        val barWidthPx = with(density) { barWidthDp.toPx() }
+        val barHeightPx = with(density) { barHeightDp.toPx() }
         val geometry = GlassTabBarGeometry(
             barWidth = barWidthPx,
             inset = with(density) { style.contentPadding.toPx() },
@@ -165,9 +180,61 @@ fun GlassTabBar(
         var motion by remember { mutableStateOf<Job?>(null) }
         val scope = rememberCoroutineScope()
         val press = rememberGlassPressSource()
-        var held by remember { mutableStateOf(false) }
+        var v2Held by remember { mutableStateOf(false) }
         var dragging by remember { mutableStateOf(false) }
         var liveVelocity by remember { mutableFloatStateOf(0f) }
+
+        // The V3 deforming body, when this style asks for one. Null leaves every line below on
+        // the capsule path this component shipped with, which is what keeps the existing
+        // behaviour, presets and tests exactly as they were.
+        val spec = style.selector
+        // Exactly one of these is non-null. `poseMotion` selects the 2D pose body this pass
+        // introduced; the other path is the five-coordinate horizontal-only controller whose
+        // motion the owner rejected, kept reachable so the two can be compared on one phone.
+        val usePose = spec != null && spec.poseMotion
+        val handle = if (spec != null && !usePose) {
+            remember(spec) { GlassSelectorHandle(GlassSelectorController(spec)) }
+        } else {
+            null
+        }
+        val poseHandle = if (spec != null && usePose) {
+            remember(spec) { GlassPoseHandle(GlassPoseController()) }
+        } else {
+            null
+        }
+        val anyHandle = handle != null || poseHandle != null
+        val barCache = handle?.barCache ?: poseHandle?.barCache
+        val selectorBar = if (anyHandle && spec != null) {
+            glassSelectorBarOf(
+                density, barWidthPx, barHeightPx, style, itemCount, 0f, spec,
+                cache = barCache,
+            )
+        } else {
+            null
+        }
+        val itemInk = remember(itemCount) { GlassItemBounds(itemCount) }
+        // One layout snapshot serves the body's admission, both paint variants and the semantics.
+        val formationNow = poseHandle?.formation ?: handle?.formation ?: 0f
+        val emphasisNow = 1f + (style.selectedScale - 1f) * formationNow
+        // The ink's own vertical half extent, measured from the row the body has to make room
+        // for. Horizontal span alone does not prove a label fits inside a rounded end.
+        val inkHalfHeightPx = with(density) {
+            (barHeightDp / 2f - style.pillInset).toPx().coerceAtLeast(0f) * INK_VERTICAL_SHARE
+        } * emphasisNow
+        if (anyHandle && selectorBar != null) {
+            itemInk.refresh(selectorBar, selected, emphasisNow)
+            if (handle != null && !handle.controller.started) {
+                handle.controller.attach(selectorBar, itemInk.bounds, itemInk.centres, inkHalfHeightPx)
+                handle.controller.snapToRest(selected)
+                handle.publish()
+            }
+            if (poseHandle != null && !poseHandle.controller.started) {
+                poseHandle.controller.attach(selectorBar, itemInk.bounds, itemInk.centres, inkHalfHeightPx)
+                poseHandle.controller.snapToRest(selected)
+                poseHandle.publish()
+            }
+        }
+        val held = poseHandle?.held ?: handle?.held ?: v2Held
 
         fun settleTo(target: Float, initialVelocity: Float, spec: AnimationSpec<Float>) {
             motion?.cancel()
@@ -186,24 +253,75 @@ fun GlassTabBar(
             }
         }
 
-        // Only follow the selection when the finger is not the one moving it.
+        // Only follow the selection when the finger is not the one moving it. The retarget is
+        // keyed on the geometry as well as the selection: the same selected index in a resized
+        // bar is a **different pixel anchor**, and keeping the old target because the index did
+        // not change is what left the body on the previous layout's centre.
+        if (poseHandle != null) {
+            LaunchedEffect(poseHandle, selected, geometry) {
+                poseHandle.controller.retarget(selected)
+                poseHandle.wake()
+            }
+            LaunchedEffect(poseHandle, geometry, motionEnabled) { poseHandle.wake() }
+            GlassPoseFrameLoop(
+                handle = poseHandle,
+                barProvider = {
+                    glassSelectorBarOf(
+                        density, barWidthPx, barHeightPx, style, itemCount, poseHandle.formation,
+                        spec!!, cache = poseHandle.barCache,
+                    )
+                },
+                itemBounds = itemInk.bounds,
+                itemCentres = itemInk.centres,
+                inkHalfHeight = inkHalfHeightPx,
+                motionEnabled = motionEnabled,
+            )
+        }
+        if (handle != null) {
+            LaunchedEffect(handle, selected, geometry) {
+                handle.controller.retarget(selected)
+                handle.wake()
+            }
+            // A layout or motion change no longer restarts the loop - the clock is retained with
+            // the handle - so it has to wake it instead.
+            LaunchedEffect(handle, geometry, motionEnabled) { handle.wake() }
+            GlassSelectorFrameLoop(
+                handle = handle,
+                barProvider = {
+                    glassSelectorBarOf(
+                        density, barWidthPx, barHeightPx, style, itemCount, handle.formation, spec!!,
+                        cache = handle.barCache,
+                    )
+                },
+                itemBounds = itemInk.bounds,
+                itemCentres = itemInk.centres,
+                inkHalfHeight = inkHalfHeightPx,
+                motionEnabled = motionEnabled,
+            )
+        }
+
         LaunchedEffect(restingAt, motionEnabled) {
+            if (anyHandle) return@LaunchedEffect
             if (held || dragging || dragIndex >= 0) return@LaunchedEffect
             // A release has already aimed here and is carrying the fling velocity with it.
             if (settleTarget == restingAt) return@LaunchedEffect
+            // Do not launch on the very first composition either: the lens is already at rest there.
+            if (settleTarget.isNaN() && offsetX == restingAt) { settleTarget = restingAt; return@LaunchedEffect }
             if (!motionEnabled) {
                 motion?.cancel()
                 settleTarget = restingAt
                 offsetX = restingAt
             } else {
-                settleTo(restingAt, 0f, style.settle)
+                // From the spring's running velocity: a selection that changes while the lens is still
+                // settling continues its motion rather than restarting from rest (Phase 2 audit).
+                settleTo(restingAt, settleVelocity, style.settle)
             }
         }
 
         // Inset to lens and back, size and material on one spring so the rim cannot arrive
         // after the shape.
-        val lift by animateFloatAsState(
-            targetValue = if (held) 1f else 0f,
+        val v2Lift by animateFloatAsState(
+            targetValue = if (v2Held) 1f else 0f,
             animationSpec = when {
                 !motionEnabled -> snap()
                 held -> style.form
@@ -211,8 +329,12 @@ fun GlassTabBar(
             },
             label = "glass_tab_bar_lift",
         )
-        val pillHeight: Dp = with(density) { maxHeight } - style.pillInset * 2
-        val lensHeight: Dp = with(density) { maxHeight } + style.lensOverflow * 2
+        // V3 drives formation from the controller, which is what makes a quick tap never start
+        // the protruding held lens: only an eligible press that outlives the hold threshold, or
+        // a recognized drag, forms it.
+        val lift = poseHandle?.formation ?: handle?.formation ?: v2Lift
+        val pillHeight: Dp = barHeightDp - style.pillInset * 2
+        val lensHeight: Dp = barHeightDp + style.lensOverflow * 2
         val pillWidthDp: Dp = if (style.pillWidth.isSpecified) maxOf(style.pillWidth, slotWidthDp) else slotWidthDp
         val selectorWidth: Dp = lerp(pillWidthDp, pillWidthDp + style.lensExtraWidth, lift)
         val selectorHeight: Dp = lerp(pillHeight, lensHeight, lift)
@@ -221,30 +343,69 @@ fun GlassTabBar(
         val selectorRisePx = with(density) { style.lensRise.toPx() } * lift
         val selectorStyle = lerpGlassStyle(style.pill, style.lens, lift)
 
-        fun selectorLeft() = offsetX - selectorWidthPx / 2f
+        // The V3 body owns its own centre; offsetX follows it so semantics, the press glow and
+        // the diagnostics all read one number.
+        val selectorX = poseHandle?.centreX ?: handle?.centreX ?: offsetX
+
+        fun selectorLeft() = selectorX - selectorWidthPx / 2f
         fun selectorTop() = (barHeightPx - selectorHeightPx) / 2f - selectorRisePx
 
         // Apple's "gel-like flexibility as it moves in tandem with your interaction": a few
         // percent along the travel at speed, lagged by its own spring so the deformation trails
         // the movement. An unlagged stretch reads as a rendering artefact.
         val velocityNow = if (dragging) liveVelocity else settleVelocity
+        @Suppress("UNUSED_EXPRESSION") velocityNow
         val gelTarget = if (motionEnabled) {
             style.gel * (abs(velocityNow) / gelReference).coerceAtMost(1f)
         } else {
             0f
         }
         val gel by animateFloatAsState(
-            targetValue = gelTarget,
+            // V3 has no global gel: the body's own length, radius and end asymmetry carry the
+            // deformation, so nothing rasterised is ever scaled (V3-MODEL section 3's identity
+            // invariant). The capsule path keeps the measured stretch it shipped with.
+            targetValue = if (anyHandle) 0f else gelTarget,
             animationSpec = style.gelSpring,
             label = "glass_tab_bar_gel",
         )
 
         // Clamped to the lens: a finger that grabbed away from it still lights the edge it is
         // pulling on, instead of aiming the glow off-panel where it simply vanishes.
+        //
+        // This is the **capsule** selector's box. The V3 node is a different node at a different
+        // origin and a different size, and `uTouch` warps the sampled source, so feeding it a
+        // point measured against this box is an optical defect and not merely a misplaced glow.
+        // V3 therefore stores the pointer in the stable bar frame and resolves it against the
+        // node origin the frame is actually using - see GlassSelectorHandle.resolvePress.
         fun localPress(x: Float, y: Float) = Offset(
             (x - selectorLeft()).coerceIn(0f, selectorWidthPx),
             (y - selectorTop()).coerceIn(0f, selectorHeightPx),
         )
+
+        /** One pointer entry point for both paths, each in its own declared frame. */
+        fun pressAt(x: Float, y: Float) {
+            when {
+                poseHandle != null -> {
+                    poseHandle.barPointerX = x
+                    poseHandle.barPointerY = y
+                    poseHandle.resolvePress()
+                }
+                handle != null -> {
+                    handle.barPointerX = x
+                    handle.barPointerY = y
+                    handle.resolvePress()
+                }
+                else -> press.press(localPress(x, y))
+            }
+        }
+
+        fun releasePress() {
+            handle?.barPointerX = Float.NaN
+            handle?.barPointerY = Float.NaN
+            poseHandle?.barPointerX = Float.NaN
+            poseHandle?.barPointerY = Float.NaN
+            press.release()
+        }
 
         // The gesture lives on an ancestor of both the lens and the items, not on a sibling
         // between them. Compose hit-tests overlapping siblings from the top down and stops at
@@ -256,10 +417,88 @@ fun GlassTabBar(
         // Touch-down is already a press: the lens forms and goes to the tab under the finger.
         // Nothing is *claimed* until the pointer crosses the horizontal slop, so a tap still
         // reaches the item beneath and stays a tap.
+        // The latest selection, for a gesture that outlives the composition it started in.
+        val currentSelected = rememberUpdatedState(selected)
+
+        // Every way a gesture ends short of a committed drag: the finger lifts on a tap (the item's own
+        // clickable is the one owner of that selection), another node takes the pointer, a vertical
+        // scroll wins, a second finger replaces the first, or the node goes away. Nothing is selected
+        // here; the preview ends and the lens settles from wherever it is to the selection the host
+        // actually holds, carrying only the velocity a spring already has (a drag has none to carry).
+        fun releaseToSelection(active: Boolean) {
+            v2Held = false
+            dragging = false
+            liveVelocity = 0f
+            releasePress()
+            dragIndex = -1
+            if (poseHandle != null) {
+                // The same continuous recovery toward the latest legitimate selection, with no
+                // new commit: a cancelled gesture is not a successful release.
+                poseHandle.controller.cancel(currentSelected.value)
+                poseHandle.wake()
+                return
+            }
+            if (handle != null) {
+                // The body recovers its geometry continuously from wherever it is, under the
+                // release envelope, and commits nothing.
+                handle.controller.cancel(currentSelected.value)
+                handle.wake()
+                return
+            }
+            if (!active) {
+                // The node is gone or restarting: launch nothing, and leave the target unset so the
+                // effect that follows the selection re-aims the lens if it comes back.
+                settleTarget = Float.NaN
+                return
+            }
+            val target = geometry.centreOf(currentSelected.value)
+            if (!motionEnabled) {
+                motion?.cancel()
+                settleTarget = target
+                offsetX = target
+                settleVelocity = 0f
+            } else if (settleTarget != target || motion?.isActive != true) {
+                settleTo(target, settleVelocity, style.settle)
+            }
+        }
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .semantics {
+                    testTag = GlassTabBarSemantics.TAG
+                    this[GlassTabBarSemantics.SelectorX] = selectorX
+                    this[GlassTabBarSemantics.Held] = held
+                    this[GlassTabBarSemantics.Formation] = lift
+                    this[GlassTabBarSemantics.BodyWidth] = poseHandle?.let { it.right - it.left }
+                        ?: handle?.body?.let { it.length + 2f * it.radius } ?: selectorWidthPx
+                    // The pose body's end asymmetry is its taper, not a radius difference;
+                    // it is reported through the same key so one test covers both paths.
+                    this[GlassTabBarSemantics.BodySkew] =
+                        poseHandle?.taper ?: handle?.body?.skew ?: 0f
+                    this[GlassTabBarSemantics.Protrusion] =
+                        poseHandle?.controller?.protrusion() ?: handle?.controller?.protrusion() ?: 0f
+                    this[GlassTabBarSemantics.Dragging] = dragging
+                    this[GlassTabBarSemantics.DragIndex] = dragIndex
+                    if (handle != null) {
+                        this[GlassTabBarSemantics.NodeLeft] = handle.nodeLeft().toFloat()
+                        this[GlassTabBarSemantics.NodeTop] = -handle.overflowTop
+                        this[GlassTabBarSemantics.TouchLocalX] = press.localPosition.x
+                        this[GlassTabBarSemantics.TouchLocalY] = press.localPosition.y
+                        this[GlassTabBarSemantics.SelectorValid] = handle.controller.selectorValid
+                    }
+                    if (poseHandle != null) {
+                        this[GlassTabBarSemantics.NodeLeft] = poseHandle.nodeLeft().toFloat()
+                        this[GlassTabBarSemantics.NodeTop] = poseHandle.nodeTop().toFloat()
+                        this[GlassTabBarSemantics.TouchLocalX] = press.localPosition.x
+                        this[GlassTabBarSemantics.TouchLocalY] = press.localPosition.y
+                        this[GlassTabBarSemantics.SelectorValid] = !poseHandle.controller.solverFailed
+                    }
+                }
                 .pointerInput(geometry, motionEnabled) {
+                    // Read here, outside the restricted gesture scope: whether this pointer-input job is still
+                    // alive when a gesture ends decides whether anything may be launched from its release.
+                    val gestureJob = currentCoroutineContext()[Job]
                     awaitEachGesture {
                         // The item under the finger consumes the down, so this must not
                         // require an unconsumed one.
@@ -268,31 +507,77 @@ fun GlassTabBar(
                         tracker.addPosition(down.uptimeMillis, down.position)
 
                         var lastIndex = geometry.nearestIndex(down.position.x)
+                        var committed = false
                         try {
                             motion?.cancel()
-                            held = true
                             dragIndex = lastIndex
-                            press.press(localPress(down.position.x, down.position.y))
-                            if (motionEnabled) {
-                                settleTo(geometry.centreOf(lastIndex), 0f, style.arrive)
+                            pressAt(down.position.x, down.position.y)
+                            if (poseHandle != null) {
+                                // Down is a press indication and a travel target. It is not the
+                                // held material: that needs the hold threshold or a real drag.
+                                poseHandle.controller.pointerDown(
+                                    x = down.position.x,
+                                    y = down.position.y,
+                                    eventSeconds = down.uptimeMillis / 1000.0,
+                                    eligible = motionEnabled,
+                                )
+                                poseHandle.controller.retarget(lastIndex)
+                                poseHandle.wake()
+                            } else if (handle != null) {
+                                handle.controller.pointerDown(
+                                    x = down.position.x,
+                                    y = down.position.y,
+                                    eventSeconds = down.uptimeMillis / 1000.0,
+                                    eligible = motionEnabled,
+                                )
+                                handle.controller.retarget(lastIndex)
+                                handle.wake()
+                            } else {
+                                v2Held = true
+                            }
+                            if (anyHandle) {
+                                // no capsule spring to aim; the controller owns the centre
+                            } else if (motionEnabled) {
+                                // Carry whatever velocity the lens still has: a press during a release
+                                // retargets the spring in place instead of snapping its velocity to zero.
+                                settleTo(geometry.centreOf(lastIndex), settleVelocity, style.arrive)
                             } else {
                                 settleTarget = geometry.centreOf(lastIndex)
                                 offsetX = settleTarget
+                                settleVelocity = 0f
                             }
 
-                            val grabbed = awaitHorizontalTouchSlopOrCancellation(down.id) { change, _ ->
-                                change.consume()
+                            if (!motionEnabled) {
+                                // No lens to drag: the item's clickable owns the tap; this only waits for
+                                // the finger to leave, however it leaves.
+                                awaitHorizontalTouchSlopOrCancellation(down.id) { _, _ -> }
+                                return@awaitEachGesture
                             }
-                            if (grabbed == null || !motionEnabled) {
-                                // Lifted without dragging: a tap on whatever the lens went to.
-                                // The item's own clickable commits the same index; a host's
-                                // selection should be idempotent, and both may fire.
-                                select(lastIndex)
+                            val grabbed = if (poseHandle != null) {
+                                awaitPoseTouchSlopOrCancellation(
+                                    down, (poseHandle.controller.spec.holdThresholdSeconds * 1000).toLong(),
+                                    onMove = { change ->
+                                        poseHandle.controller.pointerMove(change.position.x, change.position.y, change.uptimeMillis / 1000.0)
+                                        poseHandle.wake()
+                                        pressAt(change.position.x, change.position.y)
+                                    },
+                                )
+                            } else {
+                                awaitHorizontalTouchSlopOrCancellation(down.id) { change, _ -> change.consume() }
+                            }
+                            if (grabbed == null) {
+                                // Lifted without dragging (a tap: the item's clickable selects, once),
+                                // or taken by another node / a vertical scroll (a cancel: nobody
+                                // selects). Both end in releaseToSelection below.
                                 return@awaitEachGesture
                             }
 
                             motion?.cancel()
                             dragging = true
+                            handle?.controller?.beginDrag(down.position.x)
+                            handle?.wake()
+                            poseHandle?.controller?.beginDrag(down.position.x, down.position.y)
+                            poseHandle?.wake()
 
                             // The lens keeps whatever offset from the finger it had when the drag
                             // began, capped at half its own width: grabbing the lens tracks
@@ -303,9 +588,22 @@ fun GlassTabBar(
                                 .coerceIn(-selectorWidthPx / 2f, selectorWidthPx / 2f)
 
                             fun moveTo(x: Float, y: Float) {
-                                offsetX = (x + grabOffset).coerceIn(geometry.firstCentre, geometry.lastCentre)
-                                press.press(localPress(x, y))
-                                val index = geometry.nearestIndex(offsetX)
+                                // Navigation intent, kept separate from the visible geometry:
+                                // the body may protrude, taper or rise while the tab a drag is
+                                // previewing stays inside the item sequence.
+                                val centre = when {
+                                    // Intent is the finger, bounded only by the item sequence.
+                                    // Section 5: never clamp it by the body's half width, and do
+                                    // not make it follow a silhouette that is free to protrude,
+                                    // taper or rise away from the tab being chosen.
+                                    poseHandle != null ->
+                                        x.coerceIn(geometry.firstCentre, geometry.lastCentre)
+                                    handle != null -> handle.controller.grabCentreFor(x)
+                                    else -> (x + grabOffset).coerceIn(geometry.firstCentre, geometry.lastCentre)
+                                }
+                                if (!anyHandle) offsetX = centre
+                                pressAt(x, y)
+                                val index = geometry.nearestIndex(centre)
                                 if (index != lastIndex) {
                                     lastIndex = index
                                     dragIndex = index
@@ -313,32 +611,80 @@ fun GlassTabBar(
                             }
 
                             tracker.addPosition(grabbed.uptimeMillis, grabbed.position)
+                            handle?.controller?.pointerMove(grabbed.position.x, grabbed.uptimeMillis / 1000.0)
+                            poseHandle?.controller?.pointerMove(
+                                grabbed.position.x, grabbed.position.y, grabbed.uptimeMillis / 1000.0,
+                            )
                             moveTo(grabbed.position.x, grabbed.position.y)
 
-                            horizontalDrag(grabbed.id) { change ->
+                            // Only the pointer that crossed slop drives the lens. If Compose hands the
+                            // drag to another finger, that interaction is cancelled rather than followed
+                            // with a tracker full of positions from two fingers (the simpler policy).
+                            var handoff = false
+                            val onDrag: (PointerInputChange) -> Unit = move@ { change ->
+                                if (change.id != grabbed.id) {
+                                    handoff = true
+                                    return@move
+                                }
                                 tracker.addPosition(change.uptimeMillis, change.position)
                                 liveVelocity = tracker.calculateVelocity().x
+                                handle?.controller?.pointerMove(change.position.x, change.uptimeMillis / 1000.0)
+                                handle?.wake()
+                                poseHandle?.controller?.pointerMove(
+                                    change.position.x, change.position.y, change.uptimeMillis / 1000.0,
+                                )
+                                poseHandle?.wake()
                                 moveTo(change.position.x, change.position.y)
                                 change.consume()
                             }
+                            val completed = if (poseHandle != null) drag(grabbed.id, onDrag)
+                                else horizontalDrag(grabbed.id, onDrag)
 
+                            // The terminal sample of the active pointer: its lift. It is part of the
+                            // gesture the tracker judges: without it a finger that stops, holds and then
+                            // lifts is released with the velocity it had before it stopped (the tracker
+                            // only assumes a stop between two samples 40 ms apart) and the lens flings
+                            // to the next tab from a standstill (Phase 2 audit trace 1).
+                            val terminal = currentEvent.changes.firstOrNull { it.id == grabbed.id }
+                            val terminalUp = terminal != null && !terminal.pressed
+                            if (terminalUp) tracker.addPosition(terminal!!.uptimeMillis, terminal.position)
                             val released = tracker.calculateVelocity().x
                             dragging = false
                             liveVelocity = 0f
 
-                            val projected = geometry.projected(lastIndex, released, flingVelocity)
-                            // Settle first, so the effect watching the selection sees a spring
-                            // already aimed at the right place and leaves its velocity alone.
-                            settleTo(geometry.centreOf(projected), released, style.settle)
+                            val projected = decideDragEnd(completed, terminalUp, handoff, lastIndex, released, flingVelocity, geometry)
+                                ?: return@awaitEachGesture   // cancelled: no selection, releaseToSelection below
+                            committed = true
+                            if (poseHandle != null) {
+                                // Every pose coordinate and velocity is preserved; only the
+                                // equilibria move to the resting body, so translation and shape
+                                // recover together from the shape the body actually has.
+                                poseHandle.controller.pointerUp(projected)
+                                poseHandle.wake()
+                            } else if (handle != null) {
+                                // The body keeps its own centre velocity, which is not the
+                                // finger's whenever it is also changing size, and recovers its
+                                // shape under the release envelope.
+                                handle.controller.pointerUp(projected)
+                                handle.wake()
+                            } else {
+                                // Settle first, so the effect watching the selection sees a spring
+                                // already aimed at the right place and leaves its velocity alone.
+                                settleTo(geometry.centreOf(projected), released, style.settle)
+                            }
                             dragIndex = projected
                             select(projected)
                         } finally {
                             // However the gesture ends — lift, cancel, or the node going away —
                             // the finger is no longer on the glass.
-                            held = false
-                            dragging = false
-                            liveVelocity = 0f
-                            press.release()
+                            if (committed) {
+                                v2Held = false
+                                dragging = false
+                                liveVelocity = 0f
+                                releasePress()
+                            } else {
+                                releaseToSelection(active = gestureJob?.isActive == true)
+                            }
                         }
                     }
                 },
@@ -352,7 +698,7 @@ fun GlassTabBar(
             val barScale = 1f + (style.heldScale - 1f) * lift
             // The lens's outline, in the plate's own coordinates: the plate is laid out at the
             // grown size and centred, so the outer origin sits (1 - barScale) / 2 inside it.
-            val barFuse = if (lift > 0.01f && style.lensFuse > 0.dp) {
+            val barFuse = if (!anyHandle && lift > 0.01f && style.lensFuse > 0.dp) {
                 val lw = selectorWidthPx * (1f + gel)
                 val lh = selectorHeightPx * (1f - gel)
                 val cx = selectorLeft() + selectorWidthPx / 2f - barWidthPx * (1f - barScale) / 2f
@@ -389,12 +735,17 @@ fun GlassTabBar(
                         val placeable = measurable.measure(Constraints.fixed(gw, gh))
                         layout(w, h) { placeable.place((w - gw) / 2, (h - gh) / 2) }
                     }
-                    .liquidGlassSource(barState),
+                    .then(if (!anyHandle) Modifier.liquidGlassSource(barState) else Modifier),
             ) {
                 Box(
                     modifier = Modifier
                         .align(Alignment.Center)
                         .fillMaxSize(fraction = barScale / (1f + margin))
+                        // V3 records the bar's **material alone** as what the selector looks
+                        // through: no icon and no label is in that source, so no filtered copy of
+                        // the ordinary ink can survive underneath the selected ink
+                        // (V3-MODEL section 8.2).
+                        .then(if (anyHandle) Modifier.liquidGlassSource(barState) else Modifier)
                         .liquidGlass(
                             state = state,
                             shape = barShape,
@@ -427,8 +778,164 @@ fun GlassTabBar(
                         item = item,
                         emphasisIndex = activeIndex,
                         emphasis = 1f + (style.selectedScale - 1f) * lift,
+                        onMeasured = if (anyHandle) { index, width -> itemInk.widths[index] = width } else null,
                     )
                 }
+            }
+
+            if (anyHandle) {
+                // The V3 selector occupies a **stable** node: the bar plus the held overflow,
+                // never resized and never re-placed. The body moves and deforms inside it as
+                // continuous floating-point geometry, so the moving optical origin is never
+                // rounded to a whole pixel and the raster allocation never churns.
+                // **One** rounded overflow. The node was placed at `-round(overflow)`, its native
+                // ink at `+round(overflow)`, and the body translated by the unrounded value: at a
+                // fractional density that put the contour in a different vertical frame from the
+                // aperture and the ink it is supposed to be registered with.
+                // The style's `lensOverflow` is a 4 dp constant that predates the pose model and
+                // has no relation to how far the held body actually grows. Section 5.1's rule -
+                // a finite allocation is a safety limit, not a material wall - applies to this
+                // axis exactly as it does to the width, so the pose path sizes it from the pose.
+                val overflowPx = remember(selectorBar, spec, style.lensOverflow, usePose) { max(
+                    with(density) { style.lensOverflow.toPx() },
+                    if (usePose) spec!!.maxAccommodationOverflow(selectorBar) else 0f,
+                ) }
+                val overflowTopPx = overflowPx.roundToInt()
+                // A node just big enough for the widest body this style allows, plus the held
+                // overflow. It is a **stable** size - never reallocated - and it follows the body
+                // by whole pixels while the body's own centre stays continuous inside it, so the
+                // moving optical origin is never rounded and the raster never churns. Sizing it
+                // to the whole bar would be simpler and would put five times the pixels through
+                // three shader passes every frame for no gain.
+                // A finite allocation is a safety limit, not a material wall: the node is sized
+                // for the widest body this style can produce so the body is never shrunk to hide
+                // missing pixels (parity brief section 5.1).
+                val widest = remember(selectorBar, spec, barWidthPx) {
+                    handle?.controller?.maxBodyWidth()
+                        ?: (spec!!.maxAccommodationWidth(selectorBar, barWidthPx))
+                }
+                // The horizontal pad is the rim's optical margin - it was always the style's own
+                // overflow - and must not follow the vertical excursion the pose path now sizes
+                // the node's HEIGHT from. Letting it do so added about 200 px of node width for
+                // nothing: `widest` already contains every horizontal term the body has.
+                val sidePx = with(density) { style.lensOverflow.toPx() }
+                val envelopePx = min(
+                    barWidthPx,
+                    widest.coerceAtLeast(2f * (selectorBar?.baseHalfWidth ?: 0f)) +
+                        4f * sidePx + 8f,
+                )
+                val envelopeDp = with(density) { envelopePx.toDp() }
+                val nodeHeightPx = (barHeightPx + 2f * overflowPx).roundToInt().toFloat()
+                val nodeHeightDp = with(density) { nodeHeightPx.toDp() }
+                // The frame this displayed frame uses, published to the handle so the body, the
+                // aperture, the native ink and the touch point all read the same origin instead
+                // of each resolving a moving centre for itself. `nodeLeft()` is computed once,
+                // from the body snapshot this composition is drawing.
+                handle?.envelopeWidth = envelopePx
+                handle?.nodeHeight = nodeHeightPx
+                handle?.overflowTop = overflowTopPx.toFloat()
+                handle?.barWidth = barWidthPx
+                handle?.pressSource = press
+                val poseFrameChanged = poseHandle != null &&
+                    (poseHandle.envelopeWidth != envelopePx || poseHandle.nodeHeight != nodeHeightPx)
+                poseHandle?.envelopeWidth = envelopePx
+                poseHandle?.nodeHeight = nodeHeightPx
+                poseHandle?.overflowTop = overflowTopPx.toFloat()
+                poseHandle?.barWidth = barWidthPx
+                poseHandle?.pressSource = press
+                // The first composition seeds the body before this block has told the handle how
+                // big its node is, so that first snapshot carries a translation built from zeros.
+                // Republish now that the frame is known, or one frame renders from it.
+                if (poseHandle != null && (poseFrameChanged || poseHandle.render == null)) poseHandle.publish()
+                val nodeLeftPx = handle?.nodeLeft() ?: poseHandle!!.nodeLeft()
+                val nodeTopPx = poseHandle?.nodeTop() ?: -overflowTopPx
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .offset { IntOffset(nodeLeftPx, nodeTopPx) }
+                        // `size` alone is COERCED to the parent's constraints, and the parent is
+                        // the bar - so the node was silently measured at the bar's height while
+                        // the body's uniforms were computed for the taller frame it asked for.
+                        // With a 4 dp style overflow that was a 4 px registration error nothing
+                        // caught; sized from the pose it became 26 px, and the held body was
+                        // drawn half a bar too high with its own item's ordinary ink left showing
+                        // underneath. Measure unbounded first, exactly as the non-pose selector
+                        // below already does, then take the size that was asked for.
+                        .wrapContentSize(Alignment.TopStart, unbounded = true)
+                        .size(width = envelopeDp, height = nodeHeightDp)
+                        .liquidGlassCore(
+                            state = state,
+                            shape = selectorShape,
+                            style = selectorStyle,
+                            light = style.light,
+                            interaction = if (motionEnabled) {
+                                style.lensInteraction
+                            } else {
+                                GlassInteraction.ReducedMotion
+                            },
+                            materialize = materialize,
+                            pressSource = press,
+                            refractContent = lensCarriesInk,
+                            through = barState,
+                            // The bar's outline is not enlarged to hide the body: containment is
+                            // what keeps a tap inside it, and a hold is allowed out by its own
+                            // declared envelope (V3-MODEL section 12).
+                            fuse = null,
+                            lensFormation = 0f,
+                            body = handle?.body?.movedInto(nodeLeftPx.toFloat(), overflowTopPx.toFloat()),
+                            poseBody = poseHandle?.render,
+                            endpointComposite = lensCarriesInk,
+                        ),
+                ) {
+                    if (lensCarriesInk) {
+                        // The selected variant of the same one layout, at the bar's own size and
+                        // origin and at native resolution. It is the C1 ink of the endpoint
+                        // compositor; nothing here is scaled by the body's deformation.
+                        Box(
+                            // Measured at the **bar's** size whatever the node's constraints are,
+                            // and placed at the bar's origin: the selected row is one layout of
+                            // the same items at the same coordinates as the ordinary row, and the
+                            // node only decides how much of it the aperture can show.
+                            modifier = Modifier
+                                .layout { measurable, constraints ->
+                                    val placeable = measurable.measure(
+                                        Constraints.fixed(
+                                            barWidthPx.roundToInt(),
+                                            barHeightPx.roundToInt(),
+                                        ),
+                                    )
+                                    layout(constraints.maxWidth, constraints.maxHeight) {
+                                        // The same rounded origin the node and the body use, and
+                                        // at scale 1: native ink never borrows the material's
+                                        // render scale.
+                                        placeable.place(-nodeLeftPx, -nodeTopPx)
+                                    }
+                                }
+                                .graphicsLayer {
+                                    // This layer has the selector node's size, but both ink
+                                    // endpoints scale about the BAR centre. A default .5 pivot
+                                    // shifted the selected source by (scale-1)*(barCentre-nodeCentre).
+                                    transformOrigin = TransformOrigin(
+                                        (barWidthPx / 2f - nodeLeftPx) / envelopePx,
+                                        (barHeightPx / 2f - nodeTopPx) / nodeHeightPx,
+                                    )
+                                    scaleX = barScale
+                                    scaleY = barScale
+                                },
+                        ) {
+                            ItemRow(
+                                count = itemCount,
+                                inset = style.contentPadding,
+                                selectedFor = { index -> !usePose || index == activeIndex },
+                                onClick = null,
+                                item = item,
+                                emphasisIndex = activeIndex,
+                                emphasis = 1f + (style.selectedScale - 1f) * lift,
+                            )
+                        }
+                    }
+                }
+                return@BoxWithConstraints
             }
 
             // The selector. Positioned explicitly with unbounded constraints: it is taller than
@@ -487,7 +994,7 @@ fun GlassTabBar(
                                 ItemRow(
                                     count = itemCount,
                                     inset = style.contentPadding,
-                                    selectedFor = { true },
+                                    selectedFor = { index -> !usePose || index == activeIndex },
                                     onClick = null,
                                     item = item,
                                     emphasisIndex = activeIndex,
@@ -512,6 +1019,12 @@ private fun ItemRow(
     /** The tab under the lens, grown by [emphasis] about its own centre; the rest stay at 1. */
     emphasisIndex: Int = -1,
     emphasis: Float = 1f,
+    /**
+     * Reports each item's measured icon-and-label width, so the V3 body can make room for the
+     * content it is over from layout rather than from a guess. Items are equal slots and their
+     * content is centred, so a width plus the slot's centre is the whole bound.
+     */
+    onMeasured: ((index: Int, width: Float) -> Unit)? = null,
 ) {
     Row(
         modifier = Modifier
@@ -544,9 +1057,14 @@ private fun ItemRow(
                     animationSpec = spring(dampingRatio = 0.85f, stiffness = 900f),
                     label = "glass_tab_bar_item_scale",
                 )
+                val measured = if (onMeasured != null) {
+                    Modifier.onGloballyPositioned { onMeasured(index, it.size.width.toFloat()) }
+                } else {
+                    Modifier
+                }
                 if (itemScale != 1f) {
                     Box(
-                        modifier = Modifier.graphicsLayer {
+                        modifier = measured.graphicsLayer {
                             scaleX = itemScale
                             scaleY = itemScale
                         },
@@ -554,7 +1072,7 @@ private fun ItemRow(
                         item(index, selectedFor(index))
                     }
                 } else {
-                    item(index, selectedFor(index))
+                    Box(modifier = measured) { item(index, selectedFor(index)) }
                 }
             }
         }
@@ -582,6 +1100,74 @@ internal data class GlassTabBarGeometry(val barWidth: Float, val inset: Float, v
         releasedVelocity < -flingVelocity -> lastIndex - 1
         else -> lastIndex
     }.coerceIn(0, count - 1)
+}
+
+/**
+ * What a drag commits, from what the gesture actually delivered: the tab the released velocity projects
+ * to, or nothing. Nothing is committed when [horizontalDrag] reported a cancellation (another node
+ * consumed the pointer), when the pointer that drove the lens did not end with a lift ([terminalUp]
+ * false: it vanished, or was still down while something else ended the drag), or when Compose handed
+ * the drag to a second finger ([handoff]). The production handler and the replay diagnostics both call
+ * this, so there is one decision, not two transcriptions of it.
+ */
+private suspend fun AwaitPointerEventScope.awaitPoseTouchSlopOrCancellation(
+    down: PointerInputChange,
+    holdMillis: Long,
+    onMove: (PointerInputChange) -> Unit,
+): PointerInputChange? {
+    while (true) {
+        val change = awaitPointerEvent().changes.firstOrNull { it.id == down.id } ?: return null
+        if (!change.pressed || change.isConsumed) return null
+        onMove(change)
+        val delta = change.position - down.position
+        val held = change.uptimeMillis - down.uptimeMillis >= holdMillis
+        val crossed = if (held) delta.getDistance() > viewConfiguration.touchSlop
+            else kotlin.math.abs(delta.x) > viewConfiguration.touchSlop
+        if (crossed) {
+            change.consume()
+            return change
+        }
+        // Before ownership matures, let a vertical page gesture take over as before.
+        if (!held && kotlin.math.abs(delta.y) > viewConfiguration.touchSlop) return null
+    }
+}
+
+internal fun decideDragEnd(
+    completed: Boolean,
+    terminalUp: Boolean,
+    handoff: Boolean,
+    lastIndex: Int,
+    releasedVelocity: Float,
+    flingVelocity: Float,
+    geometry: GlassTabBarGeometry,
+): Int? = if (!completed || !terminalUp || handoff) null else geometry.projected(lastIndex, releasedVelocity, flingVelocity)
+
+/** Selector state exposed through semantics, for the component's own tests; nothing reads it otherwise. */
+internal object GlassTabBarSemantics {
+    const val TAG = "GlassTabBarGestureNode"
+    val SelectorX = SemanticsPropertyKey<Float>("GlassTabBarSelectorX")
+    val Held = SemanticsPropertyKey<Boolean>("GlassTabBarHeld")
+    val Dragging = SemanticsPropertyKey<Boolean>("GlassTabBarDragging")
+    val DragIndex = SemanticsPropertyKey<Int>("GlassTabBarDragIndex")
+    /** V3 only: how far the held lens has formed, the body's width and end asymmetry, in px. */
+    val Formation = SemanticsPropertyKey<Float>("GlassTabBarFormation")
+    val BodyWidth = SemanticsPropertyKey<Float>("GlassTabBarBodyWidth")
+    val BodySkew = SemanticsPropertyKey<Float>("GlassTabBarBodySkew")
+    /** How far the body's contour is outside the resting bar, in px; 0 during an ordinary tap. */
+    val Protrusion = SemanticsPropertyKey<Float>("GlassTabBarProtrusion")
+
+    /**
+     * V3 only: the selector node's rounded left edge in bar px, and the touch point in that
+     * node's own local px — the exact pair the body, the aperture and the native ink are drawn
+     * with. `NodeLeft + TouchLocalX` must return the bar-local point the finger is at, which is
+     * what makes the optical frame checkable from outside the library and on a device.
+     */
+    val NodeLeft = SemanticsPropertyKey<Float>("GlassTabBarNodeLeft")
+    val NodeTop = SemanticsPropertyKey<Float>("GlassTabBarNodeTop")
+    val TouchLocalX = SemanticsPropertyKey<Float>("GlassTabBarTouchLocalX")
+    val TouchLocalY = SemanticsPropertyKey<Float>("GlassTabBarTouchLocalY")
+    /** V3 only: false when no feasible body exists and the selector is suppressed. */
+    val SelectorValid = SemanticsPropertyKey<Boolean>("GlassTabBarSelectorValid")
 }
 
 /**
@@ -666,6 +1252,19 @@ data class GlassTabBarStyle(
      * the bar as a separate shape.
      */
     val lensFuse: Dp = 0.dp,
+    /**
+     * The V3 deforming selector, or null for the capsule this component shipped with.
+     *
+     * Non-null replaces the scaled capsule with the constrained two-disk body of
+     * [GlassSelectorSpec]: the selector's outline, normal, optical band and coverage all come
+     * from that body, the bar's material alone is what the selector looks through, and the
+     * selected ink is composited as a complete endpoint under one aperture coverage. Nothing
+     * rasterised is scaled to fake the deformation.
+     *
+     * Null keeps every existing consumer, preset and measurement on the path they were verified
+     * on; this is opt-in for exactly that reason.
+     */
+    val selector: GlassSelectorSpec? = null,
 ) {
     companion object {
         // Declaration order matters here: the constructor's defaults read RestingInset and
@@ -858,6 +1457,112 @@ data class GlassTabBarStyle(
             )
 
         /**
+         * The measured material with the V3 deforming selector, the exact ink compositor and the
+         * straight-edge fold.
+         *
+         * Everything optical that was measured is unchanged: the bar is still the measured
+         * toolbar, the resting indicator and held lens keep their measured numbers, and the
+         * resting-corner source table is still the authority at a corner. What is new is
+         * authored and says so - the body's dynamics ([GlassSelectorSpec]), the straight-run fold
+         * strength, and the continuous connection through the held ink map's middle band.
+         *
+         * [edgeFold] is applied to the **bar**, which is where a straight run is long enough to
+         * show page structure, and to the selector's own material for consistency. The lens's
+         * semantic ink takes one sharp sample: a maximum over three channels' alphas is not
+         * correct coloured transmission, so bulk ink dispersion is off and only the page material
+         * splits (V3-MODEL section 8.3).
+         */
+        fun V3(
+            dark: Boolean = true,
+            tintAmount: Float = GlassMaterial.DEFAULT_TINT_AMOUNT,
+            spec: GlassSelectorSpec = GlassSelectorSpec(),
+            edgeFold: Float = 0.8f,
+        ): GlassTabBarStyle {
+            val measured = Measured(dark = dark, tintAmount = tintAmount)
+            return measured.copy(
+                // Original Phone T01's unchanged black backdrop:32 at rest,44 while held.
+                // These plateaus differ from the general calibration target's35+16; keep
+                // that older preset intact and make this correction explicit in dark V3.
+                bar = measured.bar.copy(
+                    edgeFold = edgeFold,
+                    tintLift = if (dark) 32f / 255f else measured.bar.tintLift,
+                ),
+                heldLift = if (dark) 12f / 255f else measured.heldLift,
+                // Both ends of the pill-to-lens morph must agree on every field that snaps at the
+                // midpoint, or the ink's source map changes shape halfway through the morph.
+                pill = measured.pill.copy(
+                    edgeFold = edgeFold,
+                    inkDispersion = 0f,
+                    heldInkContinuous = false,
+                    // The resting indicator against the owner's stills (r10 optics audit, item 4):
+                    // iOS reads 0.28-0.32 of its bar on a dark page (6730: 10-12 over 40; the
+                    // iOS 27 Phone rest: 10 over 32) where the measured affine law gave 0.55 of
+                    // Vitals' lighter bar. A darker, more multiplicative tint: 0.5 x bar - 10.
+                    // Authored against the stills; the iOS 27 App Store data point (0.6 of a
+                    // bright bar) is not matched by it.
+                    tint = Color.Black.copy(alpha = 0.5f),
+                    tintLift = -10f / 255f,
+                    legibility = 0f,
+                ),
+                lens = measured.lens.copy(
+                    edgeFold = edgeFold,
+                    // Ink crossing the lens's band splits into colour fringes of a few px in
+                    // every held reference (6721 "Communities", 6727 "Calls"); the split is
+                    // scaled by the bend, so the interior stays one sharp sample.
+                    // 0.06 read as a saturated ghost of a neighbour's icon at the rim on the r16
+                    // phone (review/r16_rim_zoom.png); the stills' fringes are a few px and pale.
+                    inkDispersion = 0.03f,
+                    // The stepped held map: ink between 0.36 W and 0.5 W is swallowed and what
+                    // crosses the rim arrives as a compressed sliver, which is what 6727's
+                    // "Calls" and 6721's "Communities" show (r10 audit, item 5: the continuous
+                    // map compressed a crossing glyph to 0.73x and hid nothing; iOS 0.2x with
+                    // ~30 px hidden).
+                    heldInkContinuous = false,
+                    // The held item reads 1.18-1.20x its neighbours (6717 Chats 1.19, iOS 27
+                    // Calls 1.18; r10 audit item 7); with the bar's own 1.05 that is 0.12 here.
+                    // The magnification is of the INK only: the panel pass no longer zooms the
+                    // material, which carried the bar's edge outward inside the lens.
+                    heldMagnification = 0.12f,
+                    // The interior reads as the bar does (+2..+8 in every reference; r10 audit
+                    // item 1): no contrast-driven tint, no white, a trace of the raw page.
+                    legibility = 0f,
+                    tint = Color.White.copy(alpha = 0f),
+                    rawShare = 0.01f,
+                    // IMG_6756 T01 has a thin lit top/bottom over black and a dark side step.
+                    // Astra's zero-lit preset lost that raised boundary. Reassess Fable's
+                    // retained directional lighting against the original profiles; these
+                    // gains are authored, not recovered Apple optical constants. The direct
+                    // fixture must pass edgeLight0/highlightChroma.7: r9's omitted parameters
+                    // overstated brightness. Its physical peak46 versus original~94 motivates
+                    // this .49 candidate; chromatic rim parity is verified separately.
+                    bevel = 2.dp,
+                    bevelPeak = 0f,
+                    specular = 0.49f,
+                    specularPower = 1f,
+                    counterLight = 1f,
+                    edgeShadow = 0.12f,
+                    heldGlow = 0.4f,
+                    // Original settled Phone side: dark minimum followed by ~6px recovery
+                    // at 3px/pt. This opt-in authored tail preserves the old contour elsewhere.
+                    heldEdgeRecovery = 1.dp,
+                    dispersion = 0.05f,
+                    blurRadius = 0.5.dp,
+                ),
+                // The body's own outline is what stands proud of the bar; there is no second
+                // silhouette to fuse with.
+                lensFuse = 0.dp,
+                lensInteraction = GlassInteraction(pressScale = 1f, illumination = 0.15f, gel = false),
+                // The optical map already enlarges native ink by 1/(1 - 0.12). With the
+                // bar's 1.05 expansion that is 1.19x; another 1.18 item scale made it 1.41x.
+                selectedScale = 1f,
+                // Settled6701: ~160px pill inside184px bar at3x (~4pt per side).
+                // 6730 belongs to held release; it cannot establish the resting inset.
+                pillInset = 4.dp,
+                selector = spec,
+            )
+        }
+
+        /**
          * [Dark], with the separating contour and brighter highlight Apple's 2026 revision
          * added.
          *
@@ -878,3 +1583,13 @@ data class GlassTabBarStyle(
         )
     }
 }
+
+/**
+ * The share of the resting pill's half height that an item's icon-over-label block occupies.
+ *
+ * An authored layout constant, not a measured optic: it is what the body's accommodation uses to
+ * decide how far a rounded end has to be pushed out before the **corners** of the padded label
+ * rectangle are inside it. Horizontal span alone does not prove a label fits between two round
+ * caps, which is what the final-polish pass measured at up to 9.6 px of overhang.
+ */
+private const val INK_VERTICAL_SHARE = 0.62f

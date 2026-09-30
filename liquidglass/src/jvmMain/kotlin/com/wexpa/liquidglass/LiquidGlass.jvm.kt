@@ -126,6 +126,25 @@ internal actual fun createGlassRenderEffect(
     builder.uniform("uProfile", uniforms.profile)
     builder.uniform("uFormation", uniforms.formation)
     builder.uniform("uHeldLens", uniforms.heldLens)
+    builder.uniform("uHeldMagnification", uniforms.heldMagnification)
+    builder.uniform("uHeldGlow", uniforms.heldGlow)
+    builder.uniform("uHeldEdgeRecovery", uniforms.heldEdgeRecovery)
+    builder.uniform("uRestMap", uniforms.restMap)
+    builder.uniform(
+        "uBody",
+        uniforms.body.getOrElse(0) { 0f },
+        uniforms.body.getOrElse(1) { 0f },
+        uniforms.body.getOrElse(2) { 0f },
+        uniforms.body.getOrElse(3) { 0f },
+    )
+    builder.uniform("uBodyY", uniforms.bodyY)
+    builder.uniform("uBodyKind", uniforms.bodyKind)
+    builder.uniform("uPoseA", uniforms.poseA[0], uniforms.poseA[1], uniforms.poseA[2], uniforms.poseA[3])
+    builder.uniform("uPoseAInv", uniforms.poseAInv[0], uniforms.poseAInv[1], uniforms.poseAInv[2], uniforms.poseAInv[3])
+    builder.uniform("uPoseC", uniforms.poseC[0], uniforms.poseC[1], uniforms.poseC[2], uniforms.poseC[3])
+    builder.uniform("uPoseD", uniforms.poseD[0], uniforms.poseD[1], uniforms.poseD[2], uniforms.poseD[3])
+    builder.uniform("uEndpointAlpha", uniforms.endpointAlpha)
+    builder.uniform("uEdgeFold", uniforms.edgeFold)
     builder.uniform("uWideStrip", uniforms.wideStrip)
     builder.uniform("uWideScale", uniforms.wideScale)
     builder.uniform("uFineShare", uniforms.fineShare)
@@ -202,9 +221,84 @@ internal actual fun createGlassContentRenderEffect(
     builder.uniform("uProfile", uniforms.profile)
     builder.uniform("uFormation", uniforms.formation)
     builder.uniform("uHeldLens", uniforms.heldLens)
+    builder.uniform("uHeldMagnification", uniforms.heldMagnification)
+    builder.uniform("uRestMap", uniforms.restMap)
+    builder.uniform(
+        "uBody",
+        uniforms.body.getOrElse(0) { 0f },
+        uniforms.body.getOrElse(1) { 0f },
+        uniforms.body.getOrElse(2) { 0f },
+        uniforms.body.getOrElse(3) { 0f },
+    )
+    builder.uniform("uBodyY", uniforms.bodyY)
+    builder.uniform("uBodyKind", uniforms.bodyKind)
+    builder.uniform("uPoseA", uniforms.poseA[0], uniforms.poseA[1], uniforms.poseA[2], uniforms.poseA[3])
+    builder.uniform("uPoseAInv", uniforms.poseAInv[0], uniforms.poseAInv[1], uniforms.poseAInv[2], uniforms.poseAInv[3])
+    builder.uniform("uPoseC", uniforms.poseC[0], uniforms.poseC[1], uniforms.poseC[2], uniforms.poseC[3])
+    builder.uniform("uPoseD", uniforms.poseD[0], uniforms.poseD[1], uniforms.poseD[2], uniforms.poseD[3])
+    builder.uniform("uEndpointAlpha", uniforms.endpointAlpha)
+    builder.uniform("uEdgeFold", uniforms.edgeFold)
+    builder.uniform("uInkSplit", uniforms.inkSplit)
+    builder.uniform("uHeldInk", uniforms.heldInk)
     return ImageFilter.makeRuntimeShader(
         runtimeShaderBuilder = builder,
         shaderName = "content",
+        input = null,
+    ).asComposeRenderEffect()
+}
+
+private val endpointEffect: RuntimeEffect? by lazy {
+    runCatching { RuntimeEffect.makeForShader(GLASS_ENDPOINT_SHADER_SOURCE) }.getOrNull()
+}
+
+internal actual fun createGlassEndpointRenderEffect(
+    uniforms: GlassUniforms,
+): androidx.compose.ui.graphics.RenderEffect? {
+    val effect = endpointEffect ?: return null
+    if (uniforms.width <= 0f || uniforms.height <= 0f) return null
+
+    val builder = RuntimeShaderBuilder(effect)
+    builder.uniform("uSize", uniforms.width, uniforms.height)
+    builder.uniform("uPad", uniforms.pad)
+    builder.uniform(
+        "uRadii",
+        uniforms.radii.getOrElse(0) { 0f },
+        uniforms.radii.getOrElse(1) { 0f },
+        uniforms.radii.getOrElse(2) { 0f },
+        uniforms.radii.getOrElse(3) { 0f },
+    )
+    builder.uniform(
+        "uFuse",
+        uniforms.fuse.getOrElse(0) { 0f },
+        uniforms.fuse.getOrElse(1) { 0f },
+        uniforms.fuse.getOrElse(2) { 0f },
+        uniforms.fuse.getOrElse(3) { 0f },
+    )
+    builder.uniform("uFuseShape", uniforms.fuseRadius, uniforms.fuseWidth)
+    builder.uniform("uCornerPower", uniforms.cornerPower)
+    builder.uniform("uShapeKind", uniforms.shapeKind)
+    builder.uniform("uFieldRange", uniforms.fieldRange)
+    builder.uniform("uFieldScale", uniforms.fieldScale)
+    builder.child("field", uniforms.field?.let { bitmap ->
+        org.jetbrains.skia.Image.makeFromBitmap(bitmap.asSkiaBitmap())
+            .makeShader(FilterTileMode.CLAMP, FilterTileMode.CLAMP)
+    } ?: placeholderFieldShader)
+    builder.uniform(
+        "uBody",
+        uniforms.body.getOrElse(0) { 0f },
+        uniforms.body.getOrElse(1) { 0f },
+        uniforms.body.getOrElse(2) { 0f },
+        uniforms.body.getOrElse(3) { 0f },
+    )
+    builder.uniform("uBodyY", uniforms.bodyY)
+    builder.uniform("uBodyKind", uniforms.bodyKind)
+    builder.uniform("uPoseA", uniforms.poseA[0], uniforms.poseA[1], uniforms.poseA[2], uniforms.poseA[3])
+    builder.uniform("uPoseAInv", uniforms.poseAInv[0], uniforms.poseAInv[1], uniforms.poseAInv[2], uniforms.poseAInv[3])
+    builder.uniform("uPoseC", uniforms.poseC[0], uniforms.poseC[1], uniforms.poseC[2], uniforms.poseC[3])
+    builder.uniform("uPoseD", uniforms.poseD[0], uniforms.poseD[1], uniforms.poseD[2], uniforms.poseD[3])
+    return ImageFilter.makeRuntimeShader(
+        runtimeShaderBuilder = builder,
+        shaderName = "endpoint",
         input = null,
     ).asComposeRenderEffect()
 }
@@ -286,6 +380,7 @@ internal actual fun createGlassContainerRenderEffect(
     builder.uniform("uProfile", uniforms.profile)
     builder.uniform("uFormation", 0f)
     builder.uniform("uHeldLens", 0f)
+    builder.uniform("uRestMap", uniforms.restMap)
     builder.uniform("uWideStrip", uniforms.wideStrip)
     builder.uniform("uWideScale", uniforms.wideScale)
     builder.uniform("uFineShare", uniforms.fineShare)

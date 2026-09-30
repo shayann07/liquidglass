@@ -151,6 +151,7 @@ fun LiquidGlassContainer(
                             refractBand = if (style.refractionBand.isSpecified) style.refractionBand.toPx()
                                 else GlassMaterial.BEVEL_RATIO * (active.maxOfOrNull { it.radius } ?: 0f),
                             profile = minOf(style.profile.uniform, 1f),
+                            restMap = style.restMap.uniform,
                             wideKernel = wideKernelPx,
                             wideStrip = if (useWide) paddedSize.height.toFloat() else 0f,
                             wideScale = wideScale,
@@ -252,6 +253,8 @@ internal class GlassContainerUniforms(
     val tintAbsorb: Float,
     /** 0 the legacy Snell bevel, 1 the measured fold lens. */
     val profile: Float = 0f,
+    /** Resting-corner source map: 0 legacy, 1 the measured table ([GlassRestMap]). */
+    val restMap: Float = 0f,
     /** Sigma of the wide tone kernel, px; 0 disables it. */
     val wideKernel: Float = 0f,
     /** Layer row where the quarter-scale blurred copy starts; 0 when there is none. */

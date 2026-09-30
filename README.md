@@ -1,5 +1,21 @@
 # liquidglass
 
+## Astra final review — r13
+
+The selected implementation is **Astra r13**, with shared anchored glass interaction: controls
+and ordinary labels stay in position while the material expands and stretches. Wide bars stay
+level, and round controls retain directional stretch. V3 navigation keeps its selection lens
+and native ink mapping. Full iOS 1:1 parity is **not established**.
+
+- [How the shared behavior works and how to use it](https://github.com/shayann07/liquidglass/blob/main/docs/generic-interaction.md)
+- [Final verification, comparisons and limitations](https://github.com/shayann07/liquidglass/blob/main/review/ASTRA-r13.md)
+- [ASTRA r13 review APK](https://github.com/shayann07/Vitals/raw/refs/heads/main/review/Vitals-ASTRA-r13.apk)
+- [Preserved Fable approach](https://github.com/shayann07/liquidglass/tree/codex/fable-preserved-2026-09-28)
+- [Preserved Antigravity approach](https://github.com/shayann07/liquidglass/tree/codex/antigravity-preserved-2026-09-28)
+
+The alternatives retain their captured source bytes and provenance. This source delivery uses
+`0.2.0-astra.13-SNAPSHOT` locally and does not create a Maven Central release.
+
 [![Maven Central](https://img.shields.io/maven-central/v/dev.shayxo.liquidglass/liquidglass)](https://central.sonatype.com/artifact/dev.shayxo.liquidglass/liquidglass)
 [![CI](https://github.com/shayann07/liquidglass/actions/workflows/ci.yml/badge.svg)](https://github.com/shayann07/liquidglass/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
@@ -12,10 +28,16 @@ sitting over whatever is behind it.
 Runs on Android 13+ (AGSL) and Desktop/JVM (Skia). Below Android 13 it degrades to a tinted
 surface with the same rim lighting — a plainer material, not a broken one.
 
-Since 0.2 the material is **measured, not tuned**: the optics were fitted from calibration
-captures of iOS 27 on a real device, taken through a known test image, and the library is
-checked against those captures with the same tools. See
-[the measured model](docs/research/measured-model.md).
+The 0.2 development line combines material calibration from original iPhone captures with
+authored interaction dynamics. Measured source maps and sampled colours are distinct from
+spring rates, layout policies and visual approximations. See
+[the measured model](docs/research/measured-model.md) and
+[implementation status](docs/implementation-status.md) for the evidence and current limits.
+
+The **Astra implementation** is the selected development approach. Its deforming tab selector
+is opt-in through `GlassTabBarStyle.V3()`; existing default presets retain their prior behavior.
+Exact iOS parity is still under verification. The stable dependency below does not include
+the unreleased Astra work.
 
 ```kotlin
 implementation("dev.shayxo.liquidglass:liquidglass:0.1.0")
@@ -235,13 +257,43 @@ is re-recorded per frame.
 the differences between the styles — and the mistakes — are obvious. A smooth gradient alone
 hides almost every flaw in a lensing shader. The sample app's first screen opens it.
 
+## The research
+
+The material calibration uses known input images. A glass panel is a function from the pixels behind it
+to the pixels on screen, and over a photograph that function cannot be recovered — nobody knows what
+the input was. So the material was measured over a synthetic calibration target on an iPhone 13
+running iOS 27, where every input pixel is known by construction and one screenshot is an exact
+input/output pair. That is where `W = 0.6 R`, the tint tables, the two-kernel backdrop and the
+resting-corner source map come from.
+
+The full record is [`research/README.md`](research/README.md): the mathematics of the deforming
+selector (a convex hull of two unequal disks, whole-body containment as linear inequalities, a
+metric projection, exact closed-form spring stepping, and the endpoint compositing algebra), the
+measured material model, the identifiability result that says what the captures *cannot* settle,
+every source file, every test and what it gates, and the device results — including the one
+performance gate that fails. It is published on the site as
+[the full record](https://shayann07.github.io/liquidglass/research/the-record/), alongside the
+shorter write-ups in [docs/research/](docs/research/README.md). Only the material behind it — the
+captures, device videos and decoded arrays, several gigabytes — stays out of the repository.
+
+Three things that record does deliberately:
+
+- **Every number carries a provenance** — *measured*, *inherited* (an effective value that reproduces
+  pixels, not a recovered physical property), or *authored* (a design constant). They are never mixed.
+- **It states what cannot be known.** Measuring displacement determines the derivative of an effective
+  potential, not the index, thickness and gap separately; a whole family of surfaces fits the same
+  observation. No refractive index is claimed anywhere in this repository.
+- **It reports failures as failures**, including a frame-time gate that misses by 1.5 ms after two
+  bounded optimisations, and a list of claims that must not return under new names.
+
 ## Repository
 
 | | |
 | :--- | :--- |
 | `liquidglass/` | The library. Published; depends on Compose foundation and ui only. |
 | `sample/` | An Android app: the gallery, stock Material 3 components converted, and the optics off and on. |
-| `docs/` | The guides, the API reference and the research, including the reference measurements. |
+| `docs/` | The guides, the API reference and the research write-ups. |
+| `research/` | The measurement material and the full research record. Local only; not part of the published package or site. |
 
 Contributions are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md). Releases are described in
 [docs/publishing.md](docs/publishing.md) and listed in [CHANGELOG.md](CHANGELOG.md).

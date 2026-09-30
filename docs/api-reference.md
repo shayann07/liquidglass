@@ -79,6 +79,7 @@ Draws this element as a piece of glass over `state`'s backdrop.
 | `materialize` | 0 to 1. Drive this instead of `alpha` — at 0 the shader returns the backdrop untouched, so the element leaves by ceasing to bend light. |
 | `pressSource` | Drive the press from outside, when another node owns the gesture. See `GlassPressSource`. |
 | `refractContent` | Draw the element's content **inside** the glass — bent and colour-split through the same bevel the backdrop goes through, clipped to the shape — instead of on top. For content that is the material's subject: what a magnifier is over, the symbol a selection lens is crossing. See [Interaction](interaction.md#content-inside-the-glass). |
+| `restMap` | `GlassRestMap.Legacy` (default) or `Measured`: which source map the resting corner lens of the measured profile uses. `Measured` is the resting-corner table fitted on the Photos toolbar's 72 px ends in the closeout; it changes only the resting-corner term and is a scale extrapolation at any other radius. Ignored by the legacy profile and by the held family. See [limitations](limitations.md#the-rest-lens-is-measured-at-one-size-and-selected-per-style). |
 | `lensFormation` | 0 to 1. How far the measured edge fold has formed. At 0 the corner arcs show the measured rest lens (the ring 0.33 R inside, mapped onto the whole outer third) and straight runs show nothing but a few px of inward offset; on iOS 27 the full fold appears only while a finger tracks a surface past about 117 dp of pull and never on chrome at rest or a committed animation, so the default is 0; a host tracking a drag drives it from the pull with `GlassMaterial.lensFormation` and animates it back on release. Ignored by the legacy profile. |
 | `through` | Glass this element looks **through**. A lens on a tab bar sees the bar, not past it: record the bar with `liquidGlassSource` into a second state and pass it here, and it is composited over the backdrop before this element's shader runs. The element must not be inside that source's subtree. See [Tab bar](tab-bar.md). |
 
@@ -166,11 +167,52 @@ data class GlassTabBarStyle(
     val arrive: AnimationSpec<Float>, val settle: AnimationSpec<Float>,
     val flingVelocity: Dp = 420.dp,
     val gel: Float = 0.06f, val gelReference: Dp = 1200.dp, val gelSpring: AnimationSpec<Float>,
+    val pillWidth: Dp = Dp.Unspecified,
+    val heldScale: Float = 1f, val heldLift: Float = 0f, val selectedScale: Float = 1f,
+    val lensFuse: Dp = 0.dp,
+    val selector: GlassSelectorSpec? = null,
 )
 ```
 
 `Dark` is the measured preset. `RestingInset` and `HeldLens` are the two materials the indicator
 morphs between, exposed so a host can start from them.
+
+#### `selector` — the deforming body
+
+Null keeps the capsule selector this component shipped with, and every preset above is on that
+path. Non-null replaces it with the convex hull of two unequal disks, whose length, mean radius and
+end asymmetry evolve separately; the selector's outline, normal, optical band and coverage all come
+from that body, so the aperture really changes rather than a finished picture being stretched.
+Nothing rasterised is scaled to fake the deformation.
+
+Containment is by construction: both generating disks are projected into an inscribed polygon of
+the bar, which puts their whole convex hull inside it. An ordinary tap therefore deforms *within*
+the bar however fast it travels, and only a hold that outlives the threshold is granted the larger
+envelope — touch-down alone does not start the held lens.
+
+`GlassTabBarStyle.V3(dark, tintAmount, spec, edgeFold)` is the measured preset with this selector,
+the exact ink compositor and the straight-run fold turned on together.
+
+```kotlin
+@Immutable
+data class GlassSelectorSpec(
+    val centreOmega: Float = 22f, val centreZeta: Float = 1.0f,
+    val shapeOmega: Float = 26f, val shapeZeta: Float = 0.80f,
+    val holdThresholdSeconds: Float = 0.120f,
+    val formOmega: Float = 36f, val formZeta: Float = 1f,
+    val sizeOmega: Float = 24f, val sizeZeta: Float = 0.90f,
+    val maxExtraLength: Float = 0.60f,   // slot widths, at speed
+    val maxRadiusDrop: Float = 0.12f,    // fraction of the base radius
+    val maxSkew: Float = 0.18f,          // fraction of the base radius
+    val releaseOmega: Float = 18f, val attachOmega: Float = 40f,
+    val minRadiusDp: Float = 4f, val minLengthDp: Float = 1f,
+    val admitInsetDp: Float = 2f, val admitReleaseDp: Float = 4f, val admitPaddingDp: Float = 6f,
+    val maxWidthSlots: Float = 2.4f,
+)
+```
+
+Every number here is a **design constant**. None is a recovered Apple time constant or a measured
+physical property, and the component says so rather than implying otherwise.
 
 ---
 
@@ -212,6 +254,10 @@ data class GlassStyle(
     val fallbackSurface: Color = Color(0xF2141416),
     val invertsWithBackdrop: Boolean = true,
     val dimmingLayer: Float = 0f,
+    val restMap: GlassRestMap = GlassRestMap.Legacy,
+    val edgeFold: Float = 0f,
+    val inkDispersion: Float = Float.NaN,
+    val heldInkContinuous: Boolean = false,
 )
 ```
 
@@ -225,6 +271,26 @@ fine, `wideKernel` wide, mixed by `fineShare`), `tint` as `(1 - a) * backdrop + 
 tintLift` with `liftAdaptivity` lowering the lift as the wide kernel's luma rises, and
 `dispersion` as a fraction of the band in the mirrored zone only. `refractionDepth`, `mirror`,
 `adaptivity` and `indexOfRefraction` are read by the `Legacy` profile only.
+
+**`edgeFold`** is the straight-run source map on the measured profile: `f(u) = u + a(1-u)^3`,
+which joins identity in value and both derivatives and, for `a > 1/3`, folds once at
+`1 - 1/sqrt(3a)` with minimum source depth `1 - 2/(3 sqrt(3a))`. Page structure then appears twice
+near a straight edge with opposite orientation, which is what makes text bend and stretch into the
+edge instead of showing through it. The measured resting-corner table is still the authority at a
+corner; the two are blended through a geometric arc/run transition. 0 keeps the shallow inward
+offset a committed sheet pull measured, which is what every existing consumer has. Intended range
+0.55 to 1.20. **Authored, not measured.**
+
+**`inkDispersion`** is the per-channel split for [refracted content][], as a fraction of the
+displacement. Unspecified means "whatever `dispersion` is", which is what the material has always
+done; 0 takes one sharp sample instead, which is the only form whose alpha is exactly the glyph's
+own. A maximum over three channels' alphas is not correct coloured transmission over an arbitrary
+background — it makes a white glyph block green and blue light it never touched.
+
+**`heldInkContinuous`** connects the held lens's **ink** map through the middle of its band
+instead of stepping by about 0.14 W at half of it. The captures never established that the step
+was a true discontinuity, and a smooth path across one source plane has a continuous source
+coordinate. The page material's own map is unaffected.
 
 **`backdropSigma`** is a pre-blur named by its Gaussian sigma and converted to each platform's
 own radius at bind time, so it means the same blur on Android and the desktop; `backdropBlur` is
@@ -267,6 +333,12 @@ and composited against whatever lies outside, which makes it invisible over a da
 [reference measurements](research/reference-measurements.md)), `Clear` (Apple's non-adaptive
 variant — its zeros are deliberate and it requires its dimming layer), `Thick` (sheets and
 dialogs).
+
+`heldEdgeRecovery: Dp = 0.dp` optionally extends the dark side contour inward on a formed
+`GlassProfile.Held` lens. Zero preserves the historical narrow contour described above.
+The V3 preset uses `1.dp`, an authored shoulder and recovery curve constrained by several
+original Phone frames. It changes material darkening, not source or ink sharpness, and
+interpolates with the style during formation. Other presets retain zero.
 
 ### `GlassProfile.Held`, `heldLens`, `rawShare`
 
@@ -589,3 +661,12 @@ accessibility modes and a fusing container, over saturated colour with hard edge
 It is in the published source deliberately. The material can only be judged against content
 worth refracting — over a plain ground every style looks the same and so does every mistake —
 and this is what it was tuned against.
+
+## Anchored Pullable interaction (Astra r13)
+
+`GlassInteraction.Pullable` deforms material around the fixed control centre. Ordinary content
+and hit targets remain anchored; long bars do not rotate or shear. `pullFollow` controls input
+compliance, `pullLimit` bounds it, and `pullElongation`/`pullWidthRatio` control the strain.
+`Default` preserves Legacy behavior. `ReducedMotion` removes elastic response. External
+`GlassPressSource` supplies press illumination, not generic drag displacement.
+See [generic interaction](generic-interaction.md) for integration, ownership and navigation details.

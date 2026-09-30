@@ -1,9 +1,10 @@
 # Tab bar
 
-`GlassTabBar` is the component the material was measured against, and the one place in the
-library where every default is a measurement rather than a choice. If you want the iOS 26 tab
-bar, use it as it is; if you want something else, read this first so you know what you are
-changing.
+`GlassTabBar` combines calibrated material with authored interaction dynamics. Its Legacy
+presets preserve existing behavior; `GlassTabBarStyle.V3()` selects Astra's deforming lens.
+The bar and tab anchors stay fixed while selection moves through the lens. See
+[generic interaction](generic-interaction.md) for shared primitives, gesture ownership and the
+remaining distinction between the pose renderer and standalone controls.
 
 ```kotlin
 val glass = rememberLiquidGlassState(background = MyTheme.ground)
@@ -32,6 +33,52 @@ change **only colour** between `selected = false` and `selected = true`, and do 
 click handling on it (the bar owns the gesture and calls `onSelected`).
 
 Put the shadow on the bar's `modifier` with `clip = false`. The held lens is taller than the bar.
+
+## The deforming selector
+
+`GlassTabBarStyle.V3(dark = true)` replaces the capsule indicator with a small constrained body
+and turns on the two optical changes that go with it. It is opt-in; `GlassTabBarStyle.Measured`
+and every other preset keep the capsule.
+
+```kotlin
+style = GlassTabBarStyle.V3(dark = true)
+```
+
+What changes:
+
+- **The indicator is the convex hull of two unequal disks**, not a scaled capsule. Its length,
+  mean radius and end asymmetry are three states with their own springs, so it stretches along the
+  travel, lags at the back leaving the trailing end fuller, and bulges at the front on arrival —
+  and the *aperture* changes with it. Nothing rasterised is scaled: an identity source map with
+  identical paint variants leaves every glyph exactly where it was, which is asserted rather than
+  assumed.
+- **A tap stays inside the bar.** Both generating disks are projected into an inscribed polygon of
+  the bar's outline, and a body whose two disks are inside a convex region has its whole hull
+  inside it. Speed cannot buy an escape, and there is no clipping: the shape complies before it is
+  drawn, so the rim stays a rounded body.
+- **Touch-down is not a hold.** The lens forms only after an eligible press outlives the hold
+  threshold, or when a drag is recognized, so a quick tap never starts the protruding shape.
+- **A hold may grow out of the bar**, follow the finger through hard swipes, make room for the
+  icon and label it is over — including while the finger is completely still — and recover
+  continuously on release under an envelope that starts at the excess it already had.
+- **The selected ink is composited once, as a complete endpoint.** What the selector looks through
+  is the bar's material alone, with no icon or label in it, so there is no filtered copy of the
+  ordinary ink underneath the selected one. See `GlassStyle.inkDispersion`.
+- **The bar's straight runs fold** (`GlassStyle.edgeFold`), so page content appears twice near the
+  top and bottom edges with opposite orientation instead of showing through upright.
+
+Every dynamics number is a design constant on `GlassSelectorSpec`, not a measured Apple property.
+Content accommodation and motion stretch share a **total** width budget, `maxWidthSlots` (default
+1.9 slots, or the explicit resting-pill width if that is larger). Oversized labels can intersect
+the refracting rim; fitting every padded raw glyph rectangle is not a requirement. The controller
+does not enlarge the lens without bound to satisfy that preference. Tab selection follows the
+grasp's intended item even when the visible body's width prevents its centre reaching an end tab.
+
+On release, centre, length, radius and skew relax together at `releaseOmega` (default 10/s),
+preserving their incoming velocities. Centre recovery does not create a second stretch impulse.
+The default zero-speed main recovery spans about 333 ms; it is an authored approximation.
+Frame cost depends on the device and scene; the earlier V3 timing gate failed. See
+[limitations](limitations.md) rather than treating the controller's CPU time as total frame cost.
 
 ## What happens under a finger
 

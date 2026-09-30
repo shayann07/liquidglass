@@ -1,0 +1,26 @@
+{
+  "fable-library": {
+    "branch": "codex/fable-preserved-2026-09-28",
+    "commit": "8035acf981daeb2554ceac424d3638f5ac44c68a",
+    "archiveSha256": "34a790bb7856fb406666d26e594b5eb04d725118ed9c58bdcb8258eeab555482",
+    "sourceFiles": 144
+  },
+  "fable-app": {
+    "branch": "codex/fable-preserved-2026-09-28",
+    "commit": "df75c0c05ba77d47ccdba03290609b325cf964ca",
+    "archiveSha256": "aec6521ed5960b1c391a509c6d8e0a543c465e4b199ef423cb3c3b383b0e7e34",
+    "sourceFiles": 376
+  },
+  "antigravity-library": {
+    "branch": "codex/antigravity-preserved-2026-09-28",
+    "commit": "39528d920ecd961bab91aadde87d39ca6b60b962",
+    "archiveSha256": "9a9ab8332ee456177ab63cba6aa6b5692ca6f235cda7ee746f17417bad9e498e",
+    "sourceFiles": 148
+  },
+  "antigravity-app": {
+    "branch": "codex/antigravity-preserved-2026-09-28",
+    "commit": "57ef0a223ecdd3beb9d50b14ab9b74bd9961d1ff",
+    "archiveSha256": "b7c3116bb1af613eb3fa734bab54c97da16e3ec5cd0db7f470b2fe7c12916e21",
+    "sourceFiles": 380
+  }
+}
