@@ -56,6 +56,10 @@ ancestor; a clipping shadow can cut off the expanded material during a pull.
 These authored input limits and the rectangular extrapolation do not establish full iOS
 parity. See [implementation status](implementation-status.md) for the current evidence.
 
+Large surfaces now receive a subtler drag response than small controls. R14 preserves touch
+expansion and reduces only drag strain, with a smooth size transition and a 2dp total extension
+cap on surfaces at least 160dp long. See the [size policy](generic-interaction.md#separate-touch-expansion-from-drag-stretch).
+
 ### When something else owns the gesture
 
 A panel that is also the thing you touch can watch its own pointer, and `interaction` alone is

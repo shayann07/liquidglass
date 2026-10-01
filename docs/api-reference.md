@@ -670,3 +670,10 @@ compliance, `pullLimit` bounds it, and `pullElongation`/`pullWidthRatio` control
 `Default` preserves Legacy behavior. `ReducedMotion` removes elastic response. External
 `GlassPressSource` supplies press illumination, not generic drag displacement.
 See [generic interaction](generic-interaction.md) for integration, ownership and navigation details.
+
+### Size-adaptive drag (r14)
+
+Pullable preserves touch feedback and controls up to 80dp. Its drag-only surface policy
+smoothly transitions by 160dp to one-fifth gain and a 2dp total extension cap. Both dimensions
+use unpressed layout size in dp; density does not change the response. This is automatic in
+`liquidGlass`, not a separate card implementation. See [generic interaction](generic-interaction.md).

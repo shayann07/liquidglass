@@ -1,0 +1,31 @@
+{
+  "revision": "ASTRA-r14",
+  "suites": {
+    "full-test-results": {
+      "tests": 252,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "focused-test-results": {
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "app-test-results": {
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "desktop-final-results": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "apk_sha256": "3f26106a2267a4716829ae96613f3af83b0d7c96dd31a149813e880af1d8fcf9",
+  "scope": "Full suite preceded desktop diagnostic binding fix; focused desktop and diagnostic tests followed. No physical Android testing or performance measurement."
+}

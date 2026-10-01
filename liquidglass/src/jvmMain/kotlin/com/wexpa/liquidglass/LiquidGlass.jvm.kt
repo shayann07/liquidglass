@@ -97,6 +97,7 @@ internal actual fun createGlassRenderEffect(
         uniforms.backdrop[3],
     )
     builder.uniform("uPad", uniforms.pad)
+    builder.uniform("uDebugCoverage", uniforms.debugCoverage)
     builder.uniform("uIor", uniforms.ior)
     builder.uniform("uBevelPower", uniforms.bevelPower)
     builder.uniform("uFresnel", uniforms.fresnel)

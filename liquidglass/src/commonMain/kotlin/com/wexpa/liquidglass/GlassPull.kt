@@ -199,3 +199,22 @@ internal fun glassAnchoredMaterialPull(pull: GlassPullDeformation, width: Float,
     return GlassPullDeformation(mean + radius, mean - radius,
         atan2(2f * xy, xx - yy) * (90f / kotlin.math.PI.toFloat()), 0f, 0f)
 }
+
+/** Drag-only size response. The recorded small controls do not establish a large-card law.
+ * Preserve controls up to 80dp; smoothly reach the authored surface response by 160dp:
+ * one-fifth input gain, saturating at 2dp total extension (1dp per edge). Press is separate. */
+internal fun glassSurfacePull(
+    pull: GlassPullDeformation, width: Float, height: Float, density: Float, extent: Float,
+): GlassPullDeformation {
+    if (density <= 0f || !density.isFinite()) return pull
+    val t = ((maxOf(width, height) / density - 80f) / 80f).coerceIn(0f, 1f)
+    if (t <= 0f) return pull
+    val extension = (pull.along - 1f) * extent
+    if (extension <= 1e-5f) return pull
+    val mix = t * t * (3f - 2f * t)
+    val limit = 2f * density
+    val surfaceGain = limit * tanh(0.2f * extension / limit) / extension
+    val gain = 1f + (surfaceGain - 1f) * mix
+    return pull.copy(along = 1f + (pull.along - 1f) * gain,
+        across = 1f + (pull.across - 1f) * gain)
+}

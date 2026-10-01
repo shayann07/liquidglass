@@ -6,6 +6,15 @@ useful techniques assessed from the Fable and Antigravity implementations. Revie
 [Sam Asante's web implementation](https://github.com/samasante/liquid-glass) is also informing
 the investigation. Competitor appearance and passing internal tests do not establish iOS parity.
 
+## Current follow-up: r14
+
+R14 separates large-surface drag strength from the already accepted touch expansion. Small
+controls keep their prior response; larger cards and pills receive much subtler drag strain.
+[Usage and parameter provenance](generic-interaction.md#separate-touch-expansion-from-drag-stretch)
+explain the shared policy. [R14 verification](https://github.com/shayann07/liquidglass/blob/main/review/ASTRA-r14.md)
+uses terminal-driven desktop rendering; no new Android physical or performance claim is made.
+The following r13 material comparisons remain historical evidence, not r14 device results.
+
 ## What is implemented
 
 - A two-dimensional pose selector with continuous hold, drag, squeeze and release.

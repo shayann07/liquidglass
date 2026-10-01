@@ -1,6 +1,6 @@
 # Generic interactive glass
 
-Astra r13 puts press and pull feedback in the shared `liquidGlass` modifier. Vitals supplies
+Astra puts press and pull feedback in the shared `liquidGlass` modifier. Vitals supplies
 layout, content and click actions; it has no copied glass shader or Live-specific deformation.
 Use the same `GlassInteraction.Pullable` for a settings button, status pill or custom control.
 It is opt-in: `Default` retains its Legacy press behavior, and `ReducedMotion` disables elasticity.
@@ -57,6 +57,23 @@ The material may grow outside its resting bounds. Avoid a clipping ancestor. If 
 Compose shadow, use `shadow(elevation, shape, clip = false)`. The layout size and click target
 remain the size you supplied; provide at least 48dp for an interactive control.
 
+## Separate touch expansion from drag stretch
+
+R14 leaves touch expansion, illumination, spring timing and small-control drag unchanged.
+The shared modifier now adapts only **drag strain** to the control's unpressed layout size:
+
+- Up to 80dp on the longest side: the existing small-control response is preserved exactly.
+- Between 80dp and 160dp: a smooth transition avoids a sudden change as a control resizes.
+- From 160dp: initial drag strain is one fifth of the former response and smoothly saturates
+  at 2dp of total extension (about 1dp per opposite edge). Compression is reduced with it.
+
+The size thresholds, gain and cap are authored from owner feedback about large surfaces;
+the original small-control captures do not measure a large-card response. Press expansion
+is a separate channel and does not pass through this limiter. Cards and wide status pills
+inherit this policy automatically through `Pullable`; no app-specific preset is needed.
+R14 is verified with terminal-driven desktop Compose rendering. Physical Android verification
+of this revision is pending because no device was available.
+
 ## Gesture ownership and navigation
 
 The modifier observes pointer input without taking over the control's click action. A parent
@@ -77,7 +94,7 @@ pull automatically. Normal self-interacting controls need no external press sour
 
 ## Build and verification
 
-R13 is `0.2.0-astra.13-SNAPSHOT`, built locally, not a Maven Central release. Publish this
+R14 is `0.2.0-astra.14-SNAPSHOT`, built locally, not a Maven Central release. Publish this
 library with `./gradlew publishToMavenLocal`; consume the same version from Maven Local.
 The isolated owner workspace uses its private Gradle/Maven wrapper for both operations.
 
