@@ -1,20 +1,25 @@
 # liquidglass
 
-## Astra final review — r13
+## Astra review - r14
 
-The selected implementation is **Astra r13**, with shared anchored glass interaction: controls
+R14 preserves touch expansion and small-control stretch while making drag on large glass
+cards and pills subtle. The shared modifier adapts drag strain by size. Desktop rendering
+checks cover the actual modifier; physical Android verification of r14 is pending.
+
+
+The selected implementation is **Astra r14**, with shared anchored glass interaction: controls
 and ordinary labels stay in position while the material expands and stretches. Wide bars stay
 level, and round controls retain directional stretch. V3 navigation keeps its selection lens
 and native ink mapping. Full iOS 1:1 parity is **not established**.
 
 - [How the shared behavior works and how to use it](https://github.com/shayann07/liquidglass/blob/main/docs/generic-interaction.md)
-- [Final verification, comparisons and limitations](https://github.com/shayann07/liquidglass/blob/main/review/ASTRA-r13.md)
-- [ASTRA r13 review APK](https://github.com/shayann07/Vitals/raw/refs/heads/main/review/Vitals-ASTRA-r13.apk)
+- [Final verification, comparisons and limitations](https://github.com/shayann07/liquidglass/blob/main/review/ASTRA-r14.md)
+- [ASTRA r14 review APK](https://github.com/shayann07/Vitals/raw/refs/heads/main/review/Vitals-ASTRA-r14.apk)
 - [Preserved Fable approach](https://github.com/shayann07/liquidglass/tree/codex/fable-preserved-2026-09-28)
 - [Preserved Antigravity approach](https://github.com/shayann07/liquidglass/tree/codex/antigravity-preserved-2026-09-28)
 
 The alternatives retain their captured source bytes and provenance. This source delivery uses
-`0.2.0-astra.13-SNAPSHOT` locally and does not create a Maven Central release.
+`0.2.0-astra.14-SNAPSHOT` locally and does not create a Maven Central release.
 
 [![Maven Central](https://img.shields.io/maven-central/v/dev.shayxo.liquidglass/liquidglass)](https://central.sonatype.com/artifact/dev.shayxo.liquidglass/liquidglass)
 [![CI](https://github.com/shayann07/liquidglass/actions/workflows/ci.yml/badge.svg)](https://github.com/shayann07/liquidglass/actions/workflows/ci.yml)

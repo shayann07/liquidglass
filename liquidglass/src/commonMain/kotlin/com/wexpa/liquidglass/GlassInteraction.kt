@@ -83,6 +83,8 @@ data class GlassInteraction(
 ) {
     companion object {
         val Default = GlassInteraction()
+        /** Touch expansion is independent of drag. The modifier preserves small controls and
+         * smoothly reduces drag strain on larger surfaces; see docs/generic-interaction.md. */
         val Pullable = GlassInteraction(
             // Original S01: 186 -> 238 peak -> 234 settled; independent K01: 234 -> 286
             // peak -> 282 settled. Eight points per side is the equilibrium, not 8.7.

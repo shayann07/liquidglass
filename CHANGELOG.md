@@ -1,5 +1,12 @@
 # Changelog
 
+## Astra r14 (2026-10-01, unreleased)
+
+- Preserve touch expansion and the small-control drag response.
+- Make large cards and pills much less elastic during dragging through a shared, size-adaptive strain policy.
+- Add density, extreme-direction and actual desktop-render regression checks.
+- Android APK built; new physical-device verification remains pending.
+
 ## Astra r13 review (2026-10-01, unreleased)
 
 - Shared anchored Pullable material: stationary layout/content, bounded deformation, level wide bars.
