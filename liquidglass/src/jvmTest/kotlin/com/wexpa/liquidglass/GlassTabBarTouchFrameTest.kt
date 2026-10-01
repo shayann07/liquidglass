@@ -28,6 +28,8 @@ import java.awt.image.BufferedImage
 import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertTrue
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 
 /**
  * The V3 selector's **coordinate contract**, on the production component.
@@ -114,8 +116,9 @@ class GlassTabBarTouchFrameTest {
         selected: Int = 2,
         style: GlassTabBarStyle = v3,
         renderScale: Float = 0.2f,
+        testTimeout: Duration = 1.minutes,
         body: ComposeUiTest.(SemanticsNodeInteraction) -> Unit,
-    ) = runComposeUiTest {
+    ) = runComposeUiTest(testTimeout = testTimeout) {
         // The coordinate contract is independent of the material's performance scale, and a
         // full-resolution CPU shader per frame would put a forty-frame drag past the harness's
         // one-minute budget. The warp test below renders at native scale.
@@ -161,7 +164,9 @@ class GlassTabBarTouchFrameTest {
     @Test
     fun aMovingNodeKeepsTheFingersWorldPointAcrossIntegerPlacements() {
         val geometry = GlassTabBarGeometry(barWidth = barWidth.toFloat(), inset = 6f, count = 5)
-        run(selected = 0) { node ->
+        // Shared CI CPU rendering exceeded the default one-minute wall-clock budget.
+        // Keep every coordinate assertion and event; bound this long gesture at three minutes.
+        run(selected = 0, testTimeout = 3.minutes) { node ->
             val py = barHeight / 2f
             val start = geometry.centreOf(0)
             var placements = 0

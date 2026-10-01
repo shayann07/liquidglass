@@ -47,6 +47,9 @@ matching Android. Its default remains zero. A cancellation probe was invalid bec
 Compose 1.12 desktop test dispatcher's `enqueueCancel` is a no-op (confirmed in dependency
 bytecode). It was replaced with normal release; cancellation is not newly verified here.
 A later fixture run timed out; removing unrelated blur work made the final render test pass.
+The first GitHub run passed 252 of 253 tests, including the new desktop test. The existing
+21-move navigation coordinate test exceeded its one-minute wall-clock budget on the shared
+runner. Its deadline is now three minutes; events and coordinate assertions are unchanged.
 Failed logs/XML remain in the local `subtle-r14` evidence folder. None is relabelled a pass.
 [Machine-readable results](r14/TEST-RESULTS.json), [desktop test report](r14/desktop-test.xml).
 
