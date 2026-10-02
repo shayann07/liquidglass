@@ -1,0 +1,69 @@
+{
+  "date": "2026-10-03",
+  "repository": "https://github.com/shayann07/liquidglass",
+  "baseline_main": "f3071c42d97c0229e19579e6145fd0dc2c685aa9",
+  "refs": [
+    {
+      "commit": "39528d920ecd961bab91aadde87d39ca6b60b962",
+      "ref": "refs/heads/codex/antigravity-preserved-2026-09-28"
+    },
+    {
+      "commit": "e05f5d6b37dcad10ee9409dc08dc6a96226a9dd2",
+      "ref": "refs/heads/codex/astra-ios-parity"
+    },
+    {
+      "commit": "8035acf981daeb2554ceac424d3638f5ac44c68a",
+      "ref": "refs/heads/codex/fable-preserved-2026-09-28"
+    },
+    {
+      "commit": "5ea19fa7dfd1eca95a01f5e7237e780d986ca39a",
+      "ref": "refs/heads/feat/antigravity-ios-parity"
+    },
+    {
+      "commit": "64cf8ca9c1bdda920ea49a52b925efda0aa4f4d7",
+      "ref": "refs/heads/feat/optics-from-competitor-study"
+    },
+    {
+      "commit": "f3071c42d97c0229e19579e6145fd0dc2c685aa9",
+      "ref": "refs/heads/main"
+    },
+    {
+      "commit": "aa9e97e269f0db5e0d054db5495673f0be22d22a",
+      "ref": "refs/heads/research/ios27-measurements"
+    },
+    {
+      "commit": "f3071c42d97c0229e19579e6145fd0dc2c685aa9",
+      "ref": "refs/remotes/origin/HEAD"
+    },
+    {
+      "commit": "39528d920ecd961bab91aadde87d39ca6b60b962",
+      "ref": "refs/remotes/origin/codex/antigravity-preserved-2026-09-28"
+    },
+    {
+      "commit": "e05f5d6b37dcad10ee9409dc08dc6a96226a9dd2",
+      "ref": "refs/remotes/origin/codex/astra-ios-parity"
+    },
+    {
+      "commit": "8035acf981daeb2554ceac424d3638f5ac44c68a",
+      "ref": "refs/remotes/origin/codex/fable-preserved-2026-09-28"
+    },
+    {
+      "commit": "64cf8ca9c1bdda920ea49a52b925efda0aa4f4d7",
+      "ref": "refs/remotes/origin/feat/optics-from-competitor-study"
+    },
+    {
+      "commit": "f3071c42d97c0229e19579e6145fd0dc2c685aa9",
+      "ref": "refs/remotes/origin/main"
+    },
+    {
+      "commit": "045064901c1d89ee5cd9c74b5aa71940a64737d0",
+      "ref": "refs/remotes/origin/research/ios27-measurements"
+    }
+  ],
+  "bundle": {
+    "file": "history.gitbundle",
+    "bytes": 5495469,
+    "sha256": "2ee81d1f3bf47d6aae3ef2f26155ca623b19c394732ffc6c53a4fa29f2fbe03d"
+  },
+  "note": "Merged history remains on main. Bundle preserves commits unique to retired branches, including previously uncommitted Fable/Antigravity source. Not a release or a parity claim. Private captures and transcripts remain local."
+}

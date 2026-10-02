@@ -1,5 +1,11 @@
 # liquidglass
 
+## Current workspace
+
+Atlas Studio is the standalone desktop glass demo in `:desktop`. Use the single
+[workspace guide](WORKSPACE.md) to build it, publish the local library, or run Vitals.
+The older workflows are [archived with restoration instructions](archive/retired-workflows/2026-10-03/README.md).
+
 ## Astra review - r14
 
 R14 preserves touch expansion and small-control stretch while making drag on large glass
@@ -15,8 +21,6 @@ and native ink mapping. Full iOS 1:1 parity is **not established**.
 - [How the shared behavior works and how to use it](https://github.com/shayann07/liquidglass/blob/main/docs/generic-interaction.md)
 - [Final verification, comparisons and limitations](https://github.com/shayann07/liquidglass/blob/main/review/ASTRA-r14.md)
 - [ASTRA r14 review APK](https://github.com/shayann07/Vitals/raw/refs/heads/main/review/Vitals-ASTRA-r14.apk)
-- [Preserved Fable approach](https://github.com/shayann07/liquidglass/tree/codex/fable-preserved-2026-09-28)
-- [Preserved Antigravity approach](https://github.com/shayann07/liquidglass/tree/codex/antigravity-preserved-2026-09-28)
 
 The alternatives retain their captured source bytes and provenance. This source delivery uses
 `0.2.0-astra.14-SNAPSHOT` locally and does not create a Maven Central release.
