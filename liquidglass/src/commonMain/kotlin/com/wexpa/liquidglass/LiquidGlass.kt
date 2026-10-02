@@ -318,6 +318,9 @@ internal fun Modifier.liquidGlassCore(
     // together.
     var panelPosition by remember { mutableStateOf(Offset.Unspecified) }
     var viewportSize by remember { mutableStateOf(IntSize.Zero) }
+    // The size, for the same reason: reading `coordinates.size` in composition never sees a
+    // resize in place, so the field, the band, the pad and the drag policy kept the first size.
+    var layoutSize by remember { mutableStateOf(IntSize.Zero) }
     val (press, pressModifier) = rememberGlassPress(
         enabled = interaction != null,
         source = pressSource,
@@ -325,8 +328,7 @@ internal fun Modifier.liquidGlassCore(
 
     val density = LocalDensity.current
     val direction = LocalLayoutDirection.current
-    val measured = coordinates?.let { Size(it.size.width.toFloat(), it.size.height.toFloat()) }
-        ?: Size.Zero
+    val measured = Size(layoutSize.width.toFloat(), layoutSize.height.toFloat())
     // The field is rasterised at the same origin the layer is recorded at: one pad, computed by
     // one function, so the shader's uPad addresses the field where it was drawn (a field built
     // with ceil(padPx) while the layer used ceil(pad * rs) / rs put the two on different origins:
@@ -438,6 +440,7 @@ internal fun Modifier.liquidGlassCore(
     this
         .onGloballyPositioned {
             coordinates = it
+            layoutSize = it.size
             panelPosition = it.positionInRoot()
             viewportSize = it.findRootCoordinates().size
         }
@@ -972,6 +975,8 @@ internal fun GlassUniforms.scaledBy(s: Float): GlassUniforms =
             blurRadius = blurRadius * s,
             backdropBlur = backdropBlur * s,
             rimSoft = rimSoft * s,
+            // A recovery length in layer pixels, compared against the scaled layer's depth.
+            heldEdgeRecovery = heldEdgeRecovery * s,
             fieldRange = fieldRange * s,
             fieldScale = fieldScale / s,
         )
@@ -1107,7 +1112,8 @@ internal data class GlassUniforms(
             touchY == other.touchY && touchAmount == other.touchAmount &&
             materialize == other.materialize && frost == other.frost &&
             contrast == other.contrast && debugCoverage == other.debugCoverage &&
-            fresnel == other.fresnel && legibility == other.legibility &&
+            fresnel == other.fresnel && highlightChroma == other.highlightChroma &&
+            legibility == other.legibility &&
             background == other.background &&
             bevel == other.bevel && lightX == other.lightX && lightY == other.lightY &&
             specular == other.specular && specularPower == other.specularPower &&

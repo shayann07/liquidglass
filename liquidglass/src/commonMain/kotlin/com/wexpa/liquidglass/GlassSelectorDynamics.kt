@@ -6,7 +6,6 @@ import kotlin.math.cos
 import kotlin.math.exp
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.sign
 import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.math.tanh
@@ -100,7 +99,8 @@ internal class GlassSelectorBar(
     /** The widest the body may ever be, so the host can size a stable node around it. */
     val maxBodyWidth: Float,
 ) {
-    val slotWidth: Float get() = (width - inset * 2f) / count
+    // Never negative, as GlassTabBarGeometry.slotWidth: firstCentre must not pass lastCentre.
+    val slotWidth: Float get() = ((width - inset * 2f) / count).coerceAtLeast(0f)
     fun centreOf(index: Int): Float = inset + (index + 0.5f) * slotWidth
     val firstCentre: Float get() = centreOf(0)
     val lastCentre: Float get() = centreOf(count - 1)
@@ -164,8 +164,8 @@ internal fun glassGraspCentreVelocity(
  * `x'' + 2ζω x' + ω²(x - target) = 0` has a closed form over an interval where the target is
  * frozen, so there is no integration damping to confuse with the damping that was asked for and
  * no dependence on frame rate. The under- and critically damped regimes are written separately;
- * an over-damped ζ would need the real-root solution and is rejected rather than pushed through
- * the under-damped square root.
+ * an over-damped ζ would need the real-root solution, so ζ above 1 is clamped to critical damping
+ * rather than pushed through the under-damped square root. No preset asks for more than 1.
  */
 internal class GlassSpring(var value: Float = 0f, var velocity: Float = 0f) {
     var target: Float = value
@@ -322,6 +322,8 @@ internal class GlassSelectorController(
 
     /** The item the body rests on when no gesture owns it. Survives a rebase; the anchor does not. */
     private var restIndex: Int = 0
+    /** The index the host asked for, unclamped; see GlassPoseController.requestedIndex. */
+    private var requestedIndex: Int = 0
 
     /**
      * Bumped whenever ownership changes hands: a rebase, a release, a cancellation, a motion
@@ -353,9 +355,9 @@ internal class GlassSelectorController(
     /**
      * False when not even the simple feasible fallback can be admitted by this layout.
      *
-     * The host suppresses the selector and keeps the interactive row rather than drawing a body
-     * that violates its own containment. Any occurrence in a normal acceptance scenario is a
-     * correctness failure, not a graceful degradation.
+     * Published to the bar's test semantics (GlassTabBarSemantics.SelectorValid) as a diagnostic;
+     * the bar keeps drawing the last body it has. Any occurrence in a normal acceptance scenario
+     * is a correctness failure, not a graceful degradation, and the suite treats it as one.
      */
     var selectorValid: Boolean = true
         private set
@@ -483,7 +485,7 @@ internal class GlassSelectorController(
     private fun rebaseToRest() {
         interactionId++
         clearGestureOwnership()
-        snapToRest(restIndex.coerceIn(0, max(bar.count - 1, 0)))
+        snapToRest(requestedIndex)
     }
 
     /** Gesture, preview, press and release ownership, and the sampled history behind them. */
@@ -512,6 +514,7 @@ internal class GlassSelectorController(
     /** Put the body at rest on [index] with no motion. Used at first composition and on a rebase. */
     fun snapToRest(index: Int) {
         releasedFromHold = false
+        requestedIndex = index
         restIndex = index.coerceIn(0, max(bar.count - 1, 0))
         cxS.snapTo(bar.centreOf(restIndex))
         cyS.snapTo(bar.centreY)
@@ -537,6 +540,7 @@ internal class GlassSelectorController(
 
     /** Aim the resting body at [index] without disturbing what it is currently doing. */
     fun retarget(index: Int) {
+        requestedIndex = index
         restIndex = index.coerceIn(0, max(bar.count - 1, 0))
         val target = bar.centreOf(restIndex)
         cxS.target = target
@@ -633,6 +637,7 @@ internal class GlassSelectorController(
         val owned = mode == GlassSelectorMode.Held || releaseActive
         releasedFromHold = owned || releasedFromHold
         interactionId++
+        requestedIndex = restIndex
         this.restIndex = restIndex.coerceIn(0, max(bar.count - 1, 0))
         quietSteps = 0
         cxS.target = bar.centreOf(this.restIndex)
@@ -1495,9 +1500,6 @@ internal class GlassSelectorController(
         val v = if (mode == GlassSelectorMode.Held) graspVelocity else cxS.velocity
         return spec.maxExtraLength * s * tanh(abs(v) / max(s * spec.centreOmega, 1e-3f))
     }
-
-    @Suppress("unused")
-    fun signOfSkewDrive(): Float = sign(skewS.target)
 
     private companion object {
         /** Movement under this, for [QUIET_STEPS] substeps running, counts as settled. */

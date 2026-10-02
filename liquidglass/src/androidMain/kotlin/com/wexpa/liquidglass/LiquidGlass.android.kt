@@ -33,6 +33,20 @@ private val placeholderFieldShader: android.graphics.Shader by lazy {
     ImageShader(ImageBitmap(1, 1), TileMode.Clamp, TileMode.Clamp)
 }
 
+/**
+ * The sampled distance field, read bilinearly. It is stored at half resolution on the premise that
+ * bilinear sampling puts back what the halving takes out (GlassPathField.kt). A default-filter
+ * BitmapShader bound as a RuntimeShader child has no paint to take a filter bit from, so the
+ * filter is set explicitly. Only reached on the shader path, which is API 33+.
+ */
+private fun pathFieldShader(bitmap: ImageBitmap): Shader {
+    val shader = ImageShader(bitmap, TileMode.Clamp, TileMode.Clamp)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && shader is android.graphics.BitmapShader) {
+        shader.filterMode = android.graphics.BitmapShader.FILTER_MODE_LINEAR
+    }
+    return shader
+}
+
 private val runtimeShader: RuntimeShader? by lazy {
     if (!LiquidGlassSupport.hasShaders) null
     else runCatching { RuntimeShader(GLASS_SHADER_SOURCE) }.getOrNull()
@@ -71,9 +85,7 @@ internal actual fun createGlassRenderEffect(
     shader.setFloatUniform("uFieldScale", uniforms.fieldScale)
     // `field` has to be bound whether or not it is read: an unbound child shader is a link
     // error, not a silent zero. The placeholder is one opaque pixel and costs nothing.
-    shader.setInputShader("field", uniforms.field?.let { bitmap ->
-        ImageShader(bitmap, TileMode.Clamp, TileMode.Clamp)
-    } ?: placeholderFieldShader)
+    shader.setInputShader("field", uniforms.field?.let(::pathFieldShader) ?: placeholderFieldShader)
     shader.setFloatUniform("uTouch", uniforms.touchX, uniforms.touchY)
     shader.setFloatUniform("uTouchAmt", uniforms.touchAmount)
     shader.setFloatUniform("uMaterialize", uniforms.materialize)
@@ -99,10 +111,6 @@ internal actual fun createGlassRenderEffect(
         uniforms.backdrop[3],
     )
     shader.setFloatUniform("uPad", uniforms.pad)
-    shader.setFloatUniform("uIor", uniforms.ior)
-    shader.setFloatUniform("uBevelPower", uniforms.bevelPower)
-    shader.setFloatUniform("uFresnel", uniforms.fresnel)
-    shader.setFloatUniform("uHiChroma", uniforms.highlightChroma)
     shader.setFloatUniform("uScale", uniforms.scale)
     shader.setFloatUniform("uFlip", uniforms.flip)
     shader.setFloatUniform("uRefractDepth", uniforms.refractDepth)
@@ -211,9 +219,7 @@ internal actual fun createGlassContentRenderEffect(
     shader.setFloatUniform("uShapeKind", uniforms.shapeKind)
     shader.setFloatUniform("uFieldRange", uniforms.fieldRange)
     shader.setFloatUniform("uFieldScale", uniforms.fieldScale)
-    shader.setInputShader("field", uniforms.field?.let { bitmap ->
-        ImageShader(bitmap, TileMode.Clamp, TileMode.Clamp)
-    } ?: placeholderFieldShader)
+    shader.setInputShader("field", uniforms.field?.let(::pathFieldShader) ?: placeholderFieldShader)
     shader.setFloatUniform(
         "uFuse",
         uniforms.fuse.getOrElse(0) { 0f },
@@ -289,9 +295,7 @@ internal actual fun createGlassEndpointRenderEffect(
     shader.setFloatUniform("uShapeKind", uniforms.shapeKind)
     shader.setFloatUniform("uFieldRange", uniforms.fieldRange)
     shader.setFloatUniform("uFieldScale", uniforms.fieldScale)
-    shader.setInputShader("field", uniforms.field?.let { bitmap ->
-        ImageShader(bitmap, TileMode.Clamp, TileMode.Clamp)
-    } ?: placeholderFieldShader)
+    shader.setInputShader("field", uniforms.field?.let(::pathFieldShader) ?: placeholderFieldShader)
     shader.setFloatUniform(
         "uBody",
         uniforms.body.getOrElse(0) { 0f },

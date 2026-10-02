@@ -65,4 +65,12 @@ tasks.withType<Test>().configureEach {
     (project.findProperty("liquidglass.calibration") as String?)?.let { systemProperty("liquidglass.calibration", it) }
     (project.findProperty("liquidglass.wideClamp") as String?)?.let { systemProperty("liquidglass.wideClamp", it) }
     (project.findProperty("liquidglass.restMap") as String?)?.let { systemProperty("liquidglass.restMap", it) }
+    // The showcase render (com.wexpa.liquidglass.showcase) is opt-in the same way:
+    // -Pliquidglass.showcase=<dir> renders every scene there as stills and frame sequences.
+    (project.findProperty("liquidglass.showcase") as String?)?.let {
+        systemProperty("liquidglass.showcase", it)
+        // Each scene renders on the CPU; spread the classes over the cores.
+        maxParallelForks = Runtime.getRuntime().availableProcessors().coerceAtLeast(1)
+        maxHeapSize = "2g"
+    }
 }

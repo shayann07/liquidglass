@@ -5,7 +5,8 @@ import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.awaitHorizontalTouchSlopOrCancellation
@@ -38,18 +39,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.AwaitPointerEventScope
+import androidx.compose.ui.input.pointer.PointerId
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.SemanticsPropertyKey
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.unit.Constraints
@@ -64,6 +69,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.launch
 
@@ -165,12 +171,8 @@ fun GlassTabBar(
         // committing once on release is also what the gesture means.
         var dragIndex by remember { mutableIntStateOf(-1) }
         val activeIndex = if (dragIndex >= 0) dragIndex else selected
-
-        // Hold the preview until the real selection catches up, or the tab under the finger
-        // would blink back to the old one for the frame before navigation lands.
-        LaunchedEffect(selected, dragIndex) {
-            if (dragIndex >= 0 && dragIndex == selected) dragIndex = -1
-        }
+        // True from a finger's down to the end of its gesture, however that ends.
+        var gestureDown by remember { mutableStateOf(false) }
 
         // The selector's position. A plain float rather than an Animatable, because a drag
         // callback cannot suspend and the lens has to be where the finger is on the same frame.
@@ -349,12 +351,16 @@ fun GlassTabBar(
 
         fun selectorLeft() = selectorX - selectorWidthPx / 2f
         fun selectorTop() = (barHeightPx - selectorHeightPx) / 2f - selectorRisePx
+        // The gesture coroutine is not restarted by recomposition, so it reads the capsule's box
+        // through this rather than through values captured when the coroutine started.
+        val selectorBox = rememberUpdatedState(
+            Rect(selectorLeft(), selectorTop(), selectorLeft() + selectorWidthPx, selectorTop() + selectorHeightPx),
+        )
 
         // Apple's "gel-like flexibility as it moves in tandem with your interaction": a few
         // percent along the travel at speed, lagged by its own spring so the deformation trails
         // the movement. An unlagged stretch reads as a rendering artefact.
         val velocityNow = if (dragging) liveVelocity else settleVelocity
-        @Suppress("UNUSED_EXPRESSION") velocityNow
         val gelTarget = if (motionEnabled) {
             style.gel * (abs(velocityNow) / gelReference).coerceAtMost(1f)
         } else {
@@ -377,10 +383,10 @@ fun GlassTabBar(
         // point measured against this box is an optical defect and not merely a misplaced glow.
         // V3 therefore stores the pointer in the stable bar frame and resolves it against the
         // node origin the frame is actually using - see GlassSelectorHandle.resolvePress.
-        fun localPress(x: Float, y: Float) = Offset(
-            (x - selectorLeft()).coerceIn(0f, selectorWidthPx),
-            (y - selectorTop()).coerceIn(0f, selectorHeightPx),
-        )
+        fun localPress(x: Float, y: Float): Offset {
+            val box = selectorBox.value
+            return Offset((x - box.left).coerceIn(0f, box.width), (y - box.top).coerceIn(0f, box.height))
+        }
 
         /** One pointer entry point for both paths, each in its own declared frame. */
         fun pressAt(x: Float, y: Float) {
@@ -425,23 +431,30 @@ fun GlassTabBar(
         // scroll wins, a second finger replaces the first, or the node goes away. Nothing is selected
         // here; the preview ends and the lens settles from wherever it is to the selection the host
         // actually holds, carrying only the velocity a spring already has (a drag has none to carry).
-        fun releaseToSelection(active: Boolean) {
+        //
+        // [tapped] is the tab a finger lifted on without dragging. The item's clickable selects it
+        // after this runs, but the selection the host holds is still the old one here; aiming the
+        // body at it would spend the frames until the new selection lands travelling backwards.
+        // The tap's tab is kept as the preview instead, and the grace below recovers if the host
+        // declines it.
+        fun releaseToSelection(active: Boolean, tapped: Int = -1) {
             v2Held = false
             dragging = false
             liveVelocity = 0f
             releasePress()
-            dragIndex = -1
+            dragIndex = tapped
+            val aim = if (tapped >= 0) tapped else currentSelected.value
             if (poseHandle != null) {
                 // The same continuous recovery toward the latest legitimate selection, with no
                 // new commit: a cancelled gesture is not a successful release.
-                poseHandle.controller.cancel(currentSelected.value)
+                poseHandle.controller.cancel(aim)
                 poseHandle.wake()
                 return
             }
             if (handle != null) {
                 // The body recovers its geometry continuously from wherever it is, under the
                 // release envelope, and commits nothing.
-                handle.controller.cancel(currentSelected.value)
+                handle.controller.cancel(aim)
                 handle.wake()
                 return
             }
@@ -451,7 +464,7 @@ fun GlassTabBar(
                 settleTarget = Float.NaN
                 return
             }
-            val target = geometry.centreOf(currentSelected.value)
+            val target = geometry.centreOf(aim)
             if (!motionEnabled) {
                 motion?.cancel()
                 settleTarget = target
@@ -459,6 +472,32 @@ fun GlassTabBar(
                 settleVelocity = 0f
             } else if (settleTarget != target || motion?.isActive != true) {
                 settleTo(target, settleVelocity, style.settle)
+            }
+        }
+
+        // Hold the preview until the real selection catches up, or the tab under the finger
+        // would blink back to the old one for the frame before navigation lands. A host may also
+        // decline the tab a release asked for (a tab behind sign-in, say): then the selection
+        // never arrives, so once the finger is gone and the host has had a beat to answer, the
+        // preview ends and the selector returns to the selection the host actually holds.
+        LaunchedEffect(selected, dragIndex, gestureDown) {
+            if (dragIndex >= 0 && dragIndex == selected) {
+                dragIndex = -1
+                return@LaunchedEffect
+            }
+            if (gestureDown || dragIndex < 0) return@LaunchedEffect
+            delay(SELECTION_GRACE_MILLIS)
+            dragIndex = -1
+            when {
+                poseHandle != null -> { poseHandle.controller.cancel(selected); poseHandle.wake() }
+                handle != null -> { handle.controller.cancel(selected); handle.wake() }
+                !motionEnabled -> {
+                    motion?.cancel()
+                    settleTarget = restingAt
+                    offsetX = restingAt
+                    settleVelocity = 0f
+                }
+                else -> settleTo(restingAt, settleVelocity, style.settle)
             }
         }
 
@@ -495,7 +534,7 @@ fun GlassTabBar(
                         this[GlassTabBarSemantics.SelectorValid] = !poseHandle.controller.solverFailed
                     }
                 }
-                .pointerInput(geometry, motionEnabled) {
+                .pointerInput(geometry, motionEnabled, handle, poseHandle, style, flingVelocity) {
                     // Read here, outside the restricted gesture scope: whether this pointer-input job is still
                     // alive when a gesture ends decides whether anything may be launched from its release.
                     val gestureJob = currentCoroutineContext()[Job]
@@ -508,6 +547,8 @@ fun GlassTabBar(
 
                         var lastIndex = geometry.nearestIndex(down.position.x)
                         var committed = false
+                        var tapped = -1
+                        gestureDown = true
                         try {
                             motion?.cancel()
                             dragIndex = lastIndex
@@ -551,6 +592,7 @@ fun GlassTabBar(
                                 // No lens to drag: the item's clickable owns the tap; this only waits for
                                 // the finger to leave, however it leaves.
                                 awaitHorizontalTouchSlopOrCancellation(down.id) { _, _ -> }
+                                if (liftedWithoutDrag(down.id)) tapped = lastIndex
                                 return@awaitEachGesture
                             }
                             val grabbed = if (poseHandle != null) {
@@ -569,6 +611,7 @@ fun GlassTabBar(
                                 // Lifted without dragging (a tap: the item's clickable selects, once),
                                 // or taken by another node / a vertical scroll (a cancel: nobody
                                 // selects). Both end in releaseToSelection below.
+                                if (liftedWithoutDrag(down.id)) tapped = lastIndex
                                 return@awaitEachGesture
                             }
 
@@ -584,8 +627,8 @@ fun GlassTabBar(
                             // exactly, grabbing anywhere else brings it to the finger. Measured
                             // from the DOWN, not from where slop was crossed — slop can be tens
                             // of dp, and a drag that loses it cannot reach the outermost tab.
-                            val grabOffset = (offsetX - down.position.x)
-                                .coerceIn(-selectorWidthPx / 2f, selectorWidthPx / 2f)
+                            val halfSelector = selectorBox.value.width / 2f
+                            val grabOffset = (offsetX - down.position.x).coerceIn(-halfSelector, halfSelector)
 
                             fun moveTo(x: Float, y: Float) {
                                 // Navigation intent, kept separate from the visible geometry:
@@ -677,13 +720,14 @@ fun GlassTabBar(
                         } finally {
                             // However the gesture ends — lift, cancel, or the node going away —
                             // the finger is no longer on the glass.
+                            gestureDown = false
                             if (committed) {
                                 v2Held = false
                                 dragging = false
                                 liveVelocity = 0f
                                 releasePress()
                             } else {
-                                releaseToSelection(active = gestureJob?.isActive == true)
+                                releaseToSelection(active = gestureJob?.isActive == true, tapped = tapped)
                             }
                         }
                     }
@@ -775,6 +819,7 @@ fun GlassTabBar(
                         inset = style.contentPadding,
                         selectedFor = { index -> !lensCarriesInk && index == activeIndex },
                         onClick = { index -> select(index) },
+                        semanticSelected = selected,
                         item = item,
                         emphasisIndex = activeIndex,
                         emphasis = 1f + (style.selectedScale - 1f) * lift,
@@ -798,7 +843,7 @@ fun GlassTabBar(
                 // axis exactly as it does to the width, so the pose path sizes it from the pose.
                 val overflowPx = remember(selectorBar, spec, style.lensOverflow, usePose) { max(
                     with(density) { style.lensOverflow.toPx() },
-                    if (usePose) spec!!.maxAccommodationOverflow(selectorBar) else 0f,
+                    if (usePose) spec!!.maxAccommodationOverflow(selectorBar, poseHandle!!.controller.spec) else 0f,
                 ) }
                 val overflowTopPx = overflowPx.roundToInt()
                 // A node just big enough for the widest body this style allows, plus the held
@@ -812,7 +857,7 @@ fun GlassTabBar(
                 // missing pixels (parity brief section 5.1).
                 val widest = remember(selectorBar, spec, barWidthPx) {
                     handle?.controller?.maxBodyWidth()
-                        ?: (spec!!.maxAccommodationWidth(selectorBar, barWidthPx))
+                        ?: spec!!.maxAccommodationWidth(selectorBar, barWidthPx, poseHandle!!.controller.spec)
                 }
                 // The horizontal pad is the rim's optical margin - it was always the style's own
                 // overflow - and must not follow the vertical excursion the pose path now sizes
@@ -1025,10 +1070,16 @@ private fun ItemRow(
      * content is centred, so a width plus the slot's centre is the whole bound.
      */
     onMeasured: ((index: Int, width: Float) -> Unit)? = null,
+    /** The tab the host has selected, for accessibility; only the interactive row reports it. */
+    semanticSelected: Int = -1,
 ) {
     Row(
         modifier = Modifier
             .fillMaxSize()
+            // The interactive row is the one accessibility sees: a group of tabs. Every other copy
+            // (the lens's refracted row, the V3 selected ink) is decoration and is hidden, or a
+            // screen reader would read each label two or three times.
+            .then(if (onClick != null) Modifier.selectableGroup() else Modifier.clearAndSetSemantics {})
             .padding(horizontal = inset),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly,
@@ -1040,9 +1091,11 @@ private fun ItemRow(
                     .fillMaxHeight()
                     .then(
                         if (onClick != null) {
-                            Modifier.clickable(
+                            Modifier.selectable(
+                                selected = index == semanticSelected,
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null,
+                                role = Role.Tab,
                             ) { onClick(index) }
                         } else {
                             Modifier
@@ -1062,17 +1115,16 @@ private fun ItemRow(
                 } else {
                     Modifier
                 }
-                if (itemScale != 1f) {
-                    Box(
-                        modifier = measured.graphicsLayer {
-                            scaleX = itemScale
-                            scaleY = itemScale
-                        },
-                    ) {
-                        item(index, selectedFor(index))
-                    }
-                } else {
-                    Box(modifier = measured) { item(index, selectedFor(index)) }
+                // One call site whatever the scale: a branch on it made two different call sites,
+                // so the item's whole subtree, with its remembered state and running animations,
+                // was discarded each time emphasis began and again when it settled to exactly 1.
+                Box(
+                    modifier = measured.graphicsLayer {
+                        scaleX = itemScale
+                        scaleY = itemScale
+                    },
+                ) {
+                    item(index, selectedFor(index))
                 }
             }
         }
@@ -1086,7 +1138,9 @@ private fun ItemRow(
  */
 @Immutable
 internal data class GlassTabBarGeometry(val barWidth: Float, val inset: Float, val count: Int) {
-    val slotWidth: Float get() = (barWidth - inset * 2f) / count
+    // Never negative: a bar narrower than its two insets (an expand-in, a zero-width first
+    // frame) would otherwise put firstCentre past lastCentre, and every coerceIn between them throws.
+    val slotWidth: Float get() = ((barWidth - inset * 2f) / count).coerceAtLeast(0f)
     val firstCentre: Float get() = centreOf(0)
     val lastCentre: Float get() = centreOf(count - 1)
 
@@ -1103,12 +1157,9 @@ internal data class GlassTabBarGeometry(val barWidth: Float, val inset: Float, v
 }
 
 /**
- * What a drag commits, from what the gesture actually delivered: the tab the released velocity projects
- * to, or nothing. Nothing is committed when [horizontalDrag] reported a cancellation (another node
- * consumed the pointer), when the pointer that drove the lens did not end with a lift ([terminalUp]
- * false: it vanished, or was still down while something else ended the drag), or when Compose handed
- * the drag to a second finger ([handoff]). The production handler and the replay diagnostics both call
- * this, so there is one decision, not two transcriptions of it.
+ * The pose path's slop wait: horizontal slop before the hold threshold, any direction after it,
+ * and a vertical move before the hold leaves the pointer to a page gesture. Null on a lift or when
+ * another node consumes the pointer.
  */
 private suspend fun AwaitPointerEventScope.awaitPoseTouchSlopOrCancellation(
     down: PointerInputChange,
@@ -1132,6 +1183,14 @@ private suspend fun AwaitPointerEventScope.awaitPoseTouchSlopOrCancellation(
     }
 }
 
+/**
+ * What a drag commits, from what the gesture actually delivered: the tab the released velocity projects
+ * to, or nothing. Nothing is committed when [horizontalDrag] reported a cancellation (another node
+ * consumed the pointer), when the pointer that drove the lens did not end with a lift ([terminalUp]
+ * false: it vanished, or was still down while something else ended the drag), or when Compose handed
+ * the drag to a second finger ([handoff]). The production handler and the replay diagnostics both call
+ * this, so there is one decision, not two transcriptions of it.
+ */
 internal fun decideDragEnd(
     completed: Boolean,
     terminalUp: Boolean,
@@ -1593,3 +1652,14 @@ data class GlassTabBarStyle(
  * caps, which is what the final-polish pass measured at up to 9.6 px of overhang.
  */
 private const val INK_VERTICAL_SHARE = 0.62f
+
+/**
+ * How long a released gesture's preview waits for the host to apply the selection it asked for
+ * before treating it as declined. Authored, not measured: long enough to cover a navigation that
+ * lands a few frames late, short enough that a refused tab does not look selected.
+ */
+private const val SELECTION_GRACE_MILLIS = 400L
+
+/** The gesture's own pointer has lifted: a tap, as opposed to a pointer taken by another node. */
+private fun AwaitPointerEventScope.liftedWithoutDrag(id: PointerId): Boolean =
+    currentEvent.changes.firstOrNull { it.id == id }?.pressed == false

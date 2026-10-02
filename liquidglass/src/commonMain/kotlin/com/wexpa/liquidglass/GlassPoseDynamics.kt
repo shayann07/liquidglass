@@ -357,6 +357,12 @@ internal class GlassPoseController(
 
     /** Navigation intent, kept separate from the visible geometry as section 5 requires. */
     var restIndex: Int = 0
+    /**
+     * The index the host asked for, unclamped. A selection can arrive before the bar that holds
+     * it (a tab added and selected in one update): clamped against the old count it would rest on
+     * the wrong tab once the new bar attaches, so the rebase clamps this against the new one.
+     */
+    private var requestedIndex: Int = 0
         private set
     var interactionId: Int = 0
         private set
@@ -444,7 +450,7 @@ internal class GlassPoseController(
         if (!first && started) {
             interactionId++
             clearOwnership()
-            snapToRest(restIndex)
+            snapToRest(requestedIndex)
         }
     }
 
@@ -456,6 +462,7 @@ internal class GlassPoseController(
 
     /** Put the body at rest on [index] with no motion. */
     fun snapToRest(index: Int) {
+        requestedIndex = index
         restIndex = index.coerceIn(0, max(bar.count - 1, 0))
         pose.reset()
         velocity.reset()
@@ -483,6 +490,7 @@ internal class GlassPoseController(
 
     /** Aim the resting body at [index] without disturbing what it is doing. */
     fun retarget(index: Int) {
+        requestedIndex = index
         restIndex = index.coerceIn(0, max(bar.count - 1, 0))
         // Aiming where the body already is is not travel: it must not wake the frame loop.
         if (abs(pose.cx - bar.centreOf(restIndex)) >= 0.25f) {
@@ -587,6 +595,7 @@ internal class GlassPoseController(
     fun pointerUp(restIndex: Int) {
         quietSteps = 0
         interactionId++
+        requestedIndex = restIndex
         this.restIndex = restIndex.coerceIn(0, max(bar.count - 1, 0))
         // A body released from a hold is outside the bar and regains contact later; a pill
         // released from a mere press never left it and keeps its contact throughout.
@@ -1465,9 +1474,9 @@ internal class GlassPoseController(
 internal fun GlassSelectorSpec.maxAccommodationWidth(
     bar: GlassSelectorBar?,
     barWidthPx: Float,
+    pose: GlassPoseSpec = GlassPoseSpec(),
 ): Float {
     if (bar == null) return barWidthPx
-    val pose = GlassPoseSpec()
     val r = max(bar.baseHalfHeight, 1f)
     val a = max(bar.baseHalfWidth - r, 0f)
     val held = exp(max(poseHeldPressure(pose.heldHeightRatio, bar.height, 2f * r), 0f))
@@ -1484,9 +1493,11 @@ internal fun GlassSelectorSpec.maxAccommodationWidth(
  * envelope [GlassPoseSpec.heldExcursionRatio] declares, so that envelope — or the calm growth,
  * if a layout makes that larger — is what the node needs, plus a little for spring overshoot.
  */
-internal fun GlassSelectorSpec.maxAccommodationOverflow(bar: GlassSelectorBar?): Float {
+internal fun GlassSelectorSpec.maxAccommodationOverflow(
+    bar: GlassSelectorBar?,
+    pose: GlassPoseSpec = GlassPoseSpec(),
+): Float {
     if (bar == null) return 0f
-    val pose = GlassPoseSpec()
     val r = max(bar.baseHalfHeight, 1f)
     val held = exp(max(poseHeldPressure(pose.heldHeightRatio, bar.height, 2f * r), 0f))
     val growth = r * held * (1f + pose.maxTaper) - bar.height / 2f

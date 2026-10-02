@@ -69,7 +69,9 @@ internal fun rememberGlassPathField(
 ): GlassPathField? {
     val w = (size.width + pad * 2f).roundToInt()
     val h = (size.height + pad * 2f).roundToInt()
-    return remember(shape, w, h, band) {
+    // The outline depends on density and direction as well as size: an asymmetric path mirrors
+    // under RTL, so both belong in the key.
+    return remember(shape, w, h, band, density, layoutDirection) {
         if (w <= 0 || h <= 0 || size.width <= 0f || size.height <= 0f) return@remember null
         val outline = shape.createOutline(size, layoutDirection, density)
         val path = (outline as? Outline.Generic)?.path ?: return@remember null

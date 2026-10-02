@@ -1,5 +1,24 @@
 # Changelog
 
+## Review fixes (unreleased)
+
+- Glass panels follow a resize in place: the size feeding the drag policy, band, pad and path
+  field is now tracked state rather than read once from the layout coordinates.
+- `LiquidGlassContainer`: members leaving composition are removed (no ghost bodies, no slot
+  exhaustion); the pad is whole pixels as for single panels; squircle members keep their corners.
+- The cached panel effect is rebuilt when only `highlightChroma` changes; `heldEdgeRecovery`
+  scales with render scale; generic-path fields are sampled bilinearly as their half-resolution
+  storage assumes, and are rebuilt on a density or layout-direction change.
+- Tab bar: the gesture follows a runtime style change; a declined selection returns the selector
+  to the host's selection after an authored 400 ms grace; a tap aims at the tapped tab instead of
+  briefly pulling back; a tab added and selected in one update rests on it; item content keeps
+  its state through emphasis; a bar narrower than its insets no longer throws on drag.
+- Accessibility: tab items report `Role.Tab` and their selected state inside a selectable group;
+  decorative copies of the row are hidden from screen readers.
+- Docs: links to research files that are not in the repository are no longer links, and CI
+  checks GitHub links against tracked paths.
+- Verified on the JVM suite only; no physical-device capture for the sampling change.
+
 ## Astra r14 (2026-10-01, unreleased)
 
 - Preserve touch expansion and the small-control drag response.

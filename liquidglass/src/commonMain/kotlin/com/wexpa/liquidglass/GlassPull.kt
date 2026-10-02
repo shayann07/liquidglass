@@ -210,10 +210,13 @@ internal fun glassSurfacePull(
     val t = ((maxOf(width, height) / density - 80f) / 80f).coerceIn(0f, 1f)
     if (t <= 0f) return pull
     val extension = (pull.along - 1f) * extent
-    if (extension <= 1e-5f) return pull
+    if (extension <= 0f) return pull
     val mix = t * t * (3f - 2f * t)
     val limit = 2f * density
-    val surfaceGain = limit * tanh(0.2f * extension / limit) / extension
+    // tanh(x) / x -> 1 as x -> 0, so the gain tends to 0.2 with no step at the origin; the
+    // series is used where the division would lose precision.
+    val x = 0.2f * extension / limit
+    val surfaceGain = if (x < 1e-3f) 0.2f * (1f - x * x / 3f) else limit * tanh(x) / extension
     val gain = 1f + (surfaceGain - 1f) * mix
     return pull.copy(along = 1f + (pull.along - 1f) * gain,
         across = 1f + (pull.across - 1f) * gain)

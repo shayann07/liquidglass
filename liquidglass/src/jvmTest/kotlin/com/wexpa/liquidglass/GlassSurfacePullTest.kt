@@ -41,4 +41,23 @@ class GlassSurfacePullTest {
         assertTrue(glassSurfacePull(tiny, 350f, 200f, 1f, 200f).along > 1f)
         assertEquals(GlassPullDeformation.None, glassSurfacePull(GlassPullDeformation.None, 350f, 200f, 1f, 200f))
     }
+
+    @Test fun theLargeSurfaceGainHasNoStepAtTheOrigin() {
+        // tanh(x) / x tends to 1, so the gain on a large surface tends to one fifth as the drag
+        // vanishes, and only falls from there; an early return used to jump it to 1 near zero.
+        val extent = 200f
+        var previous = Float.NaN
+        for (k in 0..40) {
+            // Measured against the float actually passed in; Float resolution near 1 is ~1.2e-7,
+            // so the smallest stretch here keeps the readout within about 0.1 %.
+            val along = 1f + 1e-3f * kotlin.math.exp(k * 0.25f)
+            val stretch = along - 1f
+            val p = glassSurfacePull(GlassPullDeformation(along, 1f, 0f, 0f, 0f), 350f, 200f, 1f, extent)
+            val gain = (p.along - 1f) / stretch
+            assertTrue(gain <= 0.2005f, "gain $gain above one fifth at extension ${stretch * extent}")
+            if (k == 0) assertTrue(gain >= 0.1995f, "gain $gain near the origin")
+            if (!previous.isNaN()) assertTrue(gain <= previous + 1e-3f, "gain must not rise with drag")
+            previous = gain
+        }
+    }
 }

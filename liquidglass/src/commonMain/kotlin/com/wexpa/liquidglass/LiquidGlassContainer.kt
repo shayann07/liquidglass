@@ -2,6 +2,7 @@ package com.wexpa.liquidglass
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -72,6 +73,9 @@ fun LiquidGlassContainer(
         object : LiquidGlassContainerScope {
             override fun Modifier.glassMember(shape: Shape): Modifier = composed {
                 val member = remember { GlassMember().also { members += it } }
+                // A member that leaves composition takes its body with it; otherwise its last
+                // bounds stay fused into the container and every re-entry adds another slot.
+                DisposableEffect(member) { onDispose { members -= member } }
                 // Captured in composition: onGloballyPositioned runs outside any of them.
                 val density = LocalDensity.current
                 val direction = LocalLayoutDirection.current
@@ -84,7 +88,7 @@ fun LiquidGlassContainer(
                     }
                     val size = Size(coords.size.width.toFloat(), coords.size.height.toFloat())
                     member.bounds = Rect(topLeft, size)
-                    member.radius = shape.cornerRadiiPx(size, direction, density)
+                    member.radius = shape.glassRadii(size, direction, density)
                         .firstOrNull() ?: 0f
                 }
             }
@@ -103,7 +107,10 @@ fun LiquidGlassContainer(
                 if (source != null && delta != null &&
                     LiquidGlassSupport.hasShaders && active.isNotEmpty()
                 ) {
-                    val pad = style.padPx(this)
+                    // Whole layer pixels, as recordPad gives a single panel: the layer is sized
+                    // with the integer pad, so a fractional one would leave the translate, uPad
+                    // and the sample bounds reaching past the recording on the right and bottom.
+                    val pad = kotlin.math.ceil(style.padPx(this))
                     val bounds = sampleBounds(pad, delta, size, state.sourceSize)
                     if (!hasSampleRegion(bounds)) {
                         drawContent()

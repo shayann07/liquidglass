@@ -13,6 +13,18 @@ import org.jetbrains.skia.ImageFilter
 import org.jetbrains.skia.RuntimeEffect
 import org.jetbrains.skia.RuntimeShaderBuilder
 
+/**
+ * The sampled distance field, read bilinearly. It is stored at half resolution on the premise that
+ * bilinear sampling puts back what the halving takes out (GlassPathField.kt); Skia's default
+ * sampling is nearest, which would read it in two-pixel steps at the rim.
+ */
+private fun pathFieldShader(bitmap: androidx.compose.ui.graphics.ImageBitmap): org.jetbrains.skia.Shader =
+    org.jetbrains.skia.Image.makeFromBitmap(bitmap.asSkiaBitmap()).makeShader(
+        FilterTileMode.CLAMP,
+        FilterTileMode.CLAMP,
+        org.jetbrains.skia.FilterMipmap(org.jetbrains.skia.FilterMode.LINEAR, org.jetbrains.skia.MipmapMode.NONE),
+    )
+
 actual object LiquidGlassSupport {
     /** Desktop renders through Skia, which runs SkSL everywhere. */
     actual val hasShaders: Boolean = true
@@ -69,10 +81,7 @@ internal actual fun createGlassRenderEffect(
     builder.uniform("uFieldRange", uniforms.fieldRange)
     builder.uniform("uFieldScale", uniforms.fieldScale)
     // See the Android actual: the child must be bound even when unread.
-    builder.child("field", uniforms.field?.let { bitmap ->
-        org.jetbrains.skia.Image.makeFromBitmap(bitmap.asSkiaBitmap())
-            .makeShader(FilterTileMode.CLAMP, FilterTileMode.CLAMP)
-    } ?: placeholderFieldShader)
+    builder.child("field", uniforms.field?.let(::pathFieldShader) ?: placeholderFieldShader)
     builder.uniform("uTouch", uniforms.touchX, uniforms.touchY)
     builder.uniform("uTouchAmt", uniforms.touchAmount)
     builder.uniform("uMaterialize", uniforms.materialize)
@@ -98,10 +107,6 @@ internal actual fun createGlassRenderEffect(
     )
     builder.uniform("uPad", uniforms.pad)
     builder.uniform("uDebugCoverage", uniforms.debugCoverage)
-    builder.uniform("uIor", uniforms.ior)
-    builder.uniform("uBevelPower", uniforms.bevelPower)
-    builder.uniform("uFresnel", uniforms.fresnel)
-    builder.uniform("uHiChroma", uniforms.highlightChroma)
     builder.uniform("uScale", uniforms.scale)
     builder.uniform("uFlip", uniforms.flip)
     builder.uniform("uRefractDepth", uniforms.refractDepth)
@@ -198,10 +203,7 @@ internal actual fun createGlassContentRenderEffect(
     builder.uniform("uShapeKind", uniforms.shapeKind)
     builder.uniform("uFieldRange", uniforms.fieldRange)
     builder.uniform("uFieldScale", uniforms.fieldScale)
-    builder.child("field", uniforms.field?.let { bitmap ->
-        org.jetbrains.skia.Image.makeFromBitmap(bitmap.asSkiaBitmap())
-            .makeShader(FilterTileMode.CLAMP, FilterTileMode.CLAMP)
-    } ?: placeholderFieldShader)
+    builder.child("field", uniforms.field?.let(::pathFieldShader) ?: placeholderFieldShader)
     builder.uniform(
         "uFuse",
         uniforms.fuse.getOrElse(0) { 0f },
@@ -280,10 +282,7 @@ internal actual fun createGlassEndpointRenderEffect(
     builder.uniform("uShapeKind", uniforms.shapeKind)
     builder.uniform("uFieldRange", uniforms.fieldRange)
     builder.uniform("uFieldScale", uniforms.fieldScale)
-    builder.child("field", uniforms.field?.let { bitmap ->
-        org.jetbrains.skia.Image.makeFromBitmap(bitmap.asSkiaBitmap())
-            .makeShader(FilterTileMode.CLAMP, FilterTileMode.CLAMP)
-    } ?: placeholderFieldShader)
+    builder.child("field", uniforms.field?.let(::pathFieldShader) ?: placeholderFieldShader)
     builder.uniform(
         "uBody",
         uniforms.body.getOrElse(0) { 0f },

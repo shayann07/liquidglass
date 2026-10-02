@@ -11,13 +11,17 @@ on:
       - 'docs/**'
       - 'mkdocs.yml'
       - 'requirements-docs.txt'
+      - 'research/README.md'
       - '.github/workflows/docs.yml'
+      - '.github/scripts/**'
   pull_request:
     paths:
       - 'docs/**'
       - 'mkdocs.yml'
       - 'requirements-docs.txt'
+      - 'research/README.md'
       - '.github/workflows/docs.yml'
+      - '.github/scripts/**'
   workflow_dispatch:
 
 permissions:
@@ -45,6 +49,11 @@ jobs:
 
       - name: Install
         run: pip install -r requirements-docs.txt
+
+      # mkdocs checks relative links only. The site also links to research material by GitHub URL,
+      # and research/ is mostly local, so check those targets against what git actually tracks.
+      - name: Check repository links
+        run: python .github/scripts/check_repo_links.py
 
       - name: Build
         run: mkdocs build --strict

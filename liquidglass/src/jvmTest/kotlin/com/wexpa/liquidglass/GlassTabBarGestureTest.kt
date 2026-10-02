@@ -22,6 +22,9 @@ import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performTouchInput
@@ -64,6 +67,8 @@ open class GlassTabBarGestureTest {
         var selected by mutableIntStateOf(2)
         /** When set, a parent of the bar consumes every pointer change in the initial pass: another node has taken the gesture. */
         var parentConsumes by mutableStateOf(false)
+        /** When set, the host records each request and declines it, keeping its selection. */
+        var refuses by mutableStateOf(false)
     }
 
     private val barWidthPx = 500f
@@ -82,7 +87,7 @@ open class GlassTabBarGestureTest {
                 state = state,
                 itemCount = 5,
                 selectedIndex = rec.selected,
-                onSelected = { rec.calls.add(it); rec.selected = it },
+                onSelected = { rec.calls.add(it); if (!rec.refuses) rec.selected = it },
                 modifier = Modifier.testTag("bar").width(500.dp),
                 style = style,
                 motionEnabled = motionEnabled,
@@ -147,6 +152,45 @@ open class GlassTabBarGestureTest {
         settle()
         assertEquals(listOf(3), rec.calls, "one callback for one tap")
         assertReleased(node, 3, "tap")
+    }
+
+    @Test
+    fun aDeclinedTapReturnsTheSelectorToTheSelectionTheHostHolds() = run { rec, node ->
+        rec.refuses = true
+        node.performTouchInput { down(Offset(cx(4), y)); advanceEventTime(60); up() }
+        settle()
+        mainClock.advanceTimeBy(1_000)
+        settle()
+        assertEquals(listOf(4), rec.calls, "the tap still asks once")
+        assertReleased(node, 2, "declined tap")
+    }
+
+    @Test
+    fun aDeclinedDragReturnsTheSelectorToTheSelectionTheHostHolds() = run { rec, node ->
+        rec.refuses = true
+        node.performTouchInput {
+            down(Offset(cx(2), y))
+            for (k in 1..10) { advanceEventTime(30); moveTo(Offset(cx(2) + k * (cx(4) - cx(2)) / 10f, y)) }
+            for (k in 1..10) { advanceEventTime(40); moveTo(Offset(cx(4), y)) }
+            up()
+        }
+        settle()
+        mainClock.advanceTimeBy(1_000)
+        settle()
+        assertEquals(listOf(4), rec.calls, "the drag still asks once")
+        assertReleased(node, 2, "declined drag")
+    }
+
+    @Test
+    fun theInteractiveRowIsOneGroupOfTabsWithTheSelectionReported() = run { rec, _ ->
+        val tabs = onAllNodes(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Tab))
+        assertEquals(5, tabs.fetchSemanticsNodes().size, "five tabs, and no decorative copy of the row")
+        val selected = onAllNodes(
+            SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Tab) and
+                SemanticsMatcher.expectValue(SemanticsProperties.Selected, true),
+        ).fetchSemanticsNodes()
+        assertEquals(1, selected.size, "exactly one selected tab")
+        assertEquals(2, rec.selected)
     }
 
     @Test
