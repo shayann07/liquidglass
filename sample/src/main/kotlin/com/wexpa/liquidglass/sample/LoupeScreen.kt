@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -77,14 +78,18 @@ fun LoupeScreen(reduceMotion: Boolean = false, modifier: Modifier = Modifier, lo
     val density = LocalDensity.current
     val glass = rememberLiquidGlassState(background = SkyGround)
     val atlas = remember { Atlas.generate(seed = 27) }
-    val measurer = rememberTextMeasurer()
+    // Big enough to hold every label of a mode, so a redraw never re-measures text.
+    val measurer = rememberTextMeasurer(cacheSize = 64)
     val scope = rememberCoroutineScope()
 
     var screen by remember { mutableStateOf(IntSize.Zero) }
     var pan by remember { mutableStateOf(Offset.Zero) }
     var zoom by remember { mutableFloatStateOf(1f) }
     var mode by remember { mutableIntStateOf(0) }
+    // The loupe's centre is read only in layout and draw lambdas, so dragging it never recomposes the
+    // screen (which would redraw 1500 stars). Composition reads [loupeShown] instead.
     var loupeCentre by remember { mutableStateOf(Offset.Unspecified) }
+    var loupeShown by remember { mutableStateOf(false) }
     val presence = remember { Animatable(0f) }
     val press = rememberGlassPressSource()
 
@@ -100,8 +105,18 @@ fun LoupeScreen(reduceMotion: Boolean = false, modifier: Modifier = Modifier, lo
         return Offset(p.x.coerceIn(minX, 0f), p.y.coerceIn(minY, 0f))
     }
 
+    // Between the toolbar and the tab bar: over either, the loupe would take their touches.
+    val topLimit = with(density) { (48 + 48 + 12).dp.toPx() } + loupeSizePx / 2f
+    val bottomLimit = with(density) { (34 + 64 + 12).dp.toPx() } + loupeSizePx / 2f
+    fun clampLoupe(c: Offset): Offset {
+        if (screen == IntSize.Zero) return c
+        val maxY = (screen.height - bottomLimit).coerceAtLeast(topLimit)
+        return Offset(c.x.coerceIn(loupeSizePx / 2f, screen.width - loupeSizePx / 2f), c.y.coerceIn(topLimit, maxY))
+    }
+
     fun summon(at: Offset) {
-        loupeCentre = at
+        loupeCentre = clampLoupe(at)
+        loupeShown = true
         scope.launch {
             if (reduceMotion) presence.snapTo(1f) else presence.animateTo(1f, tween(380))
         }
@@ -111,14 +126,17 @@ fun LoupeScreen(reduceMotion: Boolean = false, modifier: Modifier = Modifier, lo
         scope.launch {
             if (reduceMotion) presence.snapTo(0f) else presence.animateTo(0f, tween(260))
             loupeCentre = Offset.Unspecified
+            loupeShown = false
         }
     }
 
     // Named only when the loupe is actually over something: within half a loupe of it.
-    val nearest = if (loupeCentre.isSpecified()) {
-        val reach = loupeSizePx / 2f / (skyPx.width * zoom)
-        atlas.nearest(toSky(loupeCentre), mode, reach)
-    } else null
+    val nearest by remember {
+        derivedStateOf {
+            if (!loupeCentre.isSpecified()) null
+            else atlas.nearest(toSky(loupeCentre), mode, loupeSizePx / 2f / (skyPx.width * zoom))
+        }
+    }
 
     Box(
         modifier
@@ -154,11 +172,11 @@ fun LoupeScreen(reduceMotion: Boolean = false, modifier: Modifier = Modifier, lo
         }
 
         // 2. The loupe: magnifying glass whose content is the readable layer of the atlas.
-        if (loupeCentre.isSpecified() && presence.value > 0f) {
-            val topLeft = loupeCentre - Offset(loupeSizePx / 2f, loupeSizePx / 2f)
+        if (loupeShown && presence.value > 0f) {
+            fun topLeft() = loupeCentre - Offset(loupeSizePx / 2f, loupeSizePx / 2f)
             Box(
                 Modifier
-                    .offset { IntOffset(topLeft.x.roundToInt(), topLeft.y.roundToInt()) }
+                    .offset { topLeft().let { IntOffset(it.x.roundToInt(), it.y.roundToInt()) } }
                     .size(LoupeSize)
                     .pointerInput(Unit) {
                         detectDragGestures(
@@ -167,7 +185,7 @@ fun LoupeScreen(reduceMotion: Boolean = false, modifier: Modifier = Modifier, lo
                             onDragCancel = { press.release() },
                         ) { change, delta ->
                             change.consume()
-                            loupeCentre += delta
+                            loupeCentre = clampLoupe(loupeCentre + delta)
                             press.press(change.position)
                         }
                     }
@@ -184,7 +202,7 @@ fun LoupeScreen(reduceMotion: Boolean = false, modifier: Modifier = Modifier, lo
                 // Drawn in screen space and shifted into the loupe's frame: anything outside the
                 // circle is simply not seen, so the names exist only where the glass is.
                 Canvas(Modifier.fillMaxSize()) {
-                    val shift = -topLeft
+                    val shift = -topLeft()
                     drawSky(atlas, mode, { p -> toScreen(p) + shift }, zoom, labelled = true, measurer = measurer,
                         density = density.density, onlyLabels = true)
                 }
@@ -215,12 +233,12 @@ fun LoupeScreen(reduceMotion: Boolean = false, modifier: Modifier = Modifier, lo
                 verticalArrangement = Arrangement.Center,
             ) {
                 BasicText(
-                    nearest?.name ?: (if (loupeCentre.isSpecified()) "Drag the loupe" else "Long-press the sky"),
+                    nearest?.name ?: (if (loupeShown) "Drag the loupe" else "Long-press the sky"),
                     style = TextStyle(color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold),
                     maxLines = 1,
                 )
                 BasicText(
-                    nearest?.detail ?: (if (loupeCentre.isSpecified()) "over a ${listOf("constellation", "planet", "nebula")[mode]} to name it" else "to bring out the loupe"),
+                    nearest?.detail ?: (if (loupeShown) "over a ${listOf("constellation", "planet", "nebula")[mode]} to name it" else "to bring out the loupe"),
                     style = TextStyle(color = Color.White.copy(alpha = 0.7f), fontSize = 11.sp),
                     maxLines = 1,
                 )
@@ -231,8 +249,8 @@ fun LoupeScreen(reduceMotion: Boolean = false, modifier: Modifier = Modifier, lo
                 zoom = (zoom * 1.4f).coerceAtMost(3f)
                 pan = clampPan(c - Offset(before.x * skyPx.width * zoom, before.y * skyPx.height * zoom))
             }
-            GlassButton(glass, if (loupeCentre.isSpecified()) "×" else "◎", reduceMotion) {
-                if (loupeCentre.isSpecified()) dismiss() else summon(Offset(screen.width / 2f, screen.height * 0.45f))
+            GlassButton(glass, if (loupeShown) "×" else "◎", reduceMotion) {
+                if (loupeShown) dismiss() else summon(Offset(screen.width / 2f, screen.height * 0.45f))
             }
         }
 
@@ -309,13 +327,14 @@ internal class Figure(val name: String, val detail: String, val points: List<Off
 internal class Body(val name: String, val detail: String, val p: Offset, val r: Float, val color: Color, val orbit: Float)
 internal class Nebula(val name: String, val detail: String, val p: Offset, val r: Float, val color: Color)
 
+@androidx.compose.runtime.Immutable
 internal class Atlas(
     val stars: List<Star>,
     val figures: List<Figure>,
     val bodies: List<Body>,
     val nebulae: List<Nebula>,
 ) {
-    class Named(val name: String, val detail: String)
+    data class Named(val name: String, val detail: String)
 
     fun nearest(p: Offset, mode: Int, reach: Float): Named? {
         // Sky y runs over a taller extent than x; compare in x units.
