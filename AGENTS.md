@@ -4,6 +4,12 @@ liquidglass is a Compose Multiplatform library whose optics are **measured**, no
 measurement material lives in this repository, so a change to the material can always be checked
 against the evidence that produced it. Read this before moving files or changing a number.
 
+## Current workflow
+
+Use [WORKSPACE.md](WORKSPACE.md). Atlas Studio lives in `desktop/` and shares the
+Loupe screen with the Android sample. The old independent workspaces are retired;
+keep historical records as provenance and follow the single canonical workflow.
+
 ## Where everything is
 
 | Path | What it is | Tracked? |

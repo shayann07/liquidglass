@@ -77,3 +77,7 @@ venv/
 
 # Private iterative corpus; curated final evidence is published in review/.
 /research/analysis/v3/astra-independent/
+
+# Private consolidated build environment and recovery material
+/.local/
+/batch_run.log
