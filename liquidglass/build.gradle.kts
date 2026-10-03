@@ -62,6 +62,7 @@ mavenPublishing {
 // The calibration render (GlassCalibrationRenderTest) is opt-in: pass
 // -Pliquidglass.calibration=<dir with calibration-target-*.png> and it writes composites there.
 tasks.withType<Test>().configureEach {
+    systemProperty("liquidglass.exportShaders", providers.gradleProperty("liquidglass.exportShaders").getOrElse("false"))
     (project.findProperty("liquidglass.calibration") as String?)?.let { systemProperty("liquidglass.calibration", it) }
     (project.findProperty("liquidglass.wideClamp") as String?)?.let { systemProperty("liquidglass.wideClamp", it) }
     (project.findProperty("liquidglass.restMap") as String?)?.let { systemProperty("liquidglass.restMap", it) }

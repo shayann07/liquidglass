@@ -6,7 +6,10 @@ import kotlin.test.assertTrue
 
 /** Independent Phone T01 geometry; no pointer gain or rendered-Astra target is fitted here. */
 class GlassCalmGrowthReferenceTest {
-    @Test fun aCalmPhoneHoldDoesNotMagnifyTheWholeRestingCapsule() {
+    @Test fun aCalmPhoneHoldDoesNotMagnifyTheWholeRestingCapsule() = checkReference(GlassPoseSpec())
+    @Test fun theRecommendedCalmPresetKeepsTheOriginalSettledHeight() = checkReference(GlassPoseSpec.Calm)
+
+    private fun checkReference(spec: GlassPoseSpec) {
         // IMG_6756: resting bar186px, selected capsule284x162px. The settled held
         // capsule is approximately340–360x225px; a uniformly enlarged capsule is ~394px.
         // ±10px width admits edge visibility/held-frame variation, not the old model.
@@ -15,13 +18,16 @@ class GlassCalmGrowthReferenceTest {
             baseHalfWidth = 142f, baseHalfHeight = 81f, allowedHalfHeight = 81f,
             heldHalfWidth = 177f, heldHalfHeight = 112.5f, density = 3f, maxBodyWidth = 700f,
         )
-        val c = GlassPoseController()
+        val c = GlassPoseController(spec)
         c.attach(bar, null, null); c.snapToRest(1)
         c.pointerDown(bar.centreOf(1), bar.centreY, 1_825_000.0, true)
         repeat(180) { c.advanceTo((it + 1) / 120f) }
         val e = GlassPoseExtents(); c.extents(e)
         assertTrue(c.isHeld)
+        println("PHONE_T01 response=${spec.responseName()} height=${e.height} width=${e.width}")
         assertEquals(225f, e.height, 4f, "Phone calm height")
         assertEquals(350f, e.width, 10f, "Phone calm width: pressure must not magnify the spine")
     }
+
+    private fun GlassPoseSpec.responseName() = if (this == GlassPoseSpec.Calm) "Calm" else "Historical"
 }

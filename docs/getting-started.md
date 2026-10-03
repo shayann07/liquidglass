@@ -31,7 +31,16 @@ dependencyResolutionManagement {
 }
 ```
 
-## The three-line version
+## The scene API (development snapshot)
+
+For new integrations, `GlassScene(background, backdrop)` owns the recording and exposes
+`Modifier.glass()` for each surface. See the [README example](https://github.com/shayann07/liquidglass/blob/main/README.md)
+and [API contract](api-reference.md#scene-continuous-lens-and-calm-response-development).
+Use `GlassStyle.clearLens()` for magnifiers and `GlassTabBarStyle.Calm()` for navigation.
+The published `0.1.0` artifact does not contain these additions: use the `VERSION_NAME` from
+`gradle.properties` after building the current source.
+
+## The explicit state version
 
 ```kotlin
 val glass = rememberLiquidGlassState(background = MyTheme.ground)

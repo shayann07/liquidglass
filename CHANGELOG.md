@@ -1,5 +1,40 @@
 # Changelog
 
+This file records user-visible development changes. Published artifacts are identified separately;
+`Unreleased` does not imply that Maven Central already contains these APIs.
+
+## Unreleased — Atlas stabilization
+
+### Added
+
+- `GlassScene` and its scoped `Modifier.glass`, connecting one recorded backdrop to multiple overlays.
+- `GlassStyle.clearLens(magnification)` and `GlassProfile.Lens`: a continuous magnifier mapping shared
+  by material and foreground, with input validation and rendered continuity regressions.
+- `GlassInteraction.Calm` and `GlassResponse`: restrained press expansion and progressively resisted drag.
+- `GlassTabBarStyle.Calm()`: separate whole-bar feedback and selector travel deformation.
+- Optional pull displacement in `GlassPressSource.press` for hosts that already own their gesture.
+- Atlas Studio's sky, typography and grid scenes, native app-buffer captures and redraw timing output.
+- Dependabot configuration, private security reporting instructions and tighter workflow permissions.
+- Portable production SkSL bundle and CanvasKit adapter, with named uniform validation, source-drift
+  checks and independent JVM/CanvasKit pixel fixtures for every material profile.
+
+### Fixed
+
+- The free magnifier no longer uses a held-navigation profile that maps labels and backdrop differently.
+- Atlas uses canvas-local bounded placement instead of conflicting mobile/desktop screen offsets.
+- The calm navigation selector does not interpret perpendicular full-screen travel as free-button squeeze.
+- Calm throws retain distance-dependent spine deformation as press formation fades; release no longer
+  disables travel-driven shape response.
+- Calm selector input is integrated at event timestamps to reduce frame-cadence dependence. Its settled
+  size is checked against the original Phone reference independently of authored drag sensitivity.
+- Atlas no longer reports an unverified Vulkan backend or invented live astronomical telemetry.
+
+### Compatibility and limits
+
+Existing `V3`, `Measured`, `Pullable` and modifier defaults remain available. New scene feedback is calm
+by default. The new lens and dynamics are authored approximations. Full iOS equivalence, physical-device
+verification of this revision and native support for every UI stack remain unproven.
+
 ## Review fixes (unreleased)
 
 - Glass panels follow a resize in place: the size feeding the drag policy, band, pad and path

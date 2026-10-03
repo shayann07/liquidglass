@@ -1,8 +1,9 @@
 # Generic interactive glass
 
-Astra puts press and pull feedback in the shared `liquidGlass` modifier. Vitals supplies
-layout, content and click actions; it has no copied glass shader or Live-specific deformation.
-Use the same `GlassInteraction.Pullable` for a settings button, status pill or custom control.
+Press and pull feedback lives in the shared `liquidGlass` modifier. Your application supplies
+layout, content and click actions; no per-component shader or gesture copy is needed.
+For new integrations use `GlassInteraction.Calm` or the scoped `GlassScene` API. `Pullable`
+preserves the older, more expressive response for comparisons.
 It is opt-in: `Default` retains its Legacy press behavior, and `ReducedMotion` disables elasticity.
 
 ## One backdrop, many controls
@@ -22,7 +23,7 @@ fun GlassActions(onSettings: () -> Unit) {
                     state = glass,
                     shape = CircleShape,
                     style = GlassStyle.DarkChrome,
-                    interaction = GlassInteraction.Pullable,
+                    interaction = GlassInteraction.Calm,
                 )
                 .clickable(onClick = onSettings),
             contentAlignment = Alignment.Center,
@@ -101,3 +102,19 @@ The isolated owner workspace uses its private Gradle/Maven wrapper for both oper
 See [implementation status](implementation-status.md) for test and physical-review results.
 Full iOS parity remains unproven: rim chroma, exact input timing and the strict endpoint
 optical gate remain open. Android below API 33 uses the material fallback instead of AGSL.
+
+
+## Separate press, pull and navigation
+
+Calm press growth is limited to 3% scale and 2dp per edge; drag has a separate resisted target and
+size attenuation. Critical geometry springs avoid the historical press overshoot. These rates are
+authored responses, not timings recovered from untimed Apple screenshots.
+
+`GlassTabBarStyle.Calm()` applies generic feedback to the **whole bar** while ordinary labels remain
+anchored. The selector's shape responds to along-bar travel; perpendicular swipes do not apply the
+free-button squeeze model to it. Navigation intent still follows the finger and commits once on release.
+
+If your component already owns a drag, send local coordinates and cumulative displacement to
+`GlassPressSource.press(point, pullOffset)` and pass that source to `liquidGlass`. Always release on
+up, cancellation, disposal or gesture handoff. The source only supplies input; the shared modifier
+still owns resistance, springs, size attenuation and viewport containment.

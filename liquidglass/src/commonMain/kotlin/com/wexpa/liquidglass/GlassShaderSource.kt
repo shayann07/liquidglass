@@ -456,7 +456,7 @@ half4 main(float2 coord) {
     float split = uAberration * bend;
     float2 pushR = push * (1.0 - split);
     float2 pushB = push * (1.0 + split);
-    if (measured > 0.5) {
+    if (measured > 0.5 && uProfile < 2.5) {
         // Inward only. A pixel at depth d shows content from depth s inside the same edge.
         float W = max(uRefractBand, 0.001);
         float u = clamp(depth / W, 0.0, 1.0);
@@ -485,6 +485,14 @@ half4 main(float2 coord) {
         pushR = -n * (shift + dR);
         pushB = -n * mix(max(shift - delta, 0.0), shift + delta, heldFamily);
         bend = clamp(abs(shift) / W, 0.0, 1.0);
+    }
+    if (uProfile >= 2.5) {
+        // Do not layer a tab fold or fingertip-centred warp over a free magnifier.
+        base = coord + clearLensDelta(p, halfSize, uHeldMagnification * mat);
+        push = float2(0.0);
+        pushR = float2(0.0);
+        pushB = float2(0.0);
+        bend = 0.0;
     }
     half3 sharp;
     float soften = uRimSoft * bend;
@@ -614,7 +622,7 @@ half4 main(float2 coord) {
     col += half3(half(lift));
 
     float facing = dot(n, uLight);
-    float heldAmt = step(1.5, uProfile) * clamp(uHeldLens, 0.0, 1.0);
+    float heldAmt = step(1.5, uProfile) * (1.0 - step(2.5, uProfile)) * clamp(uHeldLens, 0.0, 1.0);
     // Two rim geometries. At uBevelPeak 0 the bevel is a chamfer: brightest at the very edge,
     // fading inward, which is what a hairline-edged bar wants. Above 0 it is a bead: dark at
     // the edge, brightest a fraction of the bevel's width inside it, fading again toward the
@@ -661,7 +669,7 @@ half4 main(float2 coord) {
     // The measured rim line trails a faint glow inward, decaying over about a bevel width: on
     // the pill +10 at 4 px falling to +3 at 8 (rim fit, 2026-09-12); on the held tab-bar lens
     // 16 -> 1 over 15 px (FINDINGS 19). Top and bottom alike, nothing at the sides.
-    float glowAmt = ((uProfile >= 0.5) ? mix(0.05, 0.063, heldAmt) : 0.0)
+    float glowAmt = ((uProfile >= 0.5 && uProfile < 2.5) ? mix(0.05, 0.063, heldAmt) : 0.0)
         * mix(1.0, clamp(uHeldGlow, 0.0, 1.0), heldAmt);
     float heldGlow = glowAmt * exp(-max(depth - 0.67 * uBevel, 0.0) / max(uBevel, 1.0))
         * (max(facing, 0.0) + counterLight * max(-facing, 0.0));

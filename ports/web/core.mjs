@@ -1,0 +1,43 @@
+/** Apache-2.0. Portable authored lens/feedback math; no DOM or graphics dependency. */
+export function lensSource(x, y, halfWidth, halfHeight, magnification = 1.25) {
+  for (const n of [x, y, halfWidth, halfHeight, magnification])
+    if (!Number.isFinite(n)) throw new RangeError('Lens inputs must be finite');
+  if (halfWidth <= 0 || halfHeight <= 0 || magnification < 1 || magnification > 2.5)
+    throw new RangeError('Positive size and magnification 1…2.5 required');
+  const radius2 = Math.min(1, (x / halfWidth) ** 2 + (y / halfHeight) ** 2);
+  const factor = 1 - (1 - 1 / magnification) * (1 - radius2) ** 2;
+  return { x: x * factor, y: y * factor };
+}
+
+/** Exact critically damped step. Time in seconds, values in the caller's units. */
+export function stepSpring(value, velocity, target, seconds, stiffness = 220) {
+  if (![value, velocity, target, seconds, stiffness].every(Number.isFinite) || seconds < 0 || stiffness <= 0)
+    throw new RangeError('Finite spring values, nonnegative time and positive stiffness required');
+  const omega = Math.sqrt(stiffness), error = value - target;
+  const b = velocity + omega * error, decay = Math.exp(-omega * seconds);
+  return { value: target + (error + b * seconds) * decay,
+    velocity: (velocity - omega * b * seconds) * decay };
+}
+
+/** Material deformation only. Keep text/hit targets outside the transformed drawing. */
+export function calmFeedback(width, height, dx, dy, pressed = true, radius = Math.min(width, height) / 2) {
+  if (![width, height, dx, dy, radius].every(Number.isFinite) || width <= 0 || height <= 0 || radius < 0)
+    throw new RangeError('Finite displacement and positive dimensions required');
+  if (!pressed) return { pressX: 1, pressY: 1, along: 1, across: 1, angle: 0 };
+  const pressX = Math.min(1.03, 1 + 4 / width), pressY = Math.min(1.03, 1 + 4 / height);
+  const travel = Math.hypot(dx, dy), limit = Math.min(width * pressX, height * pressY) * .5;
+  if (!travel) return { pressX, pressY, along: 1, across: 1, angle: 0 };
+  const resisted = limit * Math.tanh(travel * .2 / limit) / .2;
+  const c = dx / travel, s = dy / travel, r = Math.min(radius, width / 2, height / 2);
+  const extent = (nx, ny) => (width - 2*r)*pressX*Math.abs(nx) + (height - 2*r)*pressY*Math.abs(ny) +
+    2*r*Math.hypot(pressX*nx, pressY*ny);
+  const alongExtent=extent(c,s), acrossExtent=extent(-s,c), extension=.03*resisted;
+  const t=Math.max(0,Math.min(1,(Math.max(width,height)-80)/80)), mix=t*t*(3-2*t);
+  const surfaceGain=extension<.001 ? .2 : 2*Math.tanh(.2*extension/2)/extension;
+  const gain=1+(surfaceGain-1)*mix;
+  const along=1+extension/alongExtent*gain, across=1-extension/acrossExtent*gain;
+  const roundness=Math.max(0,Math.min(1,2*Math.min(width,height)/Math.max(width,height)-1));
+  const xx=along*c*c+across*s*s, yy=along*s*s+across*c*c, xy=(along-across)*c*s*roundness;
+  const mean=(xx+yy)/2, eigenRadius=Math.hypot((xx-yy)/2,xy);
+  return { pressX,pressY,along:mean+eigenRadius,across:mean-eigenRadius,angle:Math.atan2(2*xy,xx-yy)/2 };
+}

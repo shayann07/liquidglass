@@ -27,6 +27,9 @@ enum class GlassProfile {
      * between them never crosses into the fold.
      */
     Held,
+    /** Standalone magnifier with one C1-continuous source map for backdrop and foreground.
+     * Authored optical model; the measured tab-bar Held profile stays separate. */
+    Lens,
 }
 
 /**
@@ -398,6 +401,23 @@ data class GlassStyle(
     val heldInkContinuous: Boolean = false,
 ) {
     companion object {
+        /** Clear standalone lens. [magnification] is the centre zoom, gradually returning to
+         * identity at the boundary. No internal fold/seam and no separate foreground zoom.
+         * Authored, not an Apple calibration. Supported range: 1x to 2.5x. */
+        fun clearLens(magnification: Float = 1.25f): GlassStyle {
+            require(magnification.isFinite() && magnification in 1f..2.5f) {
+                "Lens magnification must be finite and between 1 and 2.5"
+            }
+            return GlassStyle(
+                profile = GlassProfile.Lens, blurRadius = 0.dp, wideKernel = 0.dp,
+                fineShare = 1f, tint = Color.White.copy(alpha = 0.015f), tintLift = 0f,
+                heldLens = 1f, heldMagnification = 1f - 1f / magnification,
+                bevel = 1.2.dp, bevelPeak = 0f, specular = 0.28f, fresnel = 0.02f,
+                counterLight = 0.35f, dispersion = 0f, innerShadow = 0f,
+                contactShadow = 0.15f, invertsWithBackdrop = false,
+            )
+        }
+
         /** In-app glass, light appearance, default Tint Amount: the measured navigation pill. */
         val Regular = GlassStyle()
 

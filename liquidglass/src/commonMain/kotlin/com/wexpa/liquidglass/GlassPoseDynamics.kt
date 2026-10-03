@@ -237,7 +237,31 @@ internal data class GlassPoseSpec(
     val accelerationTau: Float = 0.045f,
     /** A finger with no sample for this long has stopped driving. */
     val stopWindowSeconds: Float = 0.040f,
-)
+    /** The corrected navigation model ignores perpendicular input for selector shape. */
+    val travelOnly: Boolean = false,
+    /** Keep the released capsule responsive to travel while press formation subsides. */
+    val releaseTravel: Boolean = false,
+) {
+    companion object {
+        /** Authored response constrained by IMG_6756 T04 and the 6690–6701 transit stills.
+         * Off-axis free-button strain was never measured on a selector; keep it on the bar.
+         * The held height stays below T04's approximately 1.23-bar-height sequence envelope.
+         * Rates are deliberately not described as fitted Apple timing. */
+        val Calm = GlassPoseSpec(
+            centreOmega = 24f, spineOmega = 30f, spineZeta = 0.78f,
+            tapSpineOmega = 26f, tapSpineZeta = 0.72f, tapElongationSlots = 0.55f,
+            tapReferenceSpeed = 10f, spineReleaseOmega = 22f,
+            pressureOmega = 22f, pressureFallOmega = 14f, formRiseOmega = 30f,
+            heldHeightRatio = 1.20f, heldReferenceSpeed = 12f,
+            elongationSlots = 0.45f, squeeze = 0.10f,
+            pullStrainPerDp = 0f, pullPressurePerDp = 0f, pullFollow = 0f,
+            endTravelCapRatio = 0.025f, graspOmega = 40f,
+            maxAccommodationSlots = 0.15f,
+            travelOnly = true,
+            releaseTravel = true,
+        )
+    }
+}
 
 /**
  * Calm held pressure from a measured height ratio, section 8.3.
@@ -347,6 +371,8 @@ internal class GlassPoseController(
     private var lastPointerY: Float = 0f
     private var lastPointerTime: Double = 0.0
     private var hasPointerTime: Boolean = false
+    private var pointerClockOrigin: Double = 0.0
+    private var pointerSimulationOrigin: Float = 0f
     /** Filtered acceleration, in px/s^2, filtered in **seconds** and not in event count. */
     private var accelX: Float = 0f
     private var accelY: Float = 0f
@@ -529,6 +555,8 @@ internal class GlassPoseController(
         pointerX = x; pointerY = y
         lastPointerX = x; lastPointerY = y
         lastPointerTime = eventSeconds
+        pointerClockOrigin = eventSeconds
+        pointerSimulationOrigin = now
         hasPointerTime = true
         pointerVx = 0f; pointerVy = 0f
         accelX = 0f; accelY = 0f
@@ -551,6 +579,13 @@ internal class GlassPoseController(
     }
 
     fun pointerMove(x: Float, y: Float, eventSeconds: Double) {
+        if (spec.travelOnly && hasPointerTime && eventSeconds.isFinite()) {
+            // Integrate the OLD target up to this input, then install the new one. Otherwise
+            // several events between frames overwrite each other and the newest position is
+            // incorrectly applied over the entire preceding frame interval.
+            val eventTime = pointerSimulationOrigin + (eventSeconds - pointerClockOrigin).toFloat()
+            if (eventTime.isFinite() && eventTime > now) advanceTo(eventTime)
+        }
         pointerX = x
         pointerY = y
         lastSampleAt = now
@@ -657,6 +692,17 @@ internal class GlassPoseController(
 
     // ---------------------------------------------------------------------- stepping
 
+    /** Input can be slightly ahead of the next presentation timestamp. A stale presentation
+     * is not a simulation clock reset. Explicit [advanceTo] still supports genuine rebasing. */
+    fun advanceFrameTo(time: Float) {
+        if (spec.travelOnly && time < now) return
+        advanceTo(time)
+    }
+
+    /** The frame loop sleeps during a stationary hold. Input time can advance meanwhile;
+     * resume from that simulation time instead of replaying the idle gap as frozen frames. */
+    fun resumedFrameTime(previous: Float): Float = if (spec.travelOnly) max(previous, now) else previous
+
     /**
      * Advance to [time]. Backwards time is a **clock-origin change**, not a younger interaction:
      * the origin is rebased and every stored controller timestamp shifts with it, so no measured
@@ -669,6 +715,7 @@ internal class GlassPoseController(
             now = time
             pressStart += shift
             lastSampleAt += shift
+            pointerSimulationOrigin += shift
             return
         }
         var remaining = time - now
@@ -722,18 +769,20 @@ internal class GlassPoseController(
             vx = pointerVx
             vy = pointerVy
         } else if (mode == GlassPoseMode.Released) {
-            // Recovery never injects fresh strain or formation from the return spring.
-            vx = 0f
+            // Calm throws retain travel deformation. Press formation still subsides below;
+            // movement must not re-press or re-inflate a released selector.
+            vx = if (spec.releaseTravel) velocity.cx else 0f
             vy = 0f
         } else {
             vx = velocity.cx
             vy = velocity.cy
         }
         val nvx = vx / slot
-        val nvy = vy / slot
+        val nvy = if (spec.travelOnly) 0f else vy / slot
         val speed2 = nvx * nvx + nvy * nvy
         val speed = sqrt(speed2)
-        val tapMotion = mode != GlassPoseMode.Held && mode != GlassPoseMode.Released
+        val tapMotion = mode != GlassPoseMode.Held &&
+            (mode != GlassPoseMode.Released || spec.releaseTravel)
         val vRef = max(when {
             mode == GlassPoseMode.Held -> spec.heldReferenceSpeed
             tapMotion -> spec.tapReferenceSpeed
@@ -746,7 +795,7 @@ internal class GlassPoseController(
             pointerDownActive && pressEligible -> spec.pressFormation
             else -> 0f
         }
-        val formTarget = if (!motionEnabled) {
+        val formTarget = if (!motionEnabled || mode == GlassPoseMode.Released) {
             0f
         } else {
             1f - (1f - pressResponse) * (1f - spec.formFromMovement * sv)

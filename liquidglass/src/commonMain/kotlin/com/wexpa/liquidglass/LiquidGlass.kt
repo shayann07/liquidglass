@@ -373,7 +373,9 @@ internal fun Modifier.liquidGlassCore(
     val pressDown = glassPressIsDown(interaction, press)
     val pressAmount by animateFloatAsState(
         targetValue = if (pressDown) 1f else 0f,
-        animationSpec = if (pressDown) { if (growthPx > 0f) GlassMotion.BalloonDown else GlassMotion.PressDown } else GlassMotion.PressUp,
+        animationSpec = if (interaction?.response == GlassResponse.Calm) {
+            if (pressDown) GlassMotion.CalmDown else GlassMotion.CalmUp
+        } else if (pressDown) { if (growthPx > 0f) GlassMotion.BalloonDown else GlassMotion.PressDown } else GlassMotion.PressUp,
         label = "glass_press_scale",
     )
     val animatedPressX = 1f + (balloonX - 1f) * pressAmount
@@ -386,7 +388,7 @@ internal fun Modifier.liquidGlassCore(
     // it is down and released through the recording's under-damped spring; the deformation is
     // one function of the animated travel, so the shape and the position ring together the way
     // the free search button does (reference-6756 S01 n440-476).
-    val pullEnabled = interaction?.pull == true && pressSource == null
+    val pullEnabled = interaction?.pull == true
     val pullCentreLimit = minOf(measured.width * balloonX, measured.height * balloonY) *
         (interaction?.pullLimit ?: Float.POSITIVE_INFINITY)
     val pullLength = kotlin.math.sqrt(press.pullX * press.pullX + press.pullY * press.pullY)
@@ -397,12 +399,16 @@ internal fun Modifier.liquidGlassCore(
     // making tracking depend on the pointer packet rate and damping release momentum away.
     val pullX by animateFloatAsState(
         targetValue = if (pullDown) press.pullX * compliance else 0f,
-        animationSpec = if (pullDown) GlassMotion.PullFollow else GlassMotion.PullRelease,
+        animationSpec = if (interaction?.response == GlassResponse.Calm) {
+            if (pullDown) GlassMotion.CalmFollow else GlassMotion.CalmUp
+        } else if (pullDown) GlassMotion.PullFollow else GlassMotion.PullRelease,
         label = "glass_pull_x",
     )
     val pullY by animateFloatAsState(
         targetValue = if (pullDown) press.pullY * compliance else 0f,
-        animationSpec = if (pullDown) GlassMotion.PullFollow else GlassMotion.PullRelease,
+        animationSpec = if (interaction?.response == GlassResponse.Calm) {
+            if (pullDown) GlassMotion.CalmFollow else GlassMotion.CalmUp
+        } else if (pullDown) GlassMotion.PullFollow else GlassMotion.PullRelease,
         label = "glass_pull_y",
     )
     val pullDeformation = if (pullEnabled && interaction != null) {
@@ -888,6 +894,7 @@ internal val GlassProfile.uniform: Float
         GlassProfile.Legacy -> 0f
         GlassProfile.Measured -> 1f
         GlassProfile.Held -> 2f
+        GlassProfile.Lens -> 3f
     }
 
 /** What the current platform can do, so callers can choose a design that survives the gap. */

@@ -1,6 +1,6 @@
 # One development workspace
 
-Use the sibling `liquidglass` and `Vitals` checkouts on `main`. Atlas Studio is the
+Use the canonical `liquidglass` checkout, branching from `main` for changes. Atlas Studio is the
 desktop sample **inside liquidglass**, not another copy of Vitals. The former
 Astra, Fable and Antigravity workspaces are retired. Their names in old research
 records describe provenance, not instructions to resume those workspaces.
@@ -31,16 +31,20 @@ publishing and consuming. Keep Vitals' version catalog aligned with the library'
 
 `launch_desktop.bat` starts `:desktop:run` through the shared wrapper. Its JVM
 window calls `LoupeScreen`, shared with Android under
-`sample/src/main/kotlin/shared/`. At 960dp and wider it shows a searchable object
-catalog, star canvas, floating glass tools and collapsible inspector. Narrower
-windows use the mobile layout. The sky is sample data; this is a material demo,
-not a live astronomy instrument.
+`sample/src/main/kotlin/shared/`. At 1000dp and wider it adds a composition catalog.
+The canvas demonstrates sky, type and line-grid backdrops with a movable continuous lens,
+anchored note card and calm navigation. Narrower windows reflow the same controls.
+The sky is illustrative; this is a material demo, not a live astronomy instrument.
 
-The library retains the selected Astra interaction and subsequent Claude fixes;
-the desktop shell incorporates Antigravity's latest local work. This consolidation
-does not retune the material or establish 1:1 iOS parity. The existing r14 APK is a
-historical review artifact, not a build of this desktop update. Native desktop
-visual and interaction validation remains separate from compilation and tests.
+The library preserves earlier Astra/Claude/Fable work in historical presets and history.
+The current development preview adds opt-in calm interactions, continuous magnifier optics
+and the scene API. See `review/ATLAS-STABILIZATION.md` for native desktop evidence, timing
+and limits. The existing r14 APK is a historical artifact, not a build of this update.
+Vitals is outside the current work scope; its commands above remain for maintainers.
+
+`ports/web` provides the small GLSL lens preview. `ports/skia` exposes the actual production
+material/ink/aperture shaders and a CanvasKit adapter. Both have terminal tests and CI;
+neither silently captures content from another UI stack.
 
 ## Recovery and local evidence
 

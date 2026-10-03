@@ -65,6 +65,7 @@ internal object GlassEndpointRender {
         refractDepth: Float = 10f,
         profile: Float = 2f,
         heldLens: Float = 1f,
+        heldMagnification: Float = 0f,
         restMap: Float = 0f,
         edgeFold: Float = 0f,
         heldInk: Float = 0f,
@@ -158,7 +159,7 @@ internal object GlassEndpointRender {
         pb.uniform("uProfile", profile)
         pb.uniform("uFormation", 0f)
         pb.uniform("uHeldLens", heldLens)
-        pb.uniform("uHeldMagnification", 0f)
+        pb.uniform("uHeldMagnification", heldMagnification)
         pb.uniform("uHeldGlow", 1f)
         pb.uniform("uHeldEdgeRecovery", 0f)
         pb.uniform("uRestMap", restMap)
@@ -197,7 +198,7 @@ internal object GlassEndpointRender {
         cb.uniform("uProfile", profile)
         cb.uniform("uFormation", 0f)
         cb.uniform("uHeldLens", heldLens)
-        cb.uniform("uHeldMagnification", 0f)
+        cb.uniform("uHeldMagnification", heldMagnification)
         cb.uniform("uRestMap", restMap)
         cb.uniform("uEdgeFold", edgeFold)
         cb.uniform("uInkSplit", inkSplit)

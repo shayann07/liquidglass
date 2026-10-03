@@ -1,0 +1,27 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>LiquidGlass · portable lens</title>
+<style>body{margin:0;background:#09111e;color:#eaf0f7;font:16px system-ui}main{max-width:1000px;margin:48px auto;padding:24px}h1{font-size:42px;font-weight:500}p{color:#aabdc9;max-width:65ch;line-height:1.6}.stage{position:relative;border-radius:24px;overflow:hidden}canvas{width:100%;display:block;touch-action:none}button{padding:12px 20px;border:1px solid #476073;border-radius:24px;background:#1f3545;color:inherit;cursor:pointer;margin-right:8px}button:focus-visible{outline:3px solid #bbdad8}.fallback{background:rgb(35 55 75 / 70%);backdrop-filter:blur(12px)}small{display:block;margin-top:20px;color:#aabdc9}</style>
+<main><p>LIQUIDGLASS / WEB PREVIEW</p><h1>A shared language of light.</h1><p>Move the lens over real canvas content. This dependency-free example works without a UI framework. It demonstrates the continuous magnifier map; the full measured Compose material is a separate renderer.</p><div class="stage"><canvas id="glass" aria-label="Interactive magnifier over an illustrative field" tabindex="0"></canvas></div><p><button id="sky">Stars</button><button id="type">Type & lines</button><button id="reset">Reset lens</button></p><small>Drag, or focus the canvas and use arrow keys. No page screenshots, external assets or tracking.</small><p id="status" role="status"></p></main>
+<script type="module">
+import {createGlassRenderer} from './liquidglass.mjs';
+const canvas=document.querySelector('#glass'), source=document.createElement('canvas');
+source.width=1000;source.height=520;
+const c=source.getContext('2d');let mode=0,x=520,y=245;
+let renderer;
+try {renderer=createGlassRenderer(canvas);} catch(error) {document.querySelector('#status').textContent=error.message;canvas.classList.add('fallback');}
+function drawSource(){
+ const g=c.createRadialGradient(610,190,20,610,190,780);g.addColorStop(0,'#315875');g.addColorStop(1,'#09111e');c.fillStyle=g;c.fillRect(0,0,1000,520);
+ if(mode===0){let seed=73;for(let i=0;i<600;i++){seed=(Math.imul(seed,1664525)+1013904223)>>>0;const px=seed%1000;seed=(Math.imul(seed,1664525)+1013904223)>>>0;const py=seed%520;c.fillStyle='#bbdad8';c.beginPath();c.arc(px,py,.35+(seed%80)/80,0,Math.PI*2);c.fill();}}
+ else {c.strokeStyle='#8ab6c4';c.lineWidth=1;for(let i=0;i<1000;i+=20){c.beginPath();c.moveTo(i,0);c.lineTo(i,520);c.stroke();}c.fillStyle='#122332';c.fillRect(170,150,660,210);}
+ c.fillStyle='#eaf0f7';c.font='36px system-ui';c.fillText('Light, held gently.',300,252);c.font='16px system-ui';c.fillText('One continuous field. Look a little closer.',300,284);
+ renderer?.setSource(source);render();
+}
+function render(){renderer?.render({width:1000,height:520,x,y,radius:100,magnification:1.25,pixelRatio:Math.min(devicePixelRatio,2)});}
+function move(px,py){x=Math.max(108,Math.min(892,px));y=Math.max(108,Math.min(412,py));render();}
+let down=false;
+canvas.addEventListener('pointerdown',e=>{if(e.button!==0)return;down=true;canvas.setPointerCapture(e.pointerId);});
+canvas.addEventListener('pointermove',e=>{if(!down)return;const r=canvas.getBoundingClientRect();move((e.clientX-r.left)/r.width*1000,(e.clientY-r.top)/r.height*520);});
+for(const name of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(name,()=>down=false);
+canvas.addEventListener('keydown',e=>{const d={ArrowLeft:[-20,0],ArrowRight:[20,0],ArrowUp:[0,-20],ArrowDown:[0,20]}[e.key];if(d){e.preventDefault();move(x+d[0],y+d[1]);}});
+document.querySelector('#sky').onclick=()=>{mode=0;drawSource();};document.querySelector('#type').onclick=()=>{mode=1;drawSource();};document.querySelector('#reset').onclick=()=>move(520,245);
+window.addEventListener('pagehide',()=>renderer?.dispose(),{once:true});drawSource();
+</script></html>
