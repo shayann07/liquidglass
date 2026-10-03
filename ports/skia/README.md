@@ -15,13 +15,51 @@ No hosted service, subscription or runtime network request is required. Vendor t
 cd ports/skia
 npm ci --ignore-scripts
 npm test
+npm run example # writes build/example.png with the same high-level API below
 ```
 
 The terminal tests compile all three passes, render the real material on a software Skia surface,
 test lens continuity/alpha and compare **all four profiles** with independent JVM Skia pixels.
 This verifies the supplied source/adapter combination, not browser GPU performance or iOS parity.
 
-## Draw a material
+## Draw a lens without managing uniforms
+
+Initialize CanvasKit using its [official setup](https://skia.org/docs/user/modules/canvaskit/), then
+load the three files in `shaders/` as strings. The painter works on any CanvasKit canvas, independent
+of React, Vue, Compose or another UI framework:
+
+```js
+import { createGlassPainter } from './painter.mjs';
+
+const glass = createGlassPainter(CanvasKit, { material, content, endpoint });
+glass.setSource(backdropImage); // a caller-owned, opaque CanvasKit Image
+const canvas = surface.getCanvas();
+canvas.drawImage(backdropImage, 0, 0);
+glass.drawLens(canvas, { x: 80, y: 100, width: 180, magnification: 1.25 });
+glass.drawLens(canvas, { x: 320, y: 140, width: 200, height: 120 });
+surface.flush();
+// On shutdown:
+glass.dispose();
+backdropImage.delete();
+```
+
+`x` and `y` are the lens's top-left position in the page, not its centre. Every coordinate is in
+device pixels. The source and destination share one page coordinate system: scale the page and glass
+together when drawing in logical units. The painter preserves the canvas's transform and clipping.
+It compiles once, draws multiple lenses, validates input and releases its temporary shaders after each
+draw. It never deletes the borrowed source. After content changes, call `setSource(newImage)` before
+deleting the old image. Moving a lens does not require recapturing an unchanged backdrop.
+The painter uses the minimal clear configuration below: a circular lens for square bounds, with an
+elliptical source map inside capsule coverage for unequal dimensions. It does not add the Compose
+clear-lens preset's decorative lighting or run its gesture controller.
+
+In a browser, `CanvasKit.MakeImageFromCanvasImageSource(backdropCanvas)` can create the source from
+an application-owned canvas. Origin restrictions still apply. Keep interactive DOM controls above the
+canvas, or use your host's accessible controls; the painter only renders. Recreate it with the source
+after GPU context loss. The terminal example and tests verify software Skia; this painter has not yet
+been tested with a browser GPU. The separate `ports/web` renderer has hosted browser lifecycle tests.
+
+## Draw a custom material
 
 Initialize CanvasKit using its [official setup](https://skia.org/docs/user/modules/canvaskit/).
 Load `shaders/material.sksl`, `content.sksl` and `endpoint.sksl` as text using your build system,

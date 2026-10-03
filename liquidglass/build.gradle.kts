@@ -62,6 +62,13 @@ mavenPublishing {
 // The calibration render (GlassCalibrationRenderTest) is opt-in: pass
 // -Pliquidglass.calibration=<dir with calibration-target-*.png> and it writes composites there.
 tasks.withType<Test>().configureEach {
+    // Shader-bundle tests read these files outside the Kotlin source tree. Declare them so a
+    // changed portable shader/fixture cannot reuse a stale successful Gradle test result.
+    inputs.dir(rootProject.layout.projectDirectory.dir("ports/skia/shaders"))
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.dir(rootProject.layout.projectDirectory.dir("ports/skia/fixtures"))
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+    outputs.dir(layout.buildDirectory.dir("reports/atlas"))
     systemProperty("liquidglass.exportShaders", providers.gradleProperty("liquidglass.exportShaders").getOrElse("false"))
     (project.findProperty("liquidglass.calibration") as String?)?.let { systemProperty("liquidglass.calibration", it) }
     (project.findProperty("liquidglass.wideClamp") as String?)?.let { systemProperty("liquidglass.wideClamp", it) }

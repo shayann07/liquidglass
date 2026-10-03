@@ -89,6 +89,11 @@ The before image is from base `dd52d12`; the after image includes the new public
 
 ![Native line-grid view showing continuous lens mapping](atlas/native-lines.png)
 
+![Native typography view with real text under the lens](atlas/native-type.png)
+
+The typography follow-up was launched and captured again on native Windows Direct3D after the clock
+fix. Its text now crosses the default lens position; the earlier placement left it over empty space.
+
 The grid is a useful falsifier: its lines stay connected through the new lens instead of skipping an
 inner annulus. A thin outer lighting highlight remains intentional; removing every highlight is not
 the defect being fixed.
@@ -147,6 +152,16 @@ for those fixtures. It does not verify every style, platform integration, browse
 The [web preview capture](atlas/web-preview-ci.png) is from headless Chromium in GitHub Actions.
 The dependency-free GLSL lens and full Skia shader kit are separate integration choices.
 
+The high-level `createGlassPainter` removes manual uniform binding for clear lenses. Its tests move
+round and nonsquare lenses over a coordinate ramp, check page registration and centre gain, replace
+the source, preserve the host transform and verify borrowed-image lifetime. It owns no gesture or
+platform capture policy. `npm run example` produces the following grid using that same public API:
+
+![Two positioned production-shader lenses on a grid](atlas/skia-painter.png)
+
+This is a terminal CanvasKit software render, not a browser screenshot or an Apple reference. The
+left lens uses 1.25× centre magnification; the right uses 1.6×. The example has no Compose dependency.
+
 ## Verification at this stage
 
 [Machine-readable results](atlas/verification.json).
@@ -163,7 +178,10 @@ The dependency-free GLSL lens and full Skia shader kit are separate integration 
   backdrop sampling and a six-minute budget, with the same full-size coverage, gestures and assertions.
   The corrected focused run passed all 50 tests, including the actual bar capture in 124.10 seconds,
   14 navigation gesture tests, original-height matching, cadence and idle-resume regressions.
-  A complete CI run of this correction remains pending.
+  The complete correction passed in [CI run 37148115654](https://github.com/shayann07/liquidglass/actions/runs/37148115654):
+  319 library tests, 292 passed, 27 explicitly skipped, zero failures; build job 12m50s. Web, Skia,
+  dependency review, strict docs and both CodeQL languages also passed at `a7a929f`.
+  The later painter, test-cache declarations and Type-scene placement await their combined CI run.
 - Actual Atlas desktop tests: 2 passed. Earlier 60-second timeout runs are failures, not passes; the final
   fixture has an explicit six-minute budget for software rendering and completed in 165.5 seconds.
 - Android sample assembled successfully. No physical-device verification of this revision.
@@ -182,8 +200,10 @@ The dependency-free GLSL lens and full Skia shader kit are separate integration 
 | --- | --- | --- | --- |
 | Sky | 9.36ms | 18.66ms | 29.10ms |
 | Lines | 11.99ms | 16.68ms | 17.93ms |
+| Type (follow-up) | 10.09ms | 13.72ms | 19.69ms |
 
-Raw [sky timing](atlas/after-desktop-timing.json) and [line timing](atlas/native-lines-timing.json).
+Raw [sky timing](atlas/after-desktop-timing.json), [line timing](atlas/native-lines-timing.json) and
+[type timing](atlas/native-type-timing.json).
 The sky capture overlapped the CPU test run; the line capture followed it. These measurements are
 native static-scene redraw/submission cost, **not presented frame times, FPS, interaction latency or
 Android performance**. They do not establish a 60Hz guarantee. No before/after speedup is claimed.
@@ -198,6 +218,10 @@ secret scanning/push protection were already enabled. Dependabot and CodeQL use 
 features and standard hosted runners. Actions are pinned to exact upstream commit references;
 automation does not approve or merge dependency updates.
 Runner images are explicitly pinned to Ubuntu 24.04 to avoid an implicit OS migration during verification.
+Gradle declares the portable shader/fixture files as test inputs so edits invalidate cached verification;
+renderer evidence is a declared output for both library and desktop tests.
+An intentional shader-only edit made the source-identity test rerun and fail; restoring the exact
+bytes restored the successful cached result. The perturbation was removed before committing.
 
 Original source remains Apache-2.0 with preserved third-party attributions. The research screenshots
 are owner-supplied evidence, not bundled runtime assets or a license for Apple UI assets.

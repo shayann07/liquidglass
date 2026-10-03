@@ -1,5 +1,11 @@
 # Roadmap
 
+**Historical strategy, September 2026.** Implementation notes below describe the original audit.
+For current delivered behavior, use [implementation status](implementation-status.md). The Atlas
+stabilization now includes continuous magnifiers, calm interaction, desktop visual evidence and
+portable WebGL/Skia paths; native bindings and full iOS equivalence remain open. Counts and competitor
+comparisons below are historical observations, not a fresh survey.
+
 Written 2026-09-10, after reading the source of every liquid-glass implementation that does real
 optics. The audit is in [research/competitive-landscape.md](research/competitive-landscape.md);
 this is what to do about it.

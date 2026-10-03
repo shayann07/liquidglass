@@ -25,6 +25,13 @@ guards against source drift. CanvasKit tests compile every pass and compare the 
 with independent JVM reference pixels. This avoids rewriting the material for every Skia-based framework.
 It adds the CanvasKit WASM runtime; the smaller WebGL lens preview remains dependency-free.
 
+For a simple production-shader lens, `createGlassPainter(CanvasKit, sources)` compiles once and
+owns uniform binding and temporary resources. Call `setSource(backdropImage)`, then
+`drawLens(canvas, {x, y, width, magnification})` for each lens. The source remains caller-owned;
+`dispose()` releases the painter. The [executable terminal example](https://github.com/shayann07/liquidglass/blob/main/ports/skia/example.mjs)
+uses this exact API. This high-level path renders clear magnifiers; custom material/ink/compositor
+integration still uses the lower-level adapter.
+
 The raw shaders also work as a starting point for C++ or other bindings of
 [Skia Runtime Effects](https://skia.org/docs/user/sksl/). A shared shader is not a complete host adapter:
 backdrop capture, blur-strip construction, compositing, gestures, accessibility and GPU lifecycle still

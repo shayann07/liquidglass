@@ -82,6 +82,11 @@ optical role from a magnifier; using the held-selector map on a free lens caused
 | Other Skia hosts | Generated material, content and aperture shaders; native bindings still need host integration and tests |
 | Other frameworks | See the [porting contract](docs/porting.md); native adapters remain work in progress |
 
+The Skia preview includes `createGlassPainter`: set one source image, draw lenses by position and size,
+then dispose. It manages shader uniforms and temporary resources; you retain your own layout, input,
+accessible controls and backdrop capture. Run `npm ci --ignore-scripts && npm run example` in
+`ports/skia` for an executable example without Compose or a browser.
+
 Published stable version, with the original API:
 
 ```kotlin

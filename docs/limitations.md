@@ -1,19 +1,16 @@
 # Limitations
 
-Read this before promising anyone parity with iOS. Most of these are not bugs and will not be
-fixed, because they follow from what Android is.
+This page separates current integration limits from historical measurement gaps. Full iOS parity
+is not established. New renderers and capture paths may change these limits; support requires tests
+on the actual host, not only a successful shader compilation.
 
 ## Android 13+ for the real material
 
 `RuntimeShader` is API 33. Below that there is no optical path at all — the material degrades to
-a tinted surface with the same rim lighting. Plainer, not broken, but a third or so of the
-install base sees the plain version.
+a tinted surface with the same rim lighting. It does not provide shader refraction.
 
 Supply a `fallbackSurface` whenever the glass carries labels, or they will be unreadable there.
 Check `LiquidGlassSupport.hasShaders` if you want to change the design rather than the colour.
-
-Apple's analogue is narrower and gentler: on tvOS only newer hardware gets the effects and older
-devices simply keep their existing appearance.
 
 ## There is no system backdrop — every element pays for its own
 
@@ -99,7 +96,7 @@ bevels — an approximation, not an equivalent.
 SkSL needs an unrollable loop, so the cap is compiled in. Every member is evaluated at every
 pixel, which is precisely what lets the fields interact, and is also why the cap exists.
 
-## The rim contains a caustic fold, and there is no LOD control
+## Historical refractive profiles contain a caustic fold
 
 Where displacement is steep the sampling Jacobian passes through zero — that fold *is* the
 compressed inverted rim image that defines the material. AGSL exposes no per-pixel mip bias over
@@ -107,11 +104,16 @@ a recorded layer, and an isotropic bias would blur the tangential direction and 
 sharp rim anyway. The mitigations are bounded displacement (the exact-Snell form self-bounds)
 and a 1.5px rim guard, not filtering.
 
-## Desktop is compiled and launched, not visually verified
+This describes the historical material/navigation profiles. The new `GlassProfile.Lens` uses a
+monotonic continuous map without that internal fold; it is intended for free magnifiers.
 
-The shader provably compiles on Skia and the desktop app starts without error, but nobody has
-sat and looked at the material rendering on desktop. Treat desktop as "should work" rather than
-"verified".
+## Desktop evidence covers Windows, not every desktop backend
+
+Atlas has native Windows Direct3D screenshots plus desktop-renderer gesture and optical tests in the
+[stabilization record](https://github.com/shayann07/liquidglass/blob/main/review/ATLAS-STABILIZATION.md).
+The record labels native captures separately from test-renderer images. Static redraw/submission
+timings do not establish presented-frame latency. macOS, Linux desktop GPUs and current Android
+physical-device behavior have not been verified for this revision.
 
 ## Containers are chrome at rest
 
@@ -214,7 +216,8 @@ FINDINGS 21).
 
 The shared anchored interaction is documented in [generic interaction](generic-interaction.md).
 The nav pose controller and generic material transform remain distinct. Parent-driven
-`GlassPressSource` does not expose a generic pull channel. Rim chroma and exact original
+`GlassPressSource.press(point, pullOffset)` now exposes cumulative parent-driven pull; normal
+self-interacting controls do not need it. Rim chroma and exact original
 pointer timing remain unresolved. The strict endpoint error is 1.4256 code values against a
 1.0 limit; the internal 1.5 tolerance is not a strict pass. Optional glass cards stay off by
 default because their measured cost is high. See [implementation status](implementation-status.md).
@@ -231,6 +234,7 @@ Its optional foreground pass uses the same source mapping. The factory suppresse
 reference videos do not expose finger coordinates; screen-edge travel is tested as an interaction
 bound, not claimed as a recovered Apple input gain. Existing expressive presets remain available.
 
-The web preview supports the continuous lens only. It accepts host-supplied textures and cannot sample
-arbitrary DOM, protected video or other applications. Full native adapters for SwiftUI, Flutter, Qt,
-Unity and React Native are not shipped. See [porting](porting.md).
+The dependency-free web preview supports the continuous lens only. The separate CanvasKit kit exports
+all three production passes, with a high-level clear-lens painter and lower-level material bindings.
+Both accept host-supplied backdrops; neither captures arbitrary DOM, protected video or other apps.
+Full native adapters for SwiftUI, Flutter, Qt, Unity and React Native are not shipped. See [porting](porting.md).

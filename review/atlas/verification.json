@@ -72,7 +72,7 @@
       120
     ],
     "sourceRenderScale": 0.25,
-    "fullCi": "pending",
+    "fullCi": "passed run 37148115654",
     "barRenderSeconds": 124.103,
     "height": 223.19995,
     "failed": 0,
@@ -123,5 +123,38 @@
     "passed": 50,
     "width": 345.19006,
     "formationTolerance": 0.015
+  },
+  "skia-painter": {
+    "tests": 4,
+    "example": "npm run example passed",
+    "passed": 4,
+    "scope": "Node CanvasKit 0.42.0 software rendering; shader ABI, independent profile fixtures, page coordinates, centre gain, source replacement, borrowed lifetime and transform restoration",
+    "browserGpu": "unverified"
+  },
+  "ci-build-a7a929f": {
+    "commit": "a7a929f46f8c466f0bf27af3955863e26cb068df",
+    "skia": "passed",
+    "codeql": "passed",
+    "docs": "passed",
+    "failed": 0,
+    "dependencyReview": "passed",
+    "duration": "12m50s",
+    "run": 37148115654,
+    "passed": 292,
+    "web": "passed",
+    "skipped": 27,
+    "tests": 319
+  },
+  "native-type-followup": {
+    "samples": 120,
+    "warmup": 10,
+    "metric": "static redraw/GPU submission, not presented frames",
+    "p95ms": 13.7176,
+    "launch": "passed",
+    "p50ms": 10.0931,
+    "maxMs": 19.6931,
+    "height": 1051,
+    "backend": "DIRECT3D",
+    "width": 1920
   }
 }

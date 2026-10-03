@@ -17,6 +17,8 @@ This file records user-visible development changes. Published artifacts are iden
 - Dependabot configuration, private security reporting instructions and tighter workflow permissions.
 - Portable production SkSL bundle and CanvasKit adapter, with named uniform validation, source-drift
   checks and independent JVM/CanvasKit pixel fixtures for every material profile.
+- `createGlassPainter` for portable clear lenses: source-image ownership, coordinate mapping and
+  temporary shader cleanup behind one small API, with an executable terminal example.
 
 ### Fixed
 
@@ -28,6 +30,9 @@ This file records user-visible development changes. Published artifacts are iden
 - Calm selector input is integrated at event timestamps to reduce frame-cadence dependence. Its settled
   size is checked against the original Phone reference independently of authored drag sensitivity.
 - Atlas no longer reports an unverified Vulkan backend or invented live astronomical telemetry.
+- Atlas's Type scene places its specimen under the initial lens, making the optical effect visible at launch.
+- Portable shaders and reference pixels are declared Gradle test inputs, preventing stale cached checks
+  after changes outside the Kotlin tree; renderer screenshots are retained with cached test outputs.
 
 ### Compatibility and limits
 

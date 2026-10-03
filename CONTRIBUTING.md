@@ -22,6 +22,11 @@ The renderer suite uses real Skia pixels and can take several minutes. Atlas's d
 complex scenes in software: their wall time is not native GPU performance. Use focused test filters
 while iterating, then run the complete suite before proposing an optical or interaction change.
 
+For portable changes, run `npm ci --ignore-scripts` and `npm test` in the affected `ports/web` or
+`ports/skia` directory. `npm run example` in the Skia directory renders the high-level integration
+example. Production shader changes also require `GlassShaderBundleTest`: checked-in SkSL and reference
+pixels are declared Gradle inputs, so editing them invalidates cached verification.
+
 ## Evidence and compatibility
 
 - Label constants **measured**, **inherited** or **authored**. Never turn a visual approximation into

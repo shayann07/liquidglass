@@ -212,8 +212,11 @@ fun LoupeScreen(reduceMotion: Boolean = false, modifier: Modifier = Modifier,
                     TextStyle(color = Accent, fontSize = 10.sp, letterSpacing = 1.sp))
             }
         } else if (scene == 1) {
+            // Put real type beneath the initial lens at both compact and wide canvas sizes.
+            // A left-edge-only specimen leaves the default magnifier inspecting empty space.
+            val textLeft = maxOf(28.dp.toPx(), size.width * .52f - 160.dp.toPx())
             for (i in 0..6) drawText(measurer, if (i % 2 == 0) "A little light changes everything." else "Look closer. There is more to see.",
-                Offset(38.dp.toPx(), size.height * .25f + i * 45.dp.toPx()),
+                Offset(textLeft, size.height * .25f + i * 45.dp.toPx()),
                 TextStyle(color = Ink.copy(alpha = 1f - i * .10f), fontSize = (26 - i * 2).sp))
         } else {
             val gap = 16.dp.toPx()

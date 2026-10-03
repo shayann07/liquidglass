@@ -45,3 +45,8 @@ compose.desktop {
         }
     }
 }
+
+// Keep renderer evidence alongside cached test results on CI.
+tasks.withType<Test>().configureEach {
+    outputs.dir(layout.buildDirectory.dir("reports/atlas"))
+}

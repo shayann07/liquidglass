@@ -60,8 +60,8 @@ remain the size you supplied; provide at least 48dp for an interactive control.
 
 ## Separate touch expansion from drag stretch
 
-R14 leaves touch expansion, illumination, spring timing and small-control drag unchanged.
-The shared modifier now adapts only **drag strain** to the control's unpressed layout size:
+The size policy introduced in R14 adapts **drag strain** to the control's unpressed layout size.
+It applies to `Pullable` and `Calm`; each preset keeps its own independent press response:
 
 - Up to 80dp on the longest side: the existing small-control response is preserved exactly.
 - Between 80dp and 160dp: a smooth transition avoids a sudden change as a control resizes.
@@ -83,20 +83,21 @@ scroll taking the gesture cancels the pull; release and cancellation return it t
 `pullLimit` bounds that compliance budget; `pullElongation` and `pullWidthRatio` tune material strain.
 Prefer the preset before overriding these authored input gains.
 
-For navigation use `GlassTabBar(..., style = GlassTabBarStyle.V3())`. The bar and tab anchors
+For navigation use `GlassTabBar(..., style = GlassTabBarStyle.Calm())`. The bar and tab anchors
 stay fixed while its selected lens follows selection intent. V3 owns the continuous pose,
 selected ink, endpoint accommodation and cancellation, so applying a second pull transform
 to that lens would duplicate motion. It shares bounded-travel primitives with generic controls,
 but its pose renderer and generic material draw transform are still distinct implementations.
 
-A caller-provided `GlassPressSource` drives illumination from a parent gesture. It currently
-has no generic pull-displacement channel; do not claim it provides arbitrary parent-driven
-pull automatically. Normal self-interacting controls need no external press source.
+A caller-provided `GlassPressSource` drives feedback from a parent gesture, including cumulative
+pull displacement through `press(point, pullOffset)`. Normal self-interacting controls need no
+external press source. The source does not arbitrate pointer ownership for you.
 
 ## Build and verification
 
-R14 is `0.2.0-astra.14-SNAPSHOT`, built locally, not a Maven Central release. Publish this
-library with `./gradlew publishToMavenLocal`; consume the same version from Maven Local.
+The new APIs are unreleased. Publish this source with `./gradlew publishToMavenLocal`; consume the
+same `VERSION_NAME` from `gradle.properties` through Maven Local. R14's archived artifact predates
+the calm preset, continuous lens and parent-driven pull API.
 The isolated owner workspace uses its private Gradle/Maven wrapper for both operations.
 
 See [implementation status](implementation-status.md) for test and physical-review results.

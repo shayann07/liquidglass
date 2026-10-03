@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "license": "Apache-2.0",
-  "scripts": { "test": "node --test renderer.test.mjs" },
+  "scripts": {
+    "test": "node --test renderer.test.mjs painter.test.mjs",
+    "example": "node example.mjs"
+  },
   "dependencies": { "canvaskit-wasm": "0.42.0" }
 }
