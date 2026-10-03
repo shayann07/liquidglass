@@ -8,25 +8,29 @@ test('portable Calm controller drives the production material, recovers, and res
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
   await page.goto('/skia/');const canvas=page.locator('#glass');
   await expect(page.locator('#status')).toHaveText(/^Ready\./,{timeout:20000});
-  const rest=await canvas.screenshot(),bounds=await canvas.boundingBox();
+  // Keyboard input activates :focus-visible; its rounded outline intersects the screenshot's
+  // rectangular corners. Compare material pixels without that host decoration, not a looser tolerance.
+  const capture=()=>canvas.screenshot({style:'#glass { outline: none !important; }'});
+  const rest=await capture(),bounds=await canvas.boundingBox();
   await page.mouse.move(bounds.x+bounds.width*.25,bounds.y+bounds.height*.8);
   await page.mouse.down();
   await page.mouse.move(bounds.x+bounds.width-2,bounds.y+2,{steps:8});
   await expect(canvas).toHaveAttribute('data-feedback','held');
-  expect(rest.equals(await canvas.screenshot())).toBe(false);
+  expect(rest.equals(await capture())).toBe(false);
   await page.screenshot({path:testInfo.outputPath('skia-calm-held.png'),fullPage:true});
   await canvas.dispatchEvent('pointercancel',{pointerId:1});await page.mouse.up();
   await expect(canvas).toHaveAttribute('data-feedback','rest');
-  expect(rest.equals(await canvas.screenshot())).toBe(true);
+  expect(rest.equals(await capture())).toBe(true);
   await canvas.focus();await page.keyboard.down('Space');
+  await expect(canvas).toBeFocused();
   await expect(canvas).toHaveAttribute('data-feedback','held');
-  expect(rest.equals(await canvas.screenshot())).toBe(false);
+  expect(rest.equals(await capture())).toBe(false);
   await page.emulateMedia({reducedMotion:'reduce'});
   await expect(canvas).toHaveAttribute('data-feedback','rest');
-  expect(rest.equals(await canvas.screenshot())).toBe(true);
+  expect(rest.equals(await capture())).toBe(true);
   await page.keyboard.up('Space');await page.keyboard.down('Space');
   await expect(canvas).toHaveAttribute('data-feedback','held');
-  expect(rest.equals(await canvas.screenshot())).toBe(true);
+  expect(rest.equals(await capture())).toBe(true);
   await page.keyboard.up('Space');expect(errors).toEqual([]);
 });
 test('framework-free example remains interactive and keyboard accessible',async({page},testInfo)=>{

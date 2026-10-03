@@ -231,9 +231,7 @@ GPU performance measurement or verification of Safari, Firefox, mobile WebViews 
   browser launch was blocked by automatic approval review (`blocked by policy`, no detailed reason).
 - Strict documentation build passed. Repository-link verification and hosted checks are recorded when complete.
 
-## Native redraw cost
-
-### Portable motion follow-up
+## Portable motion follow-up
 
 Non-Compose hosts previously received only settled deformation math. `createCalmInteraction` now
 provides timestamped press and bounded cumulative pull, cancellation, resize, viewport containment,
@@ -252,7 +250,7 @@ the added hosted browser check has not yet run at the time of this update.
 These tests verify the authored portable contract. They do not turn Calm timing into an Apple
 measurement or establish native bindings for every stack. The endpoint quantisation limitation remains.
 
-### Windows native capture
+## Native redraw cost
 
 120 forced redraw submissions after ten warmups, 1920×1051, Direct3D:
 
