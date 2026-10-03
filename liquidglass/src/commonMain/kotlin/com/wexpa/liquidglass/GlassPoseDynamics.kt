@@ -252,7 +252,7 @@ internal data class GlassPoseSpec(
             tapSpineOmega = 26f, tapSpineZeta = 0.72f, tapElongationSlots = 0.55f,
             tapReferenceSpeed = 10f, spineReleaseOmega = 22f,
             pressureOmega = 22f, pressureFallOmega = 14f, formRiseOmega = 30f,
-            heldHeightRatio = 1.16f, heldReferenceSpeed = 12f,
+            heldHeightRatio = 1.20f, heldReferenceSpeed = 12f,
             elongationSlots = 0.45f, squeeze = 0.10f,
             pullStrainPerDp = 0f, pullPressurePerDp = 0f, pullFollow = 0f,
             endTravelCapRatio = 0.025f, graspOmega = 40f,
@@ -371,6 +371,8 @@ internal class GlassPoseController(
     private var lastPointerY: Float = 0f
     private var lastPointerTime: Double = 0.0
     private var hasPointerTime: Boolean = false
+    private var pointerClockOrigin: Double = 0.0
+    private var pointerSimulationOrigin: Float = 0f
     /** Filtered acceleration, in px/s^2, filtered in **seconds** and not in event count. */
     private var accelX: Float = 0f
     private var accelY: Float = 0f
@@ -553,6 +555,8 @@ internal class GlassPoseController(
         pointerX = x; pointerY = y
         lastPointerX = x; lastPointerY = y
         lastPointerTime = eventSeconds
+        pointerClockOrigin = eventSeconds
+        pointerSimulationOrigin = now
         hasPointerTime = true
         pointerVx = 0f; pointerVy = 0f
         accelX = 0f; accelY = 0f
@@ -575,6 +579,13 @@ internal class GlassPoseController(
     }
 
     fun pointerMove(x: Float, y: Float, eventSeconds: Double) {
+        if (spec.travelOnly && hasPointerTime && eventSeconds.isFinite()) {
+            // Integrate the OLD target up to this input, then install the new one. Otherwise
+            // several events between frames overwrite each other and the newest position is
+            // incorrectly applied over the entire preceding frame interval.
+            val eventTime = pointerSimulationOrigin + (eventSeconds - pointerClockOrigin).toFloat()
+            if (eventTime.isFinite() && eventTime > now) advanceTo(eventTime)
+        }
         pointerX = x
         pointerY = y
         lastSampleAt = now
@@ -681,6 +692,17 @@ internal class GlassPoseController(
 
     // ---------------------------------------------------------------------- stepping
 
+    /** Input can be slightly ahead of the next presentation timestamp. A stale presentation
+     * is not a simulation clock reset. Explicit [advanceTo] still supports genuine rebasing. */
+    fun advanceFrameTo(time: Float) {
+        if (spec.travelOnly && time < now) return
+        advanceTo(time)
+    }
+
+    /** The frame loop sleeps during a stationary hold. Input time can advance meanwhile;
+     * resume from that simulation time instead of replaying the idle gap as frozen frames. */
+    fun resumedFrameTime(previous: Float): Float = if (spec.travelOnly) max(previous, now) else previous
+
     /**
      * Advance to [time]. Backwards time is a **clock-origin change**, not a younger interaction:
      * the origin is rebased and every stored controller timestamp shifts with it, so no measured
@@ -693,6 +715,7 @@ internal class GlassPoseController(
             now = time
             pressStart += shift
             lastSampleAt += shift
+            pointerSimulationOrigin += shift
             return
         }
         var remaining = time - now

@@ -43,6 +43,11 @@ measure performance before claiming an improvement.
 
 ## Pull requests
 
+The selector regression writes `liquidglass/build/reports/atlas/selector-travel.csv`.
+To regenerate its scientific plot, install matplotlib in a local virtual environment and run
+`python tools/plot_selector_travel.py` (verified with matplotlib 3.11.2). This optional plotting
+dependency is not part of the library runtime or normal CI build.
+
 Explain the user-visible problem, resulting behaviour, evidence and limitations. Include relevant
 screenshots or traces under `review/`; only capture the app under test and remove private information.
 Use the PR template. Tests and docs must pass, conversations must be resolved and the required review

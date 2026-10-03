@@ -73,7 +73,9 @@ it can overestimate the visible body. Do not fit pointer gain to that annotation
 The earlier original-frame audit records a 186px bar and approximately 225px settled held height
 (about 1.21 bar heights, +/-4px edge uncertainty), versus a 284×162px resting selector. This supplies
 a conservative **1.23 bar-height** ceiling for the new synthetic hold tests. The new preset aims at
-1.16. This chosen bound is not a universal maximum for all Apple materials or a measured finger trace.
+1.20. The initial 1.16 choice failed the original settled-height tolerance: 215.76px instead of 225±4px.
+Restoring 1.20 gives 223.20px height and 345.19px width, within the original 225±4px and 350±10px bounds.
+This chosen bound is not a universal maximum for all Apple materials or a measured finger trace.
 The existing reference fixture preserves the previous T01 height fit independently.
 
 ## Desktop visual evidence
@@ -123,6 +125,17 @@ released trips add 13.83/27.47px. Both return to 78×58px rest. The original-ref
 ceiling remains satisfied. [Raw traces](atlas/selector-travel.csv) preserve every sampled frame.
 These figures characterize this model; they are not measured Apple motion rates.
 
+![Held and released motion trace](atlas/selector-travel.png)
+
+The gray band shows the original settled-height tolerance, scaled to this fixture; the red dashed line
+is the conservative 1.23 ceiling. Motion timing is authored. A separate frame-cadence test initially
+found a 6.82px difference at 100ms between 30Hz and 120Hz presentations of the same input stream.
+The calm controller now integrates the preceding target up to each input's timestamp and ignores stale
+presentation timestamps. Reversal and throw traces pass at 30/60/90/120Hz within 1.5px geometry and
+0.015 formation. Waking after a stationary hold also resumes the frame clock from the input clock,
+so the next move does not freeze while the display catches up with an idle interval. Historical
+controller clock/rebase behavior is preserved outside the calm path.
+
 ### Portable production rendering
 
 `ports/skia` exports the evaluated production material/content/aperture shaders and provides a
@@ -144,12 +157,19 @@ The dependency-free GLSL lens and full Skia shader kit are separate integration 
   legacy capsule's grasp offset; pose navigation selects from finger intent. After correcting that fixture,
   all 14 calm gesture tests passed. The complete corrected build then passed in
   [CI run 37128280319](https://github.com/shayann07/liquidglass/actions/runs/37128280319), 22m23s.
-  The later throw/Skia changes passed focused local tests and await their complete CI rerun.
+  The later [CI run 37131042764](https://github.com/shayann07/liquidglass/actions/runs/37131042764)
+  ran 316 library tests: 288 passed, 27 skipped and the new bar-render fixture exceeded its three-minute
+  software-rendering timeout. That failure is retained in the record. The fixture now uses quarter-scale
+  backdrop sampling and a six-minute budget, with the same full-size coverage, gestures and assertions.
+  The corrected focused run passed all 50 tests, including the actual bar capture in 124.10 seconds,
+  14 navigation gesture tests, original-height matching, cadence and idle-resume regressions.
+  A complete CI run of this correction remains pending.
 - Actual Atlas desktop tests: 2 passed. Earlier 60-second timeout runs are failures, not passes; the final
   fixture has an explicit six-minute budget for software rendering and completed in 165.5 seconds.
 - Android sample assembled successfully. No physical-device verification of this revision.
 - Four portable math tests and three CanvasKit production-renderer tests passed. The initial browser
-  run passed interactive/keyboard checks but failed context restoration. A test event-order fix awaits CI.
+  run passed interactive/keyboard checks but failed context restoration. The event-order correction passed
+  the complete hosted browser job in run 37131042764, including context restoration and keyboard input.
   Local headless
   browser launch was blocked by automatic approval review (`blocked by policy`, no detailed reason).
 - Strict documentation build passed. Repository-link verification and hosted checks are recorded when complete.
@@ -170,11 +190,14 @@ Android performance**. They do not establish a 60Hz guarantee. No before/after s
 
 ## Repository and licensing
 
-Main's one-review, strict build and resolved-conversation requirements are preserved. Force push and
+Main requires `build`, `docs-site`, `web`, `skia-port`, `dependency-review`, `codeql-java-kotlin` and
+`codeql-javascript-typescript`, bound to GitHub Actions.
+The one-review, strict branch-update and resolved-conversation requirements are preserved. Force push and
 deletion remain prohibited. Dependency security fixes and private vulnerability reporting are enabled;
 secret scanning/push protection were already enabled. Dependabot and CodeQL use free public-repository
 features and standard hosted runners. Actions are pinned to exact upstream commit references;
 automation does not approve or merge dependency updates.
+Runner images are explicitly pinned to Ubuntu 24.04 to avoid an implicit OS migration during verification.
 
 Original source remains Apache-2.0 with preserved third-party attributions. The research screenshots
 are owner-supplied evidence, not bundled runtime assets or a license for Apple UI assets.

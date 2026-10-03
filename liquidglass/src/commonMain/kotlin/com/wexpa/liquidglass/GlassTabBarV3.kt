@@ -418,7 +418,7 @@ internal fun GlassPoseFrameLoop(
                     handle.previousFrame = nanos
                     handle.controller.motionEnabled = currentMotion
                     handle.controller.attach(currentBar(), currentBounds, currentCentres, currentInk)
-                    handle.controller.advanceTo(handle.clock)
+                    handle.controller.advanceFrameTo(handle.clock)
                     handle.publish()
                     handle.controller.isIdle
                 }
@@ -426,6 +426,7 @@ internal fun GlassPoseFrameLoop(
             }
             val next = snapshotFlow { handle.epoch }.first { it != seen }
             seen = next
+            handle.clock = handle.controller.resumedFrameTime(handle.clock)
             handle.previousFrame = -1L
         }
     }

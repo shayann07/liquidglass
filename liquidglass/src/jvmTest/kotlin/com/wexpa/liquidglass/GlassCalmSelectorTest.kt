@@ -97,4 +97,54 @@ class GlassCalmSelectorTest {
         File("build/reports/atlas").apply { mkdirs() }
             .resolve("selector-travel.csv").writeText(rows.joinToString("\n") + "\n")
     }
+
+    @Test fun reversingAndThrowingKeepTheSameShapeAtDifferentFrameRates() {
+        fun trace(hz: Int): List<FloatArray> {
+            val c = controller()
+            c.pointerDown(bar.centreOf(1), 32f, 0.0, true)
+            advance(c, 0f, .8f); c.beginDrag(bar.centreOf(1),32f)
+            val results = arrayListOf<FloatArray>()
+            // Pointer samples always arrive at 120Hz. Only presentation cadence changes.
+            var nextFrame = .8f + 1f/hz
+            for (i in 1..240) {
+                val t = .8f + i/120f
+                while (nextFrame < t - 1e-5f) { c.advanceFrameTo(nextFrame); nextFrame += 1f/hz }
+                if (i <= 60) {
+                    val fraction = if (i <= 30) i/30f else (60-i)/30f
+                    c.pointerMove(bar.centreOf(1) + bar.slotWidth * 2f * fraction,32f,t.toDouble())
+                }
+                if (i == 60) c.pointerUp(3)
+                if (i % 12 == 0) {
+                    c.advanceFrameTo(t)
+                    val e=GlassPoseExtents().also(c::extents)
+                    assertTrue(e.height <= bar.height * 1.23f)
+                    assertFalse(c.solverFailed)
+                    results += floatArrayOf(e.left,e.top,e.width,e.height,c.formation)
+                }
+            }
+            return results
+        }
+        val reference=trace(120)
+        for(hz in listOf(30,60,90)) {
+            val candidate=trace(hz)
+            for(i in reference.indices) for(j in 0..4)
+                assertEquals(reference[i][j],candidate[i][j],if(j==4) .015f else 1.5f,
+                    "frame-dependent motion: $hz Hz sample=$i coordinate=$j")
+        }
+    }
+
+    @Test fun aMoveAfterAnIdleHoldResumesWithoutReplayingTheIdleGap() {
+        val c=controller()
+        c.pointerDown(bar.centreOf(1),32f,1_825_000.0,true)
+        advance(c,0f,1f)
+        assertTrue(c.isIdle)
+        val before=c.centreX
+        c.pointerMove(bar.centreOf(2),32f,1_825_010.0)
+        val resumed=c.resumedFrameTime(1f)
+        assertTrue(resumed>=10f,"frame clock retained ten seconds of hidden input time")
+        c.advanceFrameTo(resumed+.1f)
+        assertTrue(c.centreX>before+20f,"input remained frozen after waking")
+        c.pointerUp(2);advance(c,resumed+.1f,resumed+2f)
+        assertEquals(bar.centreOf(2),c.centreX,.5f)
+    }
 }

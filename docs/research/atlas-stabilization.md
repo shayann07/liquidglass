@@ -16,8 +16,10 @@ calm preset assigns anchored strain to the bar and leaves travel/pressure in the
 The [stabilization record](https://github.com/shayann07/liquidglass/blob/main/review/ATLAS-STABILIZATION.md)
 contains the original T04 frame, T01 sequence, native desktop before/after images, line-grid proof and
 machine-readable test results. The T01 audit's approximate 225px held height over a 186px bar informs a
-conservative 1.23-height test bound. It does not identify finger distance or timing. The adopted 1.16
-height and slower springs are explicitly authored choices.
+conservative 1.23-height test bound. It does not identify finger distance or timing. The adopted 1.20
+settled-height ratio stays within that reference's tolerance. An initial 1.16 candidate measured
+215.76px against 225±4px and was rejected by the original-reference test. The slower springs remain
+authored choices; reducing drag sensitivity does not justify shrinking the settled hold.
 
 ## Why the magnifier is continuous
 
@@ -43,6 +45,13 @@ spring; perpendicular travel contributes neither trace-free strain nor velocity 
 state continuity and travel-driven spine deformation while pressed material fades. The inherited model
 zeroed shape-driving velocity on release, making throws rigid; the calm preset now separates these roles.
 Historical expressive dynamics remain an explicit comparison path.
+
+Input targets are integrated on their timestamps in the calm path. Previously, multiple pointer
+samples between display frames overwrote the preceding target, making the same gesture depend on
+presentation cadence. The new reversal/throw regression compares 30, 60, 90 and 120Hz against the
+same 120Hz input stream, within 1.5px geometry and 0.015 formation. This is simulation consistency,
+not a measurement of display latency. After a stationary hold, the frame loop resumes from the latest
+input time rather than replaying the idle interval as frozen frames.
 
 The portable Skia adapter executes these same production shaders outside Compose. On the current software
 ramp fixtures, all four material profiles differ from JVM Skia by at most one channel level out of 255.

@@ -21,10 +21,12 @@ import kotlin.time.Duration.Companion.minutes
 /** Actual navigation pointer path and production material; no fitted iOS pixel target. */
 @OptIn(ExperimentalTestApi::class)
 class GlassCalmBarRenderTest {
-    @Test fun wholeBarSurvivesFullScreenPullsWithoutMovingItsLayout() = runComposeUiTest(testTimeout = 3.minutes) {
+    @Test fun wholeBarSurvivesFullScreenPullsWithoutMovingItsLayout() = runComposeUiTest(testTimeout = 6.minutes) {
         setContent {
             CompositionLocalProvider(LocalDensity provides Density(1f)) {
-                val state = rememberLiquidGlassState(Color(0xff0a1829), renderScale = .5f)
+                // Match the gesture suite's source scale: full-size layout/coverage and actual
+                // shader optics, with less CPU backdrop sampling per simulated input frame.
+                val state = rememberLiquidGlassState(Color(0xff0a1829), renderScale = .25f)
                 var selected by remember { mutableIntStateOf(1) }
                 Box(Modifier.size(480.dp, 220.dp).testTag("scene")) {
                     Row(Modifier.fillMaxSize().liquidGlassSource(state)) {

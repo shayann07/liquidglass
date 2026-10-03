@@ -25,6 +25,8 @@ This file records user-visible development changes. Published artifacts are iden
 - The calm navigation selector does not interpret perpendicular full-screen travel as free-button squeeze.
 - Calm throws retain distance-dependent spine deformation as press formation fades; release no longer
   disables travel-driven shape response.
+- Calm selector input is integrated at event timestamps to reduce frame-cadence dependence. Its settled
+  size is checked against the original Phone reference independently of authored drag sensitivity.
 - Atlas no longer reports an unverified Vulkan backend or invented live astronomical telemetry.
 
 ### Compatibility and limits
