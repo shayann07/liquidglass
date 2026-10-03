@@ -52,6 +52,8 @@ The selector regression writes `liquidglass/build/reports/atlas/selector-travel.
 To regenerate its scientific plot, install matplotlib in a local virtual environment and run
 `python tools/plot_selector_travel.py` (verified with matplotlib 3.11.2). This optional plotting
 dependency is not part of the library runtime or normal CI build.
+After `GlassRestTapReferenceTest`, `python tools/plot_selector_arrival.py` plots resting-tap
+travel and the separate arrival recovery using the same optional environment.
 
 Explain the user-visible problem, resulting behaviour, evidence and limitations. Include relevant
 screenshots or traces under `review/`; only capture the app under test and remove private information.

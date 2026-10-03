@@ -24,10 +24,14 @@ class GlassRestTapReferenceTest {
         assertTrue(b.allowedHalfHeight < b.height / 2f, "retain the bar's outer hairline")
     }
 
-    @Test fun longTapHasBoundedShapeRecoveryWithoutBecomingAHeldGesture() {
+    @Test fun longTapHasBoundedShapeRecoveryWithoutBecomingAHeldGesture() = checkRecovery(GlassPoseSpec())
+
+    @Test fun calmLongTapKeepsTheOriginalArrivalRecovery() = checkRecovery(GlassPoseSpec.Calm)
+
+    private fun checkRecovery(spec: GlassPoseSpec) {
         val b = bar()
         val traces = (1..4).associateWith { distance ->
-            val c = GlassPoseController()
+            val c = GlassPoseController(spec)
             c.attach(b, null, null); c.snapToRest(0); c.retarget(distance)
             val e = GlassPoseExtents()
             (0..240).map { i ->
@@ -39,7 +43,7 @@ class GlassRestTapReferenceTest {
                 listOf(t, c.centreX, e.width, e.height)
             }
         }
-        val output = File("build/reports/astra/rest-tap-traces.csv")
+        val output = File("build/reports/astra/rest-tap-${if (spec.travelOnly) "calm" else "traces"}.csv")
         output.parentFile.mkdirs()
         output.writeText("slots,t,cx,width,height\n" + traces.flatMap { (d, rows) ->
             rows.map { "$d," + it.joinToString(",") }
@@ -51,12 +55,13 @@ class GlassRestTapReferenceTest {
         // not a fit to absent pointer timestamps or an assertion of Apple's spring values.
         val shortPeak = short.maxOf { it[2] }
         val longPeak = long.maxOf { it[2] }
+        val recovery = long.filter { it[0] > .2f }
+        val low = recovery.minBy { it[2] }
+        println("REST_TAP calm=${spec.travelOnly} rest=$restWidth short=$shortPeak long=$longPeak low=${low[2]} at=${low[0]}")
         assertTrue(longPeak > shortPeak + .1f * b.slotWidth, "tap distance did not affect shape")
         assertTrue(longPeak < restWidth + b.slotWidth, "held-drag elongation leaked into taps")
         assertTrue(long.maxOf { it[3] } > 2f * b.baseHalfHeight + 3f,
             "tap height was pinned to the resting silhouette")
-        val recovery = long.filter { it[0] > .2f }
-        val low = recovery.minBy { it[2] }
         assertTrue(low[2] < restWidth * .975f, "long tap lost its visible shape rebound")
         assertTrue(low[2] > restWidth * .86f, "arrival collapsed instead of recovering")
         assertTrue(recovery.any { it[0] > low[0] && it[2] > low[2] + 1f },

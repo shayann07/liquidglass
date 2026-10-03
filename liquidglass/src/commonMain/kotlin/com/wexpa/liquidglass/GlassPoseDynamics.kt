@@ -249,7 +249,9 @@ internal data class GlassPoseSpec(
          * Rates are deliberately not described as fitted Apple timing. */
         val Calm = GlassPoseSpec(
             centreOmega = 24f, spineOmega = 30f, spineZeta = 0.78f,
-            tapSpineOmega = 26f, tapSpineZeta = 0.72f, tapElongationSlots = 0.55f,
+            // Loosen shape recovery without speeding up the centre or increasing peak stretch.
+            // The original resting-tap stills include a compressed arrival before settling.
+            tapSpineOmega = 26f, tapSpineZeta = 0.45f, tapElongationSlots = 0.42f,
             tapReferenceSpeed = 10f, spineReleaseOmega = 22f,
             pressureOmega = 22f, pressureFallOmega = 14f, formRiseOmega = 30f,
             heldHeightRatio = 1.20f, heldReferenceSpeed = 12f,

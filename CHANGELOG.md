@@ -29,6 +29,8 @@ This file records user-visible development changes. Published artifacts are iden
   disables travel-driven shape response.
 - Calm selector input is integrated at event timestamps to reduce frame-cadence dependence. Its settled
   size is checked against the original Phone reference independently of authored drag sensitivity.
+- Calm resting taps keep a small compression/recovery on arrival. Shape damping and stretch gain are
+  tuned separately from the critical centre and press springs; the previous preset had lost this phase.
 - Atlas no longer reports an unverified Vulkan backend or invented live astronomical telemetry.
 - Atlas's Type scene places its specimen under the initial lens, making the optical effect visible at launch.
 - Portable shaders and reference pixels are declared Gradle test inputs, preventing stale cached checks

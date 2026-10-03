@@ -126,7 +126,7 @@ show the selected item changing on horizontal travel, without a free-button vert
 An additional defect was found in inherited release dynamics: it zeroed the speed driving the spine.
 The calm preset now uses the body's release speed for travel deformation while press formation
 continues fading. In the authored 360px-bar trace, short/long held trips add 3.93/12.09px of half-spine;
-released trips add 13.83/27.47px. Both return to 78×58px rest. The original-reference 1.23-height
+released trips add 13.38/26.37px after the arrival refinement below. Both return to 78×58px rest. The original-reference 1.23-height
 ceiling remains satisfied. [Raw traces](atlas/selector-travel.csv) preserve every sampled frame.
 These figures characterize this model; they are not measured Apple motion rates.
 
@@ -140,6 +140,30 @@ presentation timestamps. Reversal and throw traces pass at 30/60/90/120Hz within
 0.015 formation. Waking after a stationary hold also resumes the frame clock from the input clock,
 so the next move does not freeze while the display catches up with an idle interval. Historical
 controller clock/rebase behavior is preserved outside the calm path.
+
+### Resting-tap arrival: a missed phase
+
+| Original transient arrival (IMG_6695) | Original settled rest (IMG_6701) |
+| --- | --- |
+| ![Apple transient arrival](atlas/reference-6695.png) | ![Apple settled rest](atlas/reference-6701.png) |
+
+These existing decoded crops belong to the owner's untimed 6690–6701 tap sequence. They support
+the ordered shape change; they are not timestamped finger samples. No exact colour or timing fit is
+claimed from them, and adjacent stills are not independent holdouts.
+
+The existing historical recovery test was not exercising Calm. Adding it revealed a failure: at
+252px rest width, the four-slot Calm trace peaked at 457.64px but never compressed below rest.
+Reducing shape damping from 0.72 to 0.45 and target half-spine gain from 0.55 to 0.42 slots restores
+that phase without increasing the peak. It now reaches 450.63px, compresses to 238.08px (5.5%) and
+settles at 252px. The one-slot peak is 327.88px. These are authored model outcomes; the test's broad
+2.5–14% compression bound is a review constraint, not a measured Apple spring constant. Centre,
+press and held-travel settings stay unchanged.
+
+![Production selector arrival trace](atlas/selector-arrival.png)
+
+[Raw tap trace](atlas/selector-arrival.csv). All 38 focused controller/reference/lifecycle tests pass
+after the correction, including cadence, idle resume, held extremes and throw recovery. The initial
+failed Calm arrival check remains recorded in `verification.json`.
 
 ### Portable production rendering
 
@@ -181,7 +205,11 @@ left lens uses 1.25× centre magnification; the right uses 1.6×. The example ha
   The complete correction passed in [CI run 37148115654](https://github.com/shayann07/liquidglass/actions/runs/37148115654):
   319 library tests, 292 passed, 27 explicitly skipped, zero failures; build job 12m50s. Web, Skia,
   dependency review, strict docs and both CodeQL languages also passed at `a7a929f`.
-  The later painter, test-cache declarations and Type-scene placement await their combined CI run.
+  The painter, test-cache declarations and Type-scene placement also passed in
+  [CI run 37149121490](https://github.com/shayann07/liquidglass/actions/runs/37149121490) at `6d23039`:
+  319 library tests, 292 passed, 27 skipped, zero failures, plus desktop tests and Android builds.
+  Build job 16m45s; all seven required checks passed. The subsequent arrival-shape refinement awaits
+  its complete CI run.
 - Actual Atlas desktop tests: 2 passed. Earlier 60-second timeout runs are failures, not passes; the final
   fixture has an explicit six-minute budget for software rendering and completed in 165.5 seconds.
 - Android sample assembled successfully. No physical-device verification of this revision.

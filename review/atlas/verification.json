@@ -156,5 +156,28 @@
     "height": 1051,
     "backend": "DIRECT3D",
     "width": 1920
+  },
+  "ci-build-6d23039": {
+    "run": 37149121490,
+    "passed": 292,
+    "tests": 319,
+    "commit": "6d23039f9e403f4ca5229a4c61917536e40245cc",
+    "failed": 0,
+    "requiredChecks": "all seven passed",
+    "duration": "16m45s",
+    "skipped": 27
+  },
+  "arrival-refinement": {
+    "minimum": 238.08142,
+    "compressionPercent": 5.52,
+    "tests": 38,
+    "previousMinimum": 252.0058,
+    "rest": 252,
+    "fullCi": "pending",
+    "peak": 450.63354,
+    "passed": 38,
+    "previousPeak": 457.64148,
+    "initial": "Calm failed the original shape-recovery gate: no compression below rest",
+    "interpretation": "Authored response guided by ordered stills, not measured Apple timing"
   }
 }

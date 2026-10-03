@@ -46,6 +46,13 @@ state continuity and travel-driven spine deformation while pressed material fade
 zeroed shape-driving velocity on release, making throws rigid; the calm preset now separates these roles.
 Historical expressive dynamics remain an explicit comparison path.
 
+Reapplying the original resting-tap recovery gate to Calm found a missing phase: a long tap stretched
+but approached rest monotonically. Its shape damping is now 0.45 (from 0.72), while its maximum target
+half-spine gain falls from 0.55 to 0.42 slots. The centre and press springs are unchanged. In the
+1150×186px five-slot fixture, four-slot travel peaks at 450.63px width (previously 457.64), briefly
+compresses to 238.08px and returns to 252px. The original 6690–6701 stills support the ordering of
+stretch, compressed arrival and recovery; they do not establish those numerical gains or elapsed time.
+
 Input targets are integrated on their timestamps in the calm path. Previously, multiple pointer
 samples between display frames overwrote the preceding target, making the same gesture depend on
 presentation cadence. The new reversal/throw regression compares 30, 60, 90 and 120Hz against the
