@@ -14,6 +14,16 @@ package com.wexpa.liquidglass
  * authored, and say so where they are defined.
  */
 internal val GLASS_SOURCE_MAP_SKSL = """
+// One radial source field for a standalone lens, shared verbatim by material and ink.
+// f(r) = r [1 - m (1-r^2)^2], 0<=r<=1. f(1)=1 and f'(1)=1;
+// f'(r)>=1-m>0 for m<=0.6, so it cannot fold or hide an internal annulus.
+float2 clearLensDelta(float2 p, float2 halfSize, float magnification) {
+    float2 q = p / max(halfSize, float2(0.001));
+    float r2 = clamp(dot(q, q), 0.0, 1.0);
+    float shoulder = 1.0 - r2;
+    return -p * (clamp(magnification, 0.0, 0.6) * shoulder * shoulder);
+}
+
 // The lens under a finger on a tab bar (FINDINGS 19; measured model, section 2c). Over the outer
 // half of the band a pixel at depth u shows the exterior from 1.3u - 0.29 W: the content just
 // outside the rim is pulled in and compressed 1.3x (the bar's own edge line lands 10 px inside

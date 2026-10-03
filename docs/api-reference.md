@@ -677,3 +677,52 @@ Pullable preserves touch feedback and controls up to 80dp. Its drag-only surface
 smoothly transitions by 160dp to one-fifth gain and a 2dp total extension cap. Both dimensions
 use unpressed layout size in dp; density does not change the response. This is automatic in
 `liquidGlass`, not a separate card implementation. See [generic interaction](generic-interaction.md).
+
+## Scene, continuous lens and calm response (development)
+
+These APIs require the current source snapshot; they are not in the published `0.1.0` artifact.
+
+```kotlin
+@Composable
+fun GlassScene(
+    background: Color,
+    backdrop: @Composable BoxScope.() -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable GlassSceneScope.() -> Unit,
+)
+
+class GlassSceneScope : BoxScope {
+    val state: LiquidGlassState
+    fun Modifier.glass(
+        shape: Shape = RoundedCornerShape(20.dp),
+        style: GlassStyle = GlassStyle.Regular,
+        interaction: GlassInteraction? = GlassInteraction.Calm,
+        materialize: Float = 1f,
+    ): Modifier
+}
+```
+
+The host owns one state and backdrop recording. Size the host explicitly. Put page content in `backdrop`
+and controls in `content`; do not nest the glass inside its own source. The exposed `state` supports
+advanced tab-bar/container integration. `glass` does not make a button clickable or add a semantic role.
+
+| API | Contract |
+| --- | --- |
+| `GlassStyle.clearLens(magnification: Float = 1.25f)` | Finite centre magnification 1–2.5; invalid values throw. Continuous map, zero blur and dispersion by default. |
+| `GlassProfile.Lens` | Same smooth elliptical source map for material and refracted foreground; append-only enum addition. |
+| `GlassInteraction.Calm` | Critical geometric springs; up to 3% press scale and 2dp growth per edge; gradual resisted drag with large-surface attenuation. |
+| `GlassResponse` | `Expressive` preserves historical timing; `Calm` selects slower critical press/pull springs. |
+| `GlassInteraction.response` | New final constructor parameter, default `Expressive`; existing positional source calls retain their meaning. |
+| `GlassTabBarStyle.Calm(dark: Boolean = true)` | V3 optical roles with calm selector travel, no off-axis selector squeeze, and generic material-only bar feedback. |
+| `GlassSelectorSpec.response` | Chooses the pose response family; default `Expressive` preserves V3. Other legacy fields still belong to the old horizontal controller. |
+| `GlassTabBarStyle.barInteraction` | Optional whole-bar feedback, default null; `Calm()` enables it and keeps label layout fixed. |
+| `GlassPressSource.press(localPosition, pullOffset = Offset.Zero)` | Local pixels; optional displacement since down for a gesture owned by the host. Rejects non-finite coordinates. Call `release()` on up **and cancellation**. |
+
+`Lens` reuses `heldMagnification` internally as `1 - 1 / magnification`; prefer the factory to setting
+that implementation parameter. It bypasses the held profile's stepped edge map and ignores dispersion.
+It is an elliptical magnifier field: rectangular corners outside the inscribed ellipse remain identity.
+The historical `Held` family intentionally retains its navigation optics.
+
+These additions preserve existing presets at source level. Kotlin data-class constructor changes are
+not a guarantee of binary compatibility for already compiled consumers; rebuild consumers against the
+new snapshot. Keep your system accessibility preference wired to `ReducedMotion`/`motionEnabled`.

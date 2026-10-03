@@ -1,0 +1,35 @@
+# Web preview
+
+This dependency-free ES module renders the **continuous lens** over a source image, canvas or video.
+It can be called from vanilla JS, React, Vue, Svelte, Angular, a web component or a WebView. It does not
+capture arbitrary HTML and is not yet the full Compose material/navigation renderer. No npm package
+has been published; use the checked-in source. Code is Apache-2.0 under the repository's LICENSE/NOTICE.
+
+```js
+import { createGlassRenderer } from './liquidglass.mjs';
+const glass = createGlassRenderer(outputCanvas);
+glass.setSource(yourBackdropCanvas); // origin-clean; excludes the glass itself
+glass.render({ width: 1000, height: 520, x: 500, y: 250,
+  radius: 100, magnification: 1.25, pixelRatio: devicePixelRatio });
+// Update the texture when backdrop content changes; render again when the lens moves.
+glass.dispose(); // on component unmount
+```
+
+Serve this directory with `python -m http.server 8765 --bind 127.0.0.1` and open `index.html`.
+The example supports pointer drag and keyboard arrows. `core.mjs` contains renderer-independent
+source mapping, critical springs and material-feedback math. Its numbers are authored, not an Apple API.
+
+Run `node --test core.test.mjs` for the numerical contract. `browser-test.html` compiles and tests the
+real GLSL shader, reads pixels, resizes, simulates context loss and checks cleanup. Serve it over HTTP;
+file URLs have different origin rules. A test that remains `RUNNING` is not a pass.
+
+Canvas dimensions are CSS pixels; `pixelRatio` controls backing resolution (1–4). The source fills
+the canvas; supply matching aspect ratio to avoid stretching. Positions have a top-left origin.
+Upload a new image only when it changes, not on every pointer event. Animated video must be uploaded
+by its host per frame. WebGL contexts are owned by the adapter and must not be reused by another renderer.
+
+The adapter restores its resources after context loss. If WebGL is unavailable, render a normal readable
+surface, optionally with CSS `backdrop-filter`; that is a fallback, not optical equivalence. DOM controls
+and their accessible names, focus and hit targets should remain ordinary HTML above the drawing. Respect
+`prefers-reduced-motion` before applying the optional feedback math. For framework lifecycle examples,
+source security and other native backends see [the porting guide](../../docs/porting.md).

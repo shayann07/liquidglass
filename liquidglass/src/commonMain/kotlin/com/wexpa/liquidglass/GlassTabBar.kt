@@ -182,6 +182,8 @@ fun GlassTabBar(
         var motion by remember { mutableStateOf<Job?>(null) }
         val scope = rememberCoroutineScope()
         val press = rememberGlassPressSource()
+        val barPress = rememberGlassPressSource()
+        var barDown by remember { mutableStateOf(Offset.Zero) }
         var v2Held by remember { mutableStateOf(false) }
         var dragging by remember { mutableStateOf(false) }
         var liveVelocity by remember { mutableFloatStateOf(0f) }
@@ -200,7 +202,8 @@ fun GlassTabBar(
             null
         }
         val poseHandle = if (spec != null && usePose) {
-            remember(spec) { GlassPoseHandle(GlassPoseController()) }
+            remember(spec) { GlassPoseHandle(GlassPoseController(
+                if (spec?.response == GlassResponse.Calm) GlassPoseSpec.Calm else GlassPoseSpec())) }
         } else {
             null
         }
@@ -390,6 +393,7 @@ fun GlassTabBar(
 
         /** One pointer entry point for both paths, each in its own declared frame. */
         fun pressAt(x: Float, y: Float) {
+            barPress.press(Offset(x, y), Offset(x, y) - barDown)
             when {
                 poseHandle != null -> {
                     poseHandle.barPointerX = x
@@ -411,6 +415,7 @@ fun GlassTabBar(
             poseHandle?.barPointerX = Float.NaN
             poseHandle?.barPointerY = Float.NaN
             press.release()
+            barPress.release()
         }
 
         // The gesture lives on an ancestor of both the lens and the items, not on a sibling
@@ -542,6 +547,7 @@ fun GlassTabBar(
                         // The item under the finger consumes the down, so this must not
                         // require an unconsumed one.
                         val down = awaitFirstDown(requireUnconsumed = false)
+                        barDown = down.position
                         val tracker = VelocityTracker()
                         tracker.addPosition(down.uptimeMillis, down.position)
 
@@ -795,9 +801,9 @@ fun GlassTabBar(
                             shape = barShape,
                             style = barStyle,
                             light = style.light,
-                            // The bar does not glow or bounce under the finger on the reference;
-                            // it grows and lifts, which is done above. The lens is the response.
-                            interaction = null,
+                            // Whole-surface feedback is independent of selector travel.
+                            interaction = if (motionEnabled) style.barInteraction else GlassInteraction.ReducedMotion,
+                            pressSource = barPress,
                             materialize = materialize,
                             // The lens is proud of the bar, and on the reference the bar's own
                             // outline does not simply end under it: it bows out to meet it, one
@@ -1324,8 +1330,15 @@ data class GlassTabBarStyle(
      * on; this is opt-in for exactly that reason.
      */
     val selector: GlassSelectorSpec? = null,
+    /** Whole-bar material deformation; ordinary labels retain their layout positions. */
+    val barInteraction: GlassInteraction? = null,
 ) {
     companion object {
+        /** Recommended navigation preset. Material responds gently; the selector deforms
+         * along travel only. Existing V3/Measured presets remain available for comparison. */
+        fun Calm(dark: Boolean = true): GlassTabBarStyle = V3(
+            dark = dark, spec = GlassSelectorSpec(response = GlassResponse.Calm),
+        ).copy(heldScale = 1f, barInteraction = GlassInteraction.Calm)
         // Declaration order matters here: the constructor's defaults read RestingInset and
         // HeldLens, so Dark has to come after them or it is built while they are still null.
 

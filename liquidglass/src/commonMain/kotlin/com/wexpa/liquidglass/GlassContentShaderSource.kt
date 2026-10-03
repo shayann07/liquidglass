@@ -179,7 +179,7 @@ half4 main(float2 coord) {
     // zooms about the body's centre, so the held item reads larger and the bar's own edge is
     // carried outward inside the lens, which is what the calm held references show. Zero for
     // every other profile, and it rises and falls with the lens itself.
-    if (uHeldMagnification > 0.0 && uProfile >= 1.5) {
+    if (uHeldMagnification > 0.0 && uProfile >= 1.5 && uProfile < 2.5) {
         float2 magCentre = (uBodyKind > 1.5) ? uPoseC.xy
             : ((uBodyKind > 0.5) ? float2((uBody.x + uBody.y) * 0.5, uBodyY) : float2(0.0));
         base -= (p - magCentre) * (uHeldMagnification * clamp(uHeldLens, 0.0, 1.0) * mat);
@@ -189,7 +189,7 @@ half4 main(float2 coord) {
     float split = uInkSplit * bend;
     float2 pushR = push * (1.0 - split);
     float2 pushB = push * (1.0 + split);
-    if (uProfile >= 0.5) {
+    if (uProfile >= 0.5 && uProfile < 2.5) {
         // The same inward fold the backdrop goes through; see the panel shader.
         float W = max(uRefractBand, 0.001);
         float u = clamp(depth / W, 0.0, 1.0);
@@ -215,6 +215,14 @@ half4 main(float2 coord) {
         pushB = -n * mix(max(shift - delta, 0.0), shift + delta, heldFamily);
     }
 
+    if (uProfile >= 2.5) {
+        // Do not layer a tab fold or fingertip-centred warp over a free magnifier.
+        base = coord + clearLensDelta(p, halfSize, uHeldMagnification * mat);
+        push = float2(0.0);
+        pushR = float2(0.0);
+        pushB = float2(0.0);
+        bend = 0.0;
+    }
     // One sharp sample is the default for semantic ink: a maximum-of-three-alpha union is not
     // correct per-channel transmission over an arbitrary background, so bulk ink dispersion is
     // off unless a consumer asks for it (V3-MODEL section 8.3). uAberration still drives the

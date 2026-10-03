@@ -218,3 +218,19 @@ The nav pose controller and generic material transform remain distinct. Parent-d
 pointer timing remain unresolved. The strict endpoint error is 1.4256 code values against a
 1.0 limit; the internal 1.5 tolerance is not a strict pass. Optional glass cards stay off by
 default because their measured cost is high. See [implementation status](implementation-status.md).
+
+
+## Continuous lens and calm response preview
+
+`GlassStyle.clearLens` fixes the free magnifier's internal map discontinuity. It is an authored
+elliptical magnifier field, not the measured held navigation profile or a full physical lens simulation.
+Its optional foreground pass uses the same source mapping. The factory suppresses dispersion; setting
+`dispersion` on this profile does not enable the navigation model's spectral bands.
+
+`GlassInteraction.Calm` and `GlassTabBarStyle.Calm()` use authored input/timing choices. Original
+reference videos do not expose finger coordinates; screen-edge travel is tested as an interaction
+bound, not claimed as a recovered Apple input gain. Existing expressive presets remain available.
+
+The web preview supports the continuous lens only. It accepts host-supplied textures and cannot sample
+arbitrary DOM, protected video or other applications. Full native adapters for SwiftUI, Flutter, Qt,
+Unity and React Native are not shipped. See [porting](porting.md).

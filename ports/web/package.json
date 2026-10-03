@@ -1,0 +1,19 @@
+{
+  "name": "@liquidglass/portable-preview",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "Apache-2.0",
+  "description": "Unpublished framework-independent continuous-lens preview",
+  "exports": {
+    ".": "./liquidglass.mjs",
+    "./core": "./core.mjs"
+  },
+  "scripts": {
+    "test": "node --test core.test.mjs",
+    "test:browser": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}

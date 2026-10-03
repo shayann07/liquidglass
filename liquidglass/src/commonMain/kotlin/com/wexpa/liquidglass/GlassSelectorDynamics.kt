@@ -72,6 +72,8 @@ data class GlassSelectorSpec(
      * parity brief supersedes the hard silhouette ceiling those numbers express.
      */
     val poseMotion: Boolean = true,
+    /** Calm separates selector travel from the bar's own press/drag deformation. */
+    val response: GlassResponse = GlassResponse.Expressive,
 )
 
 /** Which of the controller's states owns the body right now. */

@@ -1,0 +1,35 @@
+{
+  "calm-gestures": [
+    {
+      "name": "GlassTabBarCalmGestureTest[jvm]",
+      "tests": "14",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "time": "226.448"
+    }
+  ],
+  "desktop": [
+    {
+      "name": "AtlasDesktopTest[desktop]",
+      "tests": "2",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "time": "165.488"
+    }
+  ],
+  "full-library-before-fixture-correction": {
+    "tests": 313,
+    "passed": 285,
+    "skipped": 27,
+    "failed": 1,
+    "failure": "Calm fling inherited legacy capsule-grasp expectation; corrected to finger-intent contract already used by V3. No production change was required."
+  },
+  "android-sample": "assembleDebug passed; physical device verification not performed",
+  "web-core": {
+    "tests": 4,
+    "passed": 4,
+    "browser": "pending CI; local headless browser launch blocked by automatic approval review"
+  }
+}

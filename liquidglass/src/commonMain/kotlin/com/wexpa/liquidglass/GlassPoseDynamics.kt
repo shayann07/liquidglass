@@ -237,7 +237,28 @@ internal data class GlassPoseSpec(
     val accelerationTau: Float = 0.045f,
     /** A finger with no sample for this long has stopped driving. */
     val stopWindowSeconds: Float = 0.040f,
-)
+    /** The corrected navigation model ignores perpendicular input for selector shape. */
+    val travelOnly: Boolean = false,
+) {
+    companion object {
+        /** Authored response constrained by IMG_6756 T04 and the 6690–6701 transit stills.
+         * Off-axis free-button strain was never measured on a selector; keep it on the bar.
+         * The held height stays below T04's approximately 1.23-bar-height sequence envelope.
+         * Rates are deliberately not described as fitted Apple timing. */
+        val Calm = GlassPoseSpec(
+            centreOmega = 24f, spineOmega = 30f, spineZeta = 0.78f,
+            tapSpineOmega = 26f, tapSpineZeta = 0.72f, tapElongationSlots = 0.55f,
+            tapReferenceSpeed = 10f, spineReleaseOmega = 22f,
+            pressureOmega = 22f, pressureFallOmega = 14f, formRiseOmega = 30f,
+            heldHeightRatio = 1.16f, heldReferenceSpeed = 12f,
+            elongationSlots = 0.45f, squeeze = 0.10f,
+            pullStrainPerDp = 0f, pullPressurePerDp = 0f, pullFollow = 0f,
+            endTravelCapRatio = 0.025f, graspOmega = 40f,
+            maxAccommodationSlots = 0.15f,
+            travelOnly = true,
+        )
+    }
+}
 
 /**
  * Calm held pressure from a measured height ratio, section 8.3.
@@ -730,7 +751,7 @@ internal class GlassPoseController(
             vy = velocity.cy
         }
         val nvx = vx / slot
-        val nvy = vy / slot
+        val nvy = if (spec.travelOnly) 0f else vy / slot
         val speed2 = nvx * nvx + nvy * nvy
         val speed = sqrt(speed2)
         val tapMotion = mode != GlassPoseMode.Held && mode != GlassPoseMode.Released

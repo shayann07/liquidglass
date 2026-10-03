@@ -1,308 +1,150 @@
-# liquidglass
+# LiquidGlass
 
-## Current workspace
+A refracting material for Compose UI, with a shared backdrop, shaped glass surfaces and restrained touch feedback.
 
-Atlas Studio is the standalone desktop glass demo in `:desktop`. Use the single
-[workspace guide](WORKSPACE.md) to build it, publish the local library, or run Vitals.
-The older workflows are [archived with restoration instructions](archive/retired-workflows/2026-10-03/README.md).
-
-## Astra review - r14
-
-R14 preserves touch expansion and small-control stretch while making drag on large glass
-cards and pills subtle. The shared modifier adapts drag strain by size. Desktop rendering
-checks cover the actual modifier; physical Android verification of r14 is pending.
-
-
-The selected implementation is **Astra r14**, with shared anchored glass interaction: controls
-and ordinary labels stay in position while the material expands and stretches. Wide bars stay
-level, and round controls retain directional stretch. V3 navigation keeps its selection lens
-and native ink mapping. Full iOS 1:1 parity is **not established**.
-
-- [How the shared behavior works and how to use it](https://github.com/shayann07/liquidglass/blob/main/docs/generic-interaction.md)
-- [Final verification, comparisons and limitations](https://github.com/shayann07/liquidglass/blob/main/review/ASTRA-r14.md)
-- [ASTRA r14 review APK](https://github.com/shayann07/Vitals/raw/refs/heads/main/review/Vitals-ASTRA-r14.apk)
-
-The alternatives retain their captured source bytes and provenance. This source delivery uses
-`0.2.0-astra.14-SNAPSHOT` locally and does not create a Maven Central release.
-
-[![Maven Central](https://img.shields.io/maven-central/v/dev.shayxo.liquidglass/liquidglass)](https://central.sonatype.com/artifact/dev.shayxo.liquidglass/liquidglass)
 [![CI](https://github.com/shayann07/liquidglass/actions/workflows/ci.yml/badge.svg)](https://github.com/shayann07/liquidglass/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
-[![Docs](https://img.shields.io/badge/docs-liquidglass.shayxo.dev-informational)](https://liquidglass.shayxo.dev/)
+[Documentation](https://liquidglass.shayxo.dev/) · [Getting started](docs/getting-started.md) · [API](docs/api-reference.md) · [Research](docs/research/README.md)
 
-A refracting glass material for Compose Multiplatform, drawn entirely in a shader. No images,
-no nine-patches, no platform widgets. Drop it on any element and it becomes an optical object
-sitting over whatever is behind it.
+![Atlas Studio running on Windows](review/atlas/after-desktop.png)
 
-Runs on Android 13+ (AGSL) and Desktop/JVM (Skia). Below Android 13 it degrades to a tinted
-surface with the same rim lighting — a plainer material, not a broken one.
+**Development preview.** The current work adds continuous magnifier optics, calmer press and drag feedback,
+a simpler scene API and a redesigned Atlas Studio. These additions are not in the published `0.1.0` artifact.
+They are authored models informed by iPhone references; **full 1:1 iOS parity is not established**.
+See the [verification record](review/ATLAS-STABILIZATION.md) for rendered evidence and remaining work.
 
-The 0.2 development line combines material calibration from original iPhone captures with
-authored interaction dynamics. Measured source maps and sampled colours are distinct from
-spring rates, layout policies and visual approximations. See
-[the measured model](docs/research/measured-model.md) and
-[implementation status](docs/implementation-status.md) for the evidence and current limits.
+## Start with one scene
 
-The **Astra implementation** is the selected development approach. Its deforming tab selector
-is opt-in through `GlassTabBarStyle.V3()`; existing default presets retain their prior behavior.
-Exact iOS parity is still under verification. The stable dependency below does not include
-the unreleased Astra work.
+Record your page once, then place ordinary Compose controls over it. The scene connects each surface
+to its backdrop; click handling, layout and accessibility stay with your normal UI components.
+
+```kotlin
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import com.wexpa.liquidglass.*
+
+GlassScene(
+    background = Color(0xFF09111E),
+    modifier = Modifier.fillMaxSize(),
+    backdrop = { YourPage() },
+) {
+    Row(
+        Modifier.align(Alignment.BottomCenter)
+            .padding(24.dp)
+            .glass(style = GlassStyle.DarkChrome)
+            .padding(16.dp),
+    ) {
+        YourNavigationItems()
+    }
+    // A real magnifier over the recorded page: no duplicate labels or separate zoom layer.
+    Box(
+        Modifier.align(Alignment.Center).size(180.dp)
+            .glass(CircleShape, GlassStyle.clearLens(magnification = 1.25f)),
+    )
+}
+```
+
+`YourPage` and `YourNavigationItems` are your composables. Size the scene explicitly, keep its
+backdrop opaque, and leave its glass overlays out of the backdrop. `glass()` uses calm feedback;
+pass `interaction = null` for a passive panel or `GlassInteraction.ReducedMotion` for reduced motion.
+
+Already manage a backdrop? Keep using `rememberLiquidGlassState`, `liquidGlassSource` and
+`Modifier.liquidGlass`. Existing presets and default behaviour are preserved.
+
+## Choose the right material
+
+| Need | API | What it does |
+| --- | --- | --- |
+| Floating card or toolbar | `GlassStyle.Regular` / `DarkChrome` | Refracted edge, softened background and tint |
+| Free magnifier | `GlassStyle.clearLens(1.25f)` | One continuous map for backdrop and foreground; no hidden inner band |
+| Restrained touch feedback | `GlassInteraction.Calm` | Separate press and drag, gradual resistance, fixed ordinary labels |
+| Navigation selector | `GlassTabBarStyle.Calm()` | Travel deformation on the selector; subtle drag deformation on the bar |
+| Accessibility | `GlassInteraction.ReducedMotion` | Feedback without elastic geometry; host supplies system preference |
+| Historical comparisons | `GlassTabBarStyle.V3()` / `GlassInteraction.Pullable` | Previous authored dynamics, preserved explicitly |
+
+Glass does not move your controls unless **your layout** moves them. Stretch belongs to the material.
+Long cards use a smaller drag response than compact controls. A navigation selector is a different
+optical role from a magnifier; using the held-selector map on a free lens caused the recurring split rim.
+
+## Platforms and installation
+
+| Platform | Support |
+| --- | --- |
+| Android 13+ | AGSL shader renderer |
+| Android below 13, within the project's minimum SDK | Tinted fallback; no shader refraction |
+| Desktop JVM | Skia renderer; native Windows capture verified in the review record |
+| Compose iOS / native SwiftUI | No packaged renderer yet |
+| Web / JS frameworks | [Continuous lens preview](ports/web/README.md), using a supplied texture; full measured material not yet ported |
+| Other frameworks | See the [porting contract](docs/porting.md); native adapters remain work in progress |
+
+Published stable version, with the original API:
 
 ```kotlin
 implementation("dev.shayxo.liquidglass:liquidglass:0.1.0")
 ```
 
-On [Maven Central](https://central.sonatype.com/artifact/dev.shayxo.liquidglass/liquidglass)
-for Android and desktop JVM; a Kotlin Multiplatform module, so one dependency line in
-`commonMain` resolves the right variant for each target. To try an unreleased change,
-`./gradlew publishToMavenLocal` in a clone produces the same artifacts, and a project consumes
-them by adding `mavenLocal { content { includeGroup("dev.shayxo.liquidglass") } }` to its
-repositories. See [Getting started](docs/getting-started.md).
+For the new scene, lens and calm APIs, build this source revision:
 
-The `sample/` app is the material on a phone: `./gradlew :sample:installDebug`.
-
-Apache-2.0. Not affiliated with, endorsed by, or derived from Apple. "Liquid Glass" is Apple's
-name for their design language and is used here only to describe what this material resembles;
-no Apple code, shader or asset is included.
-
-**[Full documentation →](https://liquidglass.shayxo.dev/)** · [Getting started](docs/getting-started.md) ·
-[Shapes](docs/shapes.md) · [Interaction](docs/interaction.md) ·
-[API reference](docs/api-reference.md) · [Limitations](docs/limitations.md) ·
-[Roadmap](docs/roadmap.md) · [The research](docs/research/README.md) ·
-[What everyone else built](docs/research/competitive-landscape.md)
-
-```kotlin
-val glass = rememberLiquidGlassState(background = MyTheme.ground)
-
-Box {
-    Content(Modifier.liquidGlassSource(glass))          // what gets refracted
-
-    Row(
-        Modifier
-            .align(Alignment.BottomCenter)
-            .liquidGlass(glass, CircleShape, GlassStyle.Chrome)
-    ) { /* tab bar */ }
-}
+```sh
+./gradlew publishToMavenLocal
+./gradlew :desktop:run
 ```
 
-## What it actually does
+Use the `VERSION_NAME` from `gradle.properties` in the consuming project, with `mavenLocal()` scoped
+to `dev.shayxo.liquidglass`. [Full installation and repository setup](docs/getting-started.md).
+JDK 21 and Android SDK 37 are used for this repository. The owner's Windows setup uses the isolated
+[workspace wrapper](WORKSPACE.md); contributors can use the checked-in Gradle wrapper directly.
 
-Apple publishes no numbers for Liquid Glass — no blur radius, no index of refraction, no
-falloff exponent. What it publishes is architecture and direction of effect. This implements
-that architecture; the constants are ours, tuned against a test surface.
+## Explore Atlas Studio
 
-**The sample region is larger than the element.** The material samples "an area larger than
-itself", which is what makes it lens rather than merely blur. The host records a padded slice
-of backdrop and the panel occupies the inset rect, so displacement at the rim reaches real
-content beyond the edge instead of clamping against it.
+Atlas is a standalone desktop demonstration, independent of Vitals. Drag the lens over the sky,
+fine type or a line grid. Change magnification, test the floating navigation bar, pull the anchored
+note card, or switch to reduced motion. The sky compositions are illustrative, not astronomical data.
 
-**The rim is sharper than the middle.** This is the most recognisable thing about the material
-and the easiest to lose. The edge band shows a compressed, warped, *legible* image of what lies
-just outside the element while the interior stays soft. A backdrop blurred before it reaches
-the shader cannot do this — the detail the rim is supposed to bend has already been destroyed.
-So the interior blur lives inside the shader, with its radius keyed to distance from the edge.
-
-**Geometry is a signed distance field.** Distance to the edge drives refraction, so the bend is
-a band hugging the rim that fades to nothing in the flat centre. The gradient of the field is
-the surface normal, which gives refraction its direction and specular its angle, and stays
-correct through corners where a per-edge normal pops.
-
-That gradient is central-differenced at a *wide* epsilon, `clamp(band * 0.3, 1, 16)` px. At one
-pixel the gradient magnitude collapses from 1 to 0 to 1 across the medial axis, leaving a
-one-pixel seam of zero refraction down the spine of every capsule. The magnitude that falls out
-of the wide difference is reused as a confidence term that fades the lens toward the axis
-rather than letting its direction flip — which matters most in a container's neck, where the
-whole region is medial axis.
-
-**Dispersion.** A real bevel does not bend every wavelength equally, so the channels are
-sampled fractionally apart and the rim carries a faint colour fringe. Blue carries the higher
-index, so it lands furthest out. Faint on purpose — real UI glass shows almost no prismatic
-rainbow, and past a few percent this reads as a broken colour channel rather than as glass.
-
-**A mirrored edge band.** A broad, soft, upside-down echo of nearby content over roughly the
-outer third of the surface, with a squared falloff. This is the detail that makes an edge read
-as liquid rather than as a bevel; a thin band instead reads as a hard streak.
-
-**Exact refraction, not a curve that looks about right.** The bevel is a superellipse height
-field and the displacement is the exact Snell deviation for its slope, computed through the
-tangent-difference identity so it contains no transcendental. It is self-bounding as the slope
-goes vertical, which is why it needs none of the ad-hoc clamps the usual `slope * (1 - 1/n)`
-shortcut requires. The index of refraction therefore shapes the falloff rather than scaling it.
-
-**Tint is a tone mapping, not an overlay.** One colour generates a range of tones indexed by
-backdrop brightness — lifting and desaturating over dark ground, darkening and saturating over
-bright — the way a real pane of coloured glass does.
-
-**Parameters are keyed to element size.** Larger glass reads more opaque with deeper shadow and
-stronger lensing; smaller glass reads clearer and is allowed to invert light/dark to hold
-contrast. See `elementSizeFactor`.
-
-**Inversion is one decision per element, not per pixel.** Symbols and labels drawn *on* the
-glass have to flip in lockstep with it, and a fragment shader behind them cannot reach them, so
-the same scalar has to reach both. The app decides and passes it as
-`rememberLiquidGlassState(inversion = ...)`; a permanently dark app leaves it at 0.
-
-**Legibility rises with local contrast.** Apple shifts tint as text scrolls underneath. The
-shader gets that signal for free: its rim sample and its interior sample already bracket the
-backdrop's high frequencies, so their difference stands in for "something busy is under here".
-
-**The edge is lit, not outlined.** A thin bright line where the edge turns into the light, and
-no dark border. A dark border is the fastest way to make this read as a drawn rectangle.
-
-**Content can sit inside the glass, not only on it.** Some content is what the glass is looking
-*at* — the symbol a selection lens is crossing, whatever a magnifier is over. With
-`refractContent = true` the content takes a second pass through the same field, bevel and
-dispersion as the backdrop, clipped to the shape, and is composited over the material. This is
-how an iOS tab bar changes a symbol's colour: the indicator is a lens *above* the tab, and a
-symbol half under it is half one colour and half the other, fringing where the rim crosses it.
-
-**There is a tab bar.** `GlassTabBar` is the component the material was measured against: a
-flat inset at rest that becomes a lens under the finger, stands proud of the bar, looks through
-it, is dragged 1:1 and commits on release, with the tabs changing colour because you are looking
-at them through the lens. Every default is a measurement.
-
-**One preset is measured rather than tuned.** `GlassStyle.DarkChrome` comes from a frame-by-frame
-reading of an iOS 26 tab bar in dark appearance — what it adds over black, what fraction of the
-text behind it survives, where its edge is lit and where it is not. See
-[reference measurements](docs/research/reference-measurements.md).
-
-## Merging
-
-`LiquidGlassContainer` renders several panels as one body of glass. Members do not each get
-their own material: their shapes are combined into a single distance field with a smooth
-minimum, so panels that come within `mergeDistance` of each other grow a neck and fuse, then
-separate again as they move apart.
-
-The merge is geometry, not an animation, so it stays correct at any speed or angle — which is
-what makes it read as liquid rather than as two rectangles cross-fading.
-
-```kotlin
-LiquidGlassContainer(glass, mergeDistance = 40.dp) {
-    Box(Modifier.size(96.dp).glassMember(CircleShape))
-    Box(Modifier.size(96.dp).glassMember(CircleShape))
-}
+```sh
+./gradlew :desktop:run
+# Capture only Atlas's native Skia buffer; no screenshots of other applications.
+./gradlew :desktop:run -Patlas.capture=/absolute/path/atlas.png -Patlas.scene=2
 ```
 
-Capped at eight members, because SkSL needs unrollable loops and every member is evaluated at
-every pixel — which is precisely what lets the fields interact.
+The capture command also writes static redraw timings. They measure renderer submission cost,
+not presented FPS, interaction latency or Android performance. [Atlas guide](docs/atlas-studio.md).
 
-## The two blurs
+## Validate a change
 
-`GlassStyle` carries two, and they are not interchangeable.
+```sh
+./gradlew :liquidglass:jvmTest --rerun
+./gradlew :desktop:desktopTest :sample:assembleDebug
+python -m pip install -r requirements-docs.txt
+python .github/scripts/check_repo_links.py
+python -m mkdocs build --strict
+```
 
-| | `blurRadius` | `backdropBlur` |
-| :--- | :--- | :--- |
-| Where | inside the shader | chained before the shader |
-| Rim detail | preserved | destroyed |
-| Quality | slightly grainy at large radii | platform Gaussian |
-| Use for | surfaces meant to show their backdrop | chrome floating over an app's own content |
+Tests compile the production shaders through Skia, exercise gesture ownership and inspect rendered
+pixels. They also distinguish ordinary travel from extreme drags. Native screenshots complement
+these tests; a passing build alone does not prove optical parity. [Contributing](CONTRIBUTING.md)
+describes evidence requirements and [security reporting](SECURITY.md) explains the trust boundaries.
 
-`blurRadius` tapers to zero at the rim, which is what keeps the signature edge. It is a
-nineteen-tap disc rotated by a per-pixel angle — too few taps to blur legible text outright, so
-the pattern is rotated and the ghosts break up into noise the eye integrates as blur.
+## Research and limitations
 
-`backdropBlur` is the opt-in for chrome. Over a plain dark ground carrying sparse
-high-contrast text there is almost nothing to refract, and the little there is arrives
-half-legible, smeared along the rim and sitting under the labels. `GlassStyle.Chrome` trades
-the signature for legibility on purpose.
+Apple's public guidance describes the material's behaviour, not its private shader constants.
+The project keeps measured observations, inherited approximations and authored responses separate.
+A smooth magnifier source map is a mathematical continuity fix, not a claim to have recovered Apple's optics.
 
-## What else it does
+- [Current stabilization record and desktop proof](review/ATLAS-STABILIZATION.md)
+- [Generic interaction and gesture ownership](docs/generic-interaction.md)
+- [Measured model and provenance](docs/research/measured-model.md)
+- [Platform, optical and performance limits](docs/limitations.md)
+- [Historical implementations and restoration](archive/retired-workflows/2026-10-03/README.md)
 
-- **Shapes.** Rounded rects, capsules and circles analytically; `GlassSquircleShape` for Apple's
-  actual corner geometry; and anything else — a star, a blob, a hand-drawn `GenericShape` — by
-  measuring it. See [Shapes](docs/shapes.md).
-- **Touch.** Opt-in press response: scale with one overshoot, illumination from within under the
-  fingertip, and a magnifier that drags the backdrop with it. Inside a container a press on one
-  member lights its neighbours, because the falloff is evaluated in the container's space.
-- **Materialize.** Elements arrive and leave by modulating the lensing rather than by fading,
-  which is Apple's stated mechanism and their guidance over alpha.
-- **Morph.** `animateGlassStyle` carries the material with the geometry, because Apple's material
-  changes *with* size — a growing element that holds its edge parameters constant reads as a
-  picture of glass being stretched.
-- **Adaptation.** Per-pixel tone-mapped tint, free local-contrast legibility, and a per-element
-  light/dark inversion with hysteresis that the app hands to its content too.
-- **Accessibility.** Frost, high contrast, and reduced motion. See
-  [Accessibility](docs/accessibility.md) for what Android does and does not have.
-- **Scroll edge effect.** A separate sibling, as Apple ships it — it is not the material.
+## License and credits
 
-## Presets
-
-- `Regular` — the workhorse. Carries controls.
-- `Clear` — thinner and more transparent, for chrome that should mostly disappear. Its zeros
-  are Apple's, not a tuning choice: clear "does not have adaptive behaviours, it is permanently
-  more transparent", so it does not tone-map, does not react to contrast and never flips — and
-  therefore *requires* the 35% dimming layer, the one number the HIG actually gives.
-- `Thick` — a sheet or dialog that must hold a lot of content. Adapts but never flips polarity.
-- `Chrome` — tab bars, toolbars, accessory pills over an app's own content.
-
-## Two things the host must get right
-
-Both were bugs here first, and both look like a shader problem when they are not.
-
-**The recorded layer must be opaque.** A backdrop layer is transparent wherever the app painted
-nothing — its ground is usually painted by an ancestor, not by the recorded subtree — and a
-blur drags that transparency inward. Using the premultiplied result composites those pixels
-toward black, which is a heavy dark halo around every panel; dividing the alpha out instead
-blows partly-covered pixels to white. Neither is what a viewer sees. So the padded layer is
-filled with `LiquidGlassState.background` before the backdrop goes into it, and the shader can
-then treat any alpha shortfall as filtering error and reconstruct through it.
-
-**The sample must be bounded by the backdrop, not by the layer.** The padded slice is
-deliberately larger than the panel, and near a screen edge it hangs off the end of the
-backdrop. Those pixels are not merely dark — they are the flat fill — and a panel that samples
-them grows a band of solid colour at the rim. `sampleBounds` is the intersection of the
-recorded backdrop with the layer.
-
-## Cost
-
-Measured on a Pixel 7 at 120 Hz with two glass elements over a live, continuously animating
-app: 4.36% janky frames with the shader path enabled against 4.96% with it forced off — the
-same within noise, on an app whose idle redraw already dominates. Adding the mirrored band,
-the Schlick term and exact-Snell refraction did not move it (3.85%, p90 8 ms). The padded recording is sized
-to what the shader actually reads (peak displacement plus blur radius), since every pixel of it
-is re-recorded per frame.
-
-`GlassGallery` is the tuning surface: saturated colour, hard stripes and fine text over which
-the differences between the styles — and the mistakes — are obvious. A smooth gradient alone
-hides almost every flaw in a lensing shader. The sample app's first screen opens it.
-
-## The research
-
-The material calibration uses known input images. A glass panel is a function from the pixels behind it
-to the pixels on screen, and over a photograph that function cannot be recovered — nobody knows what
-the input was. So the material was measured over a synthetic calibration target on an iPhone 13
-running iOS 27, where every input pixel is known by construction and one screenshot is an exact
-input/output pair. That is where `W = 0.6 R`, the tint tables, the two-kernel backdrop and the
-resting-corner source map come from.
-
-The full record is [`research/README.md`](research/README.md): the mathematics of the deforming
-selector (a convex hull of two unequal disks, whole-body containment as linear inequalities, a
-metric projection, exact closed-form spring stepping, and the endpoint compositing algebra), the
-measured material model, the identifiability result that says what the captures *cannot* settle,
-every source file, every test and what it gates, and the device results — including the one
-performance gate that fails. It is published on the site as
-[the full record](https://shayann07.github.io/liquidglass/research/the-record/), alongside the
-shorter write-ups in [docs/research/](docs/research/README.md). Only the material behind it — the
-captures, device videos and decoded arrays, several gigabytes — stays out of the repository.
-
-Three things that record does deliberately:
-
-- **Every number carries a provenance** — *measured*, *inherited* (an effective value that reproduces
-  pixels, not a recovered physical property), or *authored* (a design constant). They are never mixed.
-- **It states what cannot be known.** Measuring displacement determines the derivative of an effective
-  potential, not the index, thickness and gap separately; a whole family of surfaces fits the same
-  observation. No refractive index is claimed anywhere in this repository.
-- **It reports failures as failures**, including a frame-time gate that misses by 1.5 ms after two
-  bounded optimisations, and a list of claims that must not return under new names.
-
-## Repository
-
-| | |
-| :--- | :--- |
-| `liquidglass/` | The library. Published; depends on Compose foundation and ui only. |
-| `sample/` | An Android app: the gallery, stock Material 3 components converted, and the optics off and on. |
-| `docs/` | The guides, the API reference and the research write-ups. |
-| `research/` | The measurement material and the full research record. Local only; not part of the published package or site. |
-
-Contributions are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md). Releases are described in
-[docs/publishing.md](docs/publishing.md) and listed in [CHANGELOG.md](CHANGELOG.md).
+Original library and sample code are [Apache-2.0](LICENSE). Preserve the [NOTICE](NOTICE) when
+redistributing. Reference captures are research evidence, not runtime assets or an Apple asset license.
+No Apple shader, system binary or SF Symbols asset is used by the runtime. This project is independent
+and is not affiliated with or endorsed by Apple. See [contribution guidelines](CONTRIBUTING.md) and
+[the changelog](CHANGELOG.md).
