@@ -14,6 +14,8 @@ export function stepSpring(value, velocity, target, seconds, stiffness = 220) {
   if (![value, velocity, target, seconds, stiffness].every(Number.isFinite) || seconds < 0 || stiffness <= 0)
     throw new RangeError('Finite spring values, nonnegative time and positive stiffness required');
   const omega = Math.sqrt(stiffness), error = value - target;
+  if (seconds === 0) return {value, velocity};
+  if (omega * seconds > 750) return {value: target, velocity: 0};
   const b = velocity + omega * error, decay = Math.exp(-omega * seconds);
   return { value: target + (error + b * seconds) * decay,
     velocity: (velocity - omega * b * seconds) * decay };
@@ -24,14 +26,31 @@ export function calmFeedback(width, height, dx, dy, pressed = true, radius = Mat
   if (![width, height, dx, dy, radius].every(Number.isFinite) || width <= 0 || height <= 0 || radius < 0)
     throw new RangeError('Finite displacement and positive dimensions required');
   if (!pressed) return { pressX: 1, pressY: 1, along: 1, across: 1, angle: 0 };
-  const pressX = Math.min(1.03, 1 + 4 / width), pressY = Math.min(1.03, 1 + 4 / height);
-  const travel = Math.hypot(dx, dy), limit = Math.min(width * pressX, height * pressY) * .5;
+  const target = calmPullTarget(width, height, dx, dy);
+  return calmDeformation(width, height, target.x, target.y, 1, radius);
+}
+
+/** Internal shared geometry for the timestamped controller. Inputs are validated by callers. */
+export function calmPullTarget(width, height, dx, dy) {
+  const limit = Math.min(width * Math.min(1.03, 1 + 4 / width), height * Math.min(1.03, 1 + 4 / height)) * .5;
+  // Normalize before taking a length: even an enormous finite over-pull must not create NaN.
+  const scale = Math.max(Math.abs(dx), Math.abs(dy));
+  if (!scale) return {x: 0, y: 0};
+  const length = Math.hypot(dx / scale, dy / scale);
+  const resisted = limit * Math.tanh(scale * .2 / limit * length) / .2;
+  return {x: dx / scale / length * resisted, y: dy / scale / length * resisted};
+}
+
+/** Pull coordinates have already been resisted and animated; do not resist them a second time. */
+export function calmDeformation(width, height, dx, dy, pressAmount, radius,
+  pressX = 1 + (Math.min(1.03, 1 + 4 / width) - 1) * pressAmount,
+  pressY = 1 + (Math.min(1.03, 1 + 4 / height) - 1) * pressAmount) {
+  const travel = Math.hypot(dx, dy);
   if (!travel) return { pressX, pressY, along: 1, across: 1, angle: 0 };
-  const resisted = limit * Math.tanh(travel * .2 / limit) / .2;
   const c = dx / travel, s = dy / travel, r = Math.min(radius, width / 2, height / 2);
   const extent = (nx, ny) => (width - 2*r)*pressX*Math.abs(nx) + (height - 2*r)*pressY*Math.abs(ny) +
     2*r*Math.hypot(pressX*nx, pressY*ny);
-  const alongExtent=extent(c,s), acrossExtent=extent(-s,c), extension=.03*resisted;
+  const alongExtent=extent(c,s), acrossExtent=extent(-s,c), extension=.03*travel;
   const t=Math.max(0,Math.min(1,(Math.max(width,height)-80)/80)), mix=t*t*(3-2*t);
   const surfaceGain=extension<.001 ? .2 : 2*Math.tanh(.2*extension/2)/extension;
   const gain=1+(surfaceGain-1)*mix;

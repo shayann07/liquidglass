@@ -100,9 +100,78 @@ or skipped annulus. This is an authored continuous magnifier, not a recovered Ap
 The source map is shared by the production material/ink shaders and ported to the ES module.
 
 `core.mjs` also exposes an exact critical spring step and settled calm deformation math in logical pixels.
-It does not own pointer arbitration, animation scheduling or viewport containment. Hosts must implement
-those contracts; the Compose modifier already does. This separation makes native ports possible without
-requiring Compose, but those ports still need implementation and verification.
+The timestamped `createCalmInteraction` controller adds animated press/pull, viewport containment,
+cancellation, resizing and reduced motion without depending on a UI framework. It does not own pointer
+arbitration, illumination or animation scheduling, and it is not the navigation-selector travel model.
+
+## Portable calm feedback
+
+```js
+import { createCalmInteraction } from './interaction.mjs';
+
+const motion = createCalmInteraction({
+  width: 320, height: 72, radius: 36,
+  x: 20, y: 20, viewportWidth: 360, viewportHeight: 112,
+  reducedMotion: false, // supply the host's preference
+});
+const now = () => performance.now() / 1000;
+
+motion.press(now());               // pointer-down, only once your host owns the gesture
+motion.press(now(), deltaX, deltaY); // cumulative displacement since down, in logical pixels
+const state = motion.sample(now()); // call from your host's animation loop
+motion.release(now());             // pointer-up OR pointer-cancel; no navigation selection
+```
+
+`deltaX` and `deltaY` come from your gesture handler; these lines illustrate separate events, not a
+complete event loop. Times are monotonic **seconds**, with one clock for input and drawing. Browser
+timestamps are normally milliseconds: divide by 1000. A queued frame older than the latest input is
+ignored; out-of-order input is rejected. Advance the old target before changing it, so extra redraws
+cannot change the spring response. See [requestAnimationFrame timing](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestAnimationFrame).
+
+`state.matrix` is the row-major 2×2 `[a, b, c, d]` transform: `x' = a*x + b*y`, `y' = c*x + d*y`.
+Apply it **about the original glass centre**, to the material drawing only. Keep layout, hit testing,
+ordinary labels and accessibility outside it. For a CanvasKit canvas:
+
+```js
+const [a, b, c, d] = state.matrix;
+canvas.save();
+try {
+  canvas.translate(centreX, centreY);
+  canvas.concat([a, b, 0, c, d, 0, 0, 0, 1]);
+  canvas.translate(-centreX, -centreY);
+  glass.drawLens(canvas, bounds);
+} finally {
+  canvas.restore();
+}
+// Draw ordinary labels here, outside the material transform.
+```
+
+Keep the matrix and geometry in the same logical coordinate system. Apply device density to the page
+as a whole. The [Skia browser example](https://github.com/shayann07/liquidglass/blob/main/ports/skia/demo.mjs)
+contains the complete pointer, keyboard, redraw and preference lifecycle using this controller.
+The canvas-transform API is provided by [CanvasKit](https://skia.org/docs/user/modules/canvaskit/).
+
+| Method / result | Contract |
+| --- | --- |
+| `press(time, dx=0, dy=0)` | Press and retarget bounded cumulative pull; returns current state without snapping |
+| `release(time)` | Release or cancel; recover from current geometry and velocity |
+| `sample(time)` | Advance analytically to the frame time; returns fresh state |
+| `resize(partialGeometry, time)` | Update dimensions/position/viewport; cancel the gesture and reset geometry |
+| `setReducedMotion(enabled, time)` | Cancel and reset; reduced motion returns identity geometry |
+| `state.active` | Request another frame while settling; new input must wake your loop again |
+| `state.held`, `state.press` | Gesture ownership and geometric press amount; separate from glow or selection |
+
+Supply both viewport dimensions for edge containment. Initially contained surfaces remain contained
+under press and diagonal pull; initially offscreen/oversized layouts keep the host's clipping policy.
+An enormous over-pull is bounded **before** spring integration, so it cannot store invisible travel
+that delays recovery. Wide bars keep their axis level, large surfaces retain the 2-pixel drag-extension
+cap, and smaller controls retain more deformation. These are authored Calm choices shared with the
+Compose implementation, not measured Apple timing or a recovered native animation implementation.
+
+The controller owns no listeners, timers or GPU resources. Stop your frame loop and remove host event
+listeners on unmount. Cancel on lost pointer capture and scrolling arbitration. A browser host should
+observe changes to `prefers-reduced-motion`, not only read it once. Illumination, reduced transparency,
+semantic navigation and platform-specific accessible controls remain separate host responsibilities.
 
 ## Acceptance for a new backend
 

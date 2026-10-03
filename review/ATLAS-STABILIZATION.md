@@ -186,6 +186,14 @@ platform capture policy. `npm run example` produces the following grid using tha
 This is a terminal CanvasKit software render, not a browser screenshot or an Apple reference. The
 left lens uses 1.25× centre magnification; the right uses 1.6×. The example has no Compose dependency.
 
+![Production Skia painter in hosted Chromium](atlas/skia-browser-ci.png)
+
+The browser follow-up at `13e62fd` passed in [CI run 37151905671](https://github.com/shayann07/liquidglass/actions/runs/37151905671).
+It explicitly creates a Skia WebGL surface and verifies keyboard/pointer movement, reset, source
+replacement and exact rendered restoration after simulated context loss. All three browser tests pass,
+including the separate lightweight WebGL renderer. This is headless Chromium evidence, not a physical
+GPU performance measurement or verification of Safari, Firefox, mobile WebViews or native framework bindings.
+
 ## Verification at this stage
 
 [Machine-readable results](atlas/verification.json).
@@ -208,8 +216,11 @@ left lens uses 1.25× centre magnification; the right uses 1.6×. The example ha
   The painter, test-cache declarations and Type-scene placement also passed in
   [CI run 37149121490](https://github.com/shayann07/liquidglass/actions/runs/37149121490) at `6d23039`:
   319 library tests, 292 passed, 27 skipped, zero failures, plus desktop tests and Android builds.
-  Build job 16m45s; all seven required checks passed. The subsequent arrival-shape refinement awaits
-  its complete CI run.
+  Build job 16m45s; all seven required checks passed. The combined arrival-shape and Skia browser revision
+  `13e62fd` passed [CI run 37151905671](https://github.com/shayann07/liquidglass/actions/runs/37151905671):
+  320 library tests, 293 passed, 27 skipped, zero failures; two desktop tests and Android builds passed.
+  Build job 12m57s. All seven required checks passed, including four Skia renderer tests and three
+  hosted browser tests. The earlier arrival-only run was cancelled when this combined revision superseded it.
 - Actual Atlas desktop tests: 2 passed. Earlier 60-second timeout runs are failures, not passes; the final
   fixture has an explicit six-minute budget for software rendering and completed in 165.5 seconds.
 - Android sample assembled successfully. No physical-device verification of this revision.
@@ -221,6 +232,27 @@ left lens uses 1.25× centre magnification; the right uses 1.6×. The example ha
 - Strict documentation build passed. Repository-link verification and hosted checks are recorded when complete.
 
 ## Native redraw cost
+
+### Portable motion follow-up
+
+Non-Compose hosts previously received only settled deformation math. `createCalmInteraction` now
+provides timestamped press and bounded cumulative pull, cancellation, resize, viewport containment,
+idle-resume and reduced-motion reset. It owns no UI events or timers. Its matrix deforms material
+about the original centre; ordinary labels and hit targets stay in their host layout. This is
+whole-surface feedback, not a port of the selector travel controller or its illumination.
+
+Ten portable numerical tests pass, including independent 30/60/90/120/144Hz drawing schedules,
+maximum finite over-pulls, all four edges and diagonal outline containment. Five CanvasKit tests pass;
+the new test applies the controller to the production shader, measures centred rendered coverage,
+checks the large-card envelope, and verifies exact pixel recovery after release. All four material
+profiles retain maximum channel error 1/255 against independent JVM fixtures. The browser demo now
+uses the controller for an anchored card with pointer/Space input and live reduced-motion changes;
+the added hosted browser check has not yet run at the time of this update.
+
+These tests verify the authored portable contract. They do not turn Calm timing into an Apple
+measurement or establish native bindings for every stack. The endpoint quantisation limitation remains.
+
+### Windows native capture
 
 120 forced redraw submissions after ten warmups, 1920×1051, Direct3D:
 

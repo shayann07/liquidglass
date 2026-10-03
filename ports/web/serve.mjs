@@ -9,7 +9,7 @@ createServer(async(req,res)=>{
   try {
     const requested=decodeURIComponent(new URL(req.url,'http://127.0.0.1').pathname);
     const skia=requested.startsWith('/skia/'),base=resolve(skia?skiaRoot:root);
-    const path=resolve(base,'.'+(skia?requested.slice(5):requested));
+    const path=resolve(base,'.'+(skia?requested.slice(5):requested.startsWith('/web/')?requested.slice(4):requested));
     const local=relative(base,path).split(sep).join('/');
     if((path!==base&&!path.startsWith(base+sep))||
        (local.includes('node_modules/')&&!(skia&&skiaRuntime.has(local)))) {res.writeHead(403);res.end();return;}

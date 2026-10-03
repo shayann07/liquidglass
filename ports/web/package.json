@@ -7,10 +7,11 @@
   "description": "Unpublished framework-independent continuous-lens preview",
   "exports": {
     ".": "./liquidglass.mjs",
-    "./core": "./core.mjs"
+    "./core": "./core.mjs",
+    "./interaction": "./interaction.mjs"
   },
   "scripts": {
-    "test": "node --test core.test.mjs",
+    "test": "node --test core.test.mjs interaction.test.mjs",
     "test:browser": "playwright test"
   },
   "devDependencies": {

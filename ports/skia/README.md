@@ -31,9 +31,13 @@ node ports/web/serve.mjs
 ```
 
 It loads the local pinned CanvasKit runtime, uses an explicit WebGL-backed Skia surface, and demonstrates
-drag/keyboard movement, backdrop replacement and graphics-context recreation. The loopback preview
+drag/keyboard movement, an anchored calm card, backdrop replacement and graphics-context recreation. The loopback preview
 server exposes only the example files and the two required CanvasKit runtime files. CI exercises the
 example through Chromium; it is not a browser performance or cross-browser compatibility guarantee.
+The card uses the dependency-free `createCalmInteraction` controller from `ports/web/interaction.mjs`.
+Press Space or hold and pull the card; its material deforms while the label stays fixed. System reduced
+motion disables geometry immediately. This is separate whole-surface feedback, not selector travel.
+See the [portable feedback API](../../docs/porting.md#portable-calm-feedback) for other hosts.
 
 ## Draw a lens without managing uniforms
 

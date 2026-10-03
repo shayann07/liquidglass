@@ -86,6 +86,9 @@ The Skia preview includes `createGlassPainter`: set one source image, draw lense
 then dispose. It manages shader uniforms and temporary resources; you retain your own layout, input,
 accessible controls and backdrop capture. Run `npm ci --ignore-scripts && npm run example` in
 `ports/skia` for an executable example without Compose or a browser.
+For motion, `createCalmInteraction` supplies framework-independent press/pull, cancellation, viewport
+containment and reduced motion. Feed timestamps and cumulative displacement; apply its matrix to the
+material drawing. [Portable feedback API and host example](docs/porting.md#portable-calm-feedback).
 
 Published stable version, with the original API:
 

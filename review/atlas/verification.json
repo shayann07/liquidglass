@@ -129,7 +129,7 @@
     "example": "npm run example passed",
     "passed": 4,
     "scope": "Node CanvasKit 0.42.0 software rendering; shader ABI, independent profile fixtures, page coordinates, centre gain, source replacement, borrowed lifetime and transform restoration",
-    "browserGpu": "unverified"
+    "browserGpu": "Hosted Chromium WebGL render passed in CI 37151905671 (not a physical GPU benchmark)"
   },
   "ci-build-a7a929f": {
     "commit": "a7a929f46f8c466f0bf27af3955863e26cb068df",
@@ -173,11 +173,46 @@
     "tests": 38,
     "previousMinimum": 252.0058,
     "rest": 252,
-    "fullCi": "pending",
+    "fullCi": "passed combined revision 13e62fd in run 37151905671; earlier run 37151225447 superseded/cancelled",
     "peak": 450.63354,
     "passed": 38,
     "previousPeak": 457.64148,
     "initial": "Calm failed the original shape-recovery gate: no compression below rest",
     "interpretation": "Authored response guided by ordered stills, not measured Apple timing"
+  },
+  "skia-browser": {
+    "run": 37151905671,
+    "screenshot": "skia-browser-ci.png",
+    "scope": "Production CanvasKit WebGL surface; keyboard and pointer movement, reset, backdrop replacement and exact rendered restoration after context loss",
+    "browserTests": 3,
+    "commit": "13e62fdd8eb7741c1cfeac0e7264ef6fd780ba84",
+    "job": 111287607495,
+    "status": "passed"
+  },
+  "ci-build-13e62fd": {
+    "run": 37151905671,
+    "commit": "13e62fdd8eb7741c1cfeac0e7264ef6fd780ba84",
+    "tests": 320,
+    "passed": 293,
+    "skipped": 27,
+    "failed": 0,
+    "desktopTests": 2,
+    "duration": "12m57s",
+    "requiredChecks": "all seven passed"
+  },
+  "portable-calm": {
+    "numericalTests": 10,
+    "skiaTests": 5,
+    "failed": 0,
+    "cadenceHz": [
+      30,
+      60,
+      90,
+      120,
+      144
+    ],
+    "scope": "Timestamped whole-surface feedback; bounded pull, cancellation, resize, reduced motion, outline containment and production-renderer recovery",
+    "browser": "new hosted test pending",
+    "provenance": "Authored Calm geometry/stiffness choices; no claim of measured Apple timing"
   }
 }

@@ -19,7 +19,7 @@ Serve this directory with `python -m http.server 8765 --bind 127.0.0.1` and open
 The example supports pointer drag and keyboard arrows. `core.mjs` contains renderer-independent
 source mapping, critical springs and material-feedback math. Its numbers are authored, not an Apple API.
 
-Run `node --test core.test.mjs` for the numerical contract. `browser-test.html` compiles and tests the
+Run `npm test` for the numerical contract and timestamped interaction tests. `browser-test.html` compiles and tests the
 real GLSL shader, reads pixels, resizes, simulates context loss and checks cleanup. Serve it over HTTP;
 file URLs have different origin rules. A test that remains `RUNNING` is not a pass.
 
@@ -37,3 +37,10 @@ surface, optionally with CSS `backdrop-filter`; that is a fallback, not optical 
 and their accessible names, focus and hit targets should remain ordinary HTML above the drawing. Respect
 `prefers-reduced-motion` before applying the optional feedback math. For framework lifecycle examples,
 source security and other native backends see [the porting guide](../../docs/porting.md).
+
+`interaction.mjs` exports `createCalmInteraction` for whole-surface feedback. Feed monotonic seconds
+and cumulative pointer displacement, apply its centred matrix to the material, and leave labels and
+hit targets fixed. It includes bounded pull, independent press/release, stale-frame handling, resize,
+viewport containment and reduced motion. It owns no events or timers and does not implement selector
+travel or illumination. The [portable feedback guide](../../docs/porting.md#portable-calm-feedback)
+defines the API; the sibling Skia browser example uses it with the production renderer.

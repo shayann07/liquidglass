@@ -1,18 +1,35 @@
 import {createGlassPainter} from './painter.mjs';
+import {createCalmInteraction} from '../web/interaction.mjs';
 
 const canvas=document.querySelector('#glass'),status=document.querySelector('#status');
 const backdrop=document.createElement('canvas');backdrop.width=960;backdrop.height=480;
 const context2d=backdrop.getContext('2d');
-let kit,sources,handle,context,surface,image,glass,x=400,y=130,mode=0,down=false;
+const card={x:52,y:344,width:400,height:88};
+const preference=matchMedia('(prefers-reduced-motion: reduce)');
+const motion=createCalmInteraction({...card,viewportWidth:960,viewportHeight:480,reducedMotion:preference.matches});
+let kit,sources,handle,context,surface,image,foreground,glass,x=400,y=130,mode=0,down=null,origin,frame=0;
+const now=()=>performance.now()/1000;
 function destroy(abandon=false) {
+  cancelAnimationFrame(frame);frame=0;
   if(abandon) context?.releaseResourcesAndAbandonContext();
   glass?.dispose();glass=null;image?.delete();image=null;surface?.delete();surface=null;
+  foreground?.delete();foreground=null;
   context?.delete();context=null;
 }
 function draw() {
   if(!surface)return;
   const target=surface.getCanvas();target.clear(kit.TRANSPARENT);target.drawImage(image,0,0);
-  glass.drawLens(target,{x,y,width:200,magnification:1.4});surface.flush();
+  glass.drawLens(target,{x,y,width:200,magnification:1.4});
+  const state=motion.sample(now()),[a,b,c,d]=state.matrix,cx=card.x+card.width/2,cy=card.y+card.height/2;
+  target.save();
+  try {
+    target.translate(cx,cy);target.concat([a,b,0,c,d,0,0,0,1]);target.translate(-cx,-cy);
+    glass.drawLens(target,{...card,magnification:1.15});
+  } finally {target.restore();}
+  // Ordinary labels remain anchored; only the material receives the feedback transform.
+  target.drawImage(foreground,0,0);surface.flush();
+  canvas.dataset.feedback=state.active?'animating':state.held?'held':'rest';
+  if(state.active&&!frame)frame=requestAnimationFrame(()=>{frame=0;draw();});
 }
 function setBackdrop() {
   context2d.fillStyle=mode?'#3d263b':'#102a3d';context2d.fillRect(0,0,960,480);
@@ -23,7 +40,11 @@ function setBackdrop() {
   context2d.fillStyle='#eaf0f7';context2d.font='34px system-ui';context2d.fillText('One source. Continuous detail.',230,222);
   context2d.font='18px system-ui';context2d.fillText('Your layout and controls stay yours.',230,262);
   const replacement=kit.MakeImageFromCanvasImageSource(backdrop);
-  glass.setSource(replacement);const previous=image;image=replacement;previous?.delete();draw();
+  glass.setSource(replacement);const previous=image;image=replacement;previous?.delete();
+  context2d.clearRect(0,0,960,480);context2d.fillStyle='#eaf0f7';context2d.font='20px system-ui';
+  context2d.fillText('Hold here. Pull gently, or to an edge.',76,384);
+  context2d.fillStyle='#aac0ce';context2d.font='14px system-ui';context2d.fillText('The material responds. The label stays put.',76,409);
+  foreground?.delete();foreground=kit.MakeImageFromCanvasImageSource(backdrop);draw();
 }
 function create() {
   context=kit.MakeWebGLContext(handle);
@@ -31,28 +52,40 @@ function create() {
   surface=kit.MakeOnScreenGLSurface(context,canvas.width,canvas.height,kit.ColorSpace.SRGB);
   if(!surface)throw new Error('Could not create the glass surface.');
   glass=createGlassPainter(kit,sources);setBackdrop();
-  canvas.dataset.backend='webgl';status.textContent='Ready. Drag the lens, or use the arrow keys.';
+  canvas.dataset.backend='webgl';status.textContent='Ready. Drag the lens or hold the card. Arrow keys move the lens; Space presses the card.';
 }
 function move(nx,ny){x=Math.max(4,Math.min(756,nx));y=Math.max(4,Math.min(276,ny));draw();}
-canvas.addEventListener('pointerdown',event=>{if(event.button!==0)return;down=true;canvas.setPointerCapture(event.pointerId);});
-canvas.addEventListener('pointermove',event=>{
-  if(!down)return;const bounds=canvas.getBoundingClientRect();
-  move((event.clientX-bounds.left)*960/bounds.width-100,(event.clientY-bounds.top)*480/bounds.height-100);
+function point(event){const bounds=canvas.getBoundingClientRect();return {x:(event.clientX-bounds.left)*960/bounds.width,y:(event.clientY-bounds.top)*480/bounds.height};}
+canvas.addEventListener('pointerdown',event=>{
+  if(event.button!==0||down!==null)return;
+  origin=point(event);down={id:event.pointerId,card:origin.x>=card.x&&origin.x<=card.x+card.width&&origin.y>=card.y&&origin.y<=card.y+card.height};
+  canvas.setPointerCapture(event.pointerId);
+  if(down.card){motion.press(now());draw();}
 });
-for(const event of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(event,()=>down=false);
+canvas.addEventListener('pointermove',event=>{
+  if(!down||event.pointerId!==down.id)return;const p=point(event);
+  if(down.card){motion.press(now(),p.x-origin.x,p.y-origin.y);draw();}else move(p.x-100,p.y-100);
+});
+function release(){down=null;motion.release(now());draw();}
+for(const event of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(event,e=>{if(down?.id===e.pointerId)release();});
 canvas.addEventListener('keydown',event=>{
+  if(event.code==='Space'){event.preventDefault();if(!event.repeat){motion.press(now());draw();}return;}
   const delta={ArrowLeft:[-24,0],ArrowRight:[24,0],ArrowUp:[0,-24],ArrowDown:[0,24]}[event.key];
   if(delta){event.preventDefault();move(x+delta[0],y+delta[1]);}
 });
+canvas.addEventListener('keyup',event=>{if(event.code==='Space'){event.preventDefault();release();}});
+canvas.addEventListener('blur',release);
+const onPreference=()=>{down=null;motion.setReducedMotion(preference.matches,now());draw();};
+preference.addEventListener('change',onPreference);
 document.querySelector('#reset').onclick=()=>move(400,130);
 document.querySelector('#backdrop').onclick=()=>{mode=1-mode;if(glass)setBackdrop();};
 canvas.addEventListener('webglcontextlost',event=>{
-  event.preventDefault();down=false;destroy(true);status.textContent='Graphics interrupted. Waiting to restore…';
+  event.preventDefault();down=null;motion.release(now());destroy(true);status.textContent='Graphics interrupted. Waiting to restore…';
 });
 canvas.addEventListener('webglcontextrestored',()=>{
   try{create();}catch(error){destroy();status.textContent=error.message;}
 });
-window.addEventListener('pagehide',()=>{destroy();if(handle)kit.deleteContext(handle);},{once:true});
+window.addEventListener('pagehide',()=>{preference.removeEventListener('change',onPreference);destroy();if(handle)kit.deleteContext(handle);},{once:true});
 try {
   kit=await CanvasKitInit({locateFile:file=>`./node_modules/canvaskit-wasm/bin/${file}`});
   sources=Object.fromEntries(await Promise.all(['material','content','endpoint'].map(async pass=>{
