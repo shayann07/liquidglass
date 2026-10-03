@@ -212,7 +212,23 @@
       144
     ],
     "scope": "Timestamped whole-surface feedback; bounded pull, cancellation, resize, reduced motion, outline containment and production-renderer recovery",
-    "browser": "new hosted test pending",
-    "provenance": "Authored Calm geometry/stiffness choices; no claim of measured Apple timing"
+    "browser": "four hosted browser tests passed at 4ba6112, CI 37154026144; exact material recovery, pointer/cancel/keyboard and live reduced motion verified",
+    "provenance": "Authored Calm geometry/stiffness choices; no claim of measured Apple timing",
+    "initialBrowserFailure": "1f8f611: reduced-motion screenshot comparison included keyboard focus-ring decoration. Isolated material pixels while preserving real focus and exact comparison; rerun passed.",
+    "fullCi": "passed all seven required checks at 4ba6112, CI 37154026144"
+  },
+  "ci-build-4ba6112": {
+    "run": 37154026144,
+    "commit": "4ba6112b8a1a9545cb2abbf1357b798025c5e2c8",
+    "tests": 320,
+    "passed": 293,
+    "skipped": 27,
+    "failed": 0,
+    "desktopTests": 2,
+    "duration": "12m45s",
+    "requiredChecks": "all seven passed",
+    "browserTests": 4,
+    "skiaTests": 5,
+    "portableMathTests": 10
   }
 }

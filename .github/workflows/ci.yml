@@ -19,6 +19,10 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6
+        with:
+          # Save the local task cache for trusted PR updates too. GitHub scopes it to this PR;
+          # forked PRs remain read-only and cannot populate our build cache through this job.
+          cache-read-only: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
       - name: Build library, Android sample and desktop; run production renderer tests
         run: ./gradlew build --stacktrace
       - name: Upload test reports and rendered evidence

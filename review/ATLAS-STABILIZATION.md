@@ -245,7 +245,19 @@ the new test applies the controller to the production shader, measures centred r
 checks the large-card envelope, and verifies exact pixel recovery after release. All four material
 profiles retain maximum channel error 1/255 against independent JVM fixtures. The browser demo now
 uses the controller for an anchored card with pointer/Space input and live reduced-motion changes;
-the added hosted browser check has not yet run at the time of this update.
+all four hosted browser tests pass at `4ba6112` in
+[CI run 37154026144](https://github.com/shayann07/liquidglass/actions/runs/37154026144), browser job 43 seconds.
+The initial reduced-motion image comparison at `1f8f611` failed because keyboard focus decoration
+intersected the canvas screenshot's rounded corners. The corrected check excludes that decoration
+only during pixel comparison, still asserts keyboard focus, and preserves the real demo's focus ring.
+Exact material recovery remains required; no image tolerance was loosened.
+The combined revision also passed all seven required checks: 320 library tests (293 passed,
+27 skipped, zero failures), two desktop tests and Android builds. Its full build took 12m45s.
+
+![Production Skia card held toward the opposite canvas edge](atlas/skia-calm-browser.png)
+
+This is hosted Chromium WebGL evidence. The small matrix response affects the lower card while its
+label stays anchored; the upper lens remains an independently movable magnifier.
 
 These tests verify the authored portable contract. They do not turn Calm timing into an Apple
 measurement or establish native bindings for every stack. The endpoint quantisation limitation remains.
@@ -280,6 +292,12 @@ Gradle declares the portable shader/fixture files as test inputs so edits invali
 renderer evidence is a declared output for both library and desktop tests.
 An intentional shader-only edit made the source-identity test rerun and fail; restoring the exact
 bytes restored the successful cached result. The perturbation was removed before committing.
+The build workflow now permits Gradle cache writes on same-repository pull requests as well as main;
+forks remain read-only. This follows the [action's cache setting](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#using-the-cache-read-only)
+and [GitHub's branch/PR cache isolation](https://docs.github.com/en/actions/reference/workflows-and-actions/dependency-caching#restrictions-for-accessing-a-cache).
+It is intended to avoid repeatedly rendering unchanged tests on later updates; no measured CI speedup
+is claimed until a successful cache save and subsequent cache hit are observed. CodeQL still forces
+an uncached compilation so its analysis sees the source.
 
 Original source remains Apache-2.0 with preserved third-party attributions. The research screenshots
 are owner-supplied evidence, not bundled runtime assets or a license for Apple UI assets.
