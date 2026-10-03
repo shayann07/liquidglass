@@ -78,7 +78,8 @@ optical role from a magnifier; using the held-selector map on a free lens caused
 | Android below 13, within the project's minimum SDK | Tinted fallback; no shader refraction |
 | Desktop JVM | Skia renderer; native Windows capture verified in the review record |
 | Compose iOS / native SwiftUI | No packaged renderer yet |
-| Web / JS frameworks | [Continuous lens preview](ports/web/README.md), using a supplied texture; full measured material not yet ported |
+| Web / JS frameworks | [Dependency-free lens preview](ports/web/README.md), or the [production Skia shader adapter](ports/skia/README.md); supply the backdrop explicitly |
+| Other Skia hosts | Generated material, content and aperture shaders; native bindings still need host integration and tests |
 | Other frameworks | See the [porting contract](docs/porting.md); native adapters remain work in progress |
 
 Published stable version, with the original API:

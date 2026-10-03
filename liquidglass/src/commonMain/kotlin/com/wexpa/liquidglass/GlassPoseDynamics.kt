@@ -239,6 +239,8 @@ internal data class GlassPoseSpec(
     val stopWindowSeconds: Float = 0.040f,
     /** The corrected navigation model ignores perpendicular input for selector shape. */
     val travelOnly: Boolean = false,
+    /** Keep the released capsule responsive to travel while press formation subsides. */
+    val releaseTravel: Boolean = false,
 ) {
     companion object {
         /** Authored response constrained by IMG_6756 T04 and the 6690–6701 transit stills.
@@ -256,6 +258,7 @@ internal data class GlassPoseSpec(
             endTravelCapRatio = 0.025f, graspOmega = 40f,
             maxAccommodationSlots = 0.15f,
             travelOnly = true,
+            releaseTravel = true,
         )
     }
 }
@@ -743,8 +746,9 @@ internal class GlassPoseController(
             vx = pointerVx
             vy = pointerVy
         } else if (mode == GlassPoseMode.Released) {
-            // Recovery never injects fresh strain or formation from the return spring.
-            vx = 0f
+            // Calm throws retain travel deformation. Press formation still subsides below;
+            // movement must not re-press or re-inflate a released selector.
+            vx = if (spec.releaseTravel) velocity.cx else 0f
             vy = 0f
         } else {
             vx = velocity.cx
@@ -754,7 +758,8 @@ internal class GlassPoseController(
         val nvy = if (spec.travelOnly) 0f else vy / slot
         val speed2 = nvx * nvx + nvy * nvy
         val speed = sqrt(speed2)
-        val tapMotion = mode != GlassPoseMode.Held && mode != GlassPoseMode.Released
+        val tapMotion = mode != GlassPoseMode.Held &&
+            (mode != GlassPoseMode.Released || spec.releaseTravel)
         val vRef = max(when {
             mode == GlassPoseMode.Held -> spec.heldReferenceSpeed
             tapMotion -> spec.tapReferenceSpeed
@@ -767,7 +772,7 @@ internal class GlassPoseController(
             pointerDownActive && pressEligible -> spec.pressFormation
             else -> 0f
         }
-        val formTarget = if (!motionEnabled) {
+        val formTarget = if (!motionEnabled || mode == GlassPoseMode.Released) {
             0f
         } else {
             1f - (1f - pressResponse) * (1f - spec.formFromMovement * sv)

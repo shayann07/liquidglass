@@ -67,3 +67,19 @@ jobs:
             ports/web/playwright-report/
             ports/web/test-results/
           retention-days: 14
+
+  skia-port:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: ports/skia
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ports/skia/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm test

@@ -104,6 +104,36 @@ The [extreme diagonal](atlas/test-extreme-diagonal.png), [type scene](atlas/test
 labelled separately from native window captures. They verify the app's actual pointer/control paths;
 no physical Android performance claim follows from them.
 
+### Whole-bar pull and throw follow-up
+
+| Held | Full-screen upward pull | Full-screen corner pull |
+| --- | --- | --- |
+| ![Held navigation](atlas/bar-held.png) | ![Upward pull](atlas/bar-top.png) | ![Corner pull](atlas/bar-corner.png) |
+
+These are actual production navigation renders in the Compose desktop test harness, 480×220,
+not iOS screenshots or native-window screenshots. The same pointer stays down while travelling
+through ±2000px in both axes. The test checks unchanged layout/hit bounds, valid selector geometry
+and release ownership. Labels stay anchored and the bar's long axis stays level. The captures
+show the selected item changing on horizontal travel, without a free-button vertical squeeze.
+
+An additional defect was found in inherited release dynamics: it zeroed the speed driving the spine.
+The calm preset now uses the body's release speed for travel deformation while press formation
+continues fading. In the authored 360px-bar trace, short/long held trips add 3.93/12.09px of half-spine;
+released trips add 13.83/27.47px. Both return to 78×58px rest. The original-reference 1.23-height
+ceiling remains satisfied. [Raw traces](atlas/selector-travel.csv) preserve every sampled frame.
+These figures characterize this model; they are not measured Apple motion rates.
+
+### Portable production rendering
+
+`ports/skia` exports the evaluated production material/content/aperture shaders and provides a
+CanvasKit adapter. Its terminal tests compile all three, render all four material profiles and
+compare against independent JVM-generated premultiplied RGBA fixtures. Maximum channel difference
+was 1/255 in each profile (mean 0.00098–0.00214 levels). This establishes software-backend agreement
+for those fixtures. It does not verify every style, platform integration, browser GPU or navigation host.
+
+The [web preview capture](atlas/web-preview-ci.png) is from headless Chromium in GitHub Actions.
+The dependency-free GLSL lens and full Skia shader kit are separate integration choices.
+
 ## Verification at this stage
 
 [Machine-readable results](atlas/verification.json).
@@ -112,11 +142,15 @@ no physical Android performance claim follows from them.
   perpendicular selector pulls. Short and long navigation trips produce different shape extents and recover.
 - Full library run: 313 tests, 285 passed, 27 skipped, one new fixture expectation failed. It inherited the
   legacy capsule's grasp offset; pose navigation selects from finger intent. After correcting that fixture,
-  all 14 calm gesture tests passed. The complete corrected run remains a CI gate.
+  all 14 calm gesture tests passed. The complete corrected build then passed in
+  [CI run 37128280319](https://github.com/shayann07/liquidglass/actions/runs/37128280319), 22m23s.
+  The later throw/Skia changes passed focused local tests and await their complete CI rerun.
 - Actual Atlas desktop tests: 2 passed. Earlier 60-second timeout runs are failures, not passes; the final
   fixture has an explicit six-minute budget for software rendering and completed in 165.5 seconds.
 - Android sample assembled successfully. No physical-device verification of this revision.
-- Four portable math tests passed. Real browser shader/lifecycle tests are pending CI. Local headless
+- Four portable math tests and three CanvasKit production-renderer tests passed. The initial browser
+  run passed interactive/keyboard checks but failed context restoration. A test event-order fix awaits CI.
+  Local headless
   browser launch was blocked by automatic approval review (`blocked by policy`, no detailed reason).
 - Strict documentation build passed. Repository-link verification and hosted checks are recorded when complete.
 
@@ -139,7 +173,7 @@ Android performance**. They do not establish a 60Hz guarantee. No before/after s
 Main's one-review, strict build and resolved-conversation requirements are preserved. Force push and
 deletion remain prohibited. Dependency security fixes and private vulnerability reporting are enabled;
 secret scanning/push protection were already enabled. Dependabot and CodeQL use free public-repository
-features and standard hosted runners. Actions are pinned to reviewed upstream commit references;
+features and standard hosted runners. Actions are pinned to exact upstream commit references;
 automation does not approve or merge dependency updates.
 
 Original source remains Apache-2.0 with preserved third-party attributions. The research screenshots
@@ -149,5 +183,5 @@ are owner-supplied evidence, not bundled runtime assets or a license for Apple U
 
 Full 1:1 Apple parity is **not established**. The historical strict endpoint matching gate remains open.
 The new calm timing is authored; whole-bar extreme gestures need further matched original-frame comparisons.
-Universal native bindings, complete measured-material web rendering, presented-frame motion performance,
+Universal native bindings, complete web host/compositor integration, presented-frame motion performance,
 and current physical-device verification remain incomplete. The active goal is not marked complete.

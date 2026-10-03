@@ -15,12 +15,16 @@ This file records user-visible development changes. Published artifacts are iden
 - Optional pull displacement in `GlassPressSource.press` for hosts that already own their gesture.
 - Atlas Studio's sky, typography and grid scenes, native app-buffer captures and redraw timing output.
 - Dependabot configuration, private security reporting instructions and tighter workflow permissions.
+- Portable production SkSL bundle and CanvasKit adapter, with named uniform validation, source-drift
+  checks and independent JVM/CanvasKit pixel fixtures for every material profile.
 
 ### Fixed
 
 - The free magnifier no longer uses a held-navigation profile that maps labels and backdrop differently.
 - Atlas uses canvas-local bounded placement instead of conflicting mobile/desktop screen offsets.
 - The calm navigation selector does not interpret perpendicular full-screen travel as free-button squeeze.
+- Calm throws retain distance-dependent spine deformation as press formation fades; release no longer
+  disables travel-driven shape response.
 - Atlas no longer reports an unverified Vulkan backend or invented live astronomical telemetry.
 
 ### Compatibility and limits

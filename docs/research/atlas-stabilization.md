@@ -40,7 +40,13 @@ coordinates, so dragging a long glass bar does not rotate its text.
 
 The calm selector responds to horizontal travel distance through centre speed and a separate spine
 spring; perpendicular travel contributes neither trace-free strain nor velocity squeeze. Release retains
-state continuity. Historical expressive dynamics remain an explicit comparison path.
+state continuity and travel-driven spine deformation while pressed material fades. The inherited model
+zeroed shape-driving velocity on release, making throws rigid; the calm preset now separates these roles.
+Historical expressive dynamics remain an explicit comparison path.
+
+The portable Skia adapter executes these same production shaders outside Compose. On the current software
+ramp fixtures, all four material profiles differ from JVM Skia by at most one channel level out of 255.
+This is a backend agreement measurement, not an iOS equivalence score or a browser GPU benchmark.
 
 ## Public sources and limits
 

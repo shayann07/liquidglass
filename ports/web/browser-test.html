@@ -21,6 +21,9 @@ try {
  if(extension){
    const lost=new Promise(resolve=>canvas.addEventListener('webglcontextlost',resolve,{once:true}));extension.loseContext();await lost;
    check(renderer.render(frame)===false,'lost context rendered');
+   // Let the loss event finish dispatching before requesting restoration. A Promise
+   // resumed by a listener can run before the browser marks that dispatch complete.
+   await new Promise(resolve=>setTimeout(resolve,100));
    const restored=new Promise(resolve=>canvas.addEventListener('webglcontextrestored',resolve,{once:true}));extension.restoreContext();
    await Promise.race([restored,new Promise((_,reject)=>setTimeout(()=>reject(Error('restore timeout')),4000))]);
    check(renderer.render(frame)===true,'restored context failed');

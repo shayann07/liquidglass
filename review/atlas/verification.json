@@ -31,5 +31,25 @@
     "tests": 4,
     "passed": 4,
     "browser": "pending CI; local headless browser launch blocked by automatic approval review"
+  },
+  "ci-build-e880065": {
+    "run": 37128280319,
+    "duration": "22m23s",
+    "scope": "complete Gradle build, library and desktop tests, Android sample",
+    "status": "passed"
+  },
+  "motion-port-followup": {
+    "shaderBundle": "passed",
+    "profileMaxChannelErrors": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "regrab": "passed",
+    "calmSelector": "3 passed",
+    "canvasKit": "3 passed",
+    "barRender": "passed 125.866s",
+    "fullRerun": "pending"
   }
 }

@@ -2,6 +2,7 @@ package com.wexpa.liquidglass
 
 import kotlin.math.abs
 import kotlin.test.*
+import java.io.File
 
 /** Original Phone T04: held body never becomes a free-button off-axis squeeze.
  * Dynamics rates are authored; the 1.23 bar-height bound is an observed envelope. */
@@ -53,5 +54,47 @@ class GlassCalmSelectorTest {
         assertTrue(long > short + 5f, "distance did not affect shape: $short $long")
         assertTrue(short > 88f, "selector remained rigid: $short")
         println("CALM_TRAVEL short=$short long=$long rest=78")
+    }
+
+    @Test fun heldAndReleasedTravelKeepTheirShapeResponseWithoutReinflating() {
+        val rows = arrayListOf("gesture,target,time,width,height,formation")
+        fun trace(target: Int, release: Boolean): Float {
+            val c = controller()
+            c.pointerDown(bar.centreOf(1), 32f, 0.0, true)
+            advance(c, 0f, .8f)
+            if (release) c.pointerUp(target) else c.beginDrag(bar.centreOf(1), 32f)
+            var maxSpine = 0f
+            var previousForm = c.formation
+            for (i in 1..240) {
+                val elapsed = i / 120f
+                if (!release && elapsed <= .25f) {
+                    val x = bar.centreOf(1) + (bar.centreOf(target) - bar.centreOf(1)) * elapsed / .25f
+                    c.pointerMove(x, 32f, (.8f + elapsed).toDouble())
+                }
+                c.advanceTo(.8f + elapsed)
+                val e = GlassPoseExtents().also(c::extents)
+                maxSpine = maxOf(maxSpine, c.elongationPx)
+                assertTrue(e.height <= bar.height * 1.23f, "reference height ceiling exceeded")
+                assertFalse(c.solverFailed, "invalid contour during travel/recovery")
+                if (release) {
+                    assertTrue(c.formation <= previousForm + .0001f, "throw re-formed pressed material")
+                    previousForm = c.formation
+                }
+                rows += "${if (release) "throw" else "held"},$target,$elapsed,${e.width},${e.height},${c.formation}"
+            }
+            if (!release) { c.pointerUp(target); advance(c, 2.8f, 4.8f) }
+            val end = GlassPoseExtents().also(c::extents)
+            assertEquals(78f, end.width, .5f)
+            assertEquals(58f, end.height, .5f)
+            return maxSpine
+        }
+        for (release in listOf(false, true)) {
+            val short = trace(2, release); val long = trace(3, release)
+            assertTrue(short > 2f, "travel did not deform: release=$release spine=$short")
+            assertTrue(long > short + 2f, "long trip did not deform more: release=$release $short $long")
+            println("CALM_HELD_THROW release=$release shortSpine=$short longSpine=$long")
+        }
+        File("build/reports/atlas").apply { mkdirs() }
+            .resolve("selector-travel.csv").writeText(rows.joinToString("\n") + "\n")
     }
 }

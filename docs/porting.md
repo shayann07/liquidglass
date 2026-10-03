@@ -11,12 +11,24 @@ Separate the material, motion and host integration instead of duplicating a samp
 | Android Compose / Compose Desktop | `GlassScene` or explicit state/modifiers | Main implementation; shader and interaction suites |
 | Android Views | Place a ComposeView over a Compose-recorded backdrop, or supply an independent renderer | Bridge work required for a View-owned backdrop; no transparent capture of arbitrary Views |
 | React, Vue, Svelte, Angular, vanilla HTML | ES module with a supplied canvas/image/video texture | Continuous lens preview in `ports/web`; not the full measured material |
+| CanvasKit / another Skia RuntimeEffect host | Generated production material, content and aperture shaders in `ports/skia` | CanvasKit software rendering verified against JVM pixels; host capture/input remain explicit |
 | Electron, Tauri, browser WebViews | Same web module, where WebGL and origin-clean textures are available | Host lifecycle/permissions must be tested |
 | SwiftUI, Flutter, React Native, Qt, Unity, native desktop | Implement the renderer contract below or embed a supported surface | No native adapter shipped yet; not a claim of drop-in support |
 
 The [web preview source](https://github.com/shayann07/liquidglass/tree/main/ports/web) has no runtime
 package dependency. Copy the modules with their Apache-2.0 notices, or vendor them at a pinned revision.
 The package is intentionally unpublished while its API is experimental.
+
+For the production shader path, the [Skia adapter](https://github.com/shayann07/liquidglass/tree/main/ports/skia)
+exports the evaluated Kotlin shader strings and binds uniforms by reflected name/offset. A JVM test
+guards against source drift. CanvasKit tests compile every pass and compare the four material profiles
+with independent JVM reference pixels. This avoids rewriting the material for every Skia-based framework.
+It adds the CanvasKit WASM runtime; the smaller WebGL lens preview remains dependency-free.
+
+The raw shaders also work as a starting point for C++ or other bindings of
+[Skia Runtime Effects](https://skia.org/docs/user/sksl/). A shared shader is not a complete host adapter:
+backdrop capture, blur-strip construction, compositing, gestures, accessibility and GPU lifecycle still
+belong to the integration. No arbitrary-view capture or drop-in support for untested frameworks is claimed.
 
 ## The small contract
 
