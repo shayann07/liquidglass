@@ -17,7 +17,8 @@ import kotlin.math.tanh
  * **Every number here is a design constant.** None is a recovered Apple time constant, spring
  * frequency or damping ratio. What the recording `JGEY2190.MP4` does establish, frame by frame,
  * is written next to the constant it informed; the rest is authored inside the ranges the
- * iOS-parity brief's section 8.3 declares. See `research/analysis/v3/ios-parity/run2/MODEL.md`.
+ * iOS-parity brief's section 8.3 declares. Current corrections and original-frame provenance
+ * are recorded in `docs/research/atlas-stabilization.md` and `review/ATLAS-STABILIZATION.md`.
  *
  * Frequencies are per second, damping dimensionless, lengths in design units (slots or the
  * reference body's own dimensions) unless a name says px.

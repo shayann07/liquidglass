@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+<title>LiquidGlass · Skia painter</title>
+<style>
+body{margin:0;background:#09111e;color:#eaf0f7;font:16px system-ui}main{max-width:960px;margin:40px auto;padding:24px}
+h1{font-size:40px;font-weight:500}p{max-width:65ch;color:#aabdc9;line-height:1.6}
+canvas{display:block;width:100%;border-radius:20px;touch-action:none}
+button{font:inherit;padding:12px 20px;background:#213b4c;color:inherit;border:1px solid #526c7c;border-radius:24px;cursor:pointer}
+button:focus-visible,canvas:focus-visible{outline:3px solid #bbdad8;outline-offset:4px}
+.actions{display:flex;gap:12px;margin-top:20px}
+</style>
+<main><p>LIQUIDGLASS / SKIA</p><h1>Look through the same material.</h1>
+<p>Drag the magnifier across the type and grid. This example draws the production lens shader
+on an ordinary canvas, with your own controls above it.</p>
+<canvas id="glass" width="960" height="480" tabindex="0" aria-label="Magnifier. Drag or use arrow keys to move."></canvas>
+<div class="actions"><button id="reset">Reset lens</button><button id="backdrop">Change backdrop</button></div>
+<p id="status" role="status">Preparing glass…</p></main>
+<script src="./node_modules/canvaskit-wasm/bin/canvaskit.js"></script>
+<script type="module" src="./demo.mjs"></script></html>

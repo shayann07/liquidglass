@@ -26,6 +26,8 @@ For portable changes, run `npm ci --ignore-scripts` and `npm test` in the affect
 `ports/skia` directory. `npm run example` in the Skia directory renders the high-level integration
 example. Production shader changes also require `GlassShaderBundleTest`: checked-in SkSL and reference
 pixels are declared Gradle inputs, so editing them invalidates cached verification.
+Browser tests live in `ports/web`; install both portable packages before `npm run test:browser` there,
+since the suite checks the small WebGL renderer and the production Skia painter separately.
 
 ## Evidence and compatibility
 

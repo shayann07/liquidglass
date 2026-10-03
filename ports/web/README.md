@@ -23,6 +23,10 @@ Run `node --test core.test.mjs` for the numerical contract. `browser-test.html` 
 real GLSL shader, reads pixels, resizes, simulates context loss and checks cleanup. Serve it over HTTP;
 file URLs have different origin rules. A test that remains `RUNNING` is not a pass.
 
+For the full hosted browser suite, install this package and the sibling `ports/skia` package, then
+run `npm run test:browser`. It also exercises the production Skia painter at `/skia/`; that separate
+example uses CanvasKit, while this module remains dependency-free at runtime.
+
 Canvas dimensions are CSS pixels; `pixelRatio` controls backing resolution (1–4). The source fills
 the canvas; supply matching aspect ratio to avoid stretching. Positions have a top-left origin.
 Upload a new image only when it changes, not on every pointer event. Animated video must be uploaded

@@ -31,6 +31,9 @@ owns uniform binding and temporary resources. Call `setSource(backdropImage)`, t
 `dispose()` releases the painter. The [executable terminal example](https://github.com/shayann07/liquidglass/blob/main/ports/skia/example.mjs)
 uses this exact API. This high-level path renders clear magnifiers; custom material/ink/compositor
 integration still uses the lower-level adapter.
+Its browser example demonstrates an explicit Skia WebGL surface, keyboard/pointer controls and context
+recreation. Serve it locally with `node ports/web/serve.mjs`, then open `/skia/`; install the pinned
+CanvasKit dependency in `ports/skia` first. No framework wrapper or external runtime service is needed.
 
 The raw shaders also work as a starting point for C++ or other bindings of
 [Skia Runtime Effects](https://skia.org/docs/user/sksl/). A shared shader is not a complete host adapter:

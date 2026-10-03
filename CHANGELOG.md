@@ -19,6 +19,8 @@ This file records user-visible development changes. Published artifacts are iden
   checks and independent JVM/CanvasKit pixel fixtures for every material profile.
 - `createGlassPainter` for portable clear lenses: source-image ownership, coordinate mapping and
   temporary shader cleanup behind one small API, with an executable terminal example.
+- A browser Skia example with keyboard/pointer controls, backdrop replacement and context recreation;
+  the hosted browser suite covers this independently from the lightweight WebGL preview.
 
 ### Fixed
 

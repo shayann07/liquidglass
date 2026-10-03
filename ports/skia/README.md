@@ -22,6 +22,19 @@ The terminal tests compile all three passes, render the real material on a softw
 test lens continuity/alpha and compare **all four profiles** with independent JVM Skia pixels.
 This verifies the supplied source/adapter combination, not browser GPU performance or iOS parity.
 
+The interactive browser example is `index.html` with `demo.mjs`. From the repository root:
+
+```sh
+npm ci --ignore-scripts --prefix ports/skia
+node ports/web/serve.mjs
+# Open http://127.0.0.1:8766/skia/
+```
+
+It loads the local pinned CanvasKit runtime, uses an explicit WebGL-backed Skia surface, and demonstrates
+drag/keyboard movement, backdrop replacement and graphics-context recreation. The loopback preview
+server exposes only the example files and the two required CanvasKit runtime files. CI exercises the
+example through Chromium; it is not a browser performance or cross-browser compatibility guarantee.
+
 ## Draw a lens without managing uniforms
 
 Initialize CanvasKit using its [official setup](https://skia.org/docs/user/modules/canvaskit/), then
@@ -56,8 +69,9 @@ clear-lens preset's decorative lighting or run its gesture controller.
 In a browser, `CanvasKit.MakeImageFromCanvasImageSource(backdropCanvas)` can create the source from
 an application-owned canvas. Origin restrictions still apply. Keep interactive DOM controls above the
 canvas, or use your host's accessible controls; the painter only renders. Recreate it with the source
-after GPU context loss. The terminal example and tests verify software Skia; this painter has not yet
-been tested with a browser GPU. The separate `ports/web` renderer has hosted browser lifecycle tests.
+after GPU context loss, as `demo.mjs` illustrates. Terminal tests verify software Skia. Hosted browser
+checks are recorded separately in the review record; headless WebGL does not establish physical GPU
+performance. The separate `ports/web` renderer remains the smaller dependency-free lens preview.
 
 ## Draw a custom material
 
