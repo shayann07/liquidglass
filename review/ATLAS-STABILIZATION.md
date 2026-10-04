@@ -249,6 +249,10 @@ These captures exercise the rounded material, held drag, backdrop replacement an
 | --- | --- |
 | ![Hosted browser surface](atlas/portable-surface-browser.png) | ![Hosted browser held surface](atlas/portable-surface-held.png) |
 
+All seven required checks passed at `a4ed995`: 327 library tests (300 passed, 27 skipped, zero
+failures), two desktop tests, Android builds, 12 portable numerical checks, ten Skia checks and
+four browser checks. The build job took 23m41s.
+
 These are headless Chromium WebGL captures of `a4ed995`, before the small-source edge correction;
 they do not verify that later correction, a native physical GPU, or an Apple comparison. Software
 tests and subsequent hosted results are recorded separately in [verification.json](atlas/verification.json).

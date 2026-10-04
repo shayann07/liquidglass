@@ -517,5 +517,21 @@
     "skiaTests": 12,
     "passed": 12,
     "layoutMutationGuard": "passed"
+  },
+  "ci-build-a4ed995": {
+    "run": 37211059768,
+    "commit": "a4ed995c744707ee9e72b0a367214bc2bbe164ae",
+    "tests": 327,
+    "passed": 300,
+    "skipped": 27,
+    "failed": 0,
+    "desktopTests": 2,
+    "buildDuration": "23m41s",
+    "libraryReportedDuration": "22m22.83s",
+    "desktopReportedDuration": "2m8.20s",
+    "requiredChecks": "all seven passed",
+    "browserTests": 4,
+    "skiaTests": 10,
+    "portableMathTests": 12
   }
 }
