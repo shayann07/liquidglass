@@ -31,8 +31,9 @@ export function calmFeedback(width, height, dx, dy, pressed = true, radius = Mat
 }
 
 /** Internal shared geometry for the timestamped controller. Inputs are validated by callers. */
-export function calmPullTarget(width, height, dx, dy) {
-  const limit = Math.min(width * Math.min(1.03, 1 + 4 / width), height * Math.min(1.03, 1 + 4 / height)) * .5;
+export function calmPullTarget(width, height, dx, dy,
+  pressX = calmPressScale(width), pressY = calmPressScale(height)) {
+  const limit = Math.min(width * pressX, height * pressY) * .5;
   // Normalize before taking a length: even an enormous finite over-pull must not create NaN.
   const scale = Math.max(Math.abs(dx), Math.abs(dy));
   if (!scale) return {x: 0, y: 0};
@@ -41,10 +42,15 @@ export function calmPullTarget(width, height, dx, dy) {
   return {x: dx / scale / length * resisted, y: dy / scale / length * resisted};
 }
 
+/** Per-edge growth is in logical pixels. Zero selects percentage-only growth, as in Compose. */
+export function calmPressScale(side, scale = 1.03, growth = 2) {
+  return growth > 0 ? Math.min(scale, 1 + 2 * growth / side) : scale;
+}
+
 /** Pull coordinates have already been resisted and animated; do not resist them a second time. */
 export function calmDeformation(width, height, dx, dy, pressAmount, radius,
-  pressX = 1 + (Math.min(1.03, 1 + 4 / width) - 1) * pressAmount,
-  pressY = 1 + (Math.min(1.03, 1 + 4 / height) - 1) * pressAmount) {
+  pressX = 1 + (calmPressScale(width) - 1) * pressAmount,
+  pressY = 1 + (calmPressScale(height) - 1) * pressAmount) {
   const travel = Math.hypot(dx, dy);
   if (!travel) return { pressX, pressY, along: 1, across: 1, angle: 0 };
   const c = dx / travel, s = dy / travel, r = Math.min(radius, width / 2, height / 2);

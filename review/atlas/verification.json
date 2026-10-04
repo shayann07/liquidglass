@@ -299,12 +299,26 @@
     "thresholds": [5, 10, 15],
     "restHeightPx": 186,
     "heldHeightPx": 196,
-    "calmPressHeightPx": 191.58,
+    "genericCalmPressHeightPx": 191.58,
+    "calmBarPressHeightPx": 195.3,
     "extremeHeightPx": [204, 205],
-    "portableMaximumHeightPx": 194.2524,
+    "genericPortableMaximumHeightPx": 194.2524,
+    "portableBarMaximumHeightPx": 198.0169,
+    "kotlinBarMaximumHeightPx": 198.01695,
     "portableDirections": 72,
-    "portableMathTests": 11,
-    "scope": "Conservative height ceiling only. Ordinary press is below the reference and asymmetric extreme growth remains unmatched; finger gain and timing unidentified."
+    "portableMathTests": 12,
+    "scope": "Navigation ordinary press fits 196+/-1px with1.05 material-only growth. Extreme bound passes but asymmetric growth and6..7px additional height remain unmatched; finger gain and timing unidentified."
+  },
+  "bar-pressure-correction": {
+    "failFirst": "ordinary-held reference expected196+/-1px, actual191.58px",
+    "barPressScale": 1.05,
+    "labelScale": 1.0,
+    "dragCoefficients": "unchanged",
+    "focusedTests": 22,
+    "failed": 0,
+    "renderedBarSeconds": 335.295,
+    "portableMathTests": 12,
+    "fullSuite": "pending for this correction"
   },
   "ci-build-fdae281": {
     "run": 37168022770,

@@ -534,7 +534,7 @@ bounce, no gel, glow at half — the feedback survives, the elasticity does not.
 ```kotlin
 @Stable
 class GlassPressSource {
-    fun press(localPosition: Offset)
+    fun press(localPosition: Offset, pullOffset: Offset = Offset.Zero)
     fun release()
 }
 
@@ -668,7 +668,8 @@ and this is what it was tuned against.
 and hit targets remain anchored; long bars do not rotate or shear. `pullFollow` controls input
 compliance, `pullLimit` bounds it, and `pullElongation`/`pullWidthRatio` control the strain.
 `Default` preserves Legacy behavior. `ReducedMotion` removes elastic response. External
-`GlassPressSource` supplies press illumination, not generic drag displacement.
+`GlassPressSource` supplies local press coordinates and optional cumulative drag displacement through
+`press(localPosition, pullOffset)`. The modifier applies the same resistance and springs as self-owned input.
 See [generic interaction](generic-interaction.md) for integration, ownership and navigation details.
 
 ### Size-adaptive drag (r14)
@@ -713,7 +714,7 @@ advanced tab-bar/container integration. `glass` does not make a button clickable
 | `GlassInteraction.Calm` | Critical geometric springs; up to 3% press scale and 2dp growth per edge; gradual resisted drag with large-surface attenuation. |
 | `GlassResponse` | `Expressive` preserves historical timing; `Calm` selects slower critical press/pull springs. |
 | `GlassInteraction.response` | New final constructor parameter, default `Expressive`; existing positional source calls retain their meaning. |
-| `GlassTabBarStyle.Calm(dark: Boolean = true)` | V3 optical roles with calm selector travel, no off-axis selector squeeze, and generic material-only bar feedback. |
+| `GlassTabBarStyle.Calm(dark: Boolean = true)` | V3 optical roles with calm selector travel, no off-axis selector squeeze, and material-only bar feedback. Its reference-backed 5% press is separate from the restrained drag response. |
 | `GlassSelectorSpec.response` | Chooses the pose response family; default `Expressive` preserves V3. Other legacy fields still belong to the old horizontal controller. |
 | `GlassTabBarStyle.barInteraction` | Optional whole-bar feedback, default null; `Calm()` enables it and keeps label layout fixed. |
 | `GlassPressSource.press(localPosition, pullOffset = Offset.Zero)` | Local pixels; optional displacement since down for a gesture owned by the host. Rejects non-finite coordinates. Call `release()` on up **and cancellation**. |

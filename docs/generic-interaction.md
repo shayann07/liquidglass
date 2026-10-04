@@ -114,12 +114,15 @@ Android below API 33 uses the material fallback instead of AGSL.
 
 ## Separate press, pull and navigation
 
-Calm press growth is limited to 3% scale and 2dp per edge; drag has a separate resisted target and
+Generic Calm press growth is limited to 3% scale and 2dp per edge; drag has a separate resisted target and
 size attenuation. Critical geometry springs avoid the historical press overshoot. These rates are
 authored responses, not timings recovered from untimed Apple screenshots.
 
-`GlassTabBarStyle.Calm()` applies generic feedback to the **whole bar** while ordinary labels remain
-anchored. The selector's shape responds to along-bar travel; perpendicular swipes do not apply the
+`GlassTabBarStyle.Calm()` uses the same feedback engine with a **5% whole-bar press** and no per-edge
+press cap, matching the original 186→196px ordinary hold within one pixel. This is a navigation-role
+preset, not an increase to generic card feedback or drag sensitivity. Calm timing, resistance, the
+large-surface drag cap and viewport containment still apply; ordinary labels remain anchored.
+The selector's shape responds to along-bar travel; perpendicular swipes do not apply the
 free-button squeeze model to it. Navigation intent still follows the finger and commits once on release.
 
 If your component already owns a drag, send local coordinates and cumulative displacement to

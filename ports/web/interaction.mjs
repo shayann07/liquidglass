@@ -1,5 +1,5 @@
 /** Apache-2.0. Framework-independent, anchored Calm material feedback. No DOM or timer ownership. */
-import {stepSpring, calmPullTarget, calmDeformation} from './core.mjs';
+import {stepSpring, calmPullTarget, calmDeformation, calmPressScale} from './core.mjs';
 
 const identity = () => [1, 0, 0, 1];
 const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
@@ -10,7 +10,10 @@ const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
  * The spring stiffnesses and steady geometry match the opt-in Compose Calm choices; timing is authored.
  */
 export function createCalmInteraction({width, height, radius = Math.min(width, height) / 2,
-  x = 0, y = 0, viewportWidth, viewportHeight, reducedMotion = false}) {
+  x = 0, y = 0, viewportWidth, viewportHeight, reducedMotion = false,
+  pressScale = 1.03, pressGrowth = 2}) {
+  if (![pressScale, pressGrowth].every(Number.isFinite) || pressScale < 1 || pressScale > 2 || pressGrowth < 0)
+    throw new RangeError('Press scale must be 1..2 and per-edge growth must be nonnegative');
   let geometry, reduced = !!reducedMotion, clock = null, held = false;
   let pressure = {value: 0, velocity: 0}, horizontal = {...pressure}, vertical = {...pressure};
   let target = {x: 0, y: 0};
@@ -28,6 +31,18 @@ export function createCalmInteraction({width, height, radius = Math.min(width, h
     geometry = next;
   }
   configure({width, height, radius, x, y, viewportWidth, viewportHeight});
+
+  function pressTargets() {
+    const {width:w, height:h, x, y, viewportWidth:vw, viewportHeight:vh} = geometry;
+    let sx=calmPressScale(w,pressScale,pressGrowth), sy=calmPressScale(h,pressScale,pressGrowth);
+    // Constrain the target before its spring, matching Compose; clipping the animated result
+    // instead would reach an edge early and abruptly stop an otherwise gradual press.
+    if (vw !== undefined && x >= 0 && x+w <= vw)
+      sx=Math.min(sx,Math.max(1,2*Math.min(x+w/2,vw-x-w/2)/w));
+    if (vh !== undefined && y >= 0 && y+h <= vh)
+      sy=Math.min(sy,Math.max(1,2*Math.min(y+h/2,vh-y-h/2)/h));
+    return [sx,sy];
+  }
 
   function advance(time, staleFrame = false) {
     if (!Number.isFinite(time) || time < 0)
@@ -54,14 +69,11 @@ export function createCalmInteraction({width, height, radius = Math.min(width, h
     const {width: w, height: h, radius: r, x, y, viewportWidth: vw, viewportHeight: vh} = geometry;
     if (reduced) return {matrix: identity(), press: 0, held, active: false};
     const amount = clamp(pressure.value, 0, 1);
-    let pressX = 1 + (Math.min(1.03, 1 + 4 / w) - 1) * amount;
-    let pressY = 1 + (Math.min(1.03, 1 + 4 / h) - 1) * amount;
+    const [targetX,targetY] = pressTargets();
+    const pressX = 1 + (targetX - 1) * amount;
+    const pressY = 1 + (targetY - 1) * amount;
     const contained = vw !== undefined && x >= 0 && y >= 0 && x + w <= vw && y + h <= vh;
     const cx = x + w / 2, cy = y + h / 2;
-    if (contained) {
-      pressX = Math.min(pressX, 2 * Math.min(cx, vw - cx) / w);
-      pressY = Math.min(pressY, 2 * Math.min(cy, vh - cy) / h);
-    }
     const shape = calmDeformation(w, h, horizontal.value, vertical.value, amount, r, pressX, pressY);
     const c = Math.cos(shape.angle), s = Math.sin(shape.angle);
     function matrix(gain) {
@@ -92,7 +104,7 @@ export function createCalmInteraction({width, height, radius = Math.min(width, h
     press(time, dx = 0, dy = 0) {
       if (![dx,dy].every(Number.isFinite)) throw new RangeError('Finite cumulative displacement required');
       advance(time); held = true;
-      target = reduced ? {x: 0, y: 0} : calmPullTarget(geometry.width, geometry.height, dx, dy);
+      target = reduced ? {x: 0, y: 0} : calmPullTarget(geometry.width, geometry.height, dx, dy, ...pressTargets());
       return snapshot();
     },
     /** Use for both pointer-up and cancellation; navigation selection belongs to the host. */

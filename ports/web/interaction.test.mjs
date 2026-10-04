@@ -11,8 +11,8 @@ test('whole-bar extreme pulls stay below the original Phone T04 body-height boun
   // This is a ceiling, not a fitted trajectory: the reference contains no finger coordinates.
   const density=3, width=834/density, height=186/density, radius=93/density;
   let maximum=0;
-  for(let degrees=0;degrees<360;degrees+=5) {
-    const angle=degrees*Math.PI/180, motion=createCalmInteraction({width,height,radius});
+  for(const press of [{}, {pressScale:1.05,pressGrowth:0}]) for(let degrees=0;degrees<360;degrees+=5) {
+    const angle=degrees*Math.PI/180, motion=createCalmInteraction({width,height,radius,...press});
     motion.press(0,Math.cos(angle)*10000,Math.sin(angle)*10000);
     for(let frame=1;frame<=240;frame++) {
       const time=frame/120;
@@ -26,6 +26,26 @@ test('whole-bar extreme pulls stay below the original Phone T04 body-height boun
   }
   assert.ok(maximum>186,'test never exercised material growth');
   console.log(`PHONE_T04_BAR maximum=${maximum.toFixed(4)} reference=204..205`);
+});
+
+test('navigation press matches ordinary hold and stays gradual at viewport edges', () => {
+  const motion=createCalmInteraction({width:278,height:62,pressScale:1.05,pressGrowth:0});
+  motion.press(0);
+  const early=motion.sample(.04),held=motion.sample(2);
+  assert(early.press>0&&early.press<.2);
+  near(held.matrix[0],1.05);near(held.matrix[3]*186,196,1);
+  // A tight viewport changes the equilibrium, not the pace at which it is reached.
+  const edge=createCalmInteraction({width:200,height:60,x:1,y:20,viewportWidth:202,viewportHeight:100,
+    pressScale:1.05,pressGrowth:0});
+  edge.press(0);const growing=edge.sample(.1);
+  near(growing.matrix[0],1+.01*growing.press);
+  assert(growing.matrix[0]<1.01);
+  const partial=createCalmInteraction({width:200,height:60,x:1,y:-20,viewportWidth:202,viewportHeight:100,
+    pressScale:1.05,pressGrowth:0});
+  partial.press(0);const clipped=partial.sample(2);
+  near(clipped.matrix[0],1.01);near(clipped.matrix[3],1.05);
+  for(const bad of [{pressScale:NaN},{pressScale:.5},{pressScale:3},{pressGrowth:-1}])
+    assert.throws(()=>createCalmInteraction({...options,...bad}),/Press scale/);
 });
 
 test('press is gradual, does not snap on release, and eventually stops requesting frames', () => {

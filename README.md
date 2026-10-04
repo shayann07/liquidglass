@@ -69,6 +69,8 @@ Already manage a backdrop? Keep using `rememberLiquidGlassState`, `liquidGlassSo
 Glass does not move your controls unless **your layout** moves them. Stretch belongs to the material.
 Long cards use a smaller drag response than compact controls. A navigation selector is a different
 optical role from a magnifier; using the held-selector map on a free lens caused the recurring split rim.
+Calm navigation keeps a reference-backed 5% whole-bar touch expansion, with its slower timing and
+restrained drag independent of that expansion. Generic cards retain the 3% / 2dp-per-edge press cap.
 
 Desktop Calm selectors also compose refracted ink and material together in the final shader, avoiding
 one intermediate rounding step. The [porting guide](docs/porting.md#combining-refracted-ink-with-glass)

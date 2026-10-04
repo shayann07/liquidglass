@@ -151,6 +151,14 @@ const state = motion.sample(now()); // call from your host's animation loop
 motion.release(now());             // pointer-up OR pointer-cancel; no navigation selection
 ```
 
+The optional `pressScale` (default `1.03`, supported range `1…2`) and `pressGrowth` (default `2`,
+nonnegative logical pixels per edge) tune only press amplitude. Positive growth caps each axis by
+both limits; zero selects percentage-only growth. For the Compose Calm **navigation bar** role use
+`pressScale: 1.05, pressGrowth: 0`. This gives 195.3px against the original 196±1px ordinary-held bar
+at 186px rest height. Timing and drag coefficients stay Calm; this does not add selector travel.
+Viewport limits constrain the press target before spring interpolation, preserving gradual feedback
+near an edge. Defaults for generic buttons and cards are unchanged.
+
 `deltaX` and `deltaY` come from your gesture handler; these lines illustrate separate events, not a
 complete event loop. Times are monotonic **seconds**, with one clock for input and drawing. Browser
 timestamps are normally milliseconds: divide by 1000. A queued frame older than the latest input is

@@ -48,12 +48,13 @@ remaining host requirements. Native adapters for every stack are not implemented
 - **Magnifier:** the previous Atlas used `Held`, whose material/ink and interior/rim mappings differ.
   The new `Lens` map converges to identity with identity first derivative at its elliptical boundary.
   Material and foreground share the function. Existing held-tab optics remain separate.
-- **Feedback:** `Calm` separates press growth from drag. Press uses critical springs and at most 3%
+- **Feedback:** generic `Calm` separates press growth from drag. Press uses critical springs and at most 3%
   scale / 2dp growth per edge. Drag resists progressively; large surfaces retain the 2dp total extension
   limit. These rates and gains are authored. Ordinary labels and hit targets remain anchored.
 - **Navigation:** the calm selector ignores perpendicular travel for strain and speed-driven squeeze.
-  The whole bar receives generic material feedback instead. The old 1.05 label scale is disabled in
-  this preset. A slower centre and separately sprung spine produce more deformation over longer trips.
+  The whole bar receives the shared material feedback with a reference-backed 1.05 press. The old
+  1.05 label scale is disabled in this preset. A slower centre and separately sprung spine produce
+  more deformation over longer trips.
 - **Integration:** `GlassScene` owns one backdrop and exposes the scene-bound modifier. Advanced callers
   retain the explicit state API. Gesture-owning hosts may supply cumulative pull through `GlassPressSource`.
 - **Atlas:** compact compositions, three backdrop modes, real magnification, explicit reduced motion,
@@ -100,15 +101,27 @@ finger position, so these values cannot identify input gain or a timing curve.
 The intervening ordinary hold at PTS 21019/600 (35.031667s) measures **196px**, rows 186–381,
 at the same columns and all three thresholds. Its growth is approximately symmetric about the
 resting centre. The extra extreme deformation is therefore 8–9px beyond ordinary hold, not the
-full 18–19px beyond rest. This independently supports separating press from drag strain. The current
-generic Calm press alone is 191.58px at this geometry; it undershoots this ordinary-held reference.
-That is another remaining fit difference, even though the no-excess-strain bound passes.
+full 18–19px beyond rest. This independently supports separating press from drag strain. The generic
+Calm press alone gives 191.58px; a fail-first test rejected it against 196±1px. The navigation preset
+now reuses the earlier rounded 1.05 scale, giving **195.3px**, on the material alone. Its label scale
+stays 1.0. Generic cards retain 3%/2dp press growth. The Calm timing and all drag coefficients stay
+unchanged; restoring normal touch amplitude must not increase drag sensitivity.
 
 The portable Calm regression now uses the measured **205px** upper height as a separate bound. It
 tests 72 pull directions, 10,000 logical-pixel excursions, and press/release frames with the 834×186px
-bar at density three. An independent capsule support function measures maximum height **194.2524px**.
-This passes a no-excess-stretch bound; it is below the original extreme and does **not** establish a
-matched iOS deformation. No motion constant was refitted. Eleven portable numerical tests pass.
+bar at density three. Generic feedback peaks at **194.2524px**. With the navigation press override,
+the maximum is **198.0169px**. A Kotlin test exercises the production deformation functions across
+72 directions, six press amounts and five pull distances; independent capsule support gives
+**198.01695px**. This passes a no-excess-stretch bound, but remains 6–7px below the original extreme
+and does **not** establish matched iOS deformation. Twelve portable numerical tests pass, including
+gradual viewport-limited press targets and unchanged generic defaults.
+
+The actual Compose bar rendering also passes its five extreme-direction pulls, repeated outward
+motion at an end anchor, release and fixed-layout assertions. Its software-rendered held state after
+the pressure correction is shown below. This is an implementation proof over a synthetic backdrop,
+not a like-for-like optical comparison with iOS:
+
+![Calm bar with corrected normal touch expansion](atlas/bar-press-held.png)
 
 Reproduction requires ffmpeg with zscale and Python with Pillow. Decode each timestamp using this
 filter, preserving one native frame, then run the checked-in measurement tool:

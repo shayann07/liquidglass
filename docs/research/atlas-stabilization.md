@@ -31,8 +31,13 @@ Full-density original crops, PTS, thresholds and the reproducible measurement to
 stabilization record. No spring or deformation constant was refitted in this audit.
 An intervening ordinary-held frame at PTS 21019/600 measures 196px with symmetric growth. The
 extra extreme deformation is only 8–9px beyond that hold, separating it from press expansion.
-The current generic Calm press is 191.58px at this geometry, so ordinary-held amplitude also remains
-below the reference. Passing an upper bound alone cannot establish a correct press or drag model.
+Generic Calm press is 191.58px at this geometry. A fail-first reference regression therefore rejected
+that amplitude for the navigation bar. Its preset now reuses the earlier rounded 1.05 scale, applied
+only to material, giving **195.3px against 196±1px**. Generic cards and controls retain 3%/2dp growth.
+The bar's timing and drag coefficients are unchanged. With this press, both Kotlin and portable
+geometry remain below the 205px extreme ceiling, peaking at **198.017px** in the reference-sized
+fixture. Ordinary-held amplitude now fits; extreme asymmetry and the additional 6–7px deformation
+remain unmatched. Passing an upper bound alone cannot establish a correct drag model.
 
 ## Why the magnifier is continuous
 

@@ -44,3 +44,6 @@ hit targets fixed. It includes bounded pull, independent press/release, stale-fr
 viewport containment and reduced motion. It owns no events or timers and does not implement selector
 travel or illumination. The [portable feedback guide](../../docs/porting.md#portable-calm-feedback)
 defines the API; the sibling Skia browser example uses it with the production renderer.
+Press amplitude is independently configurable: `pressScale: 1.05, pressGrowth: 0` reproduces the
+Compose Calm bar role while keeping Calm timing and restrained drag. Defaults remain `1.03` and
+`2` logical pixels per edge for general surfaces. A host still owns selector travel and navigation.
