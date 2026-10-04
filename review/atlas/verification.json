@@ -230,5 +230,32 @@
     "browserTests": 4,
     "skiaTests": 5,
     "portableMathTests": 10
+  },
+  "ci-build-15cd8bf": {
+    "run": 37154921387,
+    "commit": "15cd8bfd66083bf4df24652109d2d309bd038051",
+    "tests": 320,
+    "passed": 293,
+    "skipped": 27,
+    "failed": 0,
+    "desktopTests": 2,
+    "duration": "26m28s",
+    "requiredChecks": "all seven passed",
+    "cache": "Updated task cache saved; no cache-hit speedup yet verified"
+  },
+  "end-anchor-travel": {
+    "initialFailure": "Raw pointer speed excited stationary selector outside the end anchor",
+    "beforeWidthErrorPx": 72.46686,
+    "beforeHeightErrorPx": 7.3027954,
+    "afterWidthErrorPx": 0,
+    "afterHeightErrorPx": 0,
+    "focusedTests": 39,
+    "focusedPassed": 39,
+    "componentTests": 2,
+    "componentPassed": 2,
+    "barRenderSeconds": 52.458,
+    "flingSeconds": 5.716,
+    "fullCi": "pending",
+    "scope": "Both end anchors, far outward/reverse/diagonal movement, return to range, distance response, reference height/arrival and real Compose in-flight frames"
   }
 }

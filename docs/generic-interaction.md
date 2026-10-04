@@ -89,6 +89,11 @@ selected ink, endpoint accommodation and cancellation, so applying a second pull
 to that lens would duplicate motion. It shares bounded-travel primitives with generic controls,
 but its pose renderer and generic material draw transform are still distinct implementations.
 
+At the end tabs, selector deformation uses bounded travel rather than raw pointer speed. Continuing
+to pull outside an already-reached anchor therefore cannot stretch a stationary selector. Whole-bar
+strain still follows the separate anchored material response; returning inside the tab range restores
+travel deformation. Selection intent uses the original pointer position, independently of that bound.
+
 A caller-provided `GlassPressSource` drives feedback from a parent gesture, including cumulative
 pull displacement through `press(point, pullOffset)`. Normal self-interacting controls need no
 external press source. The source does not arbitrate pointer ownership for you.

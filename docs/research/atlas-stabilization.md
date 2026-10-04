@@ -60,6 +60,15 @@ same 120Hz input stream, within 1.5px geometry and 0.015 formation. This is simu
 not a measurement of display latency. After a stationary hold, the frame loop resumes from the latest
 input time rather than replaying the idle interval as frozen frames.
 
+An additional end-anchor regression found that raw horizontal finger speed still excited the selector
+after its centre had exhausted its available travel. Alternating outward and diagonal pulls beyond
+the same end changed its width by 72.47px and height by 7.30px in a 360×64px fixture, while its centre
+was stationary. Calm now derives shape-driving speed from the same bounded target used by grasp
+tracking. Further motion outside a saturated anchor adds no fictitious travel; returning to the tab
+range resumes the ordinary deformation. Both end anchors report zero width/height change in the
+corrected test. Whole-bar feedback and raw navigation intent remain separate. This is a causal
+interaction correction, not a new fitted Apple speed or timing parameter.
+
 The portable Skia adapter executes these same production shaders outside Compose. On the current software
 ramp fixtures, all four material profiles differ from JVM Skia by at most one channel level out of 255.
 This is a backend agreement measurement, not an iOS equivalence score or a browser GPU benchmark.

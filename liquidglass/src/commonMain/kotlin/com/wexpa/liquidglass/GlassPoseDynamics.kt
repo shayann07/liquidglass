@@ -596,7 +596,15 @@ internal class GlassPoseController(
         if (hasPointerTime) {
             val dt = (eventSeconds - lastPointerTime).toFloat()
             if (dt > 1e-5f) {
-                val vx = (x - lastPointerX) / dt
+                // Calm travel shape must use the distance the end anchors permit. Raw pointer
+                // speed keeps exciting a stationary selector when a drag continues outside the
+                // bar. Use the same bounded target as grasp tracking, evaluating both samples
+                // with the current material offset so shape changes cannot invent input speed.
+                val vx = if (spec.travelOnly && mode == GlassPoseMode.Held && hasGrasp) {
+                    frame.materialToRendered(graspQx, graspQy, scratch)
+                    val offset = scratch[0] - pose.cx
+                    (anchoredCentre(x - offset) - anchoredCentre(lastPointerX - offset)) / dt
+                } else (x - lastPointerX) / dt
                 val vy = (y - lastPointerY) / dt
                 // Acceleration from the change in velocity over real elapsed time, low-passed in
                 // seconds. Differentiating a single event pair unfiltered would be noise.
@@ -929,8 +937,7 @@ internal class GlassPoseController(
             // Preserve the grasp inside the anchor range. Beyond it, resist the target before
             // stepping, rather than clipping only the displayed centre and storing overshoot.
             // grabCentreFor still resolves raw intent, so the end tabs remain reachable.
-            graspX.target = glassAnchoredTravel(pointerX - shapeX, bar.firstCentre,
-                bar.lastCentre, spec.endTravelCapRatio * bar.height) + shapeX
+            graspX.target = anchoredCentre(pointerX - shapeX) + shapeX
             graspY.target = pointerY
             graspX.step(dt, spec.graspOmega, 1f)
             graspY.step(dt, spec.graspOmega, 1f)
@@ -1462,6 +1469,10 @@ internal class GlassPoseController(
 
     private val scratchSpring = GlassSpring()
     private val statePair = FloatArray(2)
+
+    private fun anchoredCentre(x: Float): Float = glassAnchoredTravel(
+        x, bar.firstCentre, bar.lastCentre, spec.endTravelCapRatio * bar.height,
+    )
 
     /** The declared safety limits, enforced every substep rather than assumed. */
     private fun clampShape() {

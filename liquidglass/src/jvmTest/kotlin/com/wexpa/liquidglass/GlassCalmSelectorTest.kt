@@ -56,6 +56,47 @@ class GlassCalmSelectorTest {
         println("CALM_TRAVEL short=$short long=$long rest=78")
     }
 
+    @Test fun movementBeyondAnEndAnchorDoesNotInventSelectorTravel() {
+        for (edge in listOf(0, bar.count - 1)) {
+            val sign = if (edge == 0) -1f else 1f
+            val c = controller(); c.snapToRest(edge)
+            c.pointerDown(bar.centreOf(edge), 32f, 0.0, true)
+            advance(c, 0f, .8f)
+            c.beginDrag(bar.centreOf(edge), 32f)
+            c.pointerMove(bar.centreOf(edge) + sign * 1000f, 32f, .8)
+            advance(c, .8f, 2f)
+            val held = GlassPoseExtents().also(c::extents)
+            val centre = c.centreX
+            var maximumWidthError = 0f
+            var maximumHeightError = 0f
+            // The target is already saturated. More outward travel, reversing while still
+            // outside, and diagonal movement must not act like travel between tabs.
+            for (i in 1..120) {
+                val t = 2f + i / 120f
+                val distance = if ((i / 12) % 2 == 0) 1000f else 10000f
+                c.pointerMove(bar.centreOf(edge) + sign * distance, if (i % 2 == 0) -2000f else 2000f, t.toDouble())
+                c.advanceFrameTo(t)
+                val e = GlassPoseExtents().also(c::extents)
+                maximumWidthError = maxOf(maximumWidthError, abs(e.width - held.width))
+                maximumHeightError = maxOf(maximumHeightError, abs(e.height - held.height))
+                assertEquals(centre, c.centreX, .5f, "stationary end target moved")
+                assertFalse(c.solverFailed)
+            }
+            println("CALM_END_ANCHOR edge=$edge widthError=$maximumWidthError heightError=$maximumHeightError")
+            assertTrue(maximumWidthError < .5f, "unavailable travel stretched selector by $maximumWidthError px")
+            assertTrue(maximumHeightError < .5f, "unavailable travel squeezed selector by $maximumHeightError px")
+            // Returning to the tab range must resume deformation and preserve navigation intent.
+            val destination = if (edge == 0) 2 else 1
+            for (i in 1..60) {
+                val x = bar.centreOf(edge) + (bar.centreOf(destination) - bar.centreOf(edge)) * i / 60f
+                c.pointerMove(x, 32f, (3f + i / 120f).toDouble())
+            }
+            assertTrue(c.elongationPx > 1f, "real travel lost its shape response")
+            c.pointerUp(destination); advance(c, 3.5f, 5.5f)
+            assertEquals(bar.centreOf(destination), c.centreX, .5f)
+        }
+    }
+
     @Test fun heldAndReleasedTravelKeepTheirShapeResponseWithoutReinflating() {
         val rows = arrayListOf("gesture,target,time,width,height,formation")
         fun trace(target: Int, release: Boolean): Float {

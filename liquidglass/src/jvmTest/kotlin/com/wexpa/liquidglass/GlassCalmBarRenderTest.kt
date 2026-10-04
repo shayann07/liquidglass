@@ -62,6 +62,22 @@ class GlassCalmBarRenderTest {
             node.performTouchInput { advanceEventTime(250);moveTo(position) }
             waitForIdle();capture(label)
         }
+        val endWidth = node.fetchSemanticsNode().config[GlassTabBarSemantics.BodyWidth]
+        mainClock.autoAdvance = false
+        // Already at the left end, then keep dragging farther outside it. Observe in-flight
+        // frames, not just a waitForIdle snapshot after the erroneous deformation has recovered.
+        repeat(12) { i ->
+            node.performTouchInput {
+                advanceEventTime(16)
+                moveTo(Offset(if (i % 2 == 0) -4000f else -2000f, -2000f))
+            }
+            mainClock.advanceTimeBy(16)
+            waitForIdle()
+            assertEquals(endWidth, node.fetchSemanticsNode().config[GlassTabBarSemantics.BodyWidth], .5f,
+                "out-of-range pointer motion stretched the stationary selector")
+        }
+        capture("outward-motion")
+        mainClock.autoAdvance = true
         node.performTouchInput { up() };waitForIdle();capture("released")
         assertEquals(false,node.fetchSemanticsNode().config[GlassTabBarSemantics.Held])
     }

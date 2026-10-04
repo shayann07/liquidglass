@@ -165,6 +165,46 @@ press and held-travel settings stay unchanged.
 after the correction, including cadence, idle resume, held extremes and throw recovery. The initial
 failed Calm arrival check remains recorded in `verification.json`.
 
+### End-anchor travel: movement outside the bar is not selector travel
+
+The original T04 crop above and the owner's distinction between bar squeeze and selector travel
+prompted an additional audit at the end anchors. The centre was already bounded, but the shape
+still used raw finger speed. Reversing between two positions far beyond the same end therefore
+stretched and squeezed a selector that had nowhere left to travel.
+
+| 360×64px controller fixture, saturated left anchor | Before | After |
+| --- | ---: | ---: |
+| Maximum width change from the settled hold | 72.47px | 0.00px |
+| Maximum height change from the settled hold | 7.30px | 0.00px |
+
+The new regression initially failed. Calm now differentiates the bounded grasp target, using the
+same anchor function for shape-driving speed and centre tracking. Both samples use the current
+grasp offset, preventing a change in the shape itself from masquerading as finger velocity.
+Further outward, reverse-outward and diagonal motion beyond a saturated anchor introduces no
+new selector travel. Returning inside the tab range resumes deformation; raw selection intent and
+whole-bar feedback keep their separate roles. The right-anchor test also records zero change.
+This is a causal correctness check, not a fitted Apple pointer-speed measurement.
+
+All 39 focused controller/reference/lifecycle tests pass, including the original height and arrival
+gates. The short/long held and released travel measurements above remain unchanged. The actual
+Compose navigation test also checks 12 in-flight frames beyond the left anchor, rather than waiting
+for a wrong shape to recover before taking a screenshot. It passes in 52.46s; the production fling
+test passes in 5.72s. The combined full build for this correction is pending.
+
+![Production bar during continued outward pointer motion](atlas/bar-outward-motion.png)
+
+This is a 480×220px Compose software-renderer capture with quarter-scale backdrop sampling. Its
+selector is at the left anchor and the pointer keeps moving between x=-2000 and x=-4000. The bar's
+layout bounds and valid selector geometry are asserted throughout. This is not a matched iOS render.
+
+![Current Atlas native Lines scene](atlas/native-end-anchor.png)
+
+The current Atlas application also launched and captured its own 1920×1051 Direct3D buffer.
+The line-grid magnifier retains a continuous interior. Static redraw submissions over 120 samples
+after ten warmups measured median 10.83ms, p95 14.66ms and maximum 18.31ms;
+[raw timings](atlas/native-end-anchor-timing.json). These are not presented frames or input latency,
+and the static native capture does not itself verify the edge gesture covered by the component test.
+
 ### Portable production rendering
 
 `ports/skia` exports the evaluated production material/content/aperture shaders and provides a
@@ -296,7 +336,10 @@ The build workflow now permits Gradle cache writes on same-repository pull reque
 forks remain read-only. This follows the [action's cache setting](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#using-the-cache-read-only)
 and [GitHub's branch/PR cache isolation](https://docs.github.com/en/actions/reference/workflows-and-actions/dependency-caching#restrictions-for-accessing-a-cache).
 It is intended to avoid repeatedly rendering unchanged tests on later updates; no measured CI speedup
-is claimed until a successful cache save and subsequent cache hit are observed. CodeQL still forces
+is claimed until a successful cache save and subsequent cache hit are observed. Run 37154921387 at
+`15cd8bf` passed all seven checks and saved the updated Gradle task cache. Its slower 26m28s full build
+still ran 320 library tests (293 passed, 27 skipped) and both desktop tests successfully; this is a
+cache-save observation, not evidence of a speedup. CodeQL still forces
 an uncached compilation so its analysis sees the source.
 
 Original source remains Apache-2.0 with preserved third-party attributions. The research screenshots
