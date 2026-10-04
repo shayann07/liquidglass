@@ -106,8 +106,10 @@ the calm preset, continuous lens and parent-driven pull API.
 The isolated owner workspace uses its private Gradle/Maven wrapper for both operations.
 
 See [implementation status](implementation-status.md) for test and physical-review results.
-Full iOS parity remains unproven: rim chroma, exact input timing and the strict endpoint
-optical gate remain open. Android below API 33 uses the material fallback instead of AGSL.
+Full iOS parity remains unproven: rim chroma and exact input timing remain open. The strict
+endpoint composition gate passes for separate-input Desktop Calm and CanvasKit; Android and legacy
+retain the earlier rounding limit. See the [compositor contract](porting.md#combining-refracted-ink-with-glass).
+Android below API 33 uses the material fallback instead of AGSL.
 
 
 ## Separate press, pull and navigation

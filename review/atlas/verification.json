@@ -287,6 +287,38 @@
     "rejectedCandidate": "Shader-only strip offset lost selected Lines ink outside the native window",
     "correction": "Separate runtime-filter inputs; declare the ink offset in the filter graph",
     "scope": "Desktop Calm navigation; portable separate-input shader. Android and legacy retain composed C1.",
-    "fullCi": "pending"
+    "fullCi": "all seven checks passed at fdae281, CI 37168022770"
+  },
+  "whole-bar-reference-bound": {
+    "source": "IMG_6756.MP4",
+    "restPts": "20819/600",
+    "heldPts": "21019/600",
+    "extremePts": "29863/600",
+    "crop": [0, 2092, 1170, 440],
+    "columns": [400, 450, 500, 550],
+    "thresholds": [5, 10, 15],
+    "restHeightPx": 186,
+    "heldHeightPx": 196,
+    "calmPressHeightPx": 191.58,
+    "extremeHeightPx": [204, 205],
+    "portableMaximumHeightPx": 194.2524,
+    "portableDirections": 72,
+    "portableMathTests": 11,
+    "scope": "Conservative height ceiling only. Ordinary press is below the reference and asymmetric extreme growth remains unmatched; finger gain and timing unidentified."
+  },
+  "ci-build-fdae281": {
+    "run": 37168022770,
+    "commit": "fdae2814186ef091fb6fd98f65c0ea32a2bf7416",
+    "tests": 323,
+    "passed": 296,
+    "skipped": 27,
+    "failed": 0,
+    "desktopTests": 2,
+    "buildDuration": "18m13s",
+    "localDuration": "22m54s",
+    "requiredChecks": "all seven passed",
+    "browserTests": 4,
+    "skiaTests": 6,
+    "portableMathTests": 10
   }
 }

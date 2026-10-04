@@ -85,8 +85,11 @@ suite had seven coroutine timeouts; the unchanged gesture assertions passed both
 recheck and the fresh r9.1 suite. The failed run remains in the local evidence record.
 
 Full 1:1 parity is not yet established. The rim/source map is being refined; exact original
-pointer timing is unidentified. The strict one-code-value endpoint gate remains above its
-limit (1.4256). An internal tolerance of 1.5 must not be read as a strict pass.
+pointer timing is unidentified. In these historical device revisions, the strict one-code-value endpoint
+gate is above its limit (1.4256). An internal tolerance of 1.5 must not be read as a strict pass.
+The later separate-input Desktop Calm path measures 0.9569 on the same gate; it does not change
+Android's compositor or retrospectively upgrade these device results. See the
+[current research update](research/atlas-stabilization.md#endpoint-precision-and-native-clipping).
 
 In the FT8 pairs, r9.1 measured 15.60 ms median and 26.47 ms p95 HWUI completion latency,
 versus r8's 15.72/26.12 ms. This batch passes the +2 ms median and 1.10x p95 regression

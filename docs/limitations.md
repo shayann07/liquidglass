@@ -218,8 +218,10 @@ The shared anchored interaction is documented in [generic interaction](generic-i
 The nav pose controller and generic material transform remain distinct. Parent-driven
 `GlassPressSource.press(point, pullOffset)` now exposes cumulative parent-driven pull; normal
 self-interacting controls do not need it. Rim chroma and exact original
-pointer timing remain unresolved. The strict endpoint error is 1.4256 code values against a
-1.0 limit; the internal 1.5 tolerance is not a strict pass. Optional glass cards stay off by
+pointer timing remain unresolved. The historical/Android endpoint error is 1.4256 code values against a
+1.0 limit; the internal 1.5 tolerance is not a strict pass. Separate-input Desktop Calm now measures
+0.9569 on the same gate; see [endpoint precision](research/atlas-stabilization.md#endpoint-precision-and-native-clipping)
+for its scope and backend costs. Optional glass cards stay off by
 default because their measured cost is high. See [implementation status](implementation-status.md).
 
 

@@ -78,6 +78,53 @@ Restoring 1.20 gives 223.20px height and 345.19px width, within the original 225
 This chosen bound is not a universal maximum for all Apple materials or a measured finger trace.
 The existing reference fixture preserves the previous T01 height fit independently.
 
+### Whole-bar bound, measured separately
+
+The selector-height audit above does not bound the surrounding bar. A fresh decode of the original
+`IMG_6756.MP4` at PTS 20819/600 (34.698333s, rest) and 29863/600 (49.771667s, T04 extreme hold)
+gives the following outer-body measurements. These are full-density 1170×440 crops at `(0,2092)`,
+not resized contact-sheet tiles.
+
+| Rest | Ordinary hold | Extreme hold |
+| --- | --- | --- |
+| ![Original resting bar](atlas/reference-bar-rest.png) | ![Original held bar](atlas/reference-bar-held.png) | ![Original extreme whole bar](atlas/reference-bar-extreme.png) |
+
+At unoccluded columns 400, 450, 500 and 550, thresholds 5/10/15 out of 255 give **186px** resting
+height and **204–205px** held height. All four columns agree. The resting top/bottom rows are
+191/376; the held top is 171–172 and bottom 375, relative to the crop. Thus most of the growth is
+above the original bar. This contradicts treating the reference as a perfectly centre-symmetric
+expansion. The current anchored material model is intentionally conservative; that asymmetric response
+is still a parity difference, not silently dismissed as measurement noise. Neither frame reveals a
+finger position, so these values cannot identify input gain or a timing curve.
+
+The intervening ordinary hold at PTS 21019/600 (35.031667s) measures **196px**, rows 186–381,
+at the same columns and all three thresholds. Its growth is approximately symmetric about the
+resting centre. The extra extreme deformation is therefore 8–9px beyond ordinary hold, not the
+full 18–19px beyond rest. This independently supports separating press from drag strain. The current
+generic Calm press alone is 191.58px at this geometry; it undershoots this ordinary-held reference.
+That is another remaining fit difference, even though the no-excess-strain bound passes.
+
+The portable Calm regression now uses the measured **205px** upper height as a separate bound. It
+tests 72 pull directions, 10,000 logical-pixel excursions, and press/release frames with the 834×186px
+bar at density three. An independent capsule support function measures maximum height **194.2524px**.
+This passes a no-excess-stretch bound; it is below the original extreme and does **not** establish a
+matched iOS deformation. No motion constant was refitted. Eleven portable numerical tests pass.
+
+Reproduction requires ffmpeg with zscale and Python with Pillow. Decode each timestamp using this
+filter, preserving one native frame, then run the checked-in measurement tool:
+
+```text
+zscale=t=linear:npl=100,format=gbrpf32le,zscale=p=bt709:t=iec61966-2-1:m=bt709:r=full,format=rgb24,crop=1170:440:0:2092
+```
+
+```sh
+python tools/measure_phone_bar.py review/atlas/reference-bar-rest.png review/atlas/reference-bar-held.png review/atlas/reference-bar-extreme.png
+```
+
+[Per-column measurements](atlas/reference-bar-bounds.json) preserve the threshold sensitivity.
+This PQ-to-sRGB decode is suitable for these high-contrast geometric edges; it is not a display
+photometric calibration. The native video PTS were checked with ffmpeg `-copyts` and `showinfo`.
+
 ## Desktop visual evidence
 
 Both full-window images below are native Skia buffer captures on Windows, at 1920×1051, Direct3D.
@@ -358,7 +405,11 @@ The full local suite was intentionally stopped after the failed native capture, 
 result; it is not reported as passed. The corrected source passes 25 focused JVM tests, including
 all 14 Calm gesture tests, extreme bar pulls, the endpoint gates, clipped filter inputs and the
 generated-shader identity check. The Android sample assembles successfully. The complete library
-and desktop suites are running separately; their result is not inferred from the focused checks.
+and desktop suites then passed at `fdae281`: 323 library tests (296 passed, 27 skipped, zero
+failures), plus both desktop tests. The local run took 22m54s. All seven required GitHub checks
+passed in [run 37168022770](https://github.com/shayann07/liquidglass/actions/runs/37168022770);
+the full build job took 18m13s, with the library suite reporting 16m38.38s and desktop 3m22.55s.
+That run also passed all four hosted browser tests. No current physical-device verification is claimed.
 
 ![Corrected production compositor during a hold](atlas/endpoint-bar-held.png)
 

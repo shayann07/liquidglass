@@ -1,0 +1,272 @@
+[
+  {
+    "image": "reference-bar-rest.png",
+    "threshold": 5,
+    "edges": [
+      {
+        "x": 400,
+        "top": 191,
+        "bottom": 376,
+        "height": 186
+      },
+      {
+        "x": 450,
+        "top": 191,
+        "bottom": 376,
+        "height": 186
+      },
+      {
+        "x": 500,
+        "top": 191,
+        "bottom": 376,
+        "height": 186
+      },
+      {
+        "x": 550,
+        "top": 191,
+        "bottom": 376,
+        "height": 186
+      }
+    ]
+  },
+  {
+    "image": "reference-bar-rest.png",
+    "threshold": 10,
+    "edges": [
+      {
+        "x": 400,
+        "top": 191,
+        "bottom": 376,
+        "height": 186
+      },
+      {
+        "x": 450,
+        "top": 191,
+        "bottom": 376,
+        "height": 186
+      },
+      {
+        "x": 500,
+        "top": 191,
+        "bottom": 376,
+        "height": 186
+      },
+      {
+        "x": 550,
+        "top": 191,
+        "bottom": 376,
+        "height": 186
+      }
+    ]
+  },
+  {
+    "image": "reference-bar-rest.png",
+    "threshold": 15,
+    "edges": [
+      {
+        "x": 400,
+        "top": 191,
+        "bottom": 376,
+        "height": 186
+      },
+      {
+        "x": 450,
+        "top": 191,
+        "bottom": 376,
+        "height": 186
+      },
+      {
+        "x": 500,
+        "top": 191,
+        "bottom": 376,
+        "height": 186
+      },
+      {
+        "x": 550,
+        "top": 191,
+        "bottom": 376,
+        "height": 186
+      }
+    ]
+  },
+  {
+    "image": "reference-bar-held.png",
+    "threshold": 5,
+    "edges": [
+      {
+        "x": 400,
+        "top": 186,
+        "bottom": 381,
+        "height": 196
+      },
+      {
+        "x": 450,
+        "top": 186,
+        "bottom": 381,
+        "height": 196
+      },
+      {
+        "x": 500,
+        "top": 186,
+        "bottom": 381,
+        "height": 196
+      },
+      {
+        "x": 550,
+        "top": 186,
+        "bottom": 381,
+        "height": 196
+      }
+    ]
+  },
+  {
+    "image": "reference-bar-held.png",
+    "threshold": 10,
+    "edges": [
+      {
+        "x": 400,
+        "top": 186,
+        "bottom": 381,
+        "height": 196
+      },
+      {
+        "x": 450,
+        "top": 186,
+        "bottom": 381,
+        "height": 196
+      },
+      {
+        "x": 500,
+        "top": 186,
+        "bottom": 381,
+        "height": 196
+      },
+      {
+        "x": 550,
+        "top": 186,
+        "bottom": 381,
+        "height": 196
+      }
+    ]
+  },
+  {
+    "image": "reference-bar-held.png",
+    "threshold": 15,
+    "edges": [
+      {
+        "x": 400,
+        "top": 186,
+        "bottom": 381,
+        "height": 196
+      },
+      {
+        "x": 450,
+        "top": 186,
+        "bottom": 381,
+        "height": 196
+      },
+      {
+        "x": 500,
+        "top": 186,
+        "bottom": 381,
+        "height": 196
+      },
+      {
+        "x": 550,
+        "top": 186,
+        "bottom": 381,
+        "height": 196
+      }
+    ]
+  },
+  {
+    "image": "reference-bar-extreme.png",
+    "threshold": 5,
+    "edges": [
+      {
+        "x": 400,
+        "top": 171,
+        "bottom": 375,
+        "height": 205
+      },
+      {
+        "x": 450,
+        "top": 171,
+        "bottom": 375,
+        "height": 205
+      },
+      {
+        "x": 500,
+        "top": 171,
+        "bottom": 375,
+        "height": 205
+      },
+      {
+        "x": 550,
+        "top": 171,
+        "bottom": 375,
+        "height": 205
+      }
+    ]
+  },
+  {
+    "image": "reference-bar-extreme.png",
+    "threshold": 10,
+    "edges": [
+      {
+        "x": 400,
+        "top": 171,
+        "bottom": 375,
+        "height": 205
+      },
+      {
+        "x": 450,
+        "top": 171,
+        "bottom": 375,
+        "height": 205
+      },
+      {
+        "x": 500,
+        "top": 171,
+        "bottom": 375,
+        "height": 205
+      },
+      {
+        "x": 550,
+        "top": 171,
+        "bottom": 375,
+        "height": 205
+      }
+    ]
+  },
+  {
+    "image": "reference-bar-extreme.png",
+    "threshold": 15,
+    "edges": [
+      {
+        "x": 400,
+        "top": 172,
+        "bottom": 375,
+        "height": 204
+      },
+      {
+        "x": 450,
+        "top": 172,
+        "bottom": 375,
+        "height": 204
+      },
+      {
+        "x": 500,
+        "top": 172,
+        "bottom": 375,
+        "height": 204
+      },
+      {
+        "x": 550,
+        "top": 172,
+        "bottom": 375,
+        "height": 204
+      }
+    ]
+  }
+]

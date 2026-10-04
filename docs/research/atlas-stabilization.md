@@ -21,6 +21,19 @@ settled-height ratio stays within that reference's tolerance. An initial 1.16 ca
 215.76px against 225±4px and was rejected by the original-reference test. The slower springs remain
 authored choices; reducing drag sensitivity does not justify shrinking the settled hold.
 
+A separate whole-bar audit decodes original PTS 20819/600 and 29863/600 from `IMG_6756`. Four
+unoccluded columns and three edge thresholds give a 186px resting bar and 204–205px extreme held
+bar. Growth is mostly above its resting top edge; the bottom changes only about one pixel. The
+current centre-anchored response is therefore conservative, not a matched reconstruction. Its
+portable 72-direction extreme-pull regression peaks at 194.2524px against the measured 205px ceiling.
+This bound prevents excess deformation; it does not identify a finger gain or close the asymmetry gap.
+Full-density original crops, PTS, thresholds and the reproducible measurement tool are in the
+stabilization record. No spring or deformation constant was refitted in this audit.
+An intervening ordinary-held frame at PTS 21019/600 measures 196px with symmetric growth. The
+extra extreme deformation is only 8–9px beyond that hold, separating it from press expansion.
+The current generic Calm press is 191.58px at this geometry, so ordinary-held amplitude also remains
+below the reference. Passing an upper bound alone cannot establish a correct press or drag model.
+
 ## Why the magnifier is continuous
 
 For normalized squared radius `r²`, the source offset is `-p*m*(1-r²)²`, with `m=1-1/zoom`.

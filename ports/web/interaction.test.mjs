@@ -6,6 +6,28 @@ import {calmFeedback} from './core.mjs';
 const near = (a,b,tolerance=1e-8) => assert.ok(Math.abs(a-b)<=tolerance, `${a} differs from ${b}`);
 const options = {width:320,height:72,radius:36,x:20,y:20,viewportWidth:360,viewportHeight:112};
 
+test('whole-bar extreme pulls stay below the original Phone T04 body-height bound', () => {
+  // IMG_6756 at PTS 20819/600 and 29863/600: unoccluded bar186 -> 204..205px.
+  // This is a ceiling, not a fitted trajectory: the reference contains no finger coordinates.
+  const density=3, width=834/density, height=186/density, radius=93/density;
+  let maximum=0;
+  for(let degrees=0;degrees<360;degrees+=5) {
+    const angle=degrees*Math.PI/180, motion=createCalmInteraction({width,height,radius});
+    motion.press(0,Math.cos(angle)*10000,Math.sin(angle)*10000);
+    for(let frame=1;frame<=240;frame++) {
+      const time=frame/120;
+      if(frame===120)motion.release(time);
+      const [, , c,d]=motion.sample(time).matrix;
+      // Independent support function of a transformed capsule; no renderer's bounds helper.
+      const bodyHeight=2*(Math.abs(c)*(width/2-radius)+radius*Math.hypot(c,d))*density;
+      maximum=Math.max(maximum,bodyHeight);
+      assert.ok(bodyHeight<=205,`bar exceeded the original extreme bound: ${bodyHeight}`);
+    }
+  }
+  assert.ok(maximum>186,'test never exercised material growth');
+  console.log(`PHONE_T04_BAR maximum=${maximum.toFixed(4)} reference=204..205`);
+});
+
 test('press is gradual, does not snap on release, and eventually stops requesting frames', () => {
   const motion=createCalmInteraction(options);
   assert.deepEqual(motion.press(0).matrix,[1,0,0,1]);
