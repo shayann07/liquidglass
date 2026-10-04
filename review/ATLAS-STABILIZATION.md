@@ -151,6 +151,11 @@ library tests (298 passed, 27 skipped), both desktop tests, Android builds, twel
 checks, six Skia tests and four browser checks. Its full build took 24m44s
 ([run 37189818625](https://github.com/shayann07/liquidglass/actions/runs/37189818625)).
 This precedes the brightness and scheduling correction; their full run is recorded separately.
+The brightness/scheduling revision `b1b5695` then passed all seven hosted checks in
+[run 37191244540](https://github.com/shayann07/liquidglass/actions/runs/37191244540): 326 library
+tests (299 passed, 27 skipped), both desktop tests, Android builds and portable/browser suites.
+The hosted build took 15m22s. Its local serial run later lost its process handle without writing
+a completion result; that local run is **not** counted as passed or silently restarted.
 
 The corrected source also launches and captures its own native Direct3D buffer at 1920×1051:
 
@@ -162,6 +167,35 @@ held feedback. This run's static forced-redraw submission times were **18.97ms m
 They are slower than the preceding 9.21/12.46/14.90ms capture, so no performance improvement or
 presented-frame budget is claimed. These are separate desktop observations, not an alternating
 controlled benchmark; Android performance remains unverified.
+
+## Portable rounded surfaces
+
+The portable painter now exposes `drawSurface(canvas, bounds, options)` alongside `drawLens`.
+It binds the production measured shader, supplies the in-app light/dark material and builds its
+quarter-resolution wide tone image. Callers supply an opaque backdrop and keep their layout,
+labels and input. The terminal and browser examples use the same API.
+
+![Production shaders outside Compose: lenses above, dark and light surfaces below](atlas/portable-surfaces.png)
+
+This is a 640×360 CanvasKit software render, not an iOS comparison or native GPU performance result.
+Nine earlier portable checks plus the new Gaussian-scale check pass. The source/profile fixtures
+still agree with independent JVM pixels within one channel level. Eighteen parameter fixtures come
+from the actual Kotlin `GlassStyle.inApp` factory: both appearances at nine tint values. That test
+caught alpha quantization and fine-share differences before the adapter was accepted.
+
+An independent ramp probe caught an initial virtual-strip error: with a panel origin at `(80,80)`,
+a requested wide sample at `(100,40)` returned `(85,172)`. Reserving the entire sharp-coordinate
+range, including negative local coordinates, corrected the mapping. A sinusoidal input with period
+64px and sigma 10px retains **0.6137** amplitude, against the Gaussian prediction **0.6176** (0.04
+test tolerance for quarter sampling and 8-bit quantization). This verifies blur scale independently
+of the implementation's filter call.
+
+One tone image is retained per painter. Moving panels reuse it; source replacement invalidates it.
+CanvasKit returns distinct JavaScript wrappers for the same native canvas, so cache identity uses
+`isAliasOf`; reference identity alone would have caused a blur rebuild every frame. The allocation
+regression checks that repeated wrappers allocate once, and reset allocates again. The temporary
+surface inherits the target backend; production drawing performs no CPU readback. Different material
+densities can replace the single cache. No bounded frame-time claim is made for live backdrop changes.
 
 Reproduction requires ffmpeg with zscale and Python with Pillow. Decode each timestamp using this
 filter, preserving one native frame, then run the checked-in measurement tool:

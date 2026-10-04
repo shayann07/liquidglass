@@ -88,10 +88,12 @@ covers the shared compositor contract, GPU input bounds, memory cost and Android
 | Other Skia hosts | Generated material, content and aperture shaders; native bindings still need host integration and tests |
 | Other frameworks | See the [porting contract](docs/porting.md); native adapters remain work in progress |
 
-The Skia preview includes `createGlassPainter`: set one source image, draw lenses by position and size,
+The Skia preview includes `createGlassPainter`: set one source image, draw lenses or rounded glass surfaces,
 then dispose. It manages shader uniforms and temporary resources; you retain your own layout, input,
 accessible controls and backdrop capture. Run `npm ci --ignore-scripts && npm run example` in
 `ports/skia` for an executable example without Compose or a browser.
+`drawSurface(canvas, bounds, {dark: true, tintAmount: 50})` adds the production in-app material and
+cached wide-tone blur without manual shader setup. [Surface options and lifecycle](ports/skia/README.md#draw-a-custom-material).
 For motion, `createCalmInteraction` supplies framework-independent press/pull, cancellation, viewport
 containment and reduced motion. Feed timestamps and cumulative displacement; apply its matrix to the
 material drawing. [Portable feedback API and host example](docs/porting.md#portable-calm-feedback).

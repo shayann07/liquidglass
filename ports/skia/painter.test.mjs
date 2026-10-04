@@ -4,10 +4,128 @@ import {readFile, mkdir, writeFile} from 'node:fs/promises';
 import CanvasKitInit from 'canvaskit-wasm';
 import {createGlassPainter} from './painter.mjs';
 import {createCalmInteraction} from '../web/interaction.mjs';
+import {createBackdropSampler} from './backdrop.mjs';
+import {inAppMaterialUniforms} from './material.mjs';
+import {compileGlassEffects} from './renderer.mjs';
 
 const kit = await CanvasKitInit();
 const sources = Object.fromEntries(await Promise.all(['material','content','endpoint'].map(async name =>
   [name, await readFile(new URL(`shaders/${name}.sksl`, import.meta.url), 'utf8')])));
+
+test('in-app surface parameters agree with the actual Kotlin factory across both appearances', async () => {
+  const fixtures=JSON.parse(await readFile(new URL('fixtures/in-app-material.json',import.meta.url),'utf8'));
+  const effects=compileGlassEffects(kit,sources);
+  try {
+    for(const {dark,tintAmount,values} of fixtures) {
+      const actual=inAppMaterialUniforms(effects,{width:240,height:80,dark,tintAmount});
+      for(const [key,value] of Object.entries(values)) {
+        const expected=Array.isArray(value)?value:[value],got=Array.isArray(actual[key])?actual[key]:[actual[key]];
+        expected.forEach((x,i)=>assert(Math.abs(x-got[i])<=1e-6,`${key}[${i}] dark${dark} tint${tintAmount}: ${got[i]} vs Kotlin${x}`));
+      }
+    }
+  } finally {effects.dispose();}
+});
+
+test('wide-tone samples preserve global page coordinates outside a panels local origin', () => {
+  const w=240,h=180,info={width:w,height:h,colorType:kit.ColorType.RGBA_8888,
+    alphaType:kit.AlphaType.Premul,colorSpace:kit.ColorSpace.SRGB};
+  const pixels=new Uint8Array(w*h*4);
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++)pixels.set([x,y,64,255],(y*w+x)*4);
+  const image=kit.MakeImage(info,pixels,w*4),surface=kit.MakeSurface(1,1),sampler=createBackdropSampler(kit);
+  const probe=kit.RuntimeEffect.Make('uniform shader source;uniform float2 point;half4 main(float2 p){return source.eval(point);}');
+  const paint=new kit.Paint(),canvas=surface.getCanvas();
+  let allocated=0;
+  const allocate=canvas.makeSurface.bind(canvas);
+  canvas.makeSurface=info=>{allocated++;return allocate(info);};
+  try {
+    for(const [ox,oy] of [[80,80],[-10,-10],[100,30]]) {
+      const host=surface.getCanvas();
+      host.makeSurface=canvas.makeSurface;
+      const sampled=sampler.shader(host,image,ox,oy,10);
+      try {
+        for(const [x,y] of [[100,40],[140,120]]) {
+          const shader=probe.makeShaderWithChildren(new Float32Array([(x-ox)/4,sampled.strip+(y-oy)/4]),[sampled.shader]);
+          try {
+            paint.setShader(shader);canvas.drawPaint(paint);surface.flush();
+            const p=canvas.readPixels(0,0,{...info,width:1,height:1});
+            // Gaussian blur preserves a linear ramp away from source edges.
+            assert(Math.abs(p[0]-x)<=2&&Math.abs(p[1]-y)<=2,`wide sample moved: origin${ox},${oy}, wanted${x},${y}, got${p[0]},${p[1]}`);
+          } finally {paint.setShader(null);shader.delete();}
+        }
+      } finally {sampled.shader.delete();}
+    }
+    assert.equal(allocated,1,'moving panels reblurred an unchanged backdrop');
+    sampler.reset();const rebuilt=sampler.shader(canvas,image,0,0,10);rebuilt.shader.delete();
+    assert.equal(allocated,2,'reset reused stale tone data');
+  } finally {paint.delete();probe.delete();sampler.dispose();surface.delete();image.delete();}
+});
+
+test('quarter-sized tone cache retains the requested Gaussian scale', () => {
+  const w=256,h=96,info={width:w,height:h,colorType:kit.ColorType.RGBA_8888,
+    alphaType:kit.AlphaType.Premul,colorSpace:kit.ColorSpace.SRGB},pixels=new Uint8Array(w*h*4);
+  const frequency=2*Math.PI/64,amplitude=80,sigma=10;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++) {
+    const v=Math.round(128+amplitude*Math.cos(frequency*(x+.5)));
+    pixels.set([v,v,v,255],(y*w+x)*4);
+  }
+  const image=kit.MakeImage(info,pixels,w*4),surface=kit.MakeSurface(1,1),canvas=surface.getCanvas();
+  const sampler=createBackdropSampler(kit),backdrop=sampler.shader(canvas,image,0,0,sigma);
+  const effect=kit.RuntimeEffect.Make('uniform shader source;uniform float2 point;half4 main(float2 p){return source.eval(point);}');
+  const paint=new kit.Paint();let projection=0;
+  try {
+    for(let x=80;x<144;x++) {
+      const shader=effect.makeShaderWithChildren(new Float32Array([(x+.5)/4,backdrop.strip+48/4]),[backdrop.shader]);
+      try {
+        paint.setShader(shader);canvas.drawPaint(paint);surface.flush();
+        const p=canvas.readPixels(0,0,{...info,width:1,height:1});
+        projection+=(p[0]-128)*Math.cos(frequency*(x+.5));
+      } finally {paint.setShader(null);shader.delete();}
+    }
+    const gain=2*projection/(64*amplitude),expected=Math.exp(-.5*(frequency*sigma)**2);
+    assert(Math.abs(gain-expected)<.04,`tone blur gain${gain} differs from independent Gaussian${expected}`);
+    console.log(`WIDE_KERNEL gain=${gain.toFixed(4)} Gaussian=${expected.toFixed(4)}`);
+  } finally {paint.delete();effect.delete();backdrop.shader.delete();sampler.dispose();surface.delete();image.delete();}
+});
+
+test('in-app surfaces preserve measured plateaus, rounded coverage, source replacement and host transforms', async () => {
+  const w=320,h=180,info={width:w,height:h,colorType:kit.ColorType.RGBA_8888,
+    alphaType:kit.AlphaType.Premul,colorSpace:kit.ColorSpace.SRGB};
+  const surface=kit.MakeSurface(w,h),canvas=surface.getCanvas(),painter=createGlassPainter(kit,sources);
+  const blackPixels=new Uint8Array(w*h*4);for(let i=3;i<blackPixels.length;i+=4)blackPixels[i]=255;
+  const black=kit.MakeImage(info,blackPixels,w*4),white=kit.MakeImage(info,new Uint8Array(w*h*4).fill(255),w*4);
+  const bounds={x:32,y:30,width:240,height:110,radius:[24,16,8,0]};
+  const pixel=(pixels,x,y,c=0)=>pixels[(y*w+x)*4+c];
+  try {
+    assert.throws(()=>painter.drawSurface(canvas,bounds),/setSource/);
+    for(const [source,dark,expected] of [[black,true,35],[white,true,175],[black,false,136],[white,false,247]]) {
+      painter.setSource(source);canvas.clear(kit.TRANSPARENT);
+      const matrix=Array.from(canvas.getTotalMatrix()),saves=canvas.getSaveCount();
+      painter.drawSurface(canvas,bounds,{dark});surface.flush();
+      const actual=canvas.readPixels(0,0,info);
+      assert(Math.abs(pixel(actual,152,85)-expected)<=1,`in-app plateau ${dark}: ${pixel(actual,152,85)} != ${expected}`);
+      assert.equal(pixel(actual,32,30,3),0,'top-left radius lost');
+      assert.equal(pixel(actual,34,138,3),255,'bottom-left square corner lost');
+      assert.equal(pixel(actual,0,0,3),0,'surface escaped its bounds');
+      assert.deepEqual(Array.from(canvas.getTotalMatrix()),matrix);assert.equal(canvas.getSaveCount(),saves);
+    }
+    // With no material, positioned sampling must be exact even after a host transform.
+    const ramp=new Uint8Array(w*h*4);
+    for(let y=0;y<h;y++)for(let x=0;x<w;x++)ramp.set([x%256,y,64,255],(y*w+x)*4);
+    const grid=kit.MakeImage(info,ramp,w*4);
+    try {
+      painter.setSource(grid);canvas.clear(kit.TRANSPARENT);canvas.save();canvas.translate(7,9);
+      painter.drawSurface(canvas,bounds,{materialize:0});canvas.restore();surface.flush();
+      const actual=canvas.readPixels(0,0,info);
+      assert(Math.abs(pixel(actual,159,94)-152)<=1);assert(Math.abs(pixel(actual,159,94,1)-85)<=1);
+      assert.throws(()=>painter.drawSurface(canvas,bounds,{tintAmount:NaN}),/material options/);
+      assert.throws(()=>painter.drawSurface(canvas,{...bounds,radius:-1}),/Radius/);
+      painter.setSource(black);
+    } finally {grid.delete();}
+    painter.dispose();painter.dispose();
+    assert.equal(black.width(),w);assert.equal(white.width(),w);
+    assert.throws(()=>painter.drawSurface(canvas,bounds),/disposed/);
+  } finally {painter.dispose();surface.delete();black.delete();white.delete();}
+});
 
 test('positioned lenses sample the page, preserve host transforms and borrow source ownership', async () => {
   const w=240,h=180,info={width:w,height:h,colorType:kit.ColorType.RGBA_8888,

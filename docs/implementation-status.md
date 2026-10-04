@@ -22,8 +22,9 @@ reports failures, corrected runs, original frames, authored timing and remaining
 redraw figures are not Android performance. Vitals and the following physical captures are historical.
 
 For other stacks, [porting](porting.md) covers the dependency-free WebGL preview and the production
-CanvasKit shader kit. A high-level painter draws clear lenses without manual uniform binding; full
-native framework adapters and automatic backdrop capture are not implemented.
+CanvasKit shader kit. Its high-level painter draws clear lenses and rounded in-app surfaces, including
+the two-kernel material setup, without manual uniform binding. Full native framework adapters and
+automatic backdrop capture are not implemented.
 
 ## Historical follow-up: r14
 

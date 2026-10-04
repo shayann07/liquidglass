@@ -346,7 +346,18 @@
     "desktop": "Both tests passed in3m28s alone; unchanged assertions and six-minute interaction timeout.",
     "nativeCapture": "brightness-native.png,1920x1051 DIRECT3D; idle scene only, no held input",
     "nativeTiming": {"p50_ms":18.9665,"p95_ms":21.9185,"max_ms":27.1876,"samples":120,"warmup":10,"scope":"Static forced redraw submission; slower than prior capture, no controlled performance or FPS claim"},
-    "fullSuite": "pending for this correction"
+    "fullSuite": "Hosted CI37191244540 passed all seven checks:326 library tests,299 passed,27 skipped;2 desktop tests; build15m22s. Local serial run lost its process with no completion record and is not counted as a pass."
+  },
+  "portable-surfaces": {
+    "api": "createGlassPainter.drawSurface(canvas,bounds,options)",
+    "kotlinFactoryFixtures": 18,
+    "kotlinGuards": "PortableMaterialSpec and ShaderBundle passed",
+    "skiaTests": 10,
+    "failed": 0,
+    "wideKernel": {"sigmaPx":10,"signalPeriodPx":64,"measuredGain":0.6137,"gaussianGain":0.6176,"tolerance":0.04},
+    "cache": "one quarter-resolution tone image; native canvas aliases reuse it; setSource/reset invalidates it",
+    "image": "portable-surfaces.png",
+    "scope": "Software CanvasKit render and parameters; browser integration for this addition pending. No native framework wrapper or whole-Compose equivalence claimed."
   },
   "ci-build-fdae281": {
     "run": 37168022770,

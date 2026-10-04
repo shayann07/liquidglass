@@ -19,13 +19,15 @@ try {
   glass.setSource(source);
   const canvas=surface.getCanvas();
   canvas.drawImage(source,0,0);
-  glass.drawLens(canvas,{x:70,y:70,width:220,magnification:1.25});
-  glass.drawLens(canvas,{x:365,y:105,width:200,height:145,magnification:1.6});
+  glass.drawLens(canvas,{x:80,y:24,width:180,magnification:1.25});
+  glass.drawLens(canvas,{x:365,y:40,width:200,height:145,magnification:1.6});
+  glass.drawSurface(canvas,{x:40,y:240,width:260,height:88,radius:22},{dark:true});
+  glass.drawSurface(canvas,{x:340,y:240,width:260,height:88,radius:22},{dark:false,tintAmount:35});
   surface.flush();
   const capture=surface.makeImageSnapshot();
   try {
     await mkdir('build',{recursive:true});
     await writeFile('build/example.png',capture.encodeToBytes());
-    console.log('Rendered production SkSL lenses: build/example.png');
+    console.log('Rendered production SkSL lenses and in-app surfaces: build/example.png');
   } finally {capture.delete();}
 } finally {glass.dispose();surface.delete();source.delete();}

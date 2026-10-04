@@ -79,6 +79,39 @@ performance. The separate `ports/web` renderer remains the smaller dependency-fr
 
 ## Draw a custom material
 
+For a rounded in-app surface, use the same painter without binding shader uniforms:
+
+```js
+glass.drawSurface(canvas, {
+  x: 40, y: 240, width: 260, height: 88, radius: 22,
+}, { dark: true, tintAmount: 50 });
+```
+
+This follows `GlassStyle.inApp`: the production measured profile, fine detail kernel, wide tone
+kernel, per-appearance tint and edge lighting. `radius` is one pixel value or four values in
+top-left, top-right, bottom-right, bottom-left order. Each is limited to the shape's inradius.
+Options are `dark` (default false), `tintAmount` (0–100, default 50), `density` (positive, default 1),
+`materialize`, `reducedTransparency` and `increasedContrast` (each 0–1; defaults 1, 0, 0).
+Geometry remains in device pixels; density scales the material's dp constants. Feed accessibility
+preferences from the host. Ordinary text stays outside the material draw, as in the browser example.
+
+The painter constructs the two-kernel backdrop. It caches one quarter-resolution Gaussian tone
+image on a surface compatible with the target canvas. Changing the source, density or native canvas
+rebuilds it; moving/resizing a panel and changing tint reuse it. Calling `setSource` invalidates it.
+The cache owns about one sixteenth of a full-size RGBA image plus backend overhead, retains only
+one version, and is released on `dispose`. No CPU pixel readback occurs in the drawing path.
+Repeated `getCanvas()` wrappers are recognized as the same native canvas. Use one painter per live
+graphics context and recreate it after context loss.
+
+Parameter fixtures generated from the Kotlin factory guard drift across both appearances and nine
+tint settings. Pixel tests check material plateaus, corners, source replacement, coordinates, and
+the blur's attenuation of a sinusoidal signal against the independent Gaussian equation. These are
+adapter checks, not a claim that all Compose host behaviour is reproduced. Arbitrary path fields,
+system-backdrop roles, automatic inversion, refracted foreground and navigation still use host or
+lower-level integration. The supplied opaque backdrop must exclude the glass itself.
+
+### Lower-level material control
+
 Initialize CanvasKit using its [official setup](https://skia.org/docs/user/modules/canvaskit/).
 Load `shaders/material.sksl`, `content.sksl` and `endpoint.sksl` as text using your build system,
 filesystem or same-origin fetch. Then:
@@ -134,6 +167,7 @@ maps. Their JVM test checks both source identity and reference pixels on every C
 
 ```powershell
 ./tools/workspace.ps1 library :liquidglass:jvmTest --tests '*GlassShaderBundleTest' '-Pliquidglass.exportShaders=true'
+./tools/workspace.ps1 library :liquidglass:jvmTest --tests '*GlassPortableMaterialSpecTest' '-Pliquidglass.exportShaders=true'
 ```
 
 Review generated changes with their Kotlin source. The uniform ABI is experimental and may change

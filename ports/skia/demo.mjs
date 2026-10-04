@@ -24,7 +24,7 @@ function draw() {
   target.save();
   try {
     target.translate(cx,cy);target.concat([a,b,0,c,d,0,0,0,1]);target.translate(-cx,-cy);
-    glass.drawLens(target,{...card,magnification:1.15});
+    glass.drawSurface(target,{...card,radius:24},{dark:true});
   } finally {target.restore();}
   // Ordinary labels remain anchored; only the material receives the feedback transform.
   target.drawImage(foreground,0,0);surface.flush();

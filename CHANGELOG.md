@@ -23,6 +23,8 @@ This file records user-visible development changes. Published artifacts are iden
   the hosted browser suite covers this independently from the lightweight WebGL preview.
 - Framework-independent `createCalmInteraction` with timestamped press/pull, cancellation, viewport
   containment and reduced motion; optional press amplitude is independent of the Calm drag response.
+- Portable `drawSurface` for rounded in-app material: light/dark appearance, tint amount, corner radii,
+  density and accessibility preferences, with one cached tone image and Kotlin parameter-drift fixtures.
 
 ### Fixed
 

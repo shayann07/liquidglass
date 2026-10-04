@@ -29,8 +29,22 @@ For a simple production-shader lens, `createGlassPainter(CanvasKit, sources)` co
 owns uniform binding and temporary resources. Call `setSource(backdropImage)`, then
 `drawLens(canvas, {x, y, width, magnification})` for each lens. The source remains caller-owned;
 `dispose()` releases the painter. The [executable terminal example](https://github.com/shayann07/liquidglass/blob/main/ports/skia/example.mjs)
-uses this exact API. This high-level path renders clear magnifiers; custom material/ink/compositor
-integration still uses the lower-level adapter.
+uses this exact API. For a rounded in-app card, the same painter provides:
+
+```js
+glass.drawSurface(canvas, { x: 40, y: 240, width: 260, height: 88, radius: 22 },
+  { dark: true, tintAmount: 50 });
+```
+
+It owns the fine/wide kernel setup and maps the production `GlassStyle.inApp` parameters, checked
+against Kotlin-generated fixtures. The wide tone image is built once per source/density/canvas and
+reused while controls move; it is released on replacement or disposal. A native-canvas identity check
+prevents repeated JavaScript wrappers from causing a blur rebuild each frame. No CPU readback is used.
+`density` scales dp material constants; geometry stays in device pixels. Radius can be one value or
+four corner values. Host preferences map to `reducedTransparency` and `increasedContrast` (0–1).
+See the [surface API](https://github.com/shayann07/liquidglass/blob/main/ports/skia/README.md#draw-a-custom-material)
+for all defaults, memory cost and remaining host responsibilities. Refracted foreground, navigation,
+arbitrary path fields and other material roles still use the lower-level adapter.
 Its browser example demonstrates an explicit Skia WebGL surface, keyboard/pointer controls and context
 recreation. Serve it locally with `node ports/web/serve.mjs`, then open `/skia/`; install the pinned
 CanvasKit dependency in `ports/skia` first. No framework wrapper or external runtime service is needed.
