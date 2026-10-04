@@ -1,6 +1,6 @@
 /** Apache-2.0. Experimental adapter for the production SkSL shaders, using CanvasKit 0.42. */
 export function compileGlassEffects(kit, sources) {
-  const effects = {}, children = {};
+  const effects = {}, bindings = {};
   let disposed = false;
   try {
     for (const name of ['material', 'content', 'endpoint']) {
@@ -10,7 +10,15 @@ export function compileGlassEffects(kit, sources) {
       const effect = kit.RuntimeEffect.Make(source, message => { diagnostic = message; });
       if (!effect) throw new Error(`${name}: ${diagnostic}`);
       effects[name] = effect;
-      children[name] = [...source.matchAll(/uniform\s+shader\s+(\w+)\s*;/g)].map(m => m[1]);
+      // Reflection crosses the JS/Wasm boundary. The compiled ABI is immutable: inspect it
+      // once, not hundreds of times per frame when a host draws several glass surfaces.
+      const layout = Array.from({length: effect.getUniformCount()}, (_, i) => ({
+        name: effect.getUniformName(i), ...effect.getUniform(i),
+      }));
+      bindings[name] = {
+        layout, keys: new Set(layout.map(u => u.name)), count: effect.getUniformFloatCount(),
+        children: [...source.matchAll(/uniform\s+shader\s+(\w+)\s*;/g)].map(m => m[1]),
+      };
     }
   } catch (error) { Object.values(effects).forEach(e => e.delete()); throw error; }
 
@@ -20,10 +28,9 @@ export function compileGlassEffects(kit, sources) {
       if (disposed) throw new Error('Glass effects disposed');
       const effect = effects[name];
       if (!effect) throw new RangeError(`Unknown pass: ${name}`);
-      const uniforms = new Float32Array(effect.getUniformFloatCount()), known = new Set();
-      for (let i = 0; i < effect.getUniformCount(); i++) {
-        const key = effect.getUniformName(i), descriptor = effect.getUniform(i);
-        known.add(key);
+      const binding = bindings[name], uniforms = new Float32Array(binding.count);
+      for (const descriptor of binding.layout) {
+        const key = descriptor.name;
         const value = values[key];
         const components = typeof value === 'number' ? [value] : value;
         const length = descriptor.rows * descriptor.columns;
@@ -31,12 +38,12 @@ export function compileGlassEffects(kit, sources) {
           throw new TypeError(`${key} requires ${length} finite components`);
         uniforms.set(components, descriptor.slot);
       }
-      for (const key of Object.keys(values)) if (!known.has(key)) throw new TypeError(`Unknown uniform: ${key}`);
-      const bound = children[name].map(key => {
+      for (const key of Object.keys(values)) if (!binding.keys.has(key)) throw new TypeError(`Unknown uniform: ${key}`);
+      const bound = binding.children.map(key => {
         if (!inputs?.[key]) throw new TypeError(`Missing shader child: ${key}`);
         return inputs[key];
       });
-      for (const key of Object.keys(inputs)) if (!children[name].includes(key)) throw new TypeError(`Unknown child: ${key}`);
+      for (const key of Object.keys(inputs)) if (!binding.children.includes(key)) throw new TypeError(`Unknown child: ${key}`);
       return effect.makeShaderWithChildren(uniforms, bound);
     },
     /** Describe the exact ABI for a host binding; no hardcoded byte offsets. */
@@ -44,9 +51,8 @@ export function compileGlassEffects(kit, sources) {
       if (disposed) throw new Error('Glass effects disposed');
       const effect = effects[name];
       if (!effect) throw new RangeError(`Unknown pass: ${name}`);
-      return Array.from({length: effect.getUniformCount()}, (_, i) => ({
-        name: effect.getUniformName(i), ...effect.getUniform(i),
-      }));
+      // Public inspection cannot mutate the descriptors used by later draws.
+      return bindings[name].layout.map(u => ({...u}));
     },
     dispose() {
       if (!disposed) { disposed = true; Object.values(effects).forEach(e => e.delete()); }

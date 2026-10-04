@@ -103,6 +103,10 @@ one version, and is released on `dispose`. No CPU pixel readback occurs in the d
 Repeated `getCanvas()` wrappers are recognized as the same native canvas. Use one painter per live
 graphics context and recreate it after context loss.
 
+The tone sampler extends source-edge colors before blurring. Even a one-pixel opaque source stays
+opaque; small images and dimensions not divisible by four do not introduce a dark edge. This is
+clamped sampling, not capture of content beyond your supplied image.
+
 Parameter fixtures generated from the Kotlin factory guard drift across both appearances and nine
 tint settings. Pixel tests check material plateaus, corners, source replacement, coordinates, and
 the blur's attenuation of a sinusoidal signal against the independent Gaussian equation. These are
@@ -143,6 +147,12 @@ effects.dispose();
 The helpers accept named values and inspect the compiled shader's uniform offsets. Unknown,
 missing, incorrectly sized and nonfinite uniforms fail before rendering. `layout(pass)` exposes
 that ABI. Dimensions and padding are **device pixels**; convert logical units in your host.
+
+Reflection happens once per compiled pass. `layout` returns defensive copies; modifying one
+cannot change later bindings. Run `node benchmark-bindings.mjs` to measure CPU binding overhead.
+An optional file-path argument compares another compatible `renderer.mjs` in alternating batches
+with the same runtime and inputs. This benchmark does not draw or measure frame rate; do not use
+its result as a GPU performance claim or a timing-sensitive CI assertion.
 Create effects once, reuse textures until the backdrop changes, and rebuild GPU resources after
 context/device loss. Returned shaders and caller-owned sources must be deleted by their owner.
 

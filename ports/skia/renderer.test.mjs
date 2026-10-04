@@ -13,6 +13,9 @@ test('production material, ink and aperture compile without Compose', () => {
   assert.ok(effects.layout('material').some(u=>u.name==='uHeldMagnification'));
   assert.ok(effects.layout('content').some(u=>u.name==='uHeldInk'));
   assert.ok(effects.layout('endpoint').some(u=>u.name==='uPoseD'));
+  const layout=effects.layout('material'),expected=structuredClone(layout);
+  layout[0].name='corrupted';layout[0].slot=999999;layout.pop();
+  assert.deepEqual(effects.layout('material'),expected,'public layout inspection corrupted later bindings');
   effects.dispose();effects.dispose();assert.throws(()=>effects.layout('material'), /disposed/);
 });
 

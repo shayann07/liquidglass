@@ -39,6 +39,13 @@ geometry remain below the 205px extreme ceiling, peaking at **198.017px** in the
 fixture. Ordinary-held amplitude now fits; extreme asymmetry and the additional 6–7px deformation
 remain unmatched. Passing an upper bound alone cannot establish a correct drag model.
 
+A foreground audit also finds that the visible unselected Contacts icon changes from 69×69px at
+rest to 73×73px on ordinary hold and 69×76px at extreme (threshold 200). Its bounds centre moves
+11.5px upward from ordinary to extreme hold at all three tested thresholds. This is visible-pixel
+evidence, not identification of layout motion versus optical/content warping. Fixed layout and
+ordinary labels remain the owner's requirement; moving them to fit a frame would violate it.
+The review includes the original crops, threshold results and a Pillow-only reproduction tool.
+
 The Calm integration also accidentally added generic press brightness on top of the navigation
 bar's existing held lift. A rendered fail-first test measured 54/255 against the original 44±1
 interior plateau. Keeping the bar's held lift and setting its extra `pressLift` to zero restores
@@ -103,6 +110,13 @@ sinusoidal blur check measures 0.6137 amplitude against the Gaussian prediction 
 tests include negative local samples. The tone cache recognizes native-canvas aliases, so repeated
 JavaScript wrappers do not force a blur each frame. These adapter tests do not establish native
 framework support, identical host compositing or live-backdrop performance.
+
+An edge audit then found transparent-black contamination with small opaque sources: a 1×1
+`(64,128,192,255)` image produced `(4,8,11,15)` in the wide buffer. Extending the image with clamped
+shader sampling **before** blur corrects it. Five source sizes, three sigmas and five locations each
+now preserve the original constant within one code value; 12 portable Skia tests pass. The same
+independent sinusoid check measures 0.6119 after correction, within 0.6176 ± 0.04. The earlier
+surface revision also passed four hosted browser tests; its labelled captures are in the review.
 
 ## Endpoint precision and native clipping
 

@@ -87,6 +87,39 @@ test('quarter-sized tone cache retains the requested Gaussian scale', () => {
   } finally {paint.delete();effect.delete();backdrop.shader.delete();sampler.dispose();surface.delete();image.delete();}
 });
 
+test('wide tone preserves opaque constant backdrops at every edge, including tiny and odd sizes', () => {
+  const surface=kit.MakeSurface(1,1),canvas=surface.getCanvas(),sampler=createBackdropSampler(kit);
+  const probe=kit.RuntimeEffect.Make('uniform shader source;uniform float2 point;half4 main(float2 p){return source.eval(point);}');
+  const paint=new kit.Paint();
+  const info={width:1,height:1,colorType:kit.ColorType.RGBA_8888,
+    alphaType:kit.AlphaType.Premul,colorSpace:kit.ColorSpace.SRGB};
+  try {
+    // Constant preservation is an independent property of a normalized, clamped Gaussian.
+    // Small images and fractional quarter-resolution edges must not introduce transparent black.
+    for(const [w,h] of [[1,1],[2,3],[17,19],[41,37],[241,181]]) {
+      const pixels=new Uint8Array(w*h*4);
+      for(let i=0;i<pixels.length;i+=4)pixels.set([64,128,192,255],i);
+      const image=kit.MakeImage({...info,width:w,height:h},pixels,w*4);
+      try {
+        for(const sigma of [2.5,10,30]) {
+          const sampled=sampler.shader(canvas,image,0,0,sigma);
+          try {
+            for(const [x,y] of [[.5,.5],[w-.5,.5],[.5,h-.5],[w-.5,h-.5],[w/2,h/2]]) {
+              const shader=probe.makeShaderWithChildren(new Float32Array([x/4,sampled.strip+y/4]),[sampled.shader]);
+              try {
+                canvas.clear(kit.TRANSPARENT);paint.setShader(shader);canvas.drawPaint(paint);surface.flush();
+                const p=canvas.readPixels(0,0,info);
+                for(const [i,value] of [64,128,192,255].entries())
+                  assert(Math.abs(p[i]-value)<=1,`opaque tone ${w}x${h}, sigma${sigma}, ${x},${y}: ${Array.from(p)}`);
+              } finally {paint.setShader(null);shader.delete();}
+            }
+          } finally {sampled.shader.delete();}
+        }
+      } finally {sampler.reset();image.delete();}
+    }
+  } finally {paint.delete();probe.delete();sampler.dispose();surface.delete();}
+});
+
 test('in-app surfaces preserve measured plateaus, rounded coverage, source replacement and host transforms', async () => {
   const w=320,h=180,info={width:w,height:h,colorType:kit.ColorType.RGBA_8888,
     alphaType:kit.AlphaType.Premul,colorSpace:kit.ColorSpace.SRGB};
@@ -125,6 +158,30 @@ test('in-app surfaces preserve measured plateaus, rounded coverage, source repla
     assert.equal(black.width(),w);assert.equal(white.width(),w);
     assert.throws(()=>painter.drawSurface(canvas,bounds),/disposed/);
   } finally {painter.dispose();surface.delete();black.delete();white.delete();}
+});
+
+test('public surface rendering is unchanged when a constant backdrop has only one pixel', () => {
+  const w=160,h=96,info={width:w,height:h,colorType:kit.ColorType.RGBA_8888,
+    alphaType:kit.AlphaType.Premul,colorSpace:kit.ColorSpace.SRGB};
+  const surface=kit.MakeSurface(w,h),canvas=surface.getCanvas(),painter=createGlassPainter(kit,sources);
+  const backdrop=(width,height)=> {
+    const pixels=new Uint8Array(width*height*4);
+    for(let i=0;i<pixels.length;i+=4)pixels.set([64,128,192,255],i);
+    return kit.MakeImage({...info,width,height},pixels,width*4);
+  };
+  const full=backdrop(w,h),tiny=backdrop(1,1),bounds={x:16,y:16,width:128,height:64,radius:20};
+  try {
+    for(const dark of [true,false]) {
+      const results=[];
+      for(const image of [full,tiny]) {
+        painter.setSource(image);canvas.clear(kit.TRANSPARENT);
+        painter.drawSurface(canvas,bounds,{dark});surface.flush();
+        results.push(canvas.readPixels(0,0,info));
+      }
+      let worst=0;for(let i=0;i<results[0].length;i++)worst=Math.max(worst,Math.abs(results[0][i]-results[1][i]));
+      assert(worst<=1,`constant backdrop changed public ${dark?'dark':'light'} material by ${worst} levels`);
+    }
+  } finally {painter.dispose();surface.delete();full.delete();tiny.delete();}
 });
 
 test('positioned lenses sample the page, preserve host transforms and borrow source ownership', async () => {

@@ -94,6 +94,8 @@ accessible controls and backdrop capture. Run `npm ci --ignore-scripts && npm ru
 `ports/skia` for an executable example without Compose or a browser.
 `drawSurface(canvas, bounds, {dark: true, tintAmount: 50})` adds the production in-app material and
 cached wide-tone blur without manual shader setup. [Surface options and lifecycle](ports/skia/README.md#draw-a-custom-material).
+Shader layouts are inspected once at compilation; repeated draws reuse their binding metadata.
+Clamped tone sampling preserves opaque backdrops even at tiny sizes and screen edges.
 For motion, `createCalmInteraction` supplies framework-independent press/pull, cancellation, viewport
 containment and reduced motion. Feed timestamps and cumulative displacement; apply its matrix to the
 material drawing. [Portable feedback API and host example](docs/porting.md#portable-calm-feedback).

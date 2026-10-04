@@ -27,13 +27,18 @@ export function createBackdropSampler(kit) {
         const surface=canvas.makeSurface({width,height,colorType:kit.ColorType.RGBA_8888,
           alphaType:kit.AlphaType.Premul,colorSpace:kit.ColorSpace.SRGB});
         if(!surface)throw new Error('Could not allocate the glass tone buffer');
-        let paint,filter;
+        let paint,filter,sourceShader;
         try {
           paint=new kit.Paint();filter=kit.ImageFilter.MakeBlur(sigma,sigma,kit.TileMode.Clamp,null);
           const target=surface.getCanvas();target.clear(kit.TRANSPARENT);target.scale(.25,.25);
-          paint.setImageFilter(filter);target.drawImage(image,0,0,paint);surface.flush();
+          // A bounded image draw loses coverage for sources smaller than the blur support,
+          // especially at quarter resolution. Extend the opaque page before filtering, so
+          // neither Gaussian sampling nor a fractional last texel can introduce transparent black.
+          sourceShader=image.makeShaderOptions(kit.TileMode.Clamp,kit.TileMode.Clamp,
+            kit.FilterMode.Linear,kit.MipmapMode.None);
+          paint.setShader(sourceShader);paint.setImageFilter(filter);target.drawPaint(paint);surface.flush();
           cache={source:image,canvas,sigma,image:surface.makeImageSnapshot()};
-        } finally {paint?.delete();filter?.delete();surface.delete();}
+        } finally {paint?.delete();filter?.delete();sourceShader?.delete();surface.delete();}
       }
       const sharp=image.makeShaderOptions(kit.TileMode.Clamp,kit.TileMode.Clamp,
         kit.FilterMode.Linear,kit.MipmapMode.None);

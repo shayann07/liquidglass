@@ -294,20 +294,53 @@
     "restPts": "20819/600",
     "heldPts": "21019/600",
     "extremePts": "29863/600",
-    "crop": [0, 2092, 1170, 440],
-    "columns": [400, 450, 500, 550],
-    "thresholds": [5, 10, 15],
+    "crop": [
+      0,
+      2092,
+      1170,
+      440
+    ],
+    "columns": [
+      400,
+      450,
+      500,
+      550
+    ],
+    "thresholds": [
+      5,
+      10,
+      15
+    ],
     "restHeightPx": 186,
     "heldHeightPx": 196,
     "genericCalmPressHeightPx": 191.58,
     "calmBarPressHeightPx": 195.3,
-    "extremeHeightPx": [204, 205],
+    "extremeHeightPx": [
+      204,
+      205
+    ],
     "genericPortableMaximumHeightPx": 194.2524,
     "portableBarMaximumHeightPx": 198.0169,
     "kotlinBarMaximumHeightPx": 198.01695,
     "portableDirections": 72,
     "portableMathTests": 12,
-    "scope": "Navigation ordinary press fits 196+/-1px with1.05 material-only growth. Extreme bound passes but asymmetric growth and6..7px additional height remain unmatched; finger gain and timing unidentified."
+    "scope": "Navigation ordinary press fits 196+/-1px with1.05 material-only growth. Extreme bound passes but asymmetric growth and6..7px additional height remain unmatched; finger gain and timing unidentified.",
+    "foregroundAudit": {
+      "file": "reference-bar-foreground.json",
+      "thresholds": [
+        160,
+        200,
+        230
+      ],
+      "roi": [
+        400,
+        190,
+        160,
+        115
+      ],
+      "ordinaryToExtremeIconCenterY": -11.5,
+      "scope": "Visible glyph bounds only; layout translation versus refraction/content scaling unidentified. Fixed ordinary labels preserved."
+    }
   },
   "bar-pressure-correction": {
     "failFirst": "ordinary-held reference expected196+/-1px, actual191.58px",
@@ -339,13 +372,35 @@
     "referencePlateau": 44,
     "tolerance": 1,
     "correctedPlateau": 44,
-    "decodedReferencePatch": {"x":330,"y":250,"width":40,"height":35,"restRGB":[32,32,32],"heldRGB":[43,43,43]},
+    "decodedReferencePatch": {
+      "x": 330,
+      "y": 250,
+      "width": 40,
+      "height": 35,
+      "restRGB": [
+        32,
+        32,
+        32
+      ],
+      "heldRGB": [
+        43,
+        43,
+        43
+      ]
+    },
     "focusedTests": 6,
     "failed": 0,
     "scope": "Material plateau without local touch illumination. Bar's additional generic pressLift is zero; original heldLift and all motion remain unchanged.",
     "desktop": "Both tests passed in3m28s alone; unchanged assertions and six-minute interaction timeout.",
     "nativeCapture": "brightness-native.png,1920x1051 DIRECT3D; idle scene only, no held input",
-    "nativeTiming": {"p50_ms":18.9665,"p95_ms":21.9185,"max_ms":27.1876,"samples":120,"warmup":10,"scope":"Static forced redraw submission; slower than prior capture, no controlled performance or FPS claim"},
+    "nativeTiming": {
+      "p50_ms": 18.9665,
+      "p95_ms": 21.9185,
+      "max_ms": 27.1876,
+      "samples": 120,
+      "warmup": 10,
+      "scope": "Static forced redraw submission; slower than prior capture, no controlled performance or FPS claim"
+    },
     "fullSuite": "Hosted CI37191244540 passed all seven checks:326 library tests,299 passed,27 skipped;2 desktop tests; build15m22s. Local serial run lost its process with no completion record and is not counted as a pass."
   },
   "portable-surfaces": {
@@ -354,10 +409,27 @@
     "kotlinGuards": "PortableMaterialSpec and ShaderBundle passed",
     "skiaTests": 10,
     "failed": 0,
-    "wideKernel": {"sigmaPx":10,"signalPeriodPx":64,"measuredGain":0.6137,"gaussianGain":0.6176,"tolerance":0.04},
+    "wideKernel": {
+      "sigmaPx": 10,
+      "signalPeriodPx": 64,
+      "measuredGain": 0.6137,
+      "gaussianGain": 0.6176,
+      "tolerance": 0.04
+    },
     "cache": "one quarter-resolution tone image; native canvas aliases reuse it; setSource/reset invalidates it",
     "image": "portable-surfaces.png",
-    "scope": "Software CanvasKit render and parameters; browser integration for this addition pending. No native framework wrapper or whole-Compose equivalence claimed."
+    "scope": "Software CanvasKit parameters and render; hosted Chromium WebGL integration passed. No native framework wrapper, physical GPU performance or whole-Compose equivalence claimed.",
+    "browser": {
+      "run": 37211059768,
+      "commit": "a4ed995c744707ee9e72b0a367214bc2bbe164ae",
+      "tests": 4,
+      "passed": 4,
+      "captures": [
+        "portable-surface-browser.png",
+        "portable-surface-held.png"
+      ],
+      "scope": "Hosted Chromium WebGL; material, pointer/keyboard, cancellation/reduced motion, source replacement and context recovery. Before small-source correction."
+    }
   },
   "ci-build-fdae281": {
     "run": 37168022770,
@@ -373,5 +445,77 @@
     "browserTests": 4,
     "skiaTests": 6,
     "portableMathTests": 10
+  },
+  "portable-tone-edges": {
+    "failFirst": {
+      "sourceSize": [
+        1,
+        1
+      ],
+      "sourceRGBA": [
+        64,
+        128,
+        192,
+        255
+      ],
+      "sigma": 2.5,
+      "actualRGBA": [
+        4,
+        8,
+        11,
+        15
+      ]
+    },
+    "correction": "Clamp the opaque source before Gaussian filtering; avoid bounded drawImage coverage at quarter resolution",
+    "sizes": [
+      [
+        1,
+        1
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        17,
+        19
+      ],
+      [
+        41,
+        37
+      ],
+      [
+        241,
+        181
+      ]
+    ],
+    "sigmas": [
+      2.5,
+      10,
+      30
+    ],
+    "locations": "four corners and centre",
+    "toleranceLevels": 1,
+    "skiaTests": 12,
+    "passed": 12,
+    "wideKernelGain": 0.6119,
+    "gaussianPrediction": 0.6176,
+    "gainTolerance": 0.04,
+    "hosted": "pending",
+    "publicAPI": "Light/dark surface images agree within one level between full-size and one-pixel constant sources"
+  },
+  "portable-binding-cache": {
+    "baselineCommit": "a4ed995c744707ee9e72b0a367214bc2bbe164ae",
+    "raw": "portable-bindings-timing.json",
+    "baselineBatchMedianMs": 105.047,
+    "currentBatchMedianMs": 13.0996,
+    "bindingsPerBatch": 2000,
+    "measuredBatches": 7,
+    "warmupBatches": 1,
+    "alternatingOrder": true,
+    "scope": "CPU bindings and native shader creation only, not rendering or FPS",
+    "skiaTests": 12,
+    "passed": 12,
+    "layoutMutationGuard": "passed"
   }
 }

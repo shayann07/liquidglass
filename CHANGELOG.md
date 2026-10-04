@@ -41,6 +41,10 @@ This file records user-visible development changes. Published artifacts are iden
 - Calm navigation restores the original ordinary touch growth with a material-only 5% press while
   retaining restrained drag. Its held brightness no longer adds generic control lift a second time.
 - Portable viewport-limited press targets animate gradually instead of clipping growth mid-animation.
+- Portable wide-tone sampling preserves opaque edges even for tiny backdrops and fractional
+  quarter-resolution dimensions; small sources no longer pick up transparent black during blur.
+- Portable shader bindings cache compiled layout metadata, eliminating per-draw Wasm reflection
+  while preserving named-input validation and independent pixel tests.
 - Desktop Calm composes separate material and ink inputs before aperture rounding. The explicit ink
   filter offset preserves labels under native viewport clipping; the strict endpoint gate now passes.
 - Atlas no longer reports an unverified Vulkan backend or invented live astronomical telemetry.

@@ -4,6 +4,52 @@ test('real WebGL contract, recovery and lifecycle',async({page})=>{
   await expect(page.locator('#result')).toHaveText(/^PASS:/,{timeout:15000});
 });
 
+test('production Skia WebGL surface preserves an opaque one-pixel backdrop',async({page})=>{
+  await page.goto('/skia/');
+  await expect(page.locator('#status')).toHaveText(/^Ready\./,{timeout:20000});
+  const errors=await page.evaluate(async()=>{
+    const {createGlassPainter}=await import('/skia/painter.mjs');
+    const kit=await CanvasKitInit({locateFile:file=>`/skia/node_modules/canvaskit-wasm/bin/${file}`});
+    const sources=Object.fromEntries(await Promise.all(['material','content','endpoint'].map(async pass=>
+      [pass,await (await fetch(`/skia/shaders/${pass}.sksl`)).text()])));
+    const element=document.createElement('canvas');element.width=160;element.height=96;
+    const handle=kit.GetWebGLContext(element);
+    if(!handle)throw new Error('WebGL context unavailable');
+    let context,surface,painter,full,tiny;
+    try {
+      context=kit.MakeWebGLContext(handle);
+      if(!context)throw new Error('Skia WebGL context unavailable');
+      surface=kit.MakeOnScreenGLSurface(context,160,96,kit.ColorSpace.SRGB);
+      if(!surface)throw new Error('Skia WebGL surface unavailable');
+      painter=createGlassPainter(kit,sources);
+      const info={width:160,height:96,colorType:kit.ColorType.RGBA_8888,
+        alphaType:kit.AlphaType.Premul,colorSpace:kit.ColorSpace.SRGB};
+      const pixels=new Uint8Array(160*96*4);
+      for(let i=0;i<pixels.length;i+=4)pixels.set([64,128,192,255],i);
+      full=kit.MakeImage(info,pixels,160*4);
+      tiny=kit.MakeImage({...info,width:1,height:1},new Uint8Array([64,128,192,255]),4);
+      const canvas=surface.getCanvas(),differences=[];
+      for(const dark of [true,false]) {
+        const results=[];
+        for(const image of [full,tiny]) {
+          painter.setSource(image);canvas.clear(kit.TRANSPARENT);
+          painter.drawSurface(canvas,{x:16,y:16,width:128,height:64,radius:20},{dark});surface.flush();
+          const result=canvas.readPixels(0,0,info);
+          if(!result||result[(48*160+80)*4+3]!==255)throw new Error('Missing opaque rendered material');
+          results.push(result);
+        }
+        let worst=0;for(let i=0;i<results[0].length;i++)worst=Math.max(worst,Math.abs(results[0][i]-results[1][i]));
+        differences.push(worst);
+      }
+      return differences;
+    } finally {
+      painter?.dispose();full?.delete();tiny?.delete();surface?.delete();context?.delete();kit.deleteContext(handle);
+    }
+  });
+  expect(errors).toHaveLength(2);
+  for(const error of errors)expect(error).toBeLessThanOrEqual(1);
+});
+
 test('portable Calm controller drives the production material, recovers, and respects reduced motion',async({page},testInfo)=>{
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
   await page.goto('/skia/');const canvas=page.locator('#glass');

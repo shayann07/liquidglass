@@ -116,6 +116,40 @@ the maximum is **198.0169px**. A Kotlin test exercises the production deformatio
 and does **not** establish matched iOS deformation. Twelve portable numerical tests pass, including
 gradual viewport-limited press targets and unchanged generic defaults.
 
+The visible foreground also changes in these originals. Isolating the unselected Contacts icon
+at thresholds 160/200/230 gives the following bounds (the table uses threshold 200):
+
+| State | Icon width × height | Icon bounds centre, crop pixels |
+| --- | --- | --- |
+| Rest | 69 × 69 | 479.5, 263.5 |
+| Ordinary hold | 73 × 73 | 482.5, 262.5 |
+| Extreme hold | 69 × 76 | 475.5, 251.0 |
+
+The icon centre is 11.5px higher at extreme than at ordinary hold at all three thresholds; its
+shape changes too. The outer-bar measurements therefore cannot be explained by symmetric growth
+about a fixed centre alone. These are visible-pixel bounds, not proof of layout translation:
+refraction, content scaling and control transforms are not distinguished by a screenshot. The
+owner's fixed-layout/ordinary-label requirement remains the implementation constraint. We do not
+silently move labels to fit this frame or label the current result exact parity.
+
+Reproduction requires ffmpeg with zscale and Python with Pillow. Decode each native timestamp
+using the following filter, without resizing, then run the checked-in measurement tools:
+
+```text
+zscale=t=linear:npl=100,format=gbrpf32le,zscale=p=bt709:t=iec61966-2-1:m=bt709:r=full,format=rgb24,crop=1170:440:0:2092
+```
+
+```sh
+python tools/measure_phone_bar.py review/atlas/reference-bar-rest.png review/atlas/reference-bar-held.png review/atlas/reference-bar-extreme.png
+python tools/measure_phone_foreground.py review/atlas/reference-bar-rest.png review/atlas/reference-bar-held.png review/atlas/reference-bar-extreme.png
+```
+
+[Outer-body measurements](atlas/reference-bar-bounds.json) and
+[foreground measurements](atlas/reference-bar-foreground.json) preserve threshold sensitivity.
+The foreground tool uses a fixed ROI and connected bright neutral pixels, excluding labels and
+the selected lens. This PQ-to-sRGB decode supports geometry, not display photometric calibration.
+Native PTS were checked with ffmpeg `-copyts` and `showinfo`.
+
 The actual Compose bar rendering also passes its five extreme-direction pulls, repeated outward
 motion at an end anchor, release and fixed-layout assertions. Its software-rendered held state after
 the pressure correction is shown below. This is an implementation proof over a synthetic backdrop,
@@ -197,20 +231,37 @@ regression checks that repeated wrappers allocate once, and reset allocates agai
 surface inherits the target backend; production drawing performs no CPU readback. Different material
 densities can replace the single cache. No bounded frame-time claim is made for live backdrop changes.
 
-Reproduction requires ffmpeg with zscale and Python with Pillow. Decode each timestamp using this
-filter, preserving one native frame, then run the checked-in measurement tool:
+The edge audit caught a separate defect: a one-pixel opaque `(64,128,192,255)` source produced
+`(4,8,11,15)` through the tone buffer. A bounded image draw lost coverage while being blurred at
+quarter resolution. Drawing an edge-clamped source shader before blur preserves the opaque page.
+The regression checks all four corners and the centre for five source sizes from 1×1 to 241×181
+and three blur sigmas, within one code value. All **12 portable Skia tests pass** locally after
+this correction. Sinusoid attenuation is now **0.6119**, still within the same independent
+0.6176 ± 0.04 gate. The public painter also renders identical light/dark material (within one level) from a full-size
+constant backdrop or the same color supplied as a single pixel. Source replacement and coordinates pass.
+An equivalent test is included for hosted WebGL; its result remains pending until CI completes.
 
-```text
-zscale=t=linear:npl=100,format=gbrpf32le,zscale=p=bt709:t=iec61966-2-1:m=bt709:r=full,format=rgb24,crop=1170:440:0:2092
-```
+The preceding surface integration at `a4ed995` passed all four hosted browser tests in
+[CI run 37211059768](https://github.com/shayann07/liquidglass/actions/runs/37211059768).
+These captures exercise the rounded material, held drag, backdrop replacement and context recovery:
 
-```sh
-python tools/measure_phone_bar.py review/atlas/reference-bar-rest.png review/atlas/reference-bar-held.png review/atlas/reference-bar-extreme.png
-```
+| Rest after source/context replacement | Extreme held card, fixed foreground |
+| --- | --- |
+| ![Hosted browser surface](atlas/portable-surface-browser.png) | ![Hosted browser held surface](atlas/portable-surface-held.png) |
 
-[Per-column measurements](atlas/reference-bar-bounds.json) preserve the threshold sensitivity.
-This PQ-to-sRGB decode is suitable for these high-contrast geometric edges; it is not a display
-photometric calibration. The native video PTS were checked with ffmpeg `-copyts` and `showinfo`.
+These are headless Chromium WebGL captures of `a4ed995`, before the small-source edge correction;
+they do not verify that later correction, a native physical GPU, or an Apple comparison. Software
+tests and subsequent hosted results are recorded separately in [verification.json](atlas/verification.json).
+
+Compiled shader uniform names, offsets and child bindings are now inspected once and reused. The
+public layout API returns copies, so inspection cannot mutate later drawing. Named-input validation
+and all rendered comparisons remain enabled. An alternating seven-batch CPU comparison against
+`a4ed995` measured **105.047ms before / 13.100ms after** per 2,000 material bindings and native shader
+creations/deletions (one warmup per version, Node 24.19.0 on Windows). This is approximately 52.5µs
+versus 6.55µs per binding in this batch, not a whole-renderer speedup or an FPS measurement.
+[Raw timings](atlas/portable-bindings-timing.json) retain every batch. Reproduce with
+`node ports/skia/benchmark-bindings.mjs path/to/baseline-renderer.mjs`, saving the earlier renderer
+from Git first; omitting the argument measures only the current implementation.
 
 ## Desktop visual evidence
 
