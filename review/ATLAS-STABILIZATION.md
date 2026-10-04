@@ -193,6 +193,36 @@ The original video and intermediate crops remain research inputs; the three evid
 are copied without resizing. This audit changes the next deformation target, not the completed
 tap correction or generic card defaults. No new Apple timing constant is inferred from it.
 
+### Paired bar dimensions: correcting the drag shape
+
+The original T04 crop at PTS 31074/600 has a clear bar boundary at its central row 272: x63..895,
+or 833px wide, with 206px height. Earlier sustained samples measure 205px high. The before/after
+rest widths are 832–834px. These values reject a model that only adds height while retaining the
+ordinary-held width: the previous implementation gave **872.98×198.02px**. The new transverse
+probes are included in the sequence JSON; ROI-clipped rows and rows with protruding selected lenses
+are not clean surrounding-bar widths and must not be fitted blindly.
+
+The recommended navigation preset now uses `GlassPullShape.AreaPreserving`. A small bounded
+log-strain couples lengthening with narrowing; the calibrated reference-sized fixture gives
+**835.49×204.70px**, passing the independent rounded gates 834±4 × 205±1.1px. Its determinant is 1
+before press and viewport limiting. This is an **authored inference from paired dimensions**,
+not a measurement of Apple's material area or constitutive physics. The selected 0.047 strain
+bound and existing input resistance do not identify the missing finger trajectory.
+
+The shared material modifier owns both policies. Generic cards retain `Adaptive` and their 2dp
+extension cap; only the navigation preset opts into the relative law. Shear fades in log space on
+wide bars, which stay level. No layout, hit target or ordinary foreground translation is added.
+The same policy is available in the portable controller with `pullShape: 'area-preserving'`.
+Both keep the existing critical timing, cancellation and reduced-motion handling.
+
+The reference test failed first at 198.02px height. Focused Kotlin tests then passed with the new
+paired dimensions, opposite/diagonal pulls, 72 directions, zero translation and a moderate-pull
+gate that prevents early saturation. Thirteen portable math/controller tests passed, including
+the same paired dimensions, release recovery, reduced motion and viewport outline containment
+under both policies. Full renderer/desktop verification is pending for this new change; the
+successful `87e17a4` runs below precede it. The reference's 10.5–11px upward visible-centre shift
+is still unmatched; the new dimensions alone do not establish full parity.
+
 ### Avoiding duplicate held brightness
 
 The Calm bar reused V3's reference-backed `heldLift` and also inherited generic `pressLift=0.04`.

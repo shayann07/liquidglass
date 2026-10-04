@@ -25,6 +25,16 @@ import androidx.compose.ui.unit.dp
 /** Response families. Calm is authored and opt-in; Expressive preserves existing timing. */
 enum class GlassResponse { Expressive, Calm }
 
+/** Material-only drag geometry, independent of press expansion and animation timing. */
+enum class GlassPullShape {
+    /** Size-aware control/card feedback; large surfaces keep the existing 2dp extension cap. */
+    Adaptive,
+    /** Coupled stretch/narrowing for a navigation surface. At most 4.8% axis stretch before
+     * viewport limiting. This authored bound fits the original Phone bar's paired dimensions;
+     * it does not recover finger gain or its asymmetric contour. Layout and labels stay fixed. */
+    AreaPreserving,
+}
+
 /** Where the finger is on a panel and how far the press has come up, for the shader. */
 @Immutable
 internal data class GlassPress(
@@ -85,6 +95,10 @@ data class GlassInteraction(
     val pullLimit: Float = Float.POSITIVE_INFINITY,
     /** Timing of geometric feedback; illumination remains a separate acknowledgement. */
     val response: GlassResponse = GlassResponse.Expressive,
+    /** Adaptive uses [pullElongation]/[pullWidthRatio] and the size policy. AreaPreserving uses
+     * a bounded log-strain response instead; [pullFollow]/[pullLimit] still govern input resistance.
+     * Choose the navigation preset normally; generic cards should keep Adaptive. */
+    val pullShape: GlassPullShape = GlassPullShape.Adaptive,
 ) {
     companion object {
         val Default = GlassInteraction()

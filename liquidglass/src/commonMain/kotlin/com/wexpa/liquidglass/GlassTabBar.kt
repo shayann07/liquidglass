@@ -1346,6 +1346,7 @@ data class GlassTabBarStyle(
             heldScale = 1f,
             barInteraction = GlassInteraction.Calm.copy(
                 pressScale = 1.05f, pressGrowth = 0.dp,
+                pullShape = GlassPullShape.AreaPreserving,
                 // V3 already applies its measured heldLift to the bar's material. Adding
                 // the generic control lift again changed the44-level Phone plateau to54.
                 pressLift = 0f,

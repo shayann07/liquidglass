@@ -28,6 +28,9 @@ This file records user-visible development changes. Published artifacts are iden
 
 ### Fixed
 
+- Calm navigation now couples mild stretch with narrowing. Its area-preserving drag model matches
+  the original bar's paired dimensions; generic cards retain adaptive strain and their extension cap.
+
 - The free magnifier no longer uses a held-navigation profile that maps labels and backdrop differently.
 - Atlas uses canvas-local bounded placement instead of conflicting mobile/desktop screen offsets.
 - The calm navigation selector does not interpret perpendicular full-screen travel as free-button squeeze.

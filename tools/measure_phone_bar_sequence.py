@@ -38,14 +38,20 @@ for path, (index, pts, time) in zip(frames, timestamps):
             bottom.append(max(ys))
         t, tn = Counter(top).most_common(1)[0]
         b, bn = Counter(bottom).most_common(1)[0]
+        centre_row = round((t+b)/2)
+        # Search button starts beyond this ROI. A selected lens may still extend past the
+        # surrounding bar: report these as union widths, never silently as clean bar widths.
+        xs = [x for x in range(920) if max(image.getpixel((x, centre_row))) >= threshold]
+        transverse = dict(row=centre_row, left=min(xs), right=max(xs), width=max(xs)-min(xs)+1,
+                          touches_roi_edge=min(xs)==0 or max(xs)==919)
         rows.append(dict(image=path.name, sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
                          pts=int(pts), seconds=float(time), threshold=threshold,
                          top=t, bottom=b, height=b-t+1, centre_y=(t+b)/2,
                          top_votes=tn, bottom_votes=bn, columns=len(top),
-                         majority=tn > len(top)/2 and bn > len(bottom)/2))
+                         majority=tn > len(top)/2 and bn > len(bottom)/2, transverse=transverse))
 result = dict(source="IMG_6756.MP4", time_base="1/600", crop=[0,2092,1170,440],
               method="Modal first/last threshold crossing at 123 columns, x=200..810 step5, y=130..409. Top and bottom voted independently. Selector occlusion is rejected only when the surrounding bar has a strict majority for both edges.",
-              limitation="Sparse output samples, not the complete motion envelope or input trajectory. Majority agreement does not identify optical warping versus layout movement.",
+              limitation="Sparse output samples, not the complete motion envelope or input trajectory. Majority agreement does not identify optical warping versus layout movement. Transverse widths use x=0..919 and may include a protruding selector; reject ROI-clipped rows and inspect source crops before fitting width.",
               measurements=rows)
 text = json.dumps(result, indent=2) + "\n"
 if args.output:

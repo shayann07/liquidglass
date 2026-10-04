@@ -168,8 +168,13 @@ motion.release(now());             // pointer-up OR pointer-cancel; no navigatio
 The optional `pressScale` (default `1.03`, supported range `1…2`) and `pressGrowth` (default `2`,
 nonnegative logical pixels per edge) tune only press amplitude. Positive growth caps each axis by
 both limits; zero selects percentage-only growth. For the Compose Calm **navigation bar** role use
-`pressScale: 1.05, pressGrowth: 0`. This gives 195.3px against the original 196±1px ordinary-held bar
-at 186px rest height. Timing and drag coefficients stay Calm; this does not add selector travel.
+`pressScale: 1.05, pressGrowth: 0, pullShape: 'area-preserving'`. This gives 195.3px against the original 196±1px ordinary-held bar
+at 186px rest height. Timing stays Calm; this does not add selector travel.
+`pullShape` defaults to `'adaptive'`. `'area-preserving'` instead couples bounded growth and narrowing
+in log space, matching the Compose navigation surface model. The saturated 834×186px fixture measures
+835.5×204.7px, compared with about 834× 205–206px in the original prolonged drag. This is an authored
+spatial fit; the original's upward visible-centre shift remains unmatched. Viewport constraints may
+reduce the area-preserving transform when necessary to contain the surface.
 Viewport limits constrain the press target before spring interpolation, preserving gradual feedback
 near an edge. Defaults for generic buttons and cards are unchanged.
 

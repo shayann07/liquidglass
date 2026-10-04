@@ -52,7 +52,15 @@ higher during the prolonged drag. All 141 threshold/frame combinations have a st
 unoccluded columns for both boundaries. The asymmetry persists within one gesture; it is not an
 offset between recordings. The earlier 205px gate remains a conservative chosen-frame bound, not
 the complete recording's maximum. The review supplies the plot, raw votes, original crops and an
-exact decode/measurement command. The current centered model still does not match that output.
+exact decode/measurement command.
+
+Central-row width probes also reject the earlier 872.98×198.02px drag shape. The clear late T04
+crop is 833px wide and 206px high. Navigation now opts into an authored area-preserving log-strain
+model, giving 835.49×204.70px against rounded 834±4 × 205±1.1px bounds. Generic cards keep the
+size-adaptive law. The original's 10.5–11px visible-centre rise is still unmatched: fitting width and
+height does not establish correct asymmetric geometry. The 0.047 strain bound is a spatial fit,
+not identification of Apple's physical or input parameters. The review tracks pending full
+verification separately from the earlier completed tap correction.
 
 The Calm integration also accidentally added generic press brightness on top of the navigation
 bar's existing held lift. A rendered fail-first test measured 54/255 against the original 44±1

@@ -11,7 +11,7 @@ test('whole-bar extreme pulls stay below the original Phone T04 body-height boun
   // This is a ceiling, not a fitted trajectory: the reference contains no finger coordinates.
   const density=3, width=834/density, height=186/density, radius=93/density;
   let maximum=0;
-  for(const press of [{}, {pressScale:1.05,pressGrowth:0}]) for(let degrees=0;degrees<360;degrees+=5) {
+  for(const press of [{}, {pressScale:1.05,pressGrowth:0,pullShape:'area-preserving'}]) for(let degrees=0;degrees<360;degrees+=5) {
     const angle=degrees*Math.PI/180, motion=createCalmInteraction({width,height,radius,...press});
     motion.press(0,Math.cos(angle)*10000,Math.sin(angle)*10000);
     for(let frame=1;frame<=240;frame++) {
@@ -26,6 +26,27 @@ test('whole-bar extreme pulls stay below the original Phone T04 body-height boun
   }
   assert.ok(maximum>186,'test never exercised material growth');
   console.log(`PHONE_T04_BAR maximum=${maximum.toFixed(4)} reference=204..205`);
+});
+
+test('navigation stretch matches paired Phone dimensions without adding area or moving its layout', () => {
+  const options={width:278,height:62,pressScale:1.05,pressGrowth:0,pullShape:'area-preserving'};
+  for (const direction of [-1,1]) {
+    const motion=createCalmInteraction(options);
+    motion.press(0,0,direction*10000);
+    const held=motion.sample(2), [a,b,c,d]=held.matrix;
+    near(3*options.width*a,834,4);near(3*options.height*d,205,1.1);
+    near(a*d-b*c,1.05**2,1e-8);
+    near(b,0);near(c,0);
+    console.log(`PHONE_T04_DIMENSIONS width=${3*options.width*a} height=${3*options.height*d}`);
+    const release=motion.release(2);assert.deepEqual(release.matrix,held.matrix);
+    assert.deepEqual(motion.sample(5).matrix,[1,0,0,1]);
+  }
+  const normal=createCalmInteraction(options);normal.press(0,0,20);
+  const moderate=normal.sample(2).matrix[3]*186;
+  assert(moderate>195.3&&moderate<199,'ordinary drag reached its extreme too early');
+  const reduced=createCalmInteraction({...options,reducedMotion:true});
+  reduced.press(0,10000,10000);assert.deepEqual(reduced.sample(2).matrix,[1,0,0,1]);
+  assert.throws(()=>createCalmInteraction({...options,pullShape:'unknown'}),/Pull shape/);
 });
 
 test('navigation press matches ordinary hold and stays gradual at viewport edges', () => {
@@ -107,11 +128,11 @@ test('idle hold resumes, re-grab retains continuity, and reduced motion or resiz
 });
 
 test('all screen edges and diagonal extremes stay inside the viewport without moving the centre', () => {
-  for(const [w,h,r] of [[56,56,28],[320,72,36],[320,180,20]]) {
+  for(const pullShape of ['adaptive','area-preserving']) for(const [w,h,r] of [[56,56,28],[320,72,36],[320,180,20]]) {
     for(const [x,y] of [[0,0],[400-w,0],[0,300-h],[400-w,300-h],[40,20]]) {
       if(x+w>400||y+h>300)continue;
       for(const [dx,dy] of [[1e6,0],[-1e6,0],[0,1e6],[0,-1e6],[1e6,1e6],[-1e6,-1e6]]) {
-        const motion=createCalmInteraction({width:w,height:h,radius:r,x,y,viewportWidth:400,viewportHeight:300});
+        const motion=createCalmInteraction({width:w,height:h,radius:r,x,y,viewportWidth:400,viewportHeight:300,pullShape});
         motion.press(0,dx,dy);
         for(const time of [.03,.1,.3,1]) {
           const [a,b,c,d]=motion.sample(time).matrix, cx=x+w/2,cy=y+h/2;

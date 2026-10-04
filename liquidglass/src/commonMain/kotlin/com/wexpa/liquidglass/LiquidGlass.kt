@@ -418,24 +418,8 @@ internal fun Modifier.liquidGlassCore(
         val px = pullX
         val py = pullY
         val radius = shape.glassRadii(measured, direction, density).minOrNull() ?: 0f
-        val extent = glassPullExtent(measured.width, measured.height, radius,
-            pressScaleX, pressScaleY, px, py)
-        val acrossExtent = glassPullExtent(measured.width, measured.height, radius,
-            pressScaleX, pressScaleY, -py, px)
-        val rawPull = glassPullDeformation(
-            pullX = px,
-            pullY = py,
-            extentPx = extent,
-            elongation = interaction.pullElongation,
-            widthRatio = interaction.pullWidthRatio,
-            follow = interaction.pullFollow,
-            acrossExtentPx = acrossExtent,
-        )
-        // Drag strain scales with surface size; press expansion and illumination do not.
-        val deformation = glassAnchoredMaterialPull(
-            glassSurfacePull(rawPull, measured.width, measured.height, density.density, extent),
-            measured.width, measured.height,
-        )
+        val deformation = glassMaterialPull(measured.width, measured.height, radius,
+            density.density, pressScaleX, pressScaleY, px, py, pullCentreLimit, interaction)
         if (panelPosition.x.isFinite() && panelPosition.y.isFinite()) glassPullInViewport(
             deformation, measured.width, measured.height, radius, pressScaleX, pressScaleY,
             panelPosition.x + measured.width / 2f, panelPosition.y + measured.height / 2f,

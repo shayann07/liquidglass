@@ -23,12 +23,8 @@ class GlassCalmGrowthReferenceTest {
                 val compliance = glassPullTargetScale(hypot(rawX, rawY), interaction.pullFollow,
                     height * interaction.pressScale * interaction.pullLimit)
                 val x = rawX * compliance; val y = rawY * compliance
-                val along = glassPullExtent(width, height, radius, scale, scale, x, y)
-                val across = glassPullExtent(width, height, radius, scale, scale, -y, x)
-                val raw = glassPullDeformation(x, y, along, interaction.pullElongation,
-                    interaction.pullWidthRatio, interaction.pullFollow, acrossExtentPx = across)
-                val shape = glassAnchoredMaterialPull(
-                    glassSurfacePull(raw, width, height, density, along), width, height)
+                val shape = glassMaterialPull(width, height, radius, density, scale, scale, x, y,
+                    height * interaction.pressScale * interaction.pullLimit, interaction)
                 val a = Math.toRadians(shape.angleDegrees.toDouble()).toFloat()
                 val c = (shape.along - shape.across) * cos(a) * sin(a) * scale
                 val d = (shape.along * sin(a) * sin(a) + shape.across * cos(a) * cos(a)) * scale

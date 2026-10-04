@@ -11,9 +11,11 @@ const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
  */
 export function createCalmInteraction({width, height, radius = Math.min(width, height) / 2,
   x = 0, y = 0, viewportWidth, viewportHeight, reducedMotion = false,
-  pressScale = 1.03, pressGrowth = 2}) {
+  pressScale = 1.03, pressGrowth = 2, pullShape = 'adaptive'}) {
   if (![pressScale, pressGrowth].every(Number.isFinite) || pressScale < 1 || pressScale > 2 || pressGrowth < 0)
     throw new RangeError('Press scale must be 1..2 and per-edge growth must be nonnegative');
+  if (!['adaptive','area-preserving'].includes(pullShape))
+    throw new RangeError('Pull shape must be adaptive or area-preserving');
   let geometry, reduced = !!reducedMotion, clock = null, held = false;
   let pressure = {value: 0, velocity: 0}, horizontal = {...pressure}, vertical = {...pressure};
   let target = {x: 0, y: 0};
@@ -74,7 +76,8 @@ export function createCalmInteraction({width, height, radius = Math.min(width, h
     const pressY = 1 + (targetY - 1) * amount;
     const contained = vw !== undefined && x >= 0 && y >= 0 && x + w <= vw && y + h <= vh;
     const cx = x + w / 2, cy = y + h / 2;
-    const shape = calmDeformation(w, h, horizontal.value, vertical.value, amount, r, pressX, pressY);
+    const shape = calmDeformation(w, h, horizontal.value, vertical.value, amount, r, pressX, pressY,
+      pullShape,Math.min(w*targetX,h*targetY)*.5);
     const c = Math.cos(shape.angle), s = Math.sin(shape.angle);
     function matrix(gain) {
       const a = 1 + (shape.along - 1) * gain, b = 1 + (shape.across - 1) * gain;

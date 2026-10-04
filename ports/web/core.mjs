@@ -50,10 +50,19 @@ export function calmPressScale(side, scale = 1.03, growth = 2) {
 /** Pull coordinates have already been resisted and animated; do not resist them a second time. */
 export function calmDeformation(width, height, dx, dy, pressAmount, radius,
   pressX = 1 + (calmPressScale(width) - 1) * pressAmount,
-  pressY = 1 + (calmPressScale(height) - 1) * pressAmount) {
+  pressY = 1 + (calmPressScale(height) - 1) * pressAmount,
+  pullShape = 'adaptive', targetLimit = Math.min(width*pressX,height*pressY)*.5) {
   const travel = Math.hypot(dx, dy);
   if (!travel) return { pressX, pressY, along: 1, across: 1, angle: 0 };
   const c = dx / travel, s = dy / travel, r = Math.min(radius, width / 2, height / 2);
+  if (pullShape === 'area-preserving') {
+    const amount = Math.max(0,Math.min(1,travel*.2/targetLimit));
+    // Same authored .047 log-strain as Compose; input compliance/timing remain independent.
+    const strain=.047*amount;
+    const roundness=Math.max(0,Math.min(1,2*Math.min(width,height)/Math.max(width,height)-1));
+    const u=strain*(c*c-s*s), v=2*strain*c*s*roundness, magnitude=Math.hypot(u,v);
+    return {pressX,pressY,along:Math.exp(magnitude),across:Math.exp(-magnitude),angle:Math.atan2(v,u)/2};
+  }
   const extent = (nx, ny) => (width - 2*r)*pressX*Math.abs(nx) + (height - 2*r)*pressY*Math.abs(ny) +
     2*r*Math.hypot(pressX*nx, pressY*ny);
   const alongExtent=extent(c,s), acrossExtent=extent(-s,c), extension=.03*travel;

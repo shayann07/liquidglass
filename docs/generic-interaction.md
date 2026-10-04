@@ -94,6 +94,20 @@ to pull outside an already-reached anchor therefore cannot stretch a stationary 
 strain still follows the separate anchored material response; returning inside the tab range restores
 travel deformation. Selection intent uses the original pointer position, independently of that bound.
 
+`GlassTabBarStyle.Calm()` now selects `GlassPullShape.AreaPreserving` for its surrounding material.
+This fits the original bar's coupled narrowing and height increase: the authored saturated response is
+835.5×204.7px for a 834×186px bar after its separate 5% press. It does not reconstruct the original's
+upward visible-centre shift. No translation is applied to layout, hit targets or ordinary labels.
+
+Generic `Calm` and `Pullable` keep `GlassPullShape.Adaptive`, including the large-card 2dp extension
+cap. That policy uses `pullElongation` and `pullWidthRatio`. `AreaPreserving` instead uses a bounded
+0.047 log-strain, at most 4.8% additional axis stretch before viewport constraints. `pullFollow` and
+`pullLimit` still set the input resistance; use a finite positive `pullLimit` for this policy.
+Shear fades in log space as surfaces get wider, keeping a long bar level and preserving material
+area away from viewport limits. A constrained viewport may reduce that transform further.
+Both policies share the same modifier, springs, gesture ownership and reduced-motion handling.
+Use the navigation preset directly; there is no second drag handler to attach to the selector.
+
 A caller-provided `GlassPressSource` drives feedback from a parent gesture, including cumulative
 pull displacement through `press(point, pullOffset)`. Normal self-interacting controls need no
 external press source. The source does not arbitrate pointer ownership for you.

@@ -7,6 +7,41 @@ import kotlin.math.sqrt
 import kotlin.math.tanh
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.math.exp
+
+/** Shared geometry entry point for every interactive material surface. Targets have already
+ * been resisted/animated; never resist them twice. Press remains a separate transform. */
+internal fun glassMaterialPull(
+    width: Float, height: Float, radius: Float, density: Float,
+    pressX: Float, pressY: Float, pullX: Float, pullY: Float,
+    targetLimit: Float, interaction: GlassInteraction,
+): GlassPullDeformation {
+    if (interaction.pullShape == GlassPullShape.AreaPreserving) {
+        val length = kotlin.math.hypot(pullX, pullY)
+        if (length < 1e-5f || width <= 0f || height <= 0f || targetLimit <= 0f || !targetLimit.isFinite())
+            return GlassPullDeformation.None
+        val amount = (length * interaction.pullFollow / targetLimit).coerceIn(0f, 1f)
+        // Authored spatial fit: 834x186 pressed1.05, then exp(+/-.047) gives835.49x204.70.
+        // The full T04 sequence couples narrowing with growth; the previous absolute-width
+        // subtraction gave873x198 instead. Timing/input gain and visible-centre asymmetry
+        // remain separate questions. Do not apply this relative law to generic large cards.
+        val strain = .047f * amount
+        val nx = pullX / length; val ny = pullY / length
+        val roundness = (2f * min(width, height) / maxOf(width, height) - 1f).coerceIn(0f, 1f)
+        // Remove shear in log space, preserving determinant1 even for diagonal pulls on bars.
+        // A long bar stays level; a round surface retains the full directional response.
+        val u = strain * (nx * nx - ny * ny)
+        val v = 2f * strain * nx * ny * roundness
+        val magnitude = kotlin.math.hypot(u, v)
+        return GlassPullDeformation(exp(magnitude), exp(-magnitude),
+            atan2(v, u) * (90f / kotlin.math.PI.toFloat()), 0f, 0f)
+    }
+    val extent = glassPullExtent(width, height, radius, pressX, pressY, pullX, pullY)
+    val across = glassPullExtent(width, height, radius, pressX, pressY, -pullY, pullX)
+    val raw = glassPullDeformation(pullX, pullY, extent, interaction.pullElongation,
+        interaction.pullWidthRatio, interaction.pullFollow, acrossExtentPx = across)
+    return glassAnchoredMaterialPull(glassSurfacePull(raw, width, height, density, extent), width, height)
+}
 
 /**
  * What a press-and-pull does to a free piece of glass, as one transform: the body follows the
