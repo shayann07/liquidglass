@@ -38,6 +38,9 @@ This file records user-visible development changes. Published artifacts are iden
 - Calm resting taps keep a small compression/recovery on arrival. Shape damping and stretch gain are
   tuned separately from the critical centre and press springs; the previous preset had lost this phase.
 - Further outward movement beyond an end anchor no longer stretches a stationary Calm selector.
+- Calm resting-tap height no longer waits through two springs before changing. A separate transit
+  pressure response and reduced spine gain fit the original midpoint's height and width together;
+  held pressure, optical formation and historical presets retain their existing response.
 - Calm navigation restores the original ordinary touch growth with a material-only 5% press while
   retaining restrained drag. Its held brightness no longer adds generic control lift a second time.
 - Portable viewport-limited press targets animate gradually instead of clipping growth mid-animation.

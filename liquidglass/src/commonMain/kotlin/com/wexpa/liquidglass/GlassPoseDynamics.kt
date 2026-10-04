@@ -59,6 +59,10 @@ internal data class GlassPoseSpec(
     /** Pressure and accommodation. Held growth takes ~130 ms in the recording (g7 n575–582). */
     val pressureOmega: Float = 45f,
     val pressureZeta: Float = 1f,
+    /** Opt-in resting-transit geometry response, independent of optical formation. Zero keeps
+     * the historical cascaded response. The untimed IMG_6698 midpoint constrains the visible
+     * height at a travel phase, not an Apple frequency. Held/released pressure is unchanged. */
+    val tapPressureOmega: Float = 0f,
     /**
      * How fast the pressure subsides once the finger is gone. The recording's released lens
      * shrinks steadily over ~250 ms (g14 n1333–1348); at 30/s the body was back inside the bar
@@ -252,9 +256,14 @@ internal data class GlassPoseSpec(
             centreOmega = 24f, spineOmega = 30f, spineZeta = 0.78f,
             // Loosen shape recovery without speeding up the centre or increasing peak stretch.
             // The original resting-tap stills include a compressed arrival before settling.
-            tapSpineOmega = 26f, tapSpineZeta = 0.45f, tapElongationSlots = 0.42f,
+            // IMG_6698 spatial midpoint: about328px wide and172px high. A faster transit
+            // pressure response adds cap width too; retain the earlier0.36 spine gain so
+            // restoring height does not over-stretch the silhouette. This is a spatial fit,
+            // not identification of the untimed original's spring frequency.
+            tapSpineOmega = 26f, tapSpineZeta = 0.45f, tapElongationSlots = 0.36f,
             tapReferenceSpeed = 10f, spineReleaseOmega = 22f,
             pressureOmega = 22f, pressureFallOmega = 14f, formRiseOmega = 30f,
+            tapPressureOmega = 45f,
             heldHeightRatio = 1.20f, heldReferenceSpeed = 12f,
             elongationSlots = 0.45f, squeeze = 0.10f,
             pullStrainPerDp = 0f, pullPressurePerDp = 0f, pullFollow = 0f,
@@ -853,7 +862,13 @@ internal class GlassPoseController(
         // Pressure shares the bounded deformation coordinate: it must not keep collapsing
         // after strain saturates, however far a pointer moves outside the bar.
         val pullPressure = spec.pullPressurePerDp * pullStrain / spec.pullStrainPerDp.coerceAtLeast(1e-4f)
-        equilibrium.p = if (motionEnabled) heldPressure * formation - squeeze + pullPressure else 0f
+        // Transit height must already deform halfway through a long trip (IMG_6698), not
+        // wait for optical formation and then a second held-pressure spring. Keep one geometry
+        // spring driven by the existing movement target. A held throw never enters this path:
+        // its pressure continues to subside without travel re-inflating it.
+        val transitPressure = mode == GlassPoseMode.TapTransit && spec.tapPressureOmega > 0f
+        val pressureFormation = if (transitPressure) formTarget else formation
+        equilibrium.p = if (motionEnabled) heldPressure * pressureFormation - squeeze + pullPressure else 0f
 
         val ax = accelX / slot
         val ay = accelY / slot
@@ -915,7 +930,11 @@ internal class GlassPoseController(
         val po = spec.pressureOmega
         val pz = spec.pressureZeta
         // Subsiding after a release is slower than growing or being squeezed under a finger.
-        val pressureRate = if (mode != GlassPoseMode.Held && equilibrium.p < pose.p) spec.pressureFallOmega else po
+        val pressureRate = when {
+            transitPressure -> spec.tapPressureOmega
+            mode != GlassPoseMode.Held && equilibrium.p < pose.p -> spec.pressureFallOmega
+            else -> po
+        }
         stepState(dt, pose.p, velocity.p, equilibrium.p, pressureRate, pz).let { pose.p = it[0]; velocity.p = it[1] }
         stepState(dt, pose.acc, velocity.acc, equilibrium.acc, spec.accommodationOmega, 1f).let { pose.acc = it[0]; velocity.acc = it[1] }
         val spo = when {

@@ -78,12 +78,25 @@ state continuity and travel-driven spine deformation while pressed material fade
 zeroed shape-driving velocity on release, making throws rigid; the calm preset now separates these roles.
 Historical expressive dynamics remain an explicit comparison path.
 
-Reapplying the original resting-tap recovery gate to Calm found a missing phase: a long tap stretched
+An earlier correction reapplied the original resting-tap recovery gate to Calm and found a missing phase: a long tap stretched
 but approached rest monotonically. Its shape damping is now 0.45 (from 0.72), while its maximum target
 half-spine gain falls from 0.55 to 0.42 slots. The centre and press springs are unchanged. In the
 1150×186px five-slot fixture, four-slot travel peaks at 450.63px width (previously 457.64), briefly
 compresses to 238.08px and returns to 252px. The original 6690–6701 stills support the ordering of
 stretch, compressed arrival and recovery; they do not establish those numerical gains or elapsed time.
+
+A subsequent audit of original `IMG_6698` found that this correction still changed height too late.
+Six unoccluded column scans give 171–173px height near 49% of the trip; the model gave 162.96px.
+Optical formation and pressure had two consecutive slow springs. Calm now drives transit pressure
+directly from the existing movement target through one authored critical spring (45/s). Its spine
+gain is 0.36 slots because restoring cap height also adds width. The same spatial-phase test now gives
+**329.74×171.36px**, against rounded gates of **330±12 × 172±4px**. The height-only candidate failed
+the width gate at 344.81px; both dimensions must pass together. Optical formation, held/released
+pressure and historical presets are unchanged. Untimed stills constrain spatial shape, not frequency.
+At the separate 1150×186px fixture, long-travel peak/rebound are now 429.27/232.87px before settling
+at 252px. These supersede the earlier model outcomes above, not the reference measurements.
+The [review record](https://github.com/shayann07/liquidglass/blob/main/review/ATLAS-STABILIZATION.md#resting-tap-midpoint-height-was-late)
+includes the unscaled original, pixel probes, reproduction command and failed candidates.
 
 Input targets are integrated on their timestamps in the calm path. Previously, multiple pointer
 samples between display frames overwrote the preceding target, making the same gesture depend on

@@ -1,0 +1,239 @@
+{
+  "source": "reference-6698.png",
+  "sha256": "d851c1d2f952612173fbed2dd92437e5c487762766d764db14c42e3e93bbacd3",
+  "dimensions": [
+    1170,
+    324
+  ],
+  "method": "Strongest signed adjacent-pixel gradient; coordinates name the first pixel of each pair. Separation is bottom-top / right-left, with no inclusive +1.",
+  "limitation": "Hand-selected unoccluded cross sections, not complete silhouette bounds. Untimed image; no elapsed motion time is identifiable.",
+  "vertical": [
+    {
+      "channel": "luma",
+      "x": 510,
+      "top": 82,
+      "bottom": 253,
+      "height": 171
+    },
+    {
+      "channel": "luma",
+      "x": 535,
+      "top": 81,
+      "bottom": 253,
+      "height": 172
+    },
+    {
+      "channel": "luma",
+      "x": 560,
+      "top": 81,
+      "bottom": 254,
+      "height": 173
+    },
+    {
+      "channel": "luma",
+      "x": 585,
+      "top": 81,
+      "bottom": 253,
+      "height": 172
+    },
+    {
+      "channel": "luma",
+      "x": 610,
+      "top": 81,
+      "bottom": 253,
+      "height": 172
+    },
+    {
+      "channel": "luma",
+      "x": 635,
+      "top": 81,
+      "bottom": 252,
+      "height": 171
+    },
+    {
+      "channel": 0,
+      "x": 510,
+      "top": 82,
+      "bottom": 253,
+      "height": 171
+    },
+    {
+      "channel": 0,
+      "x": 535,
+      "top": 81,
+      "bottom": 253,
+      "height": 172
+    },
+    {
+      "channel": 0,
+      "x": 560,
+      "top": 81,
+      "bottom": 254,
+      "height": 173
+    },
+    {
+      "channel": 0,
+      "x": 585,
+      "top": 81,
+      "bottom": 253,
+      "height": 172
+    },
+    {
+      "channel": 0,
+      "x": 610,
+      "top": 81,
+      "bottom": 253,
+      "height": 172
+    },
+    {
+      "channel": 0,
+      "x": 635,
+      "top": 81,
+      "bottom": 252,
+      "height": 171
+    },
+    {
+      "channel": 1,
+      "x": 510,
+      "top": 82,
+      "bottom": 253,
+      "height": 171
+    },
+    {
+      "channel": 1,
+      "x": 535,
+      "top": 81,
+      "bottom": 253,
+      "height": 172
+    },
+    {
+      "channel": 1,
+      "x": 560,
+      "top": 80,
+      "bottom": 253,
+      "height": 173
+    },
+    {
+      "channel": 1,
+      "x": 585,
+      "top": 80,
+      "bottom": 253,
+      "height": 173
+    },
+    {
+      "channel": 1,
+      "x": 610,
+      "top": 81,
+      "bottom": 253,
+      "height": 172
+    },
+    {
+      "channel": 1,
+      "x": 635,
+      "top": 81,
+      "bottom": 252,
+      "height": 171
+    },
+    {
+      "channel": 2,
+      "x": 510,
+      "top": 82,
+      "bottom": 253,
+      "height": 171
+    },
+    {
+      "channel": 2,
+      "x": 535,
+      "top": 81,
+      "bottom": 253,
+      "height": 172
+    },
+    {
+      "channel": 2,
+      "x": 560,
+      "top": 81,
+      "bottom": 253,
+      "height": 172
+    },
+    {
+      "channel": 2,
+      "x": 585,
+      "top": 81,
+      "bottom": 253,
+      "height": 172
+    },
+    {
+      "channel": 2,
+      "x": 610,
+      "top": 81,
+      "bottom": 253,
+      "height": 172
+    },
+    {
+      "channel": 2,
+      "x": 635,
+      "top": 81,
+      "bottom": 252,
+      "height": 171
+    }
+  ],
+  "horizontal": [
+    {
+      "y": 150,
+      "left": 411,
+      "right": 736,
+      "width": 325,
+      "centre": 573.5
+    },
+    {
+      "y": 155,
+      "left": 411,
+      "right": 737,
+      "width": 326,
+      "centre": 574.0
+    },
+    {
+      "y": 160,
+      "left": 410,
+      "right": 738,
+      "width": 328,
+      "centre": 574.0
+    },
+    {
+      "y": 165,
+      "left": 410,
+      "right": 738,
+      "width": 328,
+      "centre": 574.0
+    },
+    {
+      "y": 170,
+      "left": 410,
+      "right": 738,
+      "width": 328,
+      "centre": 574.0
+    },
+    {
+      "y": 175,
+      "left": 410,
+      "right": 738,
+      "width": 328,
+      "centre": 574.0
+    },
+    {
+      "y": 180,
+      "left": 411,
+      "right": 737,
+      "width": 326,
+      "centre": 574.0
+    }
+  ],
+  "reference_gate": {
+    "height_px": 172,
+    "height_tolerance_px": 4,
+    "width_px": 330,
+    "width_tolerance_px": 12,
+    "travel_phase": 0.487,
+    "note": "Rounded authored test gates from these scans and approximate endpoint centres 189/981; not extra measurements."
+  }
+}

@@ -71,6 +71,9 @@ Long cards use a smaller drag response than compact controls. A navigation selec
 optical role from a magnifier; using the held-selector map on a free lens caused the recurring split rim.
 Calm navigation keeps a reference-backed 5% whole-bar touch expansion, with its slower timing and
 restrained drag independent of that expansion. Generic cards retain the 3% / 2dp-per-edge press cap.
+Resting tap travel also changes height before arrival; its geometry response is separate from optical
+formation. The [original midpoint comparison](review/ATLAS-STABILIZATION.md#resting-tap-midpoint-height-was-late)
+records the measured bounds, correction and remaining timing uncertainty.
 
 Desktop Calm selectors also compose refracted ink and material together in the final shader, avoiding
 one intermediate rounding step. The [porting guide](docs/porting.md#combining-refracted-ink-with-glass)

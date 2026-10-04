@@ -361,6 +361,47 @@ press and held-travel settings stay unchanged.
 after the correction, including cadence, idle resume, held extremes and throw recovery. The initial
 failed Calm arrival check remains recorded in `verification.json`.
 
+### Resting-tap midpoint: height was late
+
+![Original untimed long-tap midpoint, IMG_6698](atlas/reference-6698.png)
+
+The earlier arrival correction above still left the selector too flat midway through the trip.
+This original owner-supplied 1170×324 crop shows 171–173px height in six clear central columns.
+Seven horizontal scans give 325–328px width, with centre about 574px; approximate settled centres
+189/981 place it at 48.6% of the trip. These are selected cross sections, not a complete silhouette
+fit. The conservative rounded test gates are 172±4px high and 330±12px wide at phase 0.487.
+The fixture retains the inherited rounded 186px bar height although this crop spans about 184px.
+
+| Same production controller fixture / phase 0.4911 | Width | Height | Reference gates |
+| --- | ---: | ---: | --- |
+| Before this correction | 336.41px | 162.96px | Height fails |
+| Height response alone | 344.81px | 171.36px | Width fails |
+| Separate transit response and reduced spine gain | 329.74px | 171.36px | Both pass |
+
+The cause was cascaded optical-formation and pressure springs: the geometric height lagged until
+too late in the trip. Calm now drives a separate critical transit-pressure spring from the existing
+movement target. Its authored rate is 45/s; target half-spine gain falls from 0.42 to 0.36 slots because
+the taller end caps also add width. Centre motion, optical formation, held/released pressure and
+historical presets are unchanged. This is a spatial fit, **not recovery of Apple's timing**.
+
+The separate 1150×186px fixture now peaks at 429.27px on a four-slot trip, compresses to 232.87px
+(7.6% below its 252px rest width), then recovers. The one-slot peak is 319.88px. These replace the
+earlier authored outcomes above; that earlier plot and CSV remain labelled historical evidence.
+Fifteen focused controller/reference tests passed before the full-suite run, including held/throw
+behavior, endpoint bounds and shape recovery. Full-run results are recorded after completion.
+
+Reproduce the original pixel measurements with Pillow installed:
+
+```sh
+python tools/measure_tap_midpoint.py review/atlas/reference-6698.png
+```
+
+[Raw measurements and source hash](atlas/reference-tap-midpoint.json).
+The `GlassTapPhaseReferenceTest` compares the production controller at the closest spatial phase,
+checks containment on every step, and requires return to 162px resting height. It does not compare
+colour, native GPU motion or elapsed time. This single still was used to tune the authored model;
+it is not an independent validation set or evidence of full 1:1 parity.
+
 ### End-anchor travel: movement outside the bar is not selector travel
 
 The original T04 crop above and the owner's distinction between bar squeeze and selector travel
