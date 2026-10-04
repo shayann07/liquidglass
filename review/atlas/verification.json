@@ -546,5 +546,84 @@
     "portableMathTests": 12,
     "failed": 0,
     "libraryAndDesktop": "FROM-CACHE; unchanged test inputs, 327 library tests (300 passed,27 skipped),2 desktop tests. Original full library run recorded at a4ed995; no fresh native/physical run claimed."
+  },
+  "tap-midpoint-87e17a4": {
+    "reference": "reference-tap-midpoint.json",
+    "phase": 0.49106774,
+    "baseline": {
+      "width": 336.4109,
+      "height": 162.96457,
+      "result": "height gate failed"
+    },
+    "heightOnly": {
+      "width": 344.80505,
+      "height": 171.35977,
+      "result": "width gate failed"
+    },
+    "corrected": {
+      "width": 329.73853,
+      "height": 171.35977,
+      "result": "both gates passed"
+    },
+    "gates": {
+      "width": 330,
+      "widthTolerance": 12,
+      "height": 172,
+      "heightTolerance": 4
+    },
+    "focusedPassed": 15,
+    "scope": "Spatial phase of untimed source, not Apple spring/timing identification"
+  },
+  "ci-build-87e17a4": {
+    "commit": "87e17a406f41b2ab1159666ecc5423a61ebd41f4",
+    "run": 37234834817,
+    "requiredChecks": "all seven passed",
+    "buildJobDuration": "17m37s",
+    "library": {
+      "total": 328,
+      "passed": 301,
+      "skipped": 27,
+      "failed": 0,
+      "reportedDuration": "13m19.44s",
+      "execution": "fresh"
+    },
+    "desktop": {
+      "passed": 2,
+      "failed": 0,
+      "reportedDuration": "2m24.98s",
+      "execution": "fresh"
+    },
+    "skiaTests": 12,
+    "portableMathTests": 12,
+    "browserTests": 5,
+    "local": {
+      "result": "BUILD SUCCESSFUL",
+      "duration": "20m35s",
+      "library": {
+        "total": 328,
+        "passed": 301,
+        "skipped": 27,
+        "failed": 0
+      },
+      "desktopPassed": 2,
+      "androidSample": "assembled"
+    },
+    "native": {
+      "image": "checkpoint-87e17a4-native.png",
+      "timing": "checkpoint-87e17a4-timing.json",
+      "scope": "Resting native app buffer and static redraw submission; not presented FPS or native gesture performance"
+    }
+  },
+  "whole-bar-t04-sequence": {
+    "source": "reference-bar-sequence.json",
+    "frames": 47,
+    "thresholdFrameProbes": 141,
+    "allEdgesHaveStrictMajority": true,
+    "heightRangePx": [
+      186,
+      206
+    ],
+    "visibleCentreShiftAtLargestSample": -11,
+    "scope": "One continuous original episode; finger trajectory and optical-versus-layout mechanism remain unidentified. Current model remains unmatched."
   }
 }

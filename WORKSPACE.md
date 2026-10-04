@@ -1,5 +1,8 @@
 # One development workspace
 
+Current work and recovery: read [PROGRESS.md](PROGRESS.md) after an interruption. It identifies the
+verified commit, requirement checklist, evidence and next steps; the local checkpoint names live jobs.
+
 Use the canonical `liquidglass` checkout, branching from `main` for changes. Atlas Studio is the
 desktop sample **inside liquidglass**, not another copy of Vitals. The former
 Astra, Fable and Antigravity workspaces are retired. Their names in old research

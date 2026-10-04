@@ -42,9 +42,17 @@ remain unmatched. Passing an upper bound alone cannot establish a correct drag m
 A foreground audit also finds that the visible unselected Contacts icon changes from 69×69px at
 rest to 73×73px on ordinary hold and 69×76px at extreme (threshold 200). Its bounds centre moves
 11.5px upward from ordinary to extreme hold at all three tested thresholds. This is visible-pixel
-evidence, not identification of layout motion versus optical/content warping. Fixed layout and
-ordinary labels remain the owner's requirement; moving them to fit a frame would violate it.
+evidence, not identification of layout motion versus optical/content warping. The current implementation
+keeps layout and ordinary labels fixed; that choice does not itself prove matching visible output.
 The review includes the original crops, threshold results and a Pillow-only reproduction tool.
+
+A follow-up samples 47 native timestamps across the same T04 gesture. Its bar starts and ends at
+186px with the same visible centre, holds at 196px, then reaches 205–206px with the centre 10.5–11px
+higher during the prolonged drag. All 141 threshold/frame combinations have a strict majority of
+unoccluded columns for both boundaries. The asymmetry persists within one gesture; it is not an
+offset between recordings. The earlier 205px gate remains a conservative chosen-frame bound, not
+the complete recording's maximum. The review supplies the plot, raw votes, original crops and an
+exact decode/measurement command. The current centered model still does not match that output.
 
 The Calm integration also accidentally added generic press brightness on top of the navigation
 bar's existing held lift. A rendered fail-first test measured 54/255 against the original 44±1

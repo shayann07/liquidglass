@@ -129,7 +129,7 @@ The icon centre is 11.5px higher at extreme than at ordinary hold at all three t
 shape changes too. The outer-bar measurements therefore cannot be explained by symmetric growth
 about a fixed centre alone. These are visible-pixel bounds, not proof of layout translation:
 refraction, content scaling and control transforms are not distinguished by a screenshot. The
-owner's fixed-layout/ordinary-label requirement remains the implementation constraint. We do not
+current implementation keeps layout and ordinary labels fixed. We do not
 silently move labels to fit this frame or label the current result exact parity.
 
 Reproduction requires ffmpeg with zscale and Python with Pillow. Decode each native timestamp
@@ -156,6 +156,42 @@ the pressure correction is shown below. This is an implementation proof over a s
 not a like-for-like optical comparison with iOS:
 
 ![Calm bar with corrected normal touch expansion](atlas/bar-press-held.png)
+
+### Whole-bar sequence: the asymmetry is persistent
+
+A second audit uses one continuous T04 episode rather than comparing its extreme with an earlier
+gesture. Before/after rest both measure 186px, centred at y 283.5 in the same crop. Ordinary hold
+measures 196px at that centre. During the prolonged drag the bar grows gradually to 205–206px and
+its visible centre rises 10.5–11px, then both recover. This rules out a different resting placement
+between the two gestures as the explanation for the previously reported asymmetry.
+
+![Original T04 whole-bar height and visible centre](atlas/reference-bar-sequence.png)
+
+| Before, PTS 24601/600 | Late hold, PTS 31074/600 | After, PTS 32035/600 |
+| --- | --- | --- |
+| ![T04 before](atlas/reference-t04-before.png) | ![T04 late hold](atlas/reference-t04-late.png) | ![T04 after](atlas/reference-t04-after.png) |
+
+The trace contains 47 unscaled crops at native timestamps from 41.001667 to 53.391667s. At each
+frame, 123 columns vote for top and bottom separately; this avoids treating the travelling selector
+as the surrounding bar. All 141 threshold/frame combinations have a strict majority at both edges.
+Thresholds 5/10/15 agree within one pixel. The sampled maximum is 206px; the earlier 205px test bound
+remains a conservative chosen-frame bound, **not a proven maximum of the recording**. The current
+198.017px model still undershoots the observed prolonged drag. Fixed layout bounds alone cannot
+verify these changing visible boundaries, and a screenshot does not identify the underlying input
+trajectory or whether the foreground movement comes from optics or a drawing transform.
+
+[All samples, votes, timestamps and hashes](atlas/reference-bar-sequence.json).
+To reproduce from the owner's original video, create an empty output directory and run (ffmpeg
+with zscale, Python with Pillow; matplotlib is required only for `--plot`):
+
+```sh
+ffmpeg -copyts -ss 41 -t 12.5 -i research/datasets/ios27-phone/bubble/IMG_6756.MP4 -an -vf "select='not(mod(n,15))',zscale=t=linear:npl=100,format=gbrpf32le,zscale=p=bt709:t=iec61966-2-1:m=bt709:r=full,format=rgb24,crop=1170:440:0:2092,showinfo" -fps_mode passthrough output/frame-%03d.png 2> output/decode.log
+python tools/measure_phone_bar_sequence.py output --output output/bounds.json --plot output/trace.png
+```
+
+The original video and intermediate crops remain research inputs; the three evidence crops above
+are copied without resizing. This audit changes the next deformation target, not the completed
+tap correction or generic card defaults. No new Apple timing constant is inferred from it.
 
 ### Avoiding duplicate held brightness
 
@@ -387,8 +423,13 @@ historical presets are unchanged. This is a spatial fit, **not recovery of Apple
 The separate 1150×186px fixture now peaks at 429.27px on a four-slot trip, compresses to 232.87px
 (7.6% below its 252px rest width), then recovers. The one-slot peak is 319.88px. These replace the
 earlier authored outcomes above; that earlier plot and CSV remain labelled historical evidence.
-Fifteen focused controller/reference tests passed before the full-suite run, including held/throw
-behavior, endpoint bounds and shape recovery. Full-run results are recorded after completion.
+Fifteen focused controller/reference tests passed, including held/throw behavior, endpoint bounds
+and shape recovery. The subsequent complete runs passed locally and on GitHub at `87e17a4`:
+328 library tests (301 passed, 27 skipped, no failures), both Atlas desktop tests and the Android
+sample build. The local run took 20m35s. All seven required checks passed in
+[CI run 37234834817](https://github.com/shayann07/liquidglass/actions/runs/37234834817); its build job
+took 17m37s, with fresh library/desktop test execution (13m19.44s / 2m24.98s reported by the suites).
+Twelve Skia tests, twelve portable math tests and five hosted browser tests also passed.
 
 Reproduce the original pixel measurements with Pillow installed:
 
@@ -401,6 +442,23 @@ The `GlassTapPhaseReferenceTest` compares the production controller at the close
 checks containment on every step, and requires return to 162px resting height. It does not compare
 colour, native GPU motion or elapsed time. This single still was used to tune the authored model;
 it is not an independent validation set or evidence of full 1:1 parity.
+
+![Native Atlas at rest after the tap correction, 87e17a4](atlas/checkpoint-87e17a4-native.png)
+
+This fresh 1920×1051 Direct3D capture reads Atlas's own render buffer. The library and desktop test
+processes had finished before capture. Static forced redraw submissions measured 9.2794ms median,
+12.2323ms p95 and 14.3365ms maximum over 120 samples after 10 warmups
+([raw timing](atlas/checkpoint-87e17a4-timing.json)). These are neither presented FPS nor input
+latency. The difference from earlier observations is not a controlled performance improvement.
+The screenshot is a resting frame; the phase-specific correction is scored by the controller test.
+
+| Atlas extreme corner drag | Navigation corner pull |
+| --- | --- |
+| ![Atlas lens at the canvas corner](atlas/checkpoint-87e17a4-extreme.png) | ![Production Calm bar at an extreme corner pull](atlas/checkpoint-87e17a4-bar.png) |
+
+These two current gesture captures come from desktop Compose software tests (800×600 Atlas;
+480×220 navigation fixture with quarter-scale backdrop). They verify rendered containment and
+stable layout in the tested paths, not native GPU gesture latency or matched Apple optics.
 
 ### End-anchor travel: movement outside the bar is not selector travel
 
