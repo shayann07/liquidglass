@@ -501,7 +501,7 @@
     "wideKernelGain": 0.6119,
     "gaussianPrediction": 0.6176,
     "gainTolerance": 0.04,
-    "hosted": "pending",
+    "hosted": "Passed five browser tests and twelve Skia tests at f179971, CI37212692991",
     "publicAPI": "Light/dark surface images agree within one level between full-size and one-pixel constant sources"
   },
   "portable-binding-cache": {
@@ -516,7 +516,8 @@
     "scope": "CPU bindings and native shader creation only, not rendering or FPS",
     "skiaTests": 12,
     "passed": 12,
-    "layoutMutationGuard": "passed"
+    "layoutMutationGuard": "passed",
+    "hosted": "All seven required checks passed at f179971"
   },
   "ci-build-a4ed995": {
     "run": 37211059768,
@@ -532,6 +533,18 @@
     "requiredChecks": "all seven passed",
     "browserTests": 4,
     "skiaTests": 10,
-    "portableMathTests": 12
+    "portableMathTests": 12,
+    "desktopExecution": "FROM-CACHE (reported two passing tests; not a new execution)"
+  },
+  "ci-build-f179971": {
+    "run": 37212692991,
+    "commit": "f179971ef7d65c67ce596bc972d7f3a2c06148be",
+    "buildDuration": "52s",
+    "requiredChecks": "all seven passed",
+    "browserTests": 5,
+    "skiaTests": 12,
+    "portableMathTests": 12,
+    "failed": 0,
+    "libraryAndDesktop": "FROM-CACHE; unchanged test inputs, 327 library tests (300 passed,27 skipped),2 desktop tests. Original full library run recorded at a4ed995; no fresh native/physical run claimed."
   }
 }

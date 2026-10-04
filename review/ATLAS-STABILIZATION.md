@@ -239,7 +239,7 @@ and three blur sigmas, within one code value. All **12 portable Skia tests pass*
 this correction. Sinusoid attenuation is now **0.6119**, still within the same independent
 0.6176 ± 0.04 gate. The public painter also renders identical light/dark material (within one level) from a full-size
 constant backdrop or the same color supplied as a single pixel. Source replacement and coordinates pass.
-An equivalent test is included for hosted WebGL; its result remains pending until CI completes.
+The equivalent hosted WebGL test also passes at `f179971` in the run recorded below.
 
 The preceding surface integration at `a4ed995` passed all four hosted browser tests in
 [CI run 37211059768](https://github.com/shayann07/liquidglass/actions/runs/37211059768).
@@ -250,7 +250,7 @@ These captures exercise the rounded material, held drag, backdrop replacement an
 | ![Hosted browser surface](atlas/portable-surface-browser.png) | ![Hosted browser held surface](atlas/portable-surface-held.png) |
 
 All seven required checks passed at `a4ed995`: 327 library tests (300 passed, 27 skipped, zero
-failures), two desktop tests, Android builds, 12 portable numerical checks, ten Skia checks and
+failures), two desktop tests restored from the Gradle cache, Android builds, 12 portable numerical checks, ten Skia checks and
 four browser checks. The build job took 23m41s.
 
 These are headless Chromium WebGL captures of `a4ed995`, before the small-source edge correction;
@@ -266,6 +266,13 @@ versus 6.55µs per binding in this batch, not a whole-renderer speedup or an FPS
 [Raw timings](atlas/portable-bindings-timing.json) retain every batch. Reproduce with
 `node ports/skia/benchmark-bindings.mjs path/to/baseline-renderer.mjs`, saving the earlier renderer
 from Git first; omitting the argument measures only the current implementation.
+
+Both corrections passed all seven required checks at `f179971` in
+[CI run 37212692991](https://github.com/shayann07/liquidglass/actions/runs/37212692991):
+12 Skia tests, five browser tests and 12 portable numerical tests. Strict docs, dependency review
+and both CodeQL languages pass. The build took 52s: unchanged Kotlin/desktop inputs reused Gradle
+test outputs (`FROM-CACHE`), including 327 library tests (300 passed, 27 skipped) and two desktop
+tests. This is valid reuse of the earlier suites, not a fresh native or physical-device execution.
 
 ## Desktop visual evidence
 
