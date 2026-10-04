@@ -255,7 +255,38 @@
     "componentPassed": 2,
     "barRenderSeconds": 52.458,
     "flingSeconds": 5.716,
-    "fullCi": "pending",
+    "fullCi": "passed all seven required checks at e1672f8, CI 37165200963",
     "scope": "Both end anchors, far outward/reverse/diagonal movement, return to range, distance response, reference height/arrival and real Compose in-flight frames"
+  },
+  "ci-build-e1672f8": {
+    "run": 37165200963,
+    "commit": "e1672f8ddc2998b01afd8fe46e32294a5aecbb93",
+    "tests": 321,
+    "passed": 294,
+    "skipped": 27,
+    "failed": 0,
+    "desktopTests": 2,
+    "duration": "26m37s",
+    "requiredChecks": "all seven passed"
+  },
+  "separate-endpoint": {
+    "focusedTests": 25,
+    "focusedPassed": 25,
+    "androidSampleBuild": "passed",
+    "legacyErrorLevels": 1.4256,
+    "separateInputErrorLevels": 0.9569,
+    "limitLevels": 1,
+    "fixtures": 18,
+    "visiblePixels": 199788,
+    "fractionalPixels": 11124,
+    "canvasKitErrorLevels": 0.9668,
+    "canvasKitFractionalPixels": 1376,
+    "canvasKitTests": 6,
+    "canvasKitPassed": 6,
+    "nativeBackend": "DIRECT3D",
+    "rejectedCandidate": "Shader-only strip offset lost selected Lines ink outside the native window",
+    "correction": "Separate runtime-filter inputs; declare the ink offset in the filter graph",
+    "scope": "Desktop Calm navigation; portable separate-input shader. Android and legacy retain composed C1.",
+    "fullCi": "pending"
   }
 }

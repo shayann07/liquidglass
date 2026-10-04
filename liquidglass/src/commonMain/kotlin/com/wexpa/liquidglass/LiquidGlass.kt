@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
@@ -293,6 +294,7 @@ internal fun Modifier.liquidGlassCore(
      */
     poseBody: GlassPoseRender? = null,
     endpointComposite: Boolean,
+    packedEndpoint: Boolean = false,
 ): Modifier = composed {
     val glassLayer = rememberGraphicsLayer()
     val endpointLayer = rememberGraphicsLayer()
@@ -721,14 +723,30 @@ internal fun Modifier.liquidGlassCore(
                     }
                     if (useEndpoint) {
                         val inkEffect = effects.content(fullUniforms)
-                        val apertureEffect = effects.endpoint(fullUniforms)
+                        val inkStrip = if (packedEndpoint) fullPadded.height.toFloat() else 0f
+                        val apertureEffect = effects.endpoint(fullUniforms.copy(inkStrip = inkStrip))
                         if (inkEffect != null && apertureEffect != null) {
                             contentLayer.renderEffect = inkEffect
-                            // C1, complete and opaque: the material this selector shows, then the
-                            // selected ink over it once. Source-over is exactly c1 + (1-a1) B1.
-                            endpointLayer.record(size = fullPadded) {
-                                scale(1f / rs, 1f / rs, pivot = Offset.Zero) { drawLayer(glassLayer) }
-                                drawLayer(contentLayer)
+                            // Calm keeps native-resolution B1 and ink in separate strips. The
+                            // aperture composes them in float before the single output write.
+                            // Legacy retains its original rounded C1 layer and pixels.
+                            val endpointSize = if (packedEndpoint) {
+                                IntSize(fullPadded.width, fullPadded.height * 2)
+                            } else fullPadded
+                            endpointLayer.record(size = endpointSize) {
+                                if (!packedEndpoint) {
+                                    scale(1f / rs, 1f / rs, pivot = Offset.Zero) { drawLayer(glassLayer) }
+                                    drawLayer(contentLayer)
+                                } else {
+                                    clipRect(0f, 0f, fullPadded.width.toFloat(), inkStrip) {
+                                        scale(1f / rs, 1f / rs, pivot = Offset.Zero) { drawLayer(glassLayer) }
+                                    }
+                                    translate(top = inkStrip) {
+                                        clipRect(0f, 0f, fullPadded.width.toFloat(), inkStrip) {
+                                            drawLayer(contentLayer)
+                                        }
+                                    }
+                                }
                             }
                             // Times aperture coverage: (m C1, m), replaced over C0 in one draw.
                             endpointLayer.renderEffect = apertureEffect
@@ -906,6 +924,9 @@ expect object LiquidGlassSupport {
     val hasBackdropBlur: Boolean
 }
 
+/** The host can bind separately transformed material and ink inputs to one aperture effect. */
+internal expect val supportsGlassEndpointInputs: Boolean
+
 /**
  * Corner radii in px, in the order the shader expects: TL, TR, BR, BL.
  *
@@ -960,6 +981,7 @@ internal fun GlassUniforms.scaledBy(s: Float): GlassUniforms =
             width = width * s,
             height = height * s,
             pad = pad * s,
+            inkStrip = inkStrip * s,
             radii = FloatArray(radii.size) { radii[it] * s },
             refractBand = refractBand * s,
             refractDepth = refractDepth * s,
@@ -1037,6 +1059,8 @@ internal data class GlassUniforms(
     val poseD: FloatArray = EMPTY_POSE_D,
     /** 1 when this pass emits a complete endpoint instead of its coverage-premultiplied share. */
     val endpointAlpha: Float = 0f,
+    /** Positive only for packed endpoints: native-pixel offset of the separate ink strip. */
+    val inkStrip: Float = 0f,
     /** Straight-run fold strength on the measured profile ([GlassStyle.edgeFold]). */
     val edgeFold: Float = 0f,
     /** Per-channel split for semantic ink; 0 takes one sharp sample. */
@@ -1137,7 +1161,7 @@ internal data class GlassUniforms(
             body.contentEquals(other.body) && bodyY == other.bodyY && bodyKind == other.bodyKind &&
             poseA.contentEquals(other.poseA) && poseAInv.contentEquals(other.poseAInv) &&
             poseC.contentEquals(other.poseC) && poseD.contentEquals(other.poseD) &&
-            endpointAlpha == other.endpointAlpha && edgeFold == other.edgeFold &&
+            endpointAlpha == other.endpointAlpha && inkStrip == other.inkStrip && edgeFold == other.edgeFold &&
             inkSplit == other.inkSplit && heldInk == other.heldInk &&
             wideKernel == other.wideKernel && fineShare == other.fineShare &&
             fuse.contentEquals(other.fuse) && fuseRadius == other.fuseRadius &&

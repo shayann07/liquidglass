@@ -300,7 +300,70 @@ This is hosted Chromium WebGL evidence. The small matrix response affects the lo
 label stays anchored; the upper lens remains an independently movable magnifier.
 
 These tests verify the authored portable contract. They do not turn Calm timing into an Apple
-measurement or establish native bindings for every stack. The endpoint quantisation limitation remains.
+measurement or establish native bindings for every stack. The endpoint quantisation limitation at
+that revision is addressed for Desktop Calm by the follow-up below; Android/legacy remain unchanged.
+
+## Endpoint precision follow-up
+
+The original endpoint pipeline rounded the composed material/ink into an 8-bit intermediate before
+applying aperture coverage. The separate-input path combines premultiplied ink with material in float
+and applies coverage before one output write. It is opt-in through Desktop Calm navigation.
+
+| Same independent endpoint equation | Worst output-level error | Strict one-level gate |
+| --- | ---: | --- |
+| Legacy composed intermediate | 1.4256 | Not met |
+| Separate material/ink inputs | 0.9569 | Met |
+
+Both use the original 18 combinations of three pages, two ink patterns and three outlines:
+199,788 visible pixels, including 11,124 with fractional coverage. The oracle starts at the
+rendered material and ink outputs, evaluates source-over in double precision, and reads coverage
+from output alpha. It does not measure optical fidelity to Apple, display colour transforms, or
+rounding from the final framebuffer write. The old gate and its 1.5-level quantisation budget remain
+reported explicitly; no tolerance was increased to admit the new path.
+
+The CanvasKit independent-input test also passes at 0.9668 levels over rounded, asymmetric and pose
+outlines, with 1,376 fractional pixels. It verifies that the lower storage region stays transparent.
+All six portable Skia tests pass, and all four production profiles retain at most 1/255 channel error
+against the independent JVM reference pixels.
+
+### Native failure found and corrected
+
+The first Compose integration sampled an ink strip by adding a vertical offset inside the shader.
+Its numerical and uncropped component tests passed, but the actual Direct3D capture lost the selected
+"Lines" label: the strip lay outside the window and its dependency was invisible to Skia's filter bounds.
+
+![Rejected native candidate: selected label missing](atlas/endpoint-native-rejected.png)
+
+The corrected implementation declares the ink translation as an image-filter input. The final
+shader samples both material and ink at the same coordinate. This follows the zero-radius
+[Skia RuntimeShader contract](https://api.skia.org/classSkImageFilters.html); it also has a regression
+that draws the production filter graph through viewport clipping at every edge.
+
+![Corrected native candidate: selected label preserved](atlas/endpoint-native-corrected.png)
+
+These are full native Atlas render-buffer captures at 1920×1051. The corrected capture measured
+120 forced redraws after ten warmups: median 9.21ms, p95 12.46ms, maximum 14.90ms
+([raw timing](atlas/endpoint-native-timing.json)). This is static redraw/submission cost, not
+presented FPS, a performance improvement, or touch latency. No CPU renderer test was running
+simultaneously with that capture.
+
+The endpoint recording now has twice its previous area, before backend allocation overhead.
+Material and semantic-ink layers retain their existing resolution. No per-frame readback or bitmap
+upload is added. Android's Java API currently exposes one dynamic RuntimeShader input, so it retains
+the existing composed intermediate and its known precision limit. The portable ABI adds a required
+`ink` child and `uInkStrip`; the [host contract](../docs/porting.md#combining-refracted-ink-with-glass)
+documents binding, coordinates, ownership and clipping. Free magnifiers do not use this compositor.
+
+The full local suite was intentionally stopped after the failed native capture, before a completion
+result; it is not reported as passed. The corrected source passes 25 focused JVM tests, including
+all 14 Calm gesture tests, extreme bar pulls, the endpoint gates, clipped filter inputs and the
+generated-shader identity check. The Android sample assembles successfully. The complete library
+and desktop suites are running separately; their result is not inferred from the focused checks.
+
+![Corrected production compositor during a hold](atlas/endpoint-bar-held.png)
+
+This last image is a 480×220 Compose software-rendered fixture with quarter-scale backdrop
+sampling and native-resolution semantic ink, not a physical-device or native-window capture.
 
 ## Native redraw cost
 
@@ -347,7 +410,8 @@ are owner-supplied evidence, not bundled runtime assets or a license for Apple U
 
 ## Remaining requirements
 
-Full 1:1 Apple parity is **not established**. The historical strict endpoint matching gate remains open.
+Full 1:1 Apple parity is **not established**. Separate-input desktop/CanvasKit composition passes the
+strict endpoint gate; the historical and Android path remains above it.
 The new calm timing is authored; whole-bar extreme gestures need further matched original-frame comparisons.
 Universal native bindings, complete web host/compositor integration, presented-frame motion performance,
 and current physical-device verification remain incomplete. The active goal is not marked complete.

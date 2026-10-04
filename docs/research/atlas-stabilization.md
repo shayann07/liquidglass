@@ -73,6 +73,28 @@ The portable Skia adapter executes these same production shaders outside Compose
 ramp fixtures, all four material profiles differ from JVM Skia by at most one channel level out of 255.
 This is a backend agreement measurement, not an iOS equivalence score or a browser GPU benchmark.
 
+## Endpoint precision and native clipping
+
+The legacy endpoint gate remains 1.4256 output levels against its strict one-level target. Its
+material and ink are first combined in an 8-bit layer, then rounded again after coverage. The new
+Desktop Calm path keeps those inputs separate until the final float composition and coverage pass.
+Across the same 18 page/ink/body fixtures, its maximum error is **0.9569** levels (199,788 visible
+pixels, including 11,124 fractional-coverage pixels). The independent oracle starts from the
+material and ink outputs and evaluates source-over in double precision. It does not measure optical
+agreement with Apple or the subsequent display framebuffer's rounding.
+
+CanvasKit's separate-input test also passes: maximum error 0.9668 levels across rounded, asymmetric
+and pose outlines, including 1,376 fractional-coverage pixels. Native validation caught a failed
+first integration: sampling the stored ink through a shader offset let the GPU cull it outside the
+window. Declaring that offset in the image-filter graph restores the selected label. The regression
+now exercises the actual graph with viewport clipping, and storage rows must stay transparent.
+Android retains the historical compositor because its current Java API does not expose the required
+multiple dynamic inputs. This precision improvement is enabled only for Desktop Calm navigation.
+
+See the [host compositor contract](../porting.md#combining-refracted-ink-with-glass) and the native
+before/candidate/corrected captures in the stabilization record. A direct source shader and an
+image filter have different input-bounds requirements; compilation alone cannot establish equivalence.
+
 ## Public sources and limits
 
 Apple describes interactive glass, illumination and material roles in
@@ -83,4 +105,5 @@ must also account for source content, density, colour handling and time alignmen
 
 The native desktop evidence uses Direct3D, not an assumed Vulkan pipeline. Its static redraw timings
 are not presented-frame or Android performance. No new physical device capture was available. Full 1:1
-parity, native ports for every framework and the historical strict endpoint gate remain open work.
+parity and native ports for every framework remain open work. The strict endpoint gate now passes
+for separate-input desktop/CanvasKit composition; the historical and Android path remains above it.

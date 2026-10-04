@@ -16,6 +16,58 @@ test('production material, ink and aperture compile without Compose', () => {
   effects.dispose();effects.dispose();assert.throws(()=>effects.layout('material'), /disposed/);
 });
 
+test('packed endpoints meet one-level composition error and never expose the ink strip', () => {
+  const effects=compileGlassEffects(kit,sources), width=100, height=60, pad=16;
+  const w=width+2*pad, h=height+2*pad;
+  const info={width:w,height:2*h,colorType:kit.ColorType.RGBA_8888,
+    alphaType:kit.AlphaType.Premul,colorSpace:kit.ColorSpace.SRGB};
+  const pixels=new Uint8Array(w*h*2*4);
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++) {
+    const i=(y*w+x)*4, j=i+w*h*4, a=(x*13+y*7)%256;
+    pixels.set([(x*19)%256,(y*23)%256,(x*7+y*11)%256,255],i);
+    pixels.set([Math.floor(250*a/255),Math.floor(30*a/255),Math.floor(110*a/255),a],j);
+  }
+  const image=kit.MakeImage(info,pixels,w*4);
+  const input=image.makeShaderOptions(kit.TileMode.Clamp,kit.TileMode.Clamp,kit.FilterMode.Linear,kit.MipmapMode.None);
+  const inkImage=kit.MakeImage({...info,height:h},pixels.subarray(w*h*4),w*4);
+  const ink=inkImage.makeShaderOptions(kit.TileMode.Clamp,kit.TileMode.Clamp,kit.FilterMode.Linear,kit.MipmapMode.None);
+  const surface=kit.MakeSurface(w,2*h), paint=new kit.Paint();
+  let worst=0, partial=0;
+  try {
+    for(const shape of [
+      {},
+      {uBodyKind:1,uBody:[-22,24,21,28],uBodyY:4},
+      {uBodyKind:2,uPoseC:[0,3,.002,0],uPoseD:[23,24,1,12]},
+      // Coverage would otherwise enter the lower storage half of this deliberately shifted body.
+      {uBodyKind:1,uBody:[-20,20,29,29],uBodyY:47},
+    ]) {
+      const material=clearMaterialUniforms(effects,{width,height,pad});
+      const uniforms=Object.fromEntries(effects.layout('endpoint').map(u=>[u.name,material[u.name]??0]));
+      Object.assign(uniforms,{uInkStrip:h},shape);
+      const shader=effects.shader('endpoint',uniforms,{endpoint:input,ink,field:input});
+      try {
+        paint.setShader(shader);surface.getCanvas().clear(kit.TRANSPARENT);
+        surface.getCanvas().drawPaint(paint);surface.flush();
+        const actual=surface.getCanvas().readPixels(0,0,info);
+        assert.ok(actual);
+        for(let i=0;i<w*h*4;i+=4) {
+          const m=actual[i+3]/255, j=i+w*h*4, a=pixels[j+3]/255;
+          if(m>0&&m<1)partial++;
+          for(let c=0;c<3;c++) {
+            // Independent double-precision source-over equation on declared premultiplied inputs.
+            const expected=m*(pixels[j+c]+(1-a)*pixels[i+c]);
+            worst=Math.max(worst,Math.abs(actual[i+c]-expected));
+          }
+        }
+        assert.ok(actual.subarray(w*h*4).every(v=>v===0),'ink storage leaked into visible output');
+      } finally {paint.setShader(null);shader.delete();}
+    }
+    assert.ok(partial>500,`insufficient fractional coverage: ${partial}`);
+    assert.ok(worst<=1,`packed endpoint error ${worst} exceeds one level`);
+    console.log(`PACKED_ENDPOINT worst=${worst.toFixed(4)} partial=${partial}`);
+  } finally {paint.delete();surface.delete();ink.delete();inkImage.delete();input.delete();image.delete();effects.dispose();}
+});
+
 test('actual Skia lens keeps ramp continuity, zoom, alpha and named binding validation', async () => {
   const effects = compileGlassEffects(kit,sources), w=224, h=224;
   const info = {width:w,height:h,colorType:kit.ColorType.RGBA_8888,

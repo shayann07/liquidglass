@@ -70,6 +70,10 @@ Glass does not move your controls unless **your layout** moves them. Stretch bel
 Long cards use a smaller drag response than compact controls. A navigation selector is a different
 optical role from a magnifier; using the held-selector map on a free lens caused the recurring split rim.
 
+Desktop Calm selectors also compose refracted ink and material together in the final shader, avoiding
+one intermediate rounding step. The [porting guide](docs/porting.md#combining-refracted-ink-with-glass)
+covers the shared compositor contract, GPU input bounds, memory cost and Android's remaining limitation.
+
 ## Platforms and installation
 
 | Platform | Support |

@@ -23,6 +23,10 @@ actual object LiquidGlassSupport {
     actual val hasBackdropBlur: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 }
 
+// Java RenderEffect exposes only one dynamic RuntimeShader input. Keep the verified composed
+// endpoint until a multi-input backend exists; never enable offscreen strip reads speculatively.
+internal actual val supportsGlassEndpointInputs: Boolean = false
+
 /**
  * Compiling the shader is not free, so one instance is reused for the life of the process and
  * only its uniforms change per frame. RuntimeShader is not thread-safe, but every caller here
@@ -276,6 +280,8 @@ internal actual fun createGlassEndpointRenderEffect(
 
     shader.setFloatUniform("uSize", uniforms.width, uniforms.height)
     shader.setFloatUniform("uPad", uniforms.pad)
+    shader.setFloatUniform("uInkStrip", uniforms.inkStrip)
+    shader.setInputShader("ink", placeholderFieldShader)
     shader.setFloatUniform(
         "uRadii",
         uniforms.radii.getOrElse(0) { 0f },

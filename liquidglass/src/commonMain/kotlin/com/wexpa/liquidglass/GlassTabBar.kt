@@ -936,6 +936,7 @@ fun GlassTabBar(
                             body = handle?.body?.movedInto(nodeLeftPx.toFloat(), overflowTopPx.toFloat()),
                             poseBody = poseHandle?.render,
                             endpointComposite = lensCarriesInk,
+                            packedEndpoint = supportsGlassEndpointInputs && spec?.response == GlassResponse.Calm,
                         ),
                 ) {
                     if (lensCarriesInk) {

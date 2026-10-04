@@ -119,8 +119,11 @@ including refraction, blur, shape fields and pose geometry. Provide a correctly 
 wide-blur strip before enabling `uWideStrip`; setting a number does not create that texture.
 
 For refracted foreground, execute the material/content/endpoint passes following the
-[endpoint contract](../../docs/porting.md#the-small-contract): build the opaque material endpoint,
-draw unmasked premultiplied ink over it, and apply aperture coverage once. Ordinary controls and
+[endpoint contract](../../docs/porting.md#combining-refracted-ink-with-glass). The endpoint shader
+requires `endpoint`, `ink` and `field` children. With `uInkStrip > 0` (the padded visible height),
+bind opaque material and unmasked ink separately at matching local coordinates; the shader composes
+and masks them before one output write. With `uInkStrip = 0`, pass already-composed `C1` through
+`endpoint` and still bind the unused `ink` child. This preserves legacy rounding. Ordinary controls and
 accessible labels remain in the host UI. The adapter does not capture DOM/native views, arbitrate
 gestures, compute the navigation controller, or own your platform's colour management.
 

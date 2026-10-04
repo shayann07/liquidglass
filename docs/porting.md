@@ -60,6 +60,35 @@ texture and draws the continuous lens in GLSL. Browser texture uploads follow or
 see [MDN's texture guide](https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Using_textures_in_WebGL).
 Resources must be rebuilt after [WebGL context restoration](https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/webglcontextrestored_event).
 
+## Combining refracted ink with glass
+
+For a selector that refracts foreground, keep these inputs premultiplied and in the same local,
+padded pixel coordinates: opaque material `B1`, selected ink `(c1, a1)`, and aperture coverage `m`.
+The final output must be `(m * (c1 + (1-a1) * B1), m)`. Source-over that output onto the ordinary
+page once. Masking the ink and material separately creates a cross term at the edge.
+
+The production endpoint shader now accepts three children: `endpoint`, `ink`, and `field`. Bind
+all three even when a branch does not sample them. With `uInkStrip = 0`, `endpoint` is the already
+composed opaque `C1`; this preserves the original path. With `uInkStrip > 0`, `endpoint` supplies
+opaque `B1` and `ink` supplies unmasked premultiplied ink at the **same coordinates**. Composition
+and coverage happen in float before one output write. `uInkStrip` also gives the visible padded
+height; rows at or below it return transparent. A host with separate image shaders can bind them
+directly without building a packed texture.
+
+Compose Desktop packs these inputs into two vertical strips in one recording. Its image-filter
+graph offsets the ink input by the negative padded height. That offset must be declared in the
+graph: the zero-radius [Skia RuntimeShader filter](https://api.skia.org/classSkImageFilters.html)
+assumes same-coordinate sampling. An offset hidden inside the shader lost selected labels near
+the native window edge, despite passing uncropped software tests. The corrected graph preserves
+offscreen ink. Do not copy the rejected shader-offset approach into a host adapter.
+
+`GlassTabBarStyle.Calm()` selects this path on Desktop. Android's current Java RenderEffect API
+exposes one dynamic runtime-shader input, so it retains the original compositor and its known
+rounding limitation. This is explicit backend scope, not a claim of equal precision on Android.
+The packed desktop recording has twice the endpoint-layer area, before backend allocation overhead;
+the material and ink layers themselves are unchanged. See the [research record](research/atlas-stabilization.md)
+for the measured error and native redraw evidence. The simpler magnifier painter does not use this path.
+
 ## Web integration
 
 ```js

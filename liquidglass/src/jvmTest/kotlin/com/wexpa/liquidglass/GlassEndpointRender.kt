@@ -79,6 +79,7 @@ internal object GlassEndpointRender {
         bevel: Float = 0f,
         counterLight: Float = 0f,
         body: GlassBody? = null,
+        packedEndpoint: Boolean = false,
         backdrop: (x: Int, y: Int) -> Int,
         ink1: (x: Int, y: Int) -> Int,
     ): Result {
@@ -111,19 +112,13 @@ internal object GlassEndpointRender {
                 b.uniform("uBody", 0f, 0f, 0f, 0f)
                 b.uniform("uBodyY", 0f)
                 b.uniform("uBodyKind", 0f)
-                // The pose body is off in these fixtures; the uniforms still have to be
-                // set, because a declared uniform left unbound reads whatever was there.
-                b.uniform("uPoseA", 1f, 0f, 0f, 1f)
-                b.uniform("uPoseAInv", 1f, 0f, 0f, 1f)
-                b.uniform("uPoseC", 0f, 0f, 0f, 0f)
-                b.uniform("uPoseD", 1f, 1f, 1f, 0f)
+            }
             // The pose body is off in these fixtures; the uniforms still have to be
             // set, because a declared uniform left unbound reads whatever was there.
             b.uniform("uPoseA", 1f, 0f, 0f, 1f)
             b.uniform("uPoseAInv", 1f, 0f, 0f, 1f)
             b.uniform("uPoseC", 0f, 0f, 0f, 0f)
             b.uniform("uPoseD", 1f, 1f, 1f, 0f)
-            }
         }
 
         // 1. the material, emitting the opaque endpoint B1
@@ -221,11 +216,23 @@ internal object GlassEndpointRender {
 
         // 4. the aperture: times coverage, giving (m C1, m)
         val ab = RuntimeShaderBuilder(aperture)
-        val endpointShader = shaderOf(w, h, opaque = false, pixel = { x, y -> endpoint[y * w + x] })
+        val endpointShader = shaderOf(w, if (packedEndpoint) h * 2 else h, opaque = false) { x, y ->
+            if (packedEndpoint) {
+                if (y < h) b1[y * w + x] else inkOut[(y - h) * w + x]
+            } else endpoint[y * w + x]
+        }
         ab.child("endpoint", endpointShader)
+        ab.child("ink", shaderOf(w, h, opaque = false) { x, y -> inkOut[y * w + x] })
         ab.child("field", endpointShader)
         bindGeometry(ab)
-        val masked = paint(w, h, ab)
+        ab.uniform("uInkStrip", if (packedEndpoint) h.toFloat() else 0f)
+        val rendered = paint(w, if (packedEndpoint) h * 2 else h, ab)
+        if (packedEndpoint) {
+            check((w * h until rendered.size).all { rendered[it] == 0 }) {
+                "the endpoint exposed its ink storage strip"
+            }
+        }
+        val masked = if (packedEndpoint) rendered.copyOf(w * h) else rendered
 
         return Result(width, height, pad, b1, inkOut, endpoint, masked)
     }

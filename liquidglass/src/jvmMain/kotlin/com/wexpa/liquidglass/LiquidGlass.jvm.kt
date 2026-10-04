@@ -31,6 +31,8 @@ actual object LiquidGlassSupport {
     actual val hasBackdropBlur: Boolean = true
 }
 
+internal actual val supportsGlassEndpointInputs: Boolean = true
+
 /** One opaque pixel, so the `field` child is always bound even when nothing samples it. */
 private val placeholderFieldShader: org.jetbrains.skia.Shader by lazy {
     org.jetbrains.skia.Image.makeRaster(
@@ -263,6 +265,8 @@ internal actual fun createGlassEndpointRenderEffect(
     val builder = RuntimeShaderBuilder(effect)
     builder.uniform("uSize", uniforms.width, uniforms.height)
     builder.uniform("uPad", uniforms.pad)
+    builder.uniform("uInkStrip", uniforms.inkStrip)
+    builder.child("ink", placeholderFieldShader)
     builder.uniform(
         "uRadii",
         uniforms.radii.getOrElse(0) { 0f },
@@ -296,11 +300,20 @@ internal actual fun createGlassEndpointRenderEffect(
     builder.uniform("uPoseAInv", uniforms.poseAInv[0], uniforms.poseAInv[1], uniforms.poseAInv[2], uniforms.poseAInv[3])
     builder.uniform("uPoseC", uniforms.poseC[0], uniforms.poseC[1], uniforms.poseC[2], uniforms.poseC[3])
     builder.uniform("uPoseD", uniforms.poseD[0], uniforms.poseD[1], uniforms.poseD[2], uniforms.poseD[3])
-    return ImageFilter.makeRuntimeShader(
-        runtimeShaderBuilder = builder,
-        shaderName = "endpoint",
-        input = null,
-    ).asComposeRenderEffect()
+    return glassEndpointInputFilter(builder, uniforms.inkStrip).asComposeRenderEffect()
+}
+
+/** Shared by the actual render effect and the clipped-surface regression. Caller owns the filter. */
+internal fun glassEndpointInputFilter(builder: RuntimeShaderBuilder, inkStrip: Float): ImageFilter {
+    if (inkStrip > 0f) {
+        // RuntimeShader's zero-radius overload only promises same-coordinate sampling.
+        // Declare the ink translation in the filter graph, where Skia can propagate bounds.
+        // Sampling the strip with a shader offset drops offscreen ink on the native GPU.
+        return ImageFilter.makeOffset(0f, -inkStrip, null, null).use { shiftedInk ->
+            ImageFilter.makeRuntimeShader(builder, arrayOf("endpoint", "ink"), arrayOf(null, shiftedInk))
+        }
+    }
+    return ImageFilter.makeRuntimeShader(builder, "endpoint", null)
 }
 
 internal actual fun Shape.cornerRadiiPx(
