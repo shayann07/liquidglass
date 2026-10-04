@@ -5,6 +5,22 @@ import kotlin.test.assertEquals
 
 /** Original 6756 T01: stable scene, untouched bar region, native PQ->sRGB values. */
 class GlassPhoneMaterialReferenceTest {
+    @Test fun theCalmBarDoesNotBrightenTwiceWhileHeld() {
+        val calm = GlassTabBarStyle.Calm(dark = true)
+        val s = calm.bar
+        // GlassTabBar supplies heldLift to its style; LiquidGlass adds the interaction's
+        // pressLift. Check their combined endpoint against the independent44-level reference.
+        val pixels = GlassRender.render(
+            width = 834, height = 186, pad = 24, profile = 2f,
+            tintAlpha = s.tint.alpha,
+            tint = Triple(s.tint.red, s.tint.green, s.tint.blue),
+            lift = s.tintLift + calm.heldLift + checkNotNull(calm.barInteraction).pressLift,
+            backdrop = { _, _ -> 0xFF000000.toInt() },
+        )
+        val value = GlassRender.luma(pixels[(93+24)*(834+48)+350+24])
+        assertEquals(44.0, value, 1.0, "Phone held bar must not add generic control lift again")
+    }
+
     @Test fun theDarkV3BarMatchesTheOriginalRestAndHeldPlateaus() {
         val v3 = GlassTabBarStyle.V3(dark = true)
         for ((held, expected) in listOf(false to 32.0, true to 44.0)) {

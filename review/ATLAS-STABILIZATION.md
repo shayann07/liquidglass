@@ -123,6 +123,46 @@ not a like-for-like optical comparison with iOS:
 
 ![Calm bar with corrected normal touch expansion](atlas/bar-press-held.png)
 
+### Avoiding duplicate held brightness
+
+The Calm bar reused V3's reference-backed `heldLift` and also inherited generic `pressLift=0.04`.
+`GlassTabBar` added the first to the style; `liquidGlass` added the second at draw time. The new
+material regression combines both paths before rendering against the independent Phone plateau.
+It failed at **54/255 versus 44±1**, then passed at **44/255** after setting the bar interaction's
+additional `pressLift` to zero. Touch illumination, bar growth and all generic control presets
+remain unchanged. This corrects duplicated ownership rather than refitting an optical constant.
+
+As a separate original-frame check, the untouched interior patch `(330,250)` to `(369,284)` in
+the full-density crops above contains only RGB `(32,32,32)` at rest and `(43,43,43)` in the ordinary
+hold. Those decoded video values support the existing 44±1 held tolerance; they are not calibrated
+display photometry. The extreme crop is excluded because its selector overlaps that patch.
+The synthetic held-bar image above predates this brightness correction; it documents geometry only.
+
+### Test scheduling failure and correction
+
+The full local pressure run passed all **325 library tests** (298 passed, 27 intentionally skipped),
+but failed overall after 19m20s: Atlas's interaction test exceeded six minutes while both CPU-rendering
+suites ran together. The unchanged Atlas assertions passed alone in **3m28s**, including all scenes,
+five extreme drags, recovery and reduced motion. Gradle now orders desktop tests after library tests
+when both are requested. This adds no dependency for a desktop-only invocation and does not relax
+timeouts, skip scenes or reduce render resolution. Native timing remains a separate measurement.
+Hosted CI for the pressure correction `0e5b432` passed all seven required checks, including 325
+library tests (298 passed, 27 skipped), both desktop tests, Android builds, twelve portable math
+checks, six Skia tests and four browser checks. Its full build took 24m44s
+([run 37189818625](https://github.com/shayann07/liquidglass/actions/runs/37189818625)).
+This precedes the brightness and scheduling correction; their full run is recorded separately.
+
+The corrected source also launches and captures its own native Direct3D buffer at 1920×1051:
+
+![Native Atlas after bar corrections](atlas/brightness-native.png)
+
+The idle grid scene confirms that the lens and selected ink still render. It does **not** exercise
+held feedback. This run's static forced-redraw submission times were **18.97ms median, 21.92ms p95,
+27.19ms maximum**, from 120 samples after ten warmups ([raw result](atlas/brightness-native-timing.json)).
+They are slower than the preceding 9.21/12.46/14.90ms capture, so no performance improvement or
+presented-frame budget is claimed. These are separate desktop observations, not an alternating
+controlled benchmark; Android performance remains unverified.
+
 Reproduction requires ffmpeg with zscale and Python with Pillow. Decode each timestamp using this
 filter, preserving one native frame, then run the checked-in measurement tool:
 

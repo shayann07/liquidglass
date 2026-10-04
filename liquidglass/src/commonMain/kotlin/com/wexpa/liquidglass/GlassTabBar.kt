@@ -1344,7 +1344,12 @@ data class GlassTabBarStyle(
             // from Measured(), applied to material only with Calm timing. Generic 3%/2dp
             // feedback undershot it; weakening press is not a correction to drag strain.
             heldScale = 1f,
-            barInteraction = GlassInteraction.Calm.copy(pressScale = 1.05f, pressGrowth = 0.dp),
+            barInteraction = GlassInteraction.Calm.copy(
+                pressScale = 1.05f, pressGrowth = 0.dp,
+                // V3 already applies its measured heldLift to the bar's material. Adding
+                // the generic control lift again changed the44-level Phone plateau to54.
+                pressLift = 0f,
+            ),
         )
         // Declaration order matters here: the constructor's defaults read RestingInset and
         // HeldLens, so Dark has to come after them or it is built while they are still null.

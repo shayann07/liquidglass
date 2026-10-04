@@ -12,6 +12,9 @@ The current source adds `GlassScene`, `GlassStyle.clearLens`, `GlassInteraction.
 `GlassTabBarStyle.Calm()`. Free magnifiers share one continuous backdrop/ink map. Navigation assigns
 off-axis squeeze to the anchored whole bar, while its selector deforms with along-bar travel and throw.
 Input is integrated by timestamp and the held height is checked against the original Phone reference.
+The bar separately matches ordinary-held growth (195.3px against 196±1px) and keeps full-screen pulls
+below the measured 205px extreme. Its duplicated held-brightness contribution has been removed.
+Extreme asymmetric growth, exact timing and rim colour still differ; these are not parity claims.
 
 Atlas Studio is the active sample, with native Windows screenshots and desktop gesture tests.
 The [current verification record](https://github.com/shayann07/liquidglass/blob/main/review/ATLAS-STABILIZATION.md)

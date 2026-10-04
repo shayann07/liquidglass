@@ -21,6 +21,8 @@ This file records user-visible development changes. Published artifacts are iden
   temporary shader cleanup behind one small API, with an executable terminal example.
 - A browser Skia example with keyboard/pointer controls, backdrop replacement and context recreation;
   the hosted browser suite covers this independently from the lightweight WebGL preview.
+- Framework-independent `createCalmInteraction` with timestamped press/pull, cancellation, viewport
+  containment and reduced motion; optional press amplitude is independent of the Calm drag response.
 
 ### Fixed
 
@@ -33,6 +35,12 @@ This file records user-visible development changes. Published artifacts are iden
   size is checked against the original Phone reference independently of authored drag sensitivity.
 - Calm resting taps keep a small compression/recovery on arrival. Shape damping and stretch gain are
   tuned separately from the critical centre and press springs; the previous preset had lost this phase.
+- Further outward movement beyond an end anchor no longer stretches a stationary Calm selector.
+- Calm navigation restores the original ordinary touch growth with a material-only 5% press while
+  retaining restrained drag. Its held brightness no longer adds generic control lift a second time.
+- Portable viewport-limited press targets animate gradually instead of clipping growth mid-animation.
+- Desktop Calm composes separate material and ink inputs before aperture rounding. The explicit ink
+  filter offset preserves labels under native viewport clipping; the strict endpoint gate now passes.
 - Atlas no longer reports an unverified Vulkan backend or invented live astronomical telemetry.
 - Atlas's Type scene places its specimen under the initial lens, making the optical effect visible at launch.
 - Portable shaders and reference pixels are declared Gradle test inputs, preventing stale cached checks

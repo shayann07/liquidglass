@@ -39,6 +39,13 @@ geometry remain below the 205px extreme ceiling, peaking at **198.017px** in the
 fixture. Ordinary-held amplitude now fits; extreme asymmetry and the additional 6–7px deformation
 remain unmatched. Passing an upper bound alone cannot establish a correct drag model.
 
+The Calm integration also accidentally added generic press brightness on top of the navigation
+bar's existing held lift. A rendered fail-first test measured 54/255 against the original 44±1
+interior plateau. Keeping the bar's held lift and setting its extra `pressLift` to zero restores
+44/255 without changing motion or generic controls. A fresh untouched patch of the decoded
+ordinary-held reference is uniformly 43/255, within that tolerance. Touch illumination remains
+separate; this plateau test does not score the fingertip glow or HDR display appearance.
+
 ## Why the magnifier is continuous
 
 For normalized squared radius `r²`, the source offset is `-p*m*(1-r²)²`, with `m=1-1/zoom`.

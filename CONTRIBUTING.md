@@ -21,6 +21,8 @@ python -m mkdocs build --strict
 The renderer suite uses real Skia pixels and can take several minutes. Atlas's desktop tests render
 complex scenes in software: their wall time is not native GPU performance. Use focused test filters
 while iterating, then run the complete suite before proposing an optical or interaction change.
+When both are requested, Gradle runs Atlas tests after the library's renderer suite to avoid competing
+CPU rendering workers. Running only `:desktop:desktopTest` does not force the library suite to run.
 
 For portable changes, run `npm ci --ignore-scripts` and `npm test` in the affected `ports/web` or
 `ports/skia` directory. `npm run example` in the Skia directory renders the high-level integration

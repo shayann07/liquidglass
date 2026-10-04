@@ -318,6 +318,34 @@
     "failed": 0,
     "renderedBarSeconds": 335.295,
     "portableMathTests": 12,
+    "fullSuite": "325 library tests:298 passed,27 skipped,0 failed locally. Combined19m20s run failed because Atlas exceeded its6-minute test timeout; unchanged isolated rerun passed in3m28s."
+  },
+  "ci-build-0e5b432": {
+    "run": 37189818625,
+    "commit": "0e5b432f1223d9f19721fac4b9f8c1591c167ba6",
+    "tests": 325,
+    "passed": 298,
+    "skipped": 27,
+    "failed": 0,
+    "desktopTests": 2,
+    "buildDuration": "24m44s",
+    "requiredChecks": "all seven passed",
+    "browserTests": 4,
+    "skiaTests": 6,
+    "portableMathTests": 12
+  },
+  "bar-brightness-correction": {
+    "failFirstPlateau": 54,
+    "referencePlateau": 44,
+    "tolerance": 1,
+    "correctedPlateau": 44,
+    "decodedReferencePatch": {"x":330,"y":250,"width":40,"height":35,"restRGB":[32,32,32],"heldRGB":[43,43,43]},
+    "focusedTests": 6,
+    "failed": 0,
+    "scope": "Material plateau without local touch illumination. Bar's additional generic pressLift is zero; original heldLift and all motion remain unchanged.",
+    "desktop": "Both tests passed in3m28s alone; unchanged assertions and six-minute interaction timeout.",
+    "nativeCapture": "brightness-native.png,1920x1051 DIRECT3D; idle scene only, no held input",
+    "nativeTiming": {"p50_ms":18.9665,"p95_ms":21.9185,"max_ms":27.1876,"samples":120,"warmup":10,"scope":"Static forced redraw submission; slower than prior capture, no controlled performance or FPS claim"},
     "fullSuite": "pending for this correction"
   },
   "ci-build-fdae281": {

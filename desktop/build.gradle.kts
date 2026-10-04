@@ -49,4 +49,8 @@ compose.desktop {
 // Keep renderer evidence alongside cached test results on CI.
 tasks.withType<Test>().configureEach {
     outputs.dir(layout.buildDirectory.dir("reports/atlas"))
+    // Both suites render real scenes on the CPU. Concurrent workers exhausted Atlas's
+    // six-minute budget; the same assertions finish in3m28s alone. Keep their deadlines
+    // and serialize only when both tasks are requested (do not force library tests here).
+    mustRunAfter(":liquidglass:jvmTest")
 }

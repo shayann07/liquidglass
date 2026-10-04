@@ -122,6 +122,8 @@ authored responses, not timings recovered from untimed Apple screenshots.
 press cap, matching the original 186→196px ordinary hold within one pixel. This is a navigation-role
 preset, not an increase to generic card feedback or drag sensitivity. Calm timing, resistance, the
 large-surface drag cap and viewport containment still apply; ordinary labels remain anchored.
+The bar also owns its existing held brightness, so its interaction sets `pressLift = 0` to avoid
+adding the generic control lift a second time. Touch illumination remains active.
 The selector's shape responds to along-bar travel; perpendicular swipes do not apply the
 free-button squeeze model to it. Navigation intent still follows the finger and commits once on release.
 
