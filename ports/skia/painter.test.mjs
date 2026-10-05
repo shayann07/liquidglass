@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile, mkdir, writeFile} from 'node:fs/promises';
 import CanvasKitInit from 'canvaskit-wasm';
-import {createGlassPainter} from './painter.mjs';
+import {createGlassPainter} from 'liquidglass-skia-preview';
 import {createCalmInteraction} from '../web/interaction.mjs';
 import {createBackdropSampler} from './backdrop.mjs';
 import {inAppMaterialUniforms} from './material.mjs';
@@ -11,6 +11,27 @@ import {compileGlassEffects} from './renderer.mjs';
 const kit = await CanvasKitInit();
 const sources = Object.fromEntries(await Promise.all(['material','content','endpoint'].map(async name =>
   [name, await readFile(new URL(`shaders/${name}.sksl`, import.meta.url), 'utf8')])));
+
+test('painter defaults draw the same lens and surface pixels without caller-loaded shaders', () => {
+  const w=128,h=112,info={width:w,height:h,colorType:kit.ColorType.RGBA_8888,
+    alphaType:kit.AlphaType.Premul,colorSpace:kit.ColorSpace.SRGB};
+  const pixels=new Uint8Array(w*h*4);
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++)pixels.set([x*2,y*2,(x+y)%256,255],(y*w+x)*4);
+  const image=kit.MakeImage(info,pixels,w*4),surface=kit.MakeSurface(w,h),canvas=surface.getCanvas();
+  const painters=[];
+  try {
+    painters.push(createGlassPainter(kit,sources));
+    painters.push(createGlassPainter(kit));
+    const results=painters.map(painter=>{
+      painter.setSource(image);canvas.clear(kit.TRANSPARENT);
+      painter.drawLens(canvas,{x:8,y:6,width:56,magnification:1.5});
+      painter.drawSurface(canvas,{x:12,y:72,width:104,height:32,radius:12},{dark:true});
+      surface.flush();return canvas.readPixels(0,0,info);
+    });
+    assert(results[0].some((v,i)=>i%4===3&&v>0),'comparison did not draw any glass');
+    assert.deepEqual(results[1],results[0],'bundled defaults changed production pixels');
+  } finally {painters.forEach(p=>p.dispose());surface.delete();image.delete();}
+});
 
 test('in-app surface parameters agree with the actual Kotlin factory across both appearances', async () => {
   const fixtures=JSON.parse(await readFile(new URL('fixtures/in-app-material.json',import.meta.url),'utf8'));

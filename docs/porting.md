@@ -25,7 +25,7 @@ guards against source drift. CanvasKit tests compile every pass and compare the 
 with independent JVM reference pixels. This avoids rewriting the material for every Skia-based framework.
 It adds the CanvasKit WASM runtime; the smaller WebGL lens preview remains dependency-free.
 
-For a simple production-shader lens, `createGlassPainter(CanvasKit, sources)` compiles once and
+For a simple production-shader lens, `createGlassPainter(CanvasKit)` compiles once and
 owns uniform binding and temporary resources. Call `setSource(backdropImage)`, then
 `drawLens(canvas, {x, y, width, magnification})` for each lens. The source remains caller-owned;
 `dispose()` releases the painter. The [executable terminal example](https://github.com/shayann07/liquidglass/blob/main/ports/skia/example.mjs)
@@ -148,6 +148,12 @@ cancellation, resizing and reduced motion without depending on a UI framework. I
 arbitration, illumination or animation scheduling, and it is not the navigation-selector travel model.
 
 ## Portable calm feedback
+
+For CanvasKit rendering, `createGlassPainter(CanvasKit)` includes the production shaders. Set a
+caller-owned backdrop once, then use `drawLens` or `drawSurface`; there is no shader-fetch boilerplate.
+The [painter guide](https://github.com/shayann07/liquidglass/blob/main/ports/skia/README.md)
+documents setup and lifetime. Motion remains a separate controller so hosts can use their own input
+and animation scheduling.
 
 ```js
 import { createCalmInteraction } from './interaction.mjs';

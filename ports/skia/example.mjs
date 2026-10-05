@@ -1,11 +1,9 @@
 /** Terminal example. Replace this generated grid with your own opaque Skia Image. */
-import {readFile, mkdir, writeFile} from 'node:fs/promises';
+import {mkdir, writeFile} from 'node:fs/promises';
 import CanvasKitInit from 'canvaskit-wasm';
 import {createGlassPainter} from './painter.mjs';
 
 const kit=await CanvasKitInit();
-const sources=Object.fromEntries(await Promise.all(['material','content','endpoint'].map(async pass=>
-  [pass,await readFile(new URL(`shaders/${pass}.sksl`,import.meta.url),'utf8')])));
 const width=640,height=360,pixels=new Uint8Array(width*height*4);
 for(let y=0;y<height;y++)for(let x=0;x<width;x++) {
   const line=x%24<2||y%24<2;
@@ -14,7 +12,7 @@ for(let y=0;y<height;y++)for(let x=0;x<width;x++) {
 }
 const source=kit.MakeImage({width,height,colorType:kit.ColorType.RGBA_8888,
   alphaType:kit.AlphaType.Premul,colorSpace:kit.ColorSpace.SRGB},pixels,width*4);
-const surface=kit.MakeSurface(width,height),glass=createGlassPainter(kit,sources);
+const surface=kit.MakeSurface(width,height),glass=createGlassPainter(kit);
 try {
   glass.setSource(source);
   const canvas=surface.getCanvas();

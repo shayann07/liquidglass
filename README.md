@@ -94,8 +94,9 @@ covers the shared compositor contract, GPU input bounds, memory cost and Android
 | Other Skia hosts | Generated material, content and aperture shaders; native bindings still need host integration and tests |
 | Other frameworks | See the [porting contract](docs/porting.md); native adapters remain work in progress |
 
-The Skia preview includes `createGlassPainter`: set one source image, draw lenses or rounded glass surfaces,
-then dispose. It manages shader uniforms and temporary resources; you retain your own layout, input,
+The Skia preview includes `createGlassPainter(CanvasKit)`: set one source image, draw lenses or rounded
+surfaces, then dispose. Production shaders are bundled; no manual shader loading is needed. It manages
+shader uniforms and temporary resources; you retain your own layout, input,
 accessible controls and backdrop capture. Run `npm ci --ignore-scripts && npm run example` in
 `ports/skia` for an executable example without Compose or a browser.
 `drawSurface(canvas, bounds, {dark: true, tintAmount: 50})` adds the production in-app material and

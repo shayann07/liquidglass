@@ -696,5 +696,18 @@
       "checkpoint-124ae17-corner.png",
       "checkpoint-124ae17-extreme.png"
     ]
+  },
+  "portable-painter-defaults": {
+    "scope": "API packaging only; Compose source and production shader exports unchanged",
+    "before": "Default call throws TypeError for missing material shader",
+    "after": "Default call and explicit-source call render identical full RGBA buffers for a lens and a rounded surface",
+    "localSkiaTests": 13,
+    "failed": 0,
+    "rootPackageExport": "exercised",
+    "generatedBundleBytes": 101857,
+    "bundleGuard": "npm test checks generated defaults against production SkSL exports",
+    "hosted": "pending",
+    "example": "portable-defaults.png",
+    "sourceAuthority": "Existing JVM GlassShaderBundleTest links exported SkSL to production Kotlin strings"
   }
 }

@@ -41,14 +41,15 @@ See the [portable feedback API](../../docs/porting.md#portable-calm-feedback) fo
 
 ## Draw a lens without managing uniforms
 
-Initialize CanvasKit using its [official setup](https://skia.org/docs/user/modules/canvaskit/), then
-load the three files in `shaders/` as strings. The painter works on any CanvasKit canvas, independent
+Initialize CanvasKit using its [official setup](https://skia.org/docs/user/modules/canvaskit/).
+The painter includes the production shaders: no shader file loading, fetch setup or bundler plugin
+is required. It works on any CanvasKit canvas, independent
 of React, Vue, Compose or another UI framework:
 
 ```js
 import { createGlassPainter } from './painter.mjs';
 
-const glass = createGlassPainter(CanvasKit, { material, content, endpoint });
+const glass = createGlassPainter(CanvasKit);
 glass.setSource(backdropImage); // a caller-owned, opaque CanvasKit Image
 const canvas = surface.getCanvas();
 canvas.drawImage(backdropImage, 0, 0);
@@ -66,6 +67,18 @@ together when drawing in logical units. The painter preserves the canvas's trans
 It compiles once, draws multiple lenses, validates input and releases its temporary shaders after each
 draw. It never deletes the borrowed source. After content changes, call `setSource(newImage)` before
 deleting the old image. Moving a lens does not require recapturing an unchanged backdrop.
+
+Advanced hosts can still pass `{material, content, endpoint}` as the second argument to supply
+shader strings explicitly. The default strings are generated from `shaders/*.sksl`; `npm test`
+rejects a stale bundle, and the JVM test verifies those exports against Kotlin's production strings.
+After regenerating the production exports, run `npm run generate:shaders` here and commit both.
+
+The package's root export is `createGlassPainter`. For a local dependency installed from this
+directory, use `import { createGlassPainter } from 'liquidglass-skia-preview'`. The preview remains
+private/unpublished; no npm registry package or remote CDN is required or implied. `./renderer`
+exposes the lower-level bindings and `./shaders` exports the immutable `glassShaderSources` object.
+CanvasKit's runtime/WASM setup, source image and host canvas still belong to the application.
+
 The painter uses the minimal clear configuration below: a circular lens for square bounds, with an
 elliptical source map inside capsule coverage for unequal dimensions. It does not add the Compose
 clear-lens preset's decorative lighting or run its gesture controller.

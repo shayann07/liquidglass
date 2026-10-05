@@ -776,6 +776,26 @@ are owner-supplied evidence, not bundled runtime assets or a license for Apple U
 
 ## Remaining requirements
 
+### Portable integration follow-up: bundled defaults
+
+`createGlassPainter(CanvasKit)` now supplies the production shader strings itself. The browser and
+terminal examples no longer load three files before creating a painter; advanced callers retain the
+explicit-source overload. No optics, motion or shader constants changed. A generated 101,857-byte ES
+module contains the three exports; this trades bundled source bytes for less host setup and no shader
+fetch lifecycle. It makes no claim about reducing CanvasKit runtime size or rendering cost.
+
+![Production lenses and rounded surfaces using only bundled defaults](atlas/portable-defaults.png)
+
+This is a 640×360 terminal-rendered CanvasKit example, not a native desktop or browser GPU capture.
+
+The default-call regression first failed with missing shader sources. After the change, it renders a
+nonuniform backdrop through a lens and a rounded surface and compares the complete buffers exactly
+with the explicit-source path. All **13 local Skia tests passed** and the terminal example rendered.
+The package's root export is exercised by the test. `npm test` also rejects a stale generated module;
+the unchanged JVM test separately checks the source exports against the actual Kotlin shaders.
+Hosted browser verification for this follow-up is pending. The full Compose/native checkpoint above
+is reused for unchanged code; no new physical or desktop application run is claimed for this API edit.
+
 Full 1:1 Apple parity is **not established**. Separate-input desktop/CanvasKit composition passes the
 strict endpoint gate; the historical and Android path remains above it.
 The new calm timing is authored; whole-bar extreme gestures need further matched original-frame comparisons.

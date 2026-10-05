@@ -7,7 +7,7 @@ const context2d=backdrop.getContext('2d');
 const card={x:52,y:344,width:400,height:88};
 const preference=matchMedia('(prefers-reduced-motion: reduce)');
 const motion=createCalmInteraction({...card,viewportWidth:960,viewportHeight:480,reducedMotion:preference.matches});
-let kit,sources,handle,context,surface,image,foreground,glass,x=400,y=130,mode=0,down=null,origin,frame=0;
+let kit,handle,context,surface,image,foreground,glass,x=400,y=130,mode=0,down=null,origin,frame=0;
 const now=()=>performance.now()/1000;
 function destroy(abandon=false) {
   cancelAnimationFrame(frame);frame=0;
@@ -51,7 +51,7 @@ function create() {
   if(!context)throw new Error('WebGL renderer is unavailable.');
   surface=kit.MakeOnScreenGLSurface(context,canvas.width,canvas.height,kit.ColorSpace.SRGB);
   if(!surface)throw new Error('Could not create the glass surface.');
-  glass=createGlassPainter(kit,sources);setBackdrop();
+  glass=createGlassPainter(kit);setBackdrop();
   canvas.dataset.backend='webgl';status.textContent='Ready. Drag the lens or hold the card. Arrow keys move the lens; Space presses the card.';
 }
 function move(nx,ny){x=Math.max(4,Math.min(756,nx));y=Math.max(4,Math.min(276,ny));draw();}
@@ -88,11 +88,6 @@ canvas.addEventListener('webglcontextrestored',()=>{
 window.addEventListener('pagehide',()=>{preference.removeEventListener('change',onPreference);destroy();if(handle)kit.deleteContext(handle);},{once:true});
 try {
   kit=await CanvasKitInit({locateFile:file=>`./node_modules/canvaskit-wasm/bin/${file}`});
-  sources=Object.fromEntries(await Promise.all(['material','content','endpoint'].map(async pass=>{
-    const response=await fetch(`./shaders/${pass}.sksl`);
-    if(!response.ok)throw new Error(`Could not load the ${pass} shader.`);
-    return [pass,await response.text()];
-  })));
   handle=kit.GetWebGLContext(canvas);
   if(!handle)throw new Error('WebGL is unavailable in this browser.');
   create();

@@ -25,11 +25,13 @@ This file records user-visible development changes. Published artifacts are iden
   containment and reduced motion; optional press amplitude is independent of the Calm drag response.
 - Portable `drawSurface` for rounded in-app material: light/dark appearance, tint amount, corner radii,
   density and accessibility preferences, with one cached tone image and Kotlin parameter-drift fixtures.
+- `createGlassPainter(CanvasKit)` now includes production shader defaults. Terminal/browser examples
+  need no manual shader loading; CI checks the generated module for drift. Explicit sources remain supported.
 
 ### Fixed
 
 - Calm navigation now couples mild stretch with narrowing. Its area-preserving drag model matches
-  the original bar's paired dimensions; generic cards retain adaptive strain and their extension cap.
+  conservative dimensions from original frames; generic cards retain adaptive strain and their extension cap.
 
 - The free magnifier no longer uses a held-navigation profile that maps labels and backdrop differently.
 - Atlas uses canvas-local bounded placement instead of conflicting mobile/desktop screen offsets.

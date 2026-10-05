@@ -4,8 +4,14 @@
   "private": true,
   "type": "module",
   "license": "Apache-2.0",
+  "exports": {
+    ".": "./painter.mjs",
+    "./renderer": "./renderer.mjs",
+    "./shaders": "./shaders.mjs"
+  },
   "scripts": {
-    "test": "node --test renderer.test.mjs painter.test.mjs",
+    "generate:shaders": "node generate-shaders.mjs",
+    "test": "node generate-shaders.mjs --check && node --test renderer.test.mjs painter.test.mjs",
     "example": "node example.mjs"
   },
   "dependencies": { "canvaskit-wasm": "0.42.0" }

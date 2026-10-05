@@ -2,13 +2,15 @@
 import {compileGlassEffects, clearMaterialUniforms} from './renderer.mjs';
 import {inAppMaterialUniforms} from './material.mjs';
 import {createBackdropSampler} from './backdrop.mjs';
+import {glassShaderSources} from './shaders.mjs';
 
 /**
  * Compile once, then draw surfaces and lenses over one caller-owned Skia Image.
  * Coordinates and image dimensions are device pixels with a top-left origin.
+ * Production shaders are included; optional sources support advanced/custom shader hosts.
  * This object owns its effects and paint; it borrows, and never deletes, the source image.
  */
-export function createGlassPainter(kit, sources) {
+export function createGlassPainter(kit, sources = glassShaderSources) {
   const effects = compileGlassEffects(kit, sources);
   let paint;
   try { paint = new kit.Paint(); }
