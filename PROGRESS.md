@@ -14,8 +14,10 @@ height ceiling deliberately retains the earlier selected frame, not a claim of a
 
 **Portable integration follow-up:** `createGlassPainter(CanvasKit)` now bundles its production shader
 defaults, removing manual shader-file loading. All 13 local Skia tests pass, including exact pixel
-equivalence to explicit sources, and the terminal example rendered successfully. Browser/hosted
-verification of this follow-up is pending. Compose optics and motion are unchanged by it.
+equivalence to explicit sources, and the terminal example rendered successfully. At `7906d9d`,
+[hosted CI](https://github.com/shayann07/liquidglass/actions/runs/37300220285) passed 13 Skia tests,
+13 portable math/controller tests and all five browser tests. The unchanged JVM/desktop tests were
+restored from cache; this is not a new Compose run. All seven required checks passed, including CodeQL.
 
 - One canonical checkout, branch `codex/atlas-stabilization`, [draft PR #6](https://github.com/shayann07/liquidglass/pull/6).
 - Latest verified implementation: `124ae178e0635b4191257205833ecd5662db9c78`.
@@ -37,7 +39,7 @@ verification of this follow-up is pending. Compose optics and motion are unchang
 | M3 | Calm interaction on every glass surface, stable controls | Shared modifier and portable controller; separate press/pull; reduced motion; bounded large-card strain and viewport containment | Preserve generic card behavior while correcting navigation's measured response; verify all affected paths |
 | O1 | Remove recurring magnifier split rim | Continuous shared material/ink map; gradient/coverage regressions; native line-grid proof | Full optical identity to Apple is unproven; Android compositor precision still differs |
 | A1 | Better Atlas Studio and desktop visual proof | Shared sky/type/grid scenes, lens, note card, navigation; native capture and software gesture captures | Native gesture timing and presented-frame performance, plus later owner visual acceptance |
-| P1 | Simple integration in any UI stack | Compose scene API; production CanvasKit painter with bundled shader defaults, rounded surfaces, dependency-free preview and timestamped interaction controller | Hosted verification of the defaults follow-up; packaged/tested native adapters for other frameworks; automatic host backdrop capture is not provided |
+| P1 | Simple integration in any UI stack | Compose scene API; production CanvasKit painter with bundled shader defaults, rounded surfaces, dependency-free preview and timestamped interaction controller; defaults verified in terminal and hosted browser tests | Packaged/tested native adapters for other frameworks; automatic host backdrop capture is not provided |
 | D1 | Open-source README, research, usage, licensing | README, API/porting/interaction guides, provenance and limitation records, Apache-2.0/NOTICE | Keep examples, measurements and status synchronized with each implementation change |
 | C1 | Free PR automation and repository protection | Seven required checks, CodeQL/Dependabot, strict updates, review/conversation requirements, no force-push/deletion | Final review and authorized merge when the actual implementation is ready; do not bypass protection implicitly |
 

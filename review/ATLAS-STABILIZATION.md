@@ -793,8 +793,11 @@ nonuniform backdrop through a lens and a rounded surface and compares the comple
 with the explicit-source path. All **13 local Skia tests passed** and the terminal example rendered.
 The package's root export is exercised by the test. `npm test` also rejects a stale generated module;
 the unchanged JVM test separately checks the source exports against the actual Kotlin shaders.
-Hosted browser verification for this follow-up is pending. The full Compose/native checkpoint above
-is reused for unchanged code; no new physical or desktop application run is claimed for this API edit.
+[Hosted CI at 7906d9d](https://github.com/shayann07/liquidglass/actions/runs/37300220285) passed all
+13 Skia tests, 13 portable math/controller tests and five browser tests, including the example with
+bundled defaults. The build passed in 31s with library/desktop tests **FROM-CACHE**. The full
+Compose/native checkpoint above is reused for unchanged code; no new physical or desktop application
+run is claimed for this API edit. All seven required checks passed, including CodeQL.
 
 Full 1:1 Apple parity is **not established**. Separate-input desktop/CanvasKit composition passes the
 strict endpoint gate; the historical and Android path remains above it.

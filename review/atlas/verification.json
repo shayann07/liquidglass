@@ -706,7 +706,18 @@
     "rootPackageExport": "exercised",
     "generatedBundleBytes": 101857,
     "bundleGuard": "npm test checks generated defaults against production SkSL exports",
-    "hosted": "pending",
+    "hosted": {
+      "commit": "7906d9d02cdd14418862f7f5e3ddb7d840c5515e",
+      "run": 37300220285,
+      "CI": "passed",
+      "skiaTests": 13,
+      "portableMathTests": 13,
+      "browserTests": 5,
+      "buildDuration": "31s",
+      "libraryAndDesktop": "FROM-CACHE; unchanged Compose implementation verified at124ae17",
+      "codeql": "passed",
+      "requiredChecks": "all seven passed"
+    },
     "example": "portable-defaults.png",
     "sourceAuthority": "Existing JVM GlassShaderBundleTest links exported SkSL to production Kotlin strings"
   }
