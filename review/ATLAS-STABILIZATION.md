@@ -205,7 +205,10 @@ are not clean surrounding-bar widths and must not be fitted blindly.
 The recommended navigation preset now uses `GlassPullShape.AreaPreserving`. A small bounded
 log-strain couples lengthening with narrowing; the calibrated reference-sized fixture gives
 **835.49×204.70px**, passing the independent rounded gates 834±4 × 205±1.1px. Its determinant is 1
-before press and viewport limiting. This is an **authored inference from paired dimensions**,
+before press and viewport limiting. The height gate retains the earlier selected-frame ceiling;
+the width gate uses the clear late frame. Against that late frame itself the residual is +2.49px
+width and -1.30px height. This is a conservative multi-frame fit, not an exact paired-frame match.
+This is an **authored inference from observed dimensions**,
 not a measurement of Apple's material area or constitutive physics. The selected 0.047 strain
 bound and existing input resistance do not identify the missing finger trajectory.
 
@@ -219,9 +222,43 @@ The reference test failed first at 198.02px height. Focused Kotlin tests then pa
 paired dimensions, opposite/diagonal pulls, 72 directions, zero translation and a moderate-pull
 gate that prevents early saturation. Thirteen portable math/controller tests passed, including
 the same paired dimensions, release recovery, reduced motion and viewport outline containment
-under both policies. Full renderer/desktop verification is pending for this new change; the
+under both policies. Full renderer/desktop verification passed for this change at `124ae17`; the
 successful `87e17a4` runs below precede it. The reference's 10.5–11px upward visible-centre shift
 is still unmatched; the new dimensions alone do not establish full parity.
+
+### Verified checkpoint: 124ae17
+
+The full local run passed in **20m10s**: 330 library tests, **303 passed / 27 skipped / zero failures**,
+both Atlas tests passed, and the Android sample assembled. The tests drive top, bottom, left, right
+and corner pulls through the actual navigation input path, repeated outward motion, release and
+fixed-layout assertions. The focused mathematical gates also passed; none of their tolerances changed.
+
+[GitHub run 37237373943](https://github.com/shayann07/liquidglass/actions/runs/37237373943) passed
+all seven required checks. Library and desktop tests both executed freshly, reporting **22m26.26s**
+and **4m50.99s** respectively; the build reported **28m56s**. Hosted validation also passed
+13 portable math/controller tests, 12 Skia tests and five browser tests. Reports and the log were
+inspected, rather than treating a cache-restored result as a new execution.
+
+| Ordinary hold | Upward extreme | Corner extreme |
+| --- | --- | --- |
+| ![Held navigation](atlas/checkpoint-124ae17-held.png) | ![Upward pull](atlas/checkpoint-124ae17-top.png) | ![Corner pull](atlas/checkpoint-124ae17-corner.png) |
+
+These are **480×220 Compose software-rendered** fixtures over the same striped source, with
+quarter-scale backdrop sampling. The upward pull narrows the material relative to ordinary hold;
+ordinary foreground and layout stay fixed. They establish rendered behaviour, not an iOS optical match.
+
+![Fresh native Atlas line-grid capture](atlas/checkpoint-124ae17-native.png)
+
+Atlas then launched after the CPU tests finished, using Direct3D at **1920×1051**. The line-grid lens
+has continuous detail through its interior; the scene and selected navigation ink are visible.
+Static redraw submissions over 120 samples after ten warmups measured **9.3334ms median / 15.1117ms
+p95 / 21.271ms maximum** ([raw timing](atlas/checkpoint-124ae17-native-timing.json)). The earlier
+checkpoint measured 9.2794/12.2323/14.3365ms; this is not a controlled performance comparison or a
+speedup claim. Neither run measures presented frames or native gesture latency.
+[The Atlas corner capture](atlas/checkpoint-124ae17-extreme.png) is a separate software gesture test.
+
+Full parity remains open, including the reference's asymmetric visible boundary, input/timing
+identification, Android compositor precision and current physical-device verification.
 
 ### Avoiding duplicate held brightness
 

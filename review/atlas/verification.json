@@ -625,5 +625,76 @@
     ],
     "visibleCentreShiftAtLargestSample": -11,
     "scope": "One continuous original episode; finger trajectory and optical-versus-layout mechanism remain unidentified. Current model remains unmatched."
+  },
+  "whole-bar-124ae17": {
+    "commit": "124ae178e0635b4191257205833ecd5662db9c78",
+    "before": {
+      "width": 872.9831,
+      "height": 198.01695,
+      "result": "height gate failed"
+    },
+    "after": {
+      "width": 835.49426,
+      "height": 204.69823,
+      "result": "selected conservative bounds passed"
+    },
+    "gates": {
+      "width": 834,
+      "widthTolerance": 4,
+      "height": 205,
+      "heightTolerance": 1.1
+    },
+    "scope": "Width from clear late T04 PTS31074/600, height ceiling from earlier selected frame; not an exact paired-frame fit. Late reference is833x206; centre asymmetry remains unmatched.",
+    "local": {
+      "result": "BUILD SUCCESSFUL",
+      "duration": "20m10s",
+      "library": {
+        "total": 330,
+        "passed": 303,
+        "skipped": 27,
+        "failed": 0,
+        "reportedSeconds": 998.8
+      },
+      "desktop": {
+        "passed": 2,
+        "failed": 0,
+        "reportedSeconds": 209.057
+      },
+      "androidSample": "assembled"
+    },
+    "hosted": {
+      "run": 37237373943,
+      "requiredChecks": "all seven passed",
+      "buildDuration": "28m56s",
+      "library": {
+        "total": 330,
+        "passed": 303,
+        "skipped": 27,
+        "failed": 0,
+        "duration": "22m26.26s",
+        "execution": "fresh"
+      },
+      "desktop": {
+        "passed": 2,
+        "failed": 0,
+        "duration": "4m50.99s",
+        "execution": "fresh"
+      },
+      "portableMathTests": 13,
+      "skiaTests": 12,
+      "browserTests": 5
+    },
+    "native": {
+      "image": "checkpoint-124ae17-native.png",
+      "timing": "checkpoint-124ae17-native-timing.json",
+      "visualInspection": "completed",
+      "scope": "Resting app buffer; static redraw submission after tests finished. Not presented FPS or native gesture latency."
+    },
+    "softwareImages": [
+      "checkpoint-124ae17-held.png",
+      "checkpoint-124ae17-top.png",
+      "checkpoint-124ae17-corner.png",
+      "checkpoint-124ae17-extreme.png"
+    ]
   }
 }

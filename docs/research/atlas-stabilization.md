@@ -56,11 +56,15 @@ exact decode/measurement command.
 
 Central-row width probes also reject the earlier 872.98×198.02px drag shape. The clear late T04
 crop is 833px wide and 206px high. Navigation now opts into an authored area-preserving log-strain
-model, giving 835.49×204.70px against rounded 834±4 × 205±1.1px bounds. Generic cards keep the
+model, giving 835.49×204.70px against rounded 834±4 × 205±1.1px bounds. The height gate retains the
+earlier selected frame; against the late 833×206px frame, residuals are +2.49px width and -1.30px
+height. This is a conservative multi-frame fit, not exact same-frame parity. Generic cards keep the
 size-adaptive law. The original's 10.5–11px visible-centre rise is still unmatched: fitting width and
 height does not establish correct asymmetric geometry. The 0.047 strain bound is a spatial fit,
-not identification of Apple's physical or input parameters. The review tracks pending full
-verification separately from the earlier completed tap correction.
+not identification of Apple's physical or input parameters. Full local and hosted verification at
+`124ae17` passed: 303 library tests plus 27 skipped, both Atlas tests, 13 portable math/controller
+tests, 12 Skia tests and five browser tests. The review includes fresh native and software gesture
+captures, raw redraw timings and the remaining asymmetry.
 
 The Calm integration also accidentally added generic press brightness on top of the navigation
 bar's existing held lift. A rendered fail-first test measured 54/255 against the original 44±1
