@@ -23,7 +23,8 @@ function draw() {
   const state=motion.sample(now()),[a,b,c,d]=state.matrix,cx=card.x+card.width/2,cy=card.y+card.height/2;
   target.save();
   try {
-    target.translate(cx,cy);target.concat([a,b,0,c,d,0,0,0,1]);target.translate(-cx,-cy);
+    target.translate(cx+state.offset[0],cy+state.offset[1]);
+    target.concat([a,b,0,c,d,0,0,0,1]);target.translate(-cx,-cy);
     glass.drawSurface(target,{...card,radius:24},{dark:true});
   } finally {target.restore();}
   // Ordinary labels remain anchored; only the material receives the feedback transform.

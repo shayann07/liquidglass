@@ -33,7 +33,8 @@ class GlassCalmGrowthReferenceTest {
                 val bodyHeight = 2f * (abs(c) * (width / 2f - radius) + radius * hypot(c, d))
                 maximum = maxOf(maximum, bodyHeight)
                 assertTrue(bodyHeight <= 205f, "bar exceeded original extreme at $degrees: $bodyHeight")
-                assertEquals(0f, shape.translationX); assertEquals(0f, shape.translationY)
+                assertTrue(hypot(shape.translationX,shape.translationY)<=10.5f,
+                    "material bias exceeded the selected reference displacement")
             }
         }
         assertTrue(maximum > 195f, "test did not exercise held material")

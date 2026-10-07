@@ -39,7 +39,7 @@ and their accessible names, focus and hit targets should remain ordinary HTML ab
 source security and other native backends see [the porting guide](../../docs/porting.md).
 
 `interaction.mjs` exports `createCalmInteraction` for whole-surface feedback. Feed monotonic seconds
-and cumulative pointer displacement, apply its centred matrix to the material, and leave labels and
+and cumulative pointer displacement, apply its centred matrix and `state.offset` to the material, and leave labels and
 hit targets fixed. It includes bounded pull, independent press/release, stale-frame handling, resize,
 viewport containment and reduced motion. It owns no events or timers and does not implement selector
 travel or illumination. The [portable feedback guide](../../docs/porting.md#portable-calm-feedback)
@@ -48,4 +48,6 @@ For the Compose Calm bar role use `pressScale: 1.05, pressGrowth: 0, pullShape: 
 Press amplitude remains independent of the coupled narrowing/stretch model. Defaults remain `1.03` and
 `2` logical pixels per edge for general surfaces. A host still owns selector travel and navigation.
 `pullShape` defaults to `'adaptive'`, preserving the large-card extension cap. The area-preserving
-option bounds log strain at 0.047 before viewport constraints and leaves the material centre fixed.
+option bounds log strain at 0.047 and adds a material-only directional bias capped at5.6% of the
+short side, before viewport constraints. Layout and ordinary labels remain fixed. Apply the returned
+offset after the centred matrix; omitting it retains the older symmetric visible outline.

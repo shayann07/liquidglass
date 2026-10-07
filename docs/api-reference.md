@@ -725,7 +725,7 @@ advanced tab-bar/container integration. `glass` does not make a button clickable
 | `GlassInteraction.Calm` | Critical geometric springs; up to 3% press scale and 2dp growth per edge; gradual resisted drag with large-surface attenuation. |
 | `GlassResponse` | `Expressive` preserves historical timing; `Calm` selects slower critical press/pull springs. |
 | `GlassInteraction.response` | Timing parameter, default `Expressive`; existing positional source calls retain their meaning. |
-| `GlassInteraction.pullShape` | Appended parameter, default `GlassPullShape.Adaptive`. `AreaPreserving` couples bounded stretch/narrowing for navigation without the card size policy; press and layout stay separate. See [generic interaction](generic-interaction.md). |
+| `GlassInteraction.pullShape` | Appended parameter, default `GlassPullShape.Adaptive`. `AreaPreserving` couples bounded stretch/narrowing and a material-only directional bias for navigation, without the card size policy; press and layout stay separate. See [generic interaction](generic-interaction.md). |
 | `GlassTabBarStyle.Calm(dark: Boolean = true)` | V3 optical roles with calm selector travel, no off-axis selector squeeze, and material-only bar feedback. Its reference-backed 5% press is separate from the restrained drag response. |
 | `GlassSelectorSpec.response` | Chooses the pose response family; default `Expressive` preserves V3. Other legacy fields still belong to the old horizontal controller. |
 | `GlassTabBarStyle.barInteraction` | Optional whole-bar feedback, default null; `Calm()` enables it and keeps label layout fixed. |

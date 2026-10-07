@@ -69,7 +69,7 @@ export function createCalmInteraction({width, height, radius = Math.min(width, h
   }
   function snapshot() {
     const {width: w, height: h, radius: r, x, y, viewportWidth: vw, viewportHeight: vh} = geometry;
-    if (reduced) return {matrix: identity(), press: 0, held, active: false};
+    if (reduced) return {matrix: identity(), offset: [0,0], press: 0, held, active: false};
     const amount = clamp(pressure.value, 0, 1);
     const [targetX,targetY] = pressTargets();
     const pressX = 1 + (targetX - 1) * amount;
@@ -84,11 +84,15 @@ export function createCalmInteraction({width, height, radius = Math.min(width, h
       const shear = (a - b) * c * s;
       return [(a*c*c+b*s*s)*pressX, shear*pressY, shear*pressX, (a*s*s+b*c*c)*pressY];
     }
-    function fits(gain) {
+    function extent(gain) {
       const [a,b,c,d] = matrix(gain);
       // Support of a transformed rounded rectangle, including diagonals; never clip the glass.
       const hx = (w/2-r)*Math.abs(a) + (h/2-r)*Math.abs(b) + r*Math.hypot(a,b);
       const hy = (w/2-r)*Math.abs(c) + (h/2-r)*Math.abs(d) + r*Math.hypot(c,d);
+      return [hx,hy];
+    }
+    function fits(gain) {
+      const [hx,hy]=extent(gain);
       return hx <= Math.min(cx,vw-cx) && hy <= Math.min(cy,vh-cy);
     }
     let gain = 1;
@@ -97,10 +101,22 @@ export function createCalmInteraction({width, height, radius = Math.min(width, h
       for (let i=0;i<24;i++) {const mid=(low+high)/2;if(fits(mid))low=mid;else high=mid;}
       gain = low;
     }
+    let offset=[shape.offsetX??0,shape.offsetY??0];
+    if(contained) {
+      const [hx,hy]=extent(gain);
+      // Same C1 edge resistance as Compose. The material may bias; layout never does.
+      const travel=(value,before,after)=>{
+        const room=Math.max(0,value<0?before:after),free=room/2;
+        if(Math.abs(value)<=free)return value;
+        const span=room-free, result=free+(span>0?span*Math.tanh((Math.abs(value)-free)/span):0);
+        return value<0?-result:result;
+      };
+      offset=[travel(offset[0],cx-hx,vw-cx-hx),travel(offset[1],cy-hy,vh-cy-hy)];
+    }
     const active = Math.abs(pressure.value-(held?1:0)) > 1e-5 || Math.abs(pressure.velocity) > 1e-4 ||
       Math.hypot(horizontal.value-target.x, vertical.value-target.y) > 1e-4 ||
       Math.hypot(horizontal.velocity, vertical.velocity) > 1e-3;
-    return {matrix: matrix(gain), press: amount, held, active};
+    return {matrix: matrix(gain), offset, press: amount, held, active};
   }
   return {
     /** Total displacement since pointer-down, never a per-event delta. Advance the OLD target first. */

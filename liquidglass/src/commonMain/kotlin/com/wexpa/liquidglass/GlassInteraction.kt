@@ -30,8 +30,9 @@ enum class GlassPullShape {
     /** Size-aware control/card feedback; large surfaces keep the existing 2dp extension cap. */
     Adaptive,
     /** Coupled stretch/narrowing for a navigation surface. At most 4.8% axis stretch before
-     * viewport limiting. This authored bound fits the original Phone bar's paired dimensions;
-     * it does not recover finger gain or its asymmetric contour. Layout and labels stay fixed. */
+     * viewport limiting, plus at most5.6% of the short side as a material-only directional bias.
+     * These authored bounds fit selected Phone edges; finger gain is not identified.
+     * Layout and ordinary labels stay fixed. Generic cards should keep Adaptive. */
     AreaPreserving,
 }
 
@@ -77,7 +78,7 @@ data class GlassInteraction(
     val pressGrowth: Dp = 0.dp,
     val pressLift: Float = 0f,
     /**
-     * Press-and-pull: the material stretches around its fixed layout centre. [pullFollow]
+     * Press-and-pull: the material deforms independently of its fixed layout. [pullFollow]
      * controls input resistance, not translation of the control. It lengthens by [pullElongation] of the pull's
      * length (relative to its own extent) and thins across it [pullWidthRatio] times as fast,
      * and springs back under-damped on release (`GlassMotion.PullRelease`). The input gains
@@ -91,7 +92,7 @@ data class GlassInteraction(
     val pullElongation: Float = 0.45f,
     /** How much faster the width thins than the length grows (1.1). */
     val pullWidthRatio: Float = 1.1f,
-    /** Input resistance budget in pressed short-side lengths; the rendered centre remains anchored. */
+    /** Input resistance budget in pressed short-side lengths; layout remains anchored. */
     val pullLimit: Float = Float.POSITIVE_INFINITY,
     /** Timing of geometric feedback; illumination remains a separate acknowledgement. */
     val response: GlassResponse = GlassResponse.Expressive,

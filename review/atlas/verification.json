@@ -720,5 +720,39 @@
     },
     "example": "portable-defaults.png",
     "sourceAuthority": "Existing JVM GlassShaderBundleTest links exported SkSL to production Kotlin strings"
+  },
+  "whole-bar-asymmetric-candidate": {
+    "reference": {
+      "image": "reference-bar-extreme.png",
+      "sha256": "2cdf14f9d2058de1e99caeda52d9cdca3eb8f45739e40c1f6df6ffe161a2048b",
+      "PTS": "29863/600",
+      "top": [
+        171,
+        172
+      ],
+      "bottom": 375,
+      "restCentre": 283.5,
+      "selectedDisplacementBound": 10.5
+    },
+    "before": {
+      "top": 181.15088,
+      "bottom": 385.84912,
+      "result": "new edge gate failed"
+    },
+    "after": {
+      "top": 170.73486,
+      "bottom": 375.4331,
+      "centre": 273.08398,
+      "width": 835.49426,
+      "height": 204.69823,
+      "result": "selected edge bounds passed"
+    },
+    "authoredBiasShortSideFraction": 0.056,
+    "focusedKotlinTests": 20,
+    "portableMathTests": 13,
+    "skiaTests": 13,
+    "ordinaryInkPixelBounds": "unchanged in actual Compose held/upward renders",
+    "fullVerification": "pending",
+    "scope": "Visible material edges only. Layout and normal labels fixed; finger gain/timing, other directions and original foreground warp are not identified."
   }
 }

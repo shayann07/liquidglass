@@ -30,6 +30,10 @@ This file records user-visible development changes. Published artifacts are iden
 
 ### Fixed
 
+- Calm navigation's material-only directional bias now matches the selected original's top and bottom
+  edges separately, capped below its measured displacement. Layout and ordinary labels stay fixed;
+  the portable controller exposes the drawing bias as `state.offset`.
+
 - Calm navigation now couples mild stretch with narrowing. Its area-preserving drag model matches
   conservative dimensions from original frames; generic cards retain adaptive strain and their extension cap.
 

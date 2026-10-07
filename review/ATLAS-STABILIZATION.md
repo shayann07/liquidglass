@@ -260,7 +260,51 @@ speedup claim. Neither run measures presented frames or native gesture latency.
 Full parity remains open, including the reference's asymmetric visible boundary, input/timing
 identification, Android compositor precision and current physical-device verification.
 
+### Asymmetric material drawing — 2026-10-08 candidate
+
+Total size alone hid a persistent error. The original selected T04 frame (PTS29863/600,
+`reference-bar-extreme.png`) has top rows171–172 and bottom375, with a resting centre at283.5.
+A new independent edge test rejected the centred candidate before changing the implementation:
+
+| Edge in original crop coordinates | Selected original | Centred candidate | Directional material candidate |
+| --- | --- | --- | --- |
+| Top |171–172px |181.15088px |170.73486px |
+| Bottom |375px |385.84912px |375.43310px |
+| Visible-centre displacement |about -10.5px |0px |-10.416px |
+
+`AreaPreserving` now adds a drawing bias toward the resisted pull, capped at **5.6% of the
+unpressed short side**. The existing matrix still gives835.49×204.70px. This is an authored
+spatial fit below the selected10.5px displacement; no finger gain, timing or Apple rendering
+mechanism is identified. Extending the same bounded law to other directions is an explicit
+extrapolation. Ordinary press adds no bias; generic Adaptive cards/controls are unchanged.
+The viewport applies its existing smooth resistance to this material offset after limiting strain.
+
+Layout, pointer coordinates and ordinary foreground are outside the material transform. The
+actual Compose pointer test compares ordinary icon pixel bounds before/after an upward pull,
+in addition to its fixed layout/hit-target assertions. The selected lens still owns its travel
+response separately. This does **not** reproduce the original unselected icon's visible warp;
+that foreground optical difference remains open.
+
+| Held | Upward extreme | Corner extreme |
+| --- | --- | --- |
+| ![Held material](atlas/bar-asymmetric-held.png) | ![Upward biased material](atlas/bar-asymmetric-top.png) | ![Corner biased material](atlas/bar-asymmetric-corner.png) |
+
+These are480×220 software Compose frames over a synthetic stripe source, not like-for-like
+optical comparisons to iOS. The new Kotlin checks sample the full biased contour at every viewport
+edge, preserve ordinary icon pixels and keep the chosen height/displacement bounds. **20 focused
+Kotlin tests and13 portable math/controller tests pass.** The portable state now exposes
+`offset:[x,y]`, applied after its centred matrix to material drawing only. Both bias and shape
+recover on release/cancel and disappear under reduced motion.
+
+All13 Skia tests pass after adding a navigation case to the actual rendering test. The existing
+zero-centre/card-width assertions remain for generic cards; the navigation case instead checks its
+bounded drawing offset and unchanged diagonal press dimensions. The initial run correctly failed
+the old zero-centre assertion for that newly added navigation case; its raster tolerance remains0.5px.
+Full library/Atlas/Android and native verification of this candidate are **pending**. Earlier full
+results above are not counted as verification of this newer change.
+
 ### Avoiding duplicate held brightness
+
 
 The Calm bar reused V3's reference-backed `heldLift` and also inherited generic `pressLift=0.04`.
 `GlassTabBar` added the first to the style; `liquidGlass` added the second at draw time. The new

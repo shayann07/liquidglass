@@ -179,8 +179,10 @@ at 186px rest height. Timing stays Calm; this does not add selector travel.
 `pullShape` defaults to `'adaptive'`. `'area-preserving'` instead couples bounded growth and narrowing
 in log space, matching the Compose navigation surface model. The saturated 834×186px fixture measures
 835.5×204.7px, compared with about 834× 205–206px in the original prolonged drag. This is an authored
-spatial fit; the original's upward visible-centre shift remains unmatched. Viewport constraints may
-reduce the area-preserving transform when necessary to contain the surface.
+spatial fit. A material-only directional bias of at most5.6% of the short side places the selected
+upward-pull edges within one pixel of the original. It does not identify input timing or Apple's
+underlying mechanism; other directions use an authored extrapolation. Viewport constraints reduce
+strain and resist bias further when necessary to contain the surface.
 Viewport limits constrain the press target before spring interpolation, preserving gradual feedback
 near an edge. Defaults for generic buttons and cards are unchanged.
 
@@ -191,14 +193,15 @@ ignored; out-of-order input is rejected. Advance the old target before changing 
 cannot change the spring response. See [requestAnimationFrame timing](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestAnimationFrame).
 
 `state.matrix` is the row-major 2×2 `[a, b, c, d]` transform: `x' = a*x + b*y`, `y' = c*x + d*y`.
-Apply it **about the original glass centre**, to the material drawing only. Keep layout, hit testing,
-ordinary labels and accessibility outside it. For a CanvasKit canvas:
+Apply it **about the original glass centre**, then add `state.offset = [x, y]` in logical pixels,
+to the material drawing only. The offset is zero for Adaptive and reduced motion. Keep layout,
+hit testing, ordinary labels and accessibility outside both transforms. For a CanvasKit canvas:
 
 ```js
 const [a, b, c, d] = state.matrix;
 canvas.save();
 try {
-  canvas.translate(centreX, centreY);
+  canvas.translate(centreX + state.offset[0], centreY + state.offset[1]);
   canvas.concat([a, b, 0, c, d, 0, 0, 0, 1]);
   canvas.translate(-centreX, -centreY);
   glass.drawLens(canvas, bounds);
@@ -222,6 +225,7 @@ The canvas-transform API is provided by [CanvasKit](https://skia.org/docs/user/m
 | `setReducedMotion(enabled, time)` | Cancel and reset; reduced motion returns identity geometry |
 | `state.active` | Request another frame while settling; new input must wake your loop again |
 | `state.held`, `state.press` | Gesture ownership and geometric press amount; separate from glow or selection |
+| `state.offset` | Bounded material drawing bias `[x, y]`; apply after the centred matrix, never to host layout or ordinary labels |
 
 Supply both viewport dimensions for edge containment. Initially contained surfaces remain contained
 under press and diagonal pull; initially offscreen/oversized layouts keep the host's clipping policy.

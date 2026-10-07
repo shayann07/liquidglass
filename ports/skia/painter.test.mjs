@@ -262,33 +262,41 @@ test('positioned lenses sample the page, preserve host transforms and borrow sou
   } finally {painter.dispose();surface.delete();image.delete();}
 });
 
-test('portable Calm transforms real material only, with anchored coverage and exact release recovery', () => {
+test('portable Calm renders bounded material bias and exact release recovery', () => {
   const w=400,h=220,info={width:w,height:h,colorType:kit.ColorType.RGBA_8888,
     alphaType:kit.AlphaType.Premul,colorSpace:kit.ColorSpace.SRGB};
   const image=kit.MakeImage(info,new Uint8Array(w*h*4).fill(255),w*4),surface=kit.MakeSurface(w,h);
   const painter=createGlassPainter(kit,sources),canvas=surface.getCanvas();painter.setSource(image);
   try {
-    for(const bounds of [{x:172,y:82,width:56,height:56},{x:40,y:74,width:320,height:72}]) {
+    for(const bounds of [{x:172,y:82,width:56,height:56},{x:40,y:74,width:320,height:72},
+      {x:40,y:74,width:320,height:62,pressScale:1.05,pressGrowth:0,pullShape:'area-preserving'}]) {
       const motion=createCalmInteraction({...bounds,viewportWidth:w,viewportHeight:h});
       const cx=bounds.x+bounds.width/2,cy=bounds.y+bounds.height/2;
       function render(state) {
         canvas.clear(kit.TRANSPARENT);canvas.save();
         try {
           const [a,b,c,d]=state.matrix;
-          canvas.translate(cx,cy);canvas.concat([a,b,0,c,d,0,0,0,1]);canvas.translate(-cx,-cy);
+          canvas.translate(cx+state.offset[0],cy+state.offset[1]);
+          canvas.concat([a,b,0,c,d,0,0,0,1]);canvas.translate(-cx,-cy);
           painter.drawLens(canvas,bounds);
         } finally {canvas.restore();}
         surface.flush();return canvas.readPixels(0,0,info);
       }
       const rest=render(motion.sample(0));motion.press(0,1e6,1e6);
-      const held=render(motion.sample(2));assert.notDeepEqual(held,rest,'feedback never reached the renderer');
+      const state=motion.sample(2),held=render(state);
+      assert.notDeepEqual(held,rest,'feedback never reached the renderer');
       let left=w,right=-1,top=h,bottom=-1;
       for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(held[(y*w+x)*4+3]>=128) {
         left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y);
       }
-      assert.ok(Math.abs((left+right+1)/2-cx)<=.5,'material centre drifted horizontally');
-      assert.ok(Math.abs((top+bottom+1)/2-cy)<=.5,'material centre drifted vertically');
-      if(bounds.width===320) {
+      assert.ok(Math.abs((left+right+1)/2-cx-state.offset[0])<=.5,'horizontal drawing bias was not applied');
+      assert.ok(Math.abs((top+bottom+1)/2-cy-state.offset[1])<=.5,'vertical drawing bias was not applied');
+      if(bounds.pullShape==='area-preserving') {
+        assert.ok(Math.hypot(...state.offset)<=3.5,'navigation exceeded the selected displacement bound');
+        // Equal diagonal components cancel log-shear for a wide bar; only its1.05 press remains.
+        assert.ok(Math.abs(right-left+1-336)<=1,'diagonal navigation width changed');
+        assert.ok(Math.abs(bottom-top+1-65.1)<=1,'diagonal navigation height changed');
+      } else if(bounds.width===320) {
         assert.ok(right-left+1<=326,'large card exceeded press + pull width envelope');
         assert.ok(bottom-top+1<=76,'large card exceeded press + pull height envelope');
       }

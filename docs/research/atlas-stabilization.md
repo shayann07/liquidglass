@@ -66,6 +66,15 @@ not identification of Apple's physical or input parameters. Full local and hoste
 tests, 12 Skia tests and five browser tests. The review includes fresh native and software gesture
 captures, raw redraw timings and the remaining asymmetry.
 
+A further candidate checks top and bottom separately against the selected original frame. The
+centred model failed at181.15/385.85px; a bounded material-only bias gives170.73/375.43px against
+171–172/375px. Bias is capped at5.6% of the short side (10.416px here), below the selected10.5px
+shift. Layout, hit targets and ordinary icon pixels stay fixed. Other directions use an authored
+extrapolation; timing and the original foreground warp remain unmatched. Twenty focused Kotlin
+checks,13 portable math/controller checks and13 Skia checks pass; full verification is pending.
+The review records failure-before evidence and actual software gesture captures separately from
+prior completed native/CI runs.
+
 The Calm integration also accidentally added generic press brightness on top of the navigation
 bar's existing held lift. A rendered fail-first test measured 54/255 against the original 44±1
 interior plateau. Keeping the bar's held lift and setting its extra `pressLift` to zero restores

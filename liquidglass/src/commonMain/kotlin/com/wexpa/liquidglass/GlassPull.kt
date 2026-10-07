@@ -23,8 +23,8 @@ internal fun glassMaterialPull(
         val amount = (length * interaction.pullFollow / targetLimit).coerceIn(0f, 1f)
         // Authored spatial fit: 834x186 pressed1.05, then exp(+/-.047) gives835.49x204.70.
         // The full T04 sequence couples narrowing with growth; the previous absolute-width
-        // subtraction gave873x198 instead. Timing/input gain and visible-centre asymmetry
-        // remain separate questions. Do not apply this relative law to generic large cards.
+        // subtraction gave873x198 instead. Timing/input gain remain authored.
+        // Do not apply this relative law to generic large cards.
         val strain = .047f * amount
         val nx = pullX / length; val ny = pullY / length
         val roundness = (2f * min(width, height) / maxOf(width, height) - 1f).coerceIn(0f, 1f)
@@ -33,8 +33,13 @@ internal fun glassMaterialPull(
         val u = strain * (nx * nx - ny * ny)
         val v = 2f * strain * nx * ny * roundness
         val magnitude = kotlin.math.hypot(u, v)
+        // Selected T04: the visible centre rises10.5px on a186px-high bar, independently
+        // of layout. An authored5.6% short-side bias stays just below that displacement.
+        // This moves material output only, never layout or ordinary labels. Other directions
+        // use the same bounded law as an explicit extrapolation, not an Apple measurement.
+        val bias = .056f * min(width, height) * amount
         return GlassPullDeformation(exp(magnitude), exp(-magnitude),
-            atan2(v, u) * (90f / kotlin.math.PI.toFloat()), 0f, 0f)
+            atan2(v, u) * (90f / kotlin.math.PI.toFloat()), bias * nx, bias * ny)
     }
     val extent = glassPullExtent(width, height, radius, pressX, pressY, pullX, pullY)
     val across = glassPullExtent(width, height, radius, pressX, pressY, -pullY, pullX)
@@ -58,7 +63,7 @@ internal data class GlassPullDeformation(
     val across: Float,
     /** The pull's direction, degrees from +x, clockwise on screen. */
     val angleDegrees: Float,
-    /** Where the body's centre goes, in px. */
+    /** Material drawing offset in px; never a layout or ordinary-foreground translation. */
     val translationX: Float,
     val translationY: Float,
 ) {

@@ -96,8 +96,12 @@ travel deformation. Selection intent uses the original pointer position, indepen
 
 `GlassTabBarStyle.Calm()` now selects `GlassPullShape.AreaPreserving` for its surrounding material.
 This fits the original bar's coupled narrowing and height increase: the authored saturated response is
-835.5×204.7px for a 834×186px bar after its separate 5% press. It does not reconstruct the original's
-upward visible-centre shift. No translation is applied to layout, hit targets or ordinary labels.
+835.5×204.7px for a 834×186px bar after its separate 5% press. A bounded material-only bias now
+places its top/bottom at 170.73/375.43px against the selected original's 171–172/375px edges.
+The bias is at most 5.6% of the unpressed short side (10.42px at this geometry), below the selected
+10.5px displacement. No translation is applied to layout, hit targets or ordinary labels.
+This matches chosen visible edges, not Apple's internal mechanism or a complete motion trajectory.
+Using the same law in other directions is an authored extrapolation. Ordinary press has no bias.
 
 Generic `Calm` and `Pullable` keep `GlassPullShape.Adaptive`, including the large-card 2dp extension
 cap. That policy uses `pullElongation` and `pullWidthRatio`. `AreaPreserving` instead uses a bounded
@@ -135,7 +139,8 @@ authored responses, not timings recovered from untimed Apple screenshots.
 `GlassTabBarStyle.Calm()` uses the same feedback engine with a **5% whole-bar press** and no per-edge
 press cap, matching the original 186→196px ordinary hold within one pixel. This is a navigation-role
 preset, not an increase to generic card feedback or drag sensitivity. Calm timing, resistance, the
-large-surface drag cap and viewport containment still apply; ordinary labels remain anchored.
+viewport containment still apply; the large-surface drag cap belongs to generic Adaptive surfaces.
+Ordinary labels remain anchored.
 The bar also owns its existing held brightness, so its interaction sets `pressLift = 0` to avoid
 adding the generic control lift a second time. Touch illumination remains active.
 The selector's shape responds to along-bar travel; perpendicular swipes do not apply the

@@ -61,7 +61,9 @@ export function calmDeformation(width, height, dx, dy, pressAmount, radius,
     const strain=.047*amount;
     const roundness=Math.max(0,Math.min(1,2*Math.min(width,height)/Math.max(width,height)-1));
     const u=strain*(c*c-s*s), v=2*strain*c*s*roundness, magnitude=Math.hypot(u,v);
-    return {pressX,pressY,along:Math.exp(magnitude),across:Math.exp(-magnitude),angle:Math.atan2(v,u)/2};
+    const bias=.056*Math.min(width,height)*amount;
+    return {pressX,pressY,along:Math.exp(magnitude),across:Math.exp(-magnitude),angle:Math.atan2(v,u)/2,
+      offsetX:bias*c,offsetY:bias*s};
   }
   const extent = (nx, ny) => (width - 2*r)*pressX*Math.abs(nx) + (height - 2*r)*pressY*Math.abs(ny) +
     2*r*Math.hypot(pressX*nx, pressY*ny);

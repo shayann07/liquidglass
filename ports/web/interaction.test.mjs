@@ -37,15 +37,23 @@ test('navigation stretch matches paired Phone dimensions without adding area or 
     near(3*options.width*a,834,4);near(3*options.height*d,205,1.1);
     near(a*d-b*c,1.05**2,1e-8);
     near(b,0);near(c,0);
+    near(held.offset[0],0);near(held.offset[1]*3,direction*10.416,1e-6);
+    if(direction<0) {
+      const centre=283.5+held.offset[1]*3,halfHeight=3*options.height*d/2;
+      near(centre-halfHeight,171.5,1);near(centre+halfHeight,375,1);
+    }
     console.log(`PHONE_T04_DIMENSIONS width=${3*options.width*a} height=${3*options.height*d}`);
     const release=motion.release(2);assert.deepEqual(release.matrix,held.matrix);
+    assert.deepEqual(release.offset,held.offset);
     assert.deepEqual(motion.sample(5).matrix,[1,0,0,1]);
+    assert.deepEqual(motion.sample(5).offset,[0,0]);
   }
   const normal=createCalmInteraction(options);normal.press(0,0,20);
   const moderate=normal.sample(2).matrix[3]*186;
   assert(moderate>195.3&&moderate<199,'ordinary drag reached its extreme too early');
   const reduced=createCalmInteraction({...options,reducedMotion:true});
   reduced.press(0,10000,10000);assert.deepEqual(reduced.sample(2).matrix,[1,0,0,1]);
+  assert.deepEqual(reduced.sample(2).offset,[0,0]);
   assert.throws(()=>createCalmInteraction({...options,pullShape:'unknown'}),/Pull shape/);
 });
 
@@ -77,7 +85,7 @@ test('press is gradual, does not snap on release, and eventually stops requestin
   near(held.matrix[0],1.0125);near(held.matrix[3],1.03);assert.equal(held.active,false);
   const release=motion.release(2);assert.deepEqual(release.matrix,held.matrix);assert(release.active);
   const fading=motion.sample(2.1);assert(fading.press>0&&fading.press<held.press);
-  assert.deepEqual(motion.sample(5),{matrix:[1,0,0,1],press:0,held:false,active:false});
+  assert.deepEqual(motion.sample(5),{matrix:[1,0,0,1],offset:[0,0],press:0,held:false,active:false});
 });
 
 test('independent frame cadence never advances a new input target into its past', () => {
@@ -127,7 +135,7 @@ test('idle hold resumes, re-grab retains continuity, and reduced motion or resiz
   assert(motion.sample(1e308).matrix.every(Number.isFinite));
 });
 
-test('all screen edges and diagonal extremes stay inside the viewport without moving the centre', () => {
+test('all screen edges and diagonal extremes contain the full biased material outline', () => {
   for(const pullShape of ['adaptive','area-preserving']) for(const [w,h,r] of [[56,56,28],[320,72,36],[320,180,20]]) {
     for(const [x,y] of [[0,0],[400-w,0],[0,300-h],[400-w,300-h],[40,20]]) {
       if(x+w>400||y+h>300)continue;
@@ -135,12 +143,13 @@ test('all screen edges and diagonal extremes stay inside the viewport without mo
         const motion=createCalmInteraction({width:w,height:h,radius:r,x,y,viewportWidth:400,viewportHeight:300,pullShape});
         motion.press(0,dx,dy);
         for(const time of [.03,.1,.3,1]) {
-          const [a,b,c,d]=motion.sample(time).matrix, cx=x+w/2,cy=y+h/2;
+          const state=motion.sample(time),[a,b,c,d]=state.matrix,[ox,oy]=state.offset,cx=x+w/2,cy=y+h/2;
+          if(pullShape==='adaptive')assert.deepEqual(state.offset,[0,0]);
           // Sample the actual rounded outline; independent of the controller's support-width solver.
           for(let k=0;k<64;k++) {
             const angle=k*Math.PI/32,cos=Math.cos(angle),sin=Math.sin(angle);
             const px=Math.sign(cos)*(w/2-r)+r*cos,py=Math.sign(sin)*(h/2-r)+r*sin;
-            const tx=cx+a*px+b*py,ty=cy+c*px+d*py;
+            const tx=cx+ox+a*px+b*py,ty=cy+oy+c*px+d*py;
             assert(tx>=-1e-8&&tx<=400+1e-8&&ty>=-1e-8&&ty<=300+1e-8,`outline escaped: ${tx},${ty}`);
           }
           if(w>=2*h) {near(b,0);near(c,0);}

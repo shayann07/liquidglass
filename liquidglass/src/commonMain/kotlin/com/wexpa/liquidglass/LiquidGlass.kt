@@ -1403,6 +1403,9 @@ private inline fun DrawScope.withGlassMaterialPull(
     pull: GlassPullDeformation, pressX: Float, pressY: Float, block: DrawScope.() -> Unit,
 ) {
     withTransform({
+        if (pull.translationX != 0f || pull.translationY != 0f) {
+            translate(pull.translationX, pull.translationY)
+        }
         rotate(pull.angleDegrees, center)
         scale(pull.along, pull.across, center)
         rotate(-pull.angleDegrees, center)
