@@ -881,7 +881,7 @@
     }
   },
   "tap-arrival-recoil": {
-    "status": "focused passed; full local/hosted pending",
+    "status": "full local and inspected native passed; hosted build pending",
     "reference": "reference-tap-arrival.json",
     "trace": "tap-arrival-trace.csv",
     "figure": "tap-arrival-comparison.png",
@@ -947,6 +947,49 @@
       329.73853,
       171.35977
     ],
-    "scope": "Calibration to paired untimed stills, not independent validation or recovered timing. Figure is computed geometry, not rendered capture. Historical, held/throw and generic glass unchanged."
+    "scope": "Calibration to paired untimed stills, not independent validation or recovered timing. Figure is computed geometry, not rendered capture. Historical, held/throw and generic glass unchanged.",
+    "commit": "8d9917a54f27372db0bd12399f5b9e97d9989df3",
+    "local": {
+      "duration": "10m 20s",
+      "library": {
+        "tests": 336,
+        "skipped": 27,
+        "failures": 0,
+        "errors": 0,
+        "passed": 309,
+        "reportedSeconds": 519.189
+      },
+      "desktop": {
+        "tests": 2,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "passed": 2,
+        "reportedSeconds": 98.647
+      },
+      "androidSample": "assembled",
+      "execution": "fresh"
+    },
+    "native": {
+      "image": "checkpoint-8d9917a-native.png",
+      "timing": {
+        "metric": "native static-scene forced redraw; GPU submission, not presented FPS",
+        "backend": "DIRECT3D",
+        "width": 1920,
+        "height": 1051,
+        "samples": 120,
+        "warmup": 10,
+        "p50_ms": 11.2165,
+        "p95_ms": 19.8045,
+        "max_ms": 23.3515
+      },
+      "visualInspection": "completed",
+      "scope": "Native resting app-owned buffer; static redraw submission, not input latency or presented FPS"
+    },
+    "beforeTrace": "tap-arrival-before-trace.csv",
+    "hosted": {
+      "run": 37683713350,
+      "status": "pending; inspect exact run before claiming success"
+    }
   }
 }

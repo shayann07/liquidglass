@@ -1,0 +1,1 @@
+{"metric":"native static-scene forced redraw; GPU submission, not presented FPS", "backend":"DIRECT3D", "width":1920, "height":1051, "samples":120, "warmup":10, "p50_ms":11.2165, "p95_ms":19.8045, "max_ms":23.3515}

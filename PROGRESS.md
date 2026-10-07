@@ -10,7 +10,7 @@ preserve detailed measurements and earlier attempts.
 - Canonical checkout: `D:/Work/AndroidStudioProjects/SideProjects/kmp/liquidglass`.
 - Branch: `codex/atlas-stabilization`; [draft PR #6](https://github.com/shayann07/liquidglass/pull/6).
 - Last fully verified implementation: **`302e5e1`**, navigation foreground correction.
-- Current arrival-recoil change: **focused tests passed; full local verification running**.
+- Current arrival-recoil change **`8d9917a`: full local and inspected native verification passed; hosted build pending**.
   Original paired width/height recoil now appears without changing the existing midpoint fit.
   Inspect `.local/active-goal-checkpoint.txt` and the actual process before starting another run.
 - Commits/pushes authorized. No release, tag or implicit PR #6 review-rule bypass.
@@ -45,7 +45,14 @@ presets are unchanged. The existing midpoint remains 329.7385×171.3598px.
   [production trace](review/atlas/tap-arrival-trace.csv), [reproduction tool](tools/measure_tap_arrival.py).
 - The chart is computed geometry, not a screenshot. Stills establish neither timing nor peak extrema.
   Rejected models and the corrected overstrict peak assertion remain in the review record.
-- Full local/hosted and fresh native verification: **pending**. Do not label focused success as full parity.
+- Full local verification passed in **10m 20s: 309 library passed, 27 skipped, zero failures;
+  both Atlas tests passed; Android assembled**. All execution was fresh.
+- [Native Atlas at rest](review/atlas/checkpoint-8d9917a-native.png) inspected: 1920×1051 Direct3D.
+  [Static redraw submissions](review/atlas/checkpoint-8d9917a-native-timing.json):
+  **11.2165ms median / 19.8045ms p95 / 23.3515ms maximum**, 120 samples after 10 warmups.
+  This verifies native launch/rendering; it is not a capture of arrival motion or input latency.
+- [Hosted run 37683713350](https://github.com/shayann07/liquidglass/actions/runs/37683713350): **build pending**.
+  Do not label completed local tests as hosted success or full parity.
 
 ## Remaining requirements
 
@@ -65,8 +72,8 @@ presets are unchanged. The existing midpoint remains 329.7385×171.3598px.
 1. Read `WORKSPACE.md`, this file, `git status` and `.local/active-goal-checkpoint.txt`.
 2. **Inspect existing live handles/logs first.** Current full run is `.local/tap-arrival-full.log`.
    Do not restart a long run because an observation timed out; do not rerun finished baselines.
-3. Finish the arrival full run. Inspect test XML, capture Atlas after tests stop, inspect the image,
-   and record results with the exact implementation revision. Push the reviewable checkpoint.
+3. The arrival full run and native capture are finished. Reuse their evidence; do not restart them.
+   Finish hosted verification, then push the saved evidence follow-up without cancelling its build.
 4. Inspect required checks for that exact head. Save outcomes in this file and the ledger; update PR #6.
 5. Continue M1/O1/P1 from their stated gaps. Passing regression tests does not complete the whole goal.
 

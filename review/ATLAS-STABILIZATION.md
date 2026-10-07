@@ -643,20 +643,34 @@ pair is not independent validation of complete parity.
 The broader focused run passed **57 tests**. The subsequent three-test arrival class also passed
 with reversed one-to-four-slot trips at 30/60/90/120 Hz, subpixel shape agreement and unchanged
 reduced-motion dimensions. The final negative control failed before restoration of the correction.
-Full local/hosted verification of this arrival change is pending; the foreground results above
-describe the previous commit.
+Implementation `8d9917a` passed full local verification in **10m 20s**: **309 library tests passed,
+27 skipped, zero failures/errors; both Atlas tests passed; Android sample assembled**. The suite
+reported 519.189s for the library and 98.647s for Atlas. Tests executed freshly.
+
+![Native Atlas at rest after arrival correction](atlas/checkpoint-8d9917a-native.png)
+
+The inspected native app-owned capture is 1920×1051 Direct3D. After CPU tests finished,
+[120 static redraw submissions after ten warmups](atlas/checkpoint-8d9917a-native-timing.json)
+measured **11.2165ms median / 19.8045ms p95 / 23.3515ms maximum**.
+This resting capture verifies native launch/rendering, not the transient recoil; submission timings
+are not presented FPS or input latency. Hosted build [37683713350](https://github.com/shayann07/liquidglass/actions/runs/37683713350)
+is pending; local success is recorded independently.
 
 Reproduce measurements and the optional chart:
 
 ```sh
 python tools/measure_tap_arrival.py review/atlas/reference-6694.png review/atlas/reference-6701.png \
   --output review/atlas/reference-tap-arrival.json \
-  --trace review/atlas/tap-arrival-trace.csv --plot review/atlas/tap-arrival-comparison.png
+  --trace review/atlas/tap-arrival-trace.csv --before-trace review/atlas/tap-arrival-before-trace.csv \
+  --plot review/atlas/tap-arrival-comparison.png
 ```
 
 Pillow is required; the optional figure additionally uses Matplotlib and NumPy.
 [Raw reference scans](atlas/reference-tap-arrival.json) and
 [production-controller trace](atlas/tap-arrival-trace.csv) are preserved separately.
+The dashed [previous trace](atlas/tap-arrival-before-trace.csv) was sampled from the production
+controller before the correction, using the same fixture and 480 Hz sampling. Each curve is
+normalized by its own settled dimensions; neither curve contains recorded iOS timing.
 
 ### Resting-tap midpoint: height was late
 
