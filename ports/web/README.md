@@ -49,5 +49,7 @@ Press amplitude remains independent of the coupled narrowing/stretch model. Defa
 `2` logical pixels per edge for general surfaces. A host still owns selector travel and navigation.
 `pullShape` defaults to `'adaptive'`, preserving the large-card extension cap. The area-preserving
 option bounds log strain at 0.047 and adds a material-only directional bias capped at5.6% of the
-short side, before viewport constraints. Layout and ordinary labels remain fixed. Apply the returned
+short side, before viewport constraints. Layout remains fixed. Generic card labels remain fixed;
+navigation hosts should share the drawing transform with both ink variants, as described in the
+porting guide, without transforming DOM hit targets or accessibility bounds. Apply the returned
 offset after the centred matrix; omitting it retains the older symmetric visible outline.

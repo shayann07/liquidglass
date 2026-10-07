@@ -42,10 +42,18 @@ When the app or system requests reduced motion, pass `GlassInteraction.ReducedMo
 
 ## What stays anchored
 
-The layout centre, normal foreground labels/icons and pointer coordinate frame stay fixed.
+For generic controls/cards, the layout centre, normal foreground labels/icons and pointer coordinate frame stay fixed.
 Press expansion and pull stretch affect material drawing only. The draw transform is restored
 before ordinary foreground is drawn. Refracted content is an explicit exception:
 `refractContent = true` sends content through the optical path because it is viewed through the lens.
+
+`GlassTabBarStyle.Calm()` is a navigation-specific exception for visible ink. Its
+`deformItemsWithBar = true` draws both ordinary and selected items with the same bounded bar
+response, around the bar's centre. Layout, accessibility bounds and pointer coordinates still stay
+fixed. A same-gesture iOS audit shows that leaving visible glyphs fixed misses their vertical
+position by up to13.5px. One shared animated result drives the material and both ink variants;
+there are no duplicate springs or widget translations. Set `deformItemsWithBar = false` to retain
+fixed item drawing. Older presets default to false. This does not change generic card text.
 
 Pull targets meet smooth resistance before entering their springs, so extreme pointer travel
 does not accumulate a hidden return delay. Stretch and squeeze use the support widths of both axes.

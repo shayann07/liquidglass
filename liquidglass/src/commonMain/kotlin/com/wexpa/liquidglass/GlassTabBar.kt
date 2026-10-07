@@ -183,6 +183,9 @@ fun GlassTabBar(
         val scope = rememberCoroutineScope()
         val press = rememberGlassPressSource()
         val barPress = rememberGlassPressSource()
+        val barDrawing = remember(style.deformItemsWithBar) {
+            if (style.deformItemsWithBar) GlassMaterialDrawingState() else null
+        }
         var barDown by remember { mutableStateOf(Offset.Zero) }
         var v2Held by remember { mutableStateOf(false) }
         var dragging by remember { mutableStateOf(false) }
@@ -796,7 +799,7 @@ fun GlassTabBar(
                         // the ordinary ink can survive underneath the selected ink
                         // (V3-MODEL section 8.2).
                         .then(if (anyHandle) Modifier.liquidGlassSource(barState) else Modifier)
-                        .liquidGlass(
+                        .liquidGlassCore(
                             state = state,
                             shape = barShape,
                             style = barStyle,
@@ -809,6 +812,12 @@ fun GlassTabBar(
                             // outline does not simply end under it: it bows out to meet it, one
                             // liquid silhouette with no crease (measured model, section 2d).
                             fuse = barFuse,
+                            refractContent = false,
+                            through = null,
+                            lensFormation = 0f,
+                            body = null,
+                            endpointComposite = false,
+                            materialDrawing = barDrawing,
                         ),
                 )
                 Box(
@@ -818,7 +827,8 @@ fun GlassTabBar(
                         .graphicsLayer {
                             scaleX = barScale
                             scaleY = barScale
-                        },
+                        }
+                        .glassMaterialForeground(barDrawing),
                 ) {
                     ItemRow(
                         count = itemCount,
@@ -973,7 +983,9 @@ fun GlassTabBar(
                                     )
                                     scaleX = barScale
                                     scaleY = barScale
-                                },
+                                }
+                                .glassMaterialForeground(barDrawing,
+                                    Offset(nodeLeftPx.toFloat(), nodeTopPx.toFloat())),
                         ) {
                             ItemRow(
                                 count = itemCount,
@@ -1041,7 +1053,8 @@ fun GlassTabBar(
                                     .graphicsLayer {
                                         scaleX = barScale
                                         scaleY = barScale
-                                    },
+                                    }
+                                    .glassMaterialForeground(barDrawing),
                             ) {
                                 ItemRow(
                                     count = itemCount,
@@ -1333,6 +1346,9 @@ data class GlassTabBarStyle(
     val selector: GlassSelectorSpec? = null,
     /** Whole-bar material deformation; ordinary labels retain their layout positions. */
     val barInteraction: GlassInteraction? = null,
+    /** Let visible ordinary/selected ink share the bar's bounded drawing response.
+     * Layout, hit targets and selector travel remain independent. Enabled by [Calm]. */
+    val deformItemsWithBar: Boolean = false,
 ) {
     companion object {
         /** Recommended navigation preset. Material responds gently; the selector deforms
@@ -1341,9 +1357,10 @@ data class GlassTabBarStyle(
             dark = dark, spec = GlassSelectorSpec(response = GlassResponse.Calm),
         ).copy(
             // Original Phone ordinary hold: bar186 ->196px. Reuse the rounded 1.05 press
-            // from Measured(), applied to material only with Calm timing. Generic 3%/2dp
+            // from Measured(), shared with visible ink using Calm timing. Generic 3%/2dp
             // feedback undershot it; weakening press is not a correction to drag strain.
             heldScale = 1f,
+            deformItemsWithBar = true,
             barInteraction = GlassInteraction.Calm.copy(
                 pressScale = 1.05f, pressGrowth = 0.dp,
                 pullShape = GlassPullShape.AreaPreserving,

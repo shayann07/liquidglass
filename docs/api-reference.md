@@ -726,9 +726,10 @@ advanced tab-bar/container integration. `glass` does not make a button clickable
 | `GlassResponse` | `Expressive` preserves historical timing; `Calm` selects slower critical press/pull springs. |
 | `GlassInteraction.response` | Timing parameter, default `Expressive`; existing positional source calls retain their meaning. |
 | `GlassInteraction.pullShape` | Appended parameter, default `GlassPullShape.Adaptive`. `AreaPreserving` couples bounded stretch/narrowing and a material-only directional bias for navigation, without the card size policy; press and layout stay separate. See [generic interaction](generic-interaction.md). |
-| `GlassTabBarStyle.Calm(dark: Boolean = true)` | V3 optical roles with calm selector travel, no off-axis selector squeeze, and material-only bar feedback. Its reference-backed 5% press is separate from the restrained drag response. |
+| `GlassTabBarStyle.Calm(dark: Boolean = true)` | V3 optical roles with calm selector travel, no off-axis selector squeeze, and bounded bar drawing feedback shared with ordinary/selected ink. Its reference-backed 5% press is separate from the restrained drag response. |
 | `GlassSelectorSpec.response` | Chooses the pose response family; default `Expressive` preserves V3. Other legacy fields still belong to the old horizontal controller. |
 | `GlassTabBarStyle.barInteraction` | Optional whole-bar feedback, default null; `Calm()` enables it and keeps label layout fixed. |
+| `GlassTabBarStyle.deformItemsWithBar` | Appended option, false for older presets and true in `Calm()`. Shares the material's resolved drawing transform with both ink variants; layout, hit targets and selector travel remain independent. Generic card foreground is unchanged. |
 | `GlassPressSource.press(localPosition, pullOffset = Offset.Zero)` | Local pixels; optional displacement since down for a gesture owned by the host. Rejects non-finite coordinates. Call `release()` on up **and cancellation**. |
 
 `Lens` reuses `heldMagnification` internally as `1 - 1 / magnification`; prefer the factory to setting

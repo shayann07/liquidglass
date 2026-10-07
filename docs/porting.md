@@ -195,7 +195,11 @@ cannot change the spring response. See [requestAnimationFrame timing](https://de
 `state.matrix` is the row-major 2×2 `[a, b, c, d]` transform: `x' = a*x + b*y`, `y' = c*x + d*y`.
 Apply it **about the original glass centre**, then add `state.offset = [x, y]` in logical pixels,
 to the material drawing only. The offset is zero for Adaptive and reduced motion. Keep layout,
-hit testing, ordinary labels and accessibility outside both transforms. For a CanvasKit canvas:
+hit testing and accessibility outside both transforms. Generic cards also keep ordinary labels
+outside. To match Calm navigation, apply this same drawing transform to both ordinary and selected
+ink before selector optics, around the **bar** centre even when a selector node has a different
+origin. Compose does this through `deformItemsWithBar`; the portable host owns its ink layers.
+The portable painter does not provide a complete tab-navigation widget. For a CanvasKit canvas:
 
 ```js
 const [a, b, c, d] = state.matrix;
@@ -225,7 +229,7 @@ The canvas-transform API is provided by [CanvasKit](https://skia.org/docs/user/m
 | `setReducedMotion(enabled, time)` | Cancel and reset; reduced motion returns identity geometry |
 | `state.active` | Request another frame while settling; new input must wake your loop again |
 | `state.held`, `state.press` | Gesture ownership and geometric press amount; separate from glow or selection |
-| `state.offset` | Bounded material drawing bias `[x, y]`; apply after the centred matrix, never to host layout or ordinary labels |
+| `state.offset` | Bounded drawing bias `[x, y]`; apply after the centred matrix, never to host layout. Generic labels stay fixed; navigation shares it with both ink variants as described above. |
 
 Supply both viewport dimensions for edge containment. Initially contained surfaces remain contained
 under press and diagonal pull; initially offscreen/oversized layouts keep the host's clipping policy.

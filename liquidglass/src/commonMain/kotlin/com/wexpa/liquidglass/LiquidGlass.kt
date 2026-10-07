@@ -4,6 +4,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -295,6 +296,8 @@ internal fun Modifier.liquidGlassCore(
     poseBody: GlassPoseRender? = null,
     endpointComposite: Boolean,
     packedEndpoint: Boolean = false,
+    /** Optional shared drawing state for navigation's ordinary/selected ink. */
+    materialDrawing: GlassMaterialDrawingState? = null,
 ): Modifier = composed {
     val glassLayer = rememberGraphicsLayer()
     val endpointLayer = rememberGraphicsLayer()
@@ -427,6 +430,13 @@ internal fun Modifier.liquidGlassCore(
         ) else deformation
     } else {
         GlassPullDeformation.None
+    }
+
+    // Publish the already animated, viewport-bounded result once. Both ink variants read
+    // it during drawing, so they do not run separate springs or transform pointer targets.
+    SideEffect {
+        materialDrawing?.drawing = GlassMaterialDrawing(pullDeformation, pressScaleX, pressScaleY,
+            Offset(measured.width / 2f, measured.height / 2f))
     }
 
     this
@@ -1398,17 +1408,18 @@ internal fun elementSizeFactor(size: Size, density: Density): Float {
     return ((minEdgeDp - 56f) / (320f - 56f)).coerceIn(0f, 1f)
 }
 
-/** Transform only material output. Ordinary foreground is deliberately drawn outside this scope. */
-private inline fun DrawScope.withGlassMaterialPull(
-    pull: GlassPullDeformation, pressX: Float, pressY: Float, block: DrawScope.() -> Unit,
+/** Shared drawing operation. Generic foreground stays outside; navigation opts its ink in. */
+internal inline fun DrawScope.withGlassMaterialPull(
+    pull: GlassPullDeformation, pressX: Float, pressY: Float,
+    pivot: Offset = center, block: DrawScope.() -> Unit,
 ) {
     withTransform({
         if (pull.translationX != 0f || pull.translationY != 0f) {
             translate(pull.translationX, pull.translationY)
         }
-        rotate(pull.angleDegrees, center)
-        scale(pull.along, pull.across, center)
-        rotate(-pull.angleDegrees, center)
-        scale(pressX, pressY, center)
+        rotate(pull.angleDegrees, pivot)
+        scale(pull.along, pull.across, pivot)
+        rotate(-pull.angleDegrees, pivot)
+        scale(pressX, pressY, pivot)
     }, block)
 }

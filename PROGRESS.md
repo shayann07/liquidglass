@@ -6,7 +6,15 @@ Read this first after an interruption. Detailed evidence belongs in
 
 ## Current checkpoint
 
-**Current implementation: `06c9114`, asymmetric material drawing.** A fail-first regression caught top/bottom
+**New foreground candidate:** Calm navigation now shares one animated, bounded drawing transform
+with the material and both ink variants. The selected row uses the bar pivot despite its different
+node origin. Layout/hit targets stay fixed; generic card text is unchanged. **25 focused tests passed**:
+full-density glyphs measured69/72/76px at rest/hold/extreme and a12px held-to-extreme shift, with
+exact release recovery; ordinary/selected input images register within one channel level; all14
+Calm gesture tests pass. Full/native/hosted verification of this newer candidate is pending.
+Failures before the fix and the low-density measurement issue are recorded in the review.
+
+**Verified previous implementation: `06c9114`, asymmetric material drawing.** A fail-first regression caught top/bottom
 edges 181.15/385.85px against the selected original's 171–172/375px. A bounded material-only bias
 now gives 170.73/375.43px, with unchanged size. Layout and ordinary icon pixels remain fixed in the
 actual Compose render test. The full local run passed in **10m31s: 305 library tests passed,
@@ -16,16 +24,16 @@ launched and its 1920×1051 Direct3D capture was inspected. Static redraw submis
 This is not presented FPS or native gesture latency. Both local processes have finished.
 Twenty focused Kotlin tests, 13 portable math/controller tests and 13 Skia tests also pass.
 [Hosted build verification](https://github.com/shayann07/liquidglass/actions/runs/37674667084)
-is still pending; the other required checks passed. Inspect that existing run before publishing
-a new head, so it is not cancelled. Do not rerun completed local tests.
+passed, along with all seven required checks. Do not rerun completed tests for that implementation;
+the new foreground candidate requires its own full verification.
 
 **Next evidence-backed correction:** the fixed-visible-icon contract is an Astra assumption,
 not an iOS observation. A same-gesture audit accepts 45 threshold probes in 15 original frames,
 rejecting 96 obscured/ambiguous probes. Independently measured bar geometry predicts icon centre Y
 within **0.96px**, versus up to **13.5px** error for an anchored glyph, and height within **1.30px**.
-Keep layout/hit targets fixed, but investigate shared **drawing-only** foreground deformation.
-X drift, selected-ink registration and optical mechanism remain unresolved; no production
-foreground change is included in `06c9114`.
+The new candidate follows this **drawing-only** deformation while keeping layout/hit targets fixed.
+Its input-image registration passes; original X drift, complete optical identity and timing remain
+unresolved. No production foreground change is included in the earlier `06c9114` baseline.
 
 **Verified and pushed:** navigation now has a shared area-preserving drag policy. The dimensional
 regression failed at 872.98×198.02px, then passed at 835.49×204.70px. Full local and hosted tests
@@ -56,7 +64,7 @@ restored from cache; this is not a new Compose run. All seven required checks pa
 | ID | Requirement | Verified work | Still needed |
 | --- | --- | --- | --- |
 | M1 | Correct distance-dependent tap, hold and throw deformation | Separate shape/centre response; throws retain shape; end-anchor over-pull does not excite a stationary selector; original tap midpoint now 329.74×171.36px against 330±12 × 172±4px | More independent original trajectories/shape phases; exact timing is not identified by untimed stills |
-| M2 | Squeeze belongs on the whole bar; screen-corner extremes stay subtle | Separate selector travel/bar feedback; bounded growth/narrowing; material bias fits selected top/bottom edges; full local/Atlas/Android tests pass | Hosted build pending; original foreground geometry contradicts fixed visible ink; shared drawing response, independent trajectories and timing remain unfinished |
+| M2 | Squeeze belongs on the whole bar; screen-corner extremes stay subtle | Material bias fully verified locally/on GitHub; new foreground candidate fits original-density glyphs and preserves hit targets in focused tests | Full/native/hosted foreground verification; independent trajectories, X drift and timing remain unfinished |
 | M3 | Calm interaction on every glass surface, stable controls | Shared modifier and portable controller; separate press/pull; reduced motion; bounded large-card strain and viewport containment | Preserve generic card behavior while correcting navigation's measured response; verify all affected paths |
 | O1 | Remove recurring magnifier split rim | Continuous shared material/ink map; gradient/coverage regressions; native line-grid proof | Full optical identity to Apple is unproven; Android compositor precision still differs |
 | A1 | Better Atlas Studio and desktop visual proof | Shared sky/type/grid scenes, lens, note card, navigation; native capture and software gesture captures | Native gesture timing and presented-frame performance, plus later owner visual acceptance |
@@ -68,18 +76,19 @@ Passing tests establish their named contracts, not the complete goal. Do not mar
 
 ## Next work, in order
 
-1. **Finish hosted verification of `06c9114`; local/native verification is complete.** A 47-frame original T04 audit shows 186px rest,
+1. **Finish verification of the foreground candidate; `06c9114` is fully verified.** A 47-frame original T04 audit shows 186px rest,
    196px ordinary hold, 205–206px prolonged drag, then 186px rest again. The visible centre rises 10.5–11px
    during the same gesture. All 141 threshold/frame probes have majority agreement. The new shared
    `GlassPullShape.AreaPreserving` policy now gives 835.49×204.70px; generic cards stay Adaptive.
    The clean original width is 833px at PTS 31074/600, where height is 206px. Current width differs by
    2.49px and height by -1.30px from that late frame. Timing/input gain remain authored.
-2. **Correct navigation foreground from evidence, preserving stable hit targets.** The candidate limits material bias
+2. **Verify the foreground candidate fully, preserving stable hit targets.** The candidate limits material bias
    to 5.6% of the short side, below the selected 10.5px bound. Its chosen-edge fit is not proof of
    Apple's underlying mechanism, other directions, foreground optics or a matched timed trajectory.
    The new Contacts trace rejects anchoring visible ink as a parity assumption. Share one bounded
-   drawing transform with both ordinary/selected ink; verify their registration before changing
-   the navigation preset. Generic cards' anchored text remains a separate API contract.
+   drawing transform now serves both ordinary/selected ink; focused registration and original-density
+   tests pass. Generic cards' anchored text remains a separate API contract. Reuse the recorded
+   completed runs; inspect the live checkpoint before starting another full build.
 3. Run focused tests first. Once the change is stable, run the full suite **once**, then capture native Atlas
    after the CPU tests finish. Inspect the images, record what each proves, and push the reviewable result.
 4. Continue M1/O1/P1 against their actual remaining requirements. A documented portability contract is

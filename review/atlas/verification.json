@@ -752,7 +752,7 @@
     "portableMathTests": 13,
     "skiaTests": 13,
     "ordinaryInkPixelBounds": "unchanged in actual Compose held/upward renders",
-    "fullVerification": "local/native complete; hosted build pending",
+    "fullVerification": "local/native/hosted complete",
     "scope": "Visible material edges only. Layout and normal labels fixed; finger gain/timing, other directions and original foreground warp are not identified.",
     "commit": "06c91141806a11b4f0d79a2858053415f4714ded",
     "local": {
@@ -782,8 +782,26 @@
     },
     "hosted": {
       "run": 37674667084,
-      "build": "pending",
-      "otherRequiredChecks": "passed"
+      "requiredChecks": "all seven passed",
+      "buildDuration": "29m14s",
+      "gradleDuration": "28m41s",
+      "library": {
+        "total": 332,
+        "passed": 305,
+        "skipped": 27,
+        "failed": 0,
+        "duration": "22m22.22s",
+        "execution": "fresh"
+      },
+      "desktop": {
+        "passed": 2,
+        "failed": 0,
+        "duration": "4m50.07s",
+        "execution": "fresh"
+      },
+      "portableMathTests": 13,
+      "skiaTests": 13,
+      "browserTests": 5
     }
   },
   "whole-bar-foreground-sequence": {
@@ -807,5 +825,27 @@
     },
     "productionChanged": false,
     "scope": "Independent bar height/centre predicts visible glyph Y/height. Fixed visible ink is not an iOS observation; layout/hit targets remain anchored. X drift, selected-ink registration and mechanism unresolved."
+  },
+  "navigation-foreground-candidate": {
+    "before": {
+      "ordinaryInkShift": 0,
+      "expected": -3.8333333,
+      "tolerance": 0.8,
+      "result": "failed"
+    },
+    "firstCandidate": "low-density 32px glyph threshold box gave35px under strain; dimension verification moved to original density instead of fitting to pixel rounding",
+    "after": {
+      "restHeight": 69,
+      "heldHeight": 72,
+      "extremeHeight": 76,
+      "heldToExtremeY": -12,
+      "dimensionTolerancePx": 1.5,
+      "release": "exact raster recovery"
+    },
+    "focusedTests": 25,
+    "failed": 0,
+    "inputRegistration": "ordinary and shifted-selector node input images within1channel level over press, vertical pull and diagonal shear",
+    "fullVerification": "pending",
+    "scope": "Navigation drawing-only transform, shared bounded material state; no layout/hit target transform or generic card text change. No complete iOS optics/timing claim."
   }
 }

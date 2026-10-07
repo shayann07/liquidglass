@@ -37,7 +37,7 @@ class GlassCalmBarRenderTest {
                     GlassTabBar(state, 3, selected, { selected = it },
                         Modifier.align(Alignment.Center).width(400.dp).testTag("bar-layout"),
                         style = GlassTabBarStyle.Calm()) { index, _ ->
-                        Box(Modifier.size((12 + index * 4).dp).background(Color(0xffbbe5ee)))
+                        Box(Modifier.size((32 + index * 4).dp).background(Color(0xffbbe5ee)))
                     }
                 }
             }
@@ -77,8 +77,16 @@ class GlassCalmBarRenderTest {
             node.performTouchInput { advanceEventTime(250);moveTo(position) }
             waitForIdle();val pulled=capture(label)
             if(label=="top") for(region in listOf(80..140,335..400)) {
-                assertEquals(ordinaryInkBounds(held,region),ordinaryInkBounds(pulled,region),
-                    "material bias moved ordinary foreground pixels")
+                val h=ordinaryInkBounds(held,region)
+                val p=ordinaryInkBounds(pulled,region)
+                val heldCentre=(h[1]+h[3]+1)/2f
+                val pulledCentre=(p[1]+p[3]+1)/2f
+                // Original T04 Contacts ordinary hold -> extreme: centre262.5 ->251px
+                // at density3. Same-gesture bar geometry independently predicts this motion.
+                assertEquals(-11.5f/3f,pulledCentre-heldCentre,.8f,
+                    "visible navigation ink must follow bounded bar drawing, not stay anchored")
+                // Full-density glyph dimensions are checked separately below; a 32px
+                // threshold box cannot resolve a ~1.5px height change as a precise ratio.
             }
         }
         val endWidth = node.fetchSemanticsNode().config[GlassTabBarSemantics.BodyWidth]
@@ -99,5 +107,49 @@ class GlassCalmBarRenderTest {
         mainClock.autoAdvance = true
         node.performTouchInput { up() };waitForIdle();capture("released")
         assertEquals(false,node.fetchSemanticsNode().config[GlassTabBarSemantics.Held])
+    }
+
+    @Test fun ordinaryGlyphMatchesOriginalHeldAndExtremeEnvelope() = runComposeUiTest(testTimeout = 6.minutes) {
+        setContent {
+            CompositionLocalProvider(LocalDensity provides Density(3f)) {
+                val state = rememberLiquidGlassState(Color.Black, renderScale = .25f)
+                Box(Modifier.size(350.dp,140.dp).testTag("reference-scene")) {
+                    Box(Modifier.fillMaxSize().background(Color.Black).liquidGlassSource(state))
+                    GlassTabBar(state,3,0,{},Modifier.align(Alignment.Center).width(278.dp),
+                        style=GlassTabBarStyle.Calm()) { _, _ ->
+                        Box(Modifier.offset(y=(-20.5f/3f).dp).size(23.dp).background(Color.White))
+                    }
+                }
+            }
+        }
+        waitForIdle()
+        val node=onNodeWithTag(GlassTabBarSemantics.TAG,useUnmergedTree=true)
+        fun glyph(label: String): Pair<Float,Int> {
+            val image=onNodeWithTag("reference-scene").captureToImage().toAwtImage()
+            val directory=File("build/reports/atlas").apply {mkdirs()}
+            ImageIO.write(image,"png",File(directory,"nav-ink-$label.png"))
+            val ys=buildList {
+                for(y in 0 until image.height) for(x in 475..575) {
+                    val c=image.getRGB(x,y)
+                    if((c ushr 16 and 255)>=200 && (c ushr 8 and 255)>=200 && (c and 255)>=200) add(y)
+                }
+            }
+            assertTrue(ys.isNotEmpty())
+            return (ys.min()+ys.max()+1)/2f to (ys.max()-ys.min()+1)
+        }
+        val rest=glyph("rest")
+        node.performTouchInput {down(Offset(139f,93f));advanceEventTime(800);moveTo(Offset(139f,93f))}
+        waitForIdle();val held=glyph("held")
+        node.performTouchInput {advanceEventTime(250);moveTo(Offset(139f,-6000f))}
+        waitForIdle();val extreme=glyph("extreme")
+        println("NAV_INK rest=$rest held=$held extreme=$extreme")
+        // Full-density originals:69px rest,73px ordinary hold,76px extreme.
+        // 1.5px covers the independently recorded 1.29px threshold/edge residual.
+        assertEquals(69f,rest.second.toFloat(),1.5f)
+        assertEquals(73f,held.second.toFloat(),1.5f)
+        assertEquals(76f,extreme.second.toFloat(),1.5f)
+        assertEquals(-11.5f,extreme.first-held.first,1.5f)
+        node.performTouchInput {up()};waitForIdle()
+        assertEquals(rest,glyph("released"),"visible ink must recover exactly after release")
     }
 }

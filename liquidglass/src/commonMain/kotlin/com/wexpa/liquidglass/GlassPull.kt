@@ -35,7 +35,7 @@ internal fun glassMaterialPull(
         val magnitude = kotlin.math.hypot(u, v)
         // Selected T04: the visible centre rises10.5px on a186px-high bar, independently
         // of layout. An authored5.6% short-side bias stays just below that displacement.
-        // This moves material output only, never layout or ordinary labels. Other directions
+        // This moves drawing output only, never layout. Navigation can share it with ink. Other directions
         // use the same bounded law as an explicit extrapolation, not an Apple measurement.
         val bias = .056f * min(width, height) * amount
         return GlassPullDeformation(exp(magnitude), exp(-magnitude),
@@ -63,7 +63,7 @@ internal data class GlassPullDeformation(
     val across: Float,
     /** The pull's direction, degrees from +x, clockwise on screen. */
     val angleDegrees: Float,
-    /** Material drawing offset in px; never a layout or ordinary-foreground translation. */
+    /** Drawing offset in px; never a layout translation. Navigation may share this with ink. */
     val translationX: Float,
     val translationY: Float,
 ) {

@@ -313,8 +313,8 @@ Direct3D,1920×1051; grid magnification is continuous and selected ink remains v
 give **9.3877ms median,19.9661ms p95,23.1281ms maximum**. The p95 exceeds16.67ms;
 this records submission work, not presented FPS, a controlled speed comparison or native gesture latency.
 [Hosted build37674667084](https://github.com/shayann07/liquidglass/actions/runs/37674667084)
-is still pending; web, Skia, dependency review, CodeQL and docs passed. The existing local/native
-verification remains valid independently of that pending hosted build.
+passed, together with all seven required checks: build, web, Skia, dependency review,
+both CodeQL language jobs and docs. The newer foreground change below requires separate verification.
 
 ### Rejected assumption: ordinary ink must remain visibly fixed
 
@@ -359,6 +359,34 @@ python tools/measure_phone_foreground_sequence.py .local/t04-motion \
 
 Pillow is required; plotting also needs matplotlib and numpy. Decode the original crops with the
 T04 command above. No new production motion constant or timing claim is derived from this audit.
+
+### Navigation foreground candidate
+
+`GlassTabBarStyle.Calm()` now enables `deformItemsWithBar`. One shared drawing state publishes the
+material's already animated and viewport-bounded transform; both ordinary and selected ink consume
+it before selector optics. The selected row subtracts its node origin from the **bar** pivot.
+No additional spring, layout translation, pointer remapping or generic card-text movement is added.
+Other presets default to false; callers may set it false explicitly for fixed visible navigation ink.
+
+The fail-first real-pointer regression expected a bounded upward glyph shift and found0px. The first
+candidate fixed the shift, but a32px low-density glyph's threshold box quantized a small strain to
+35px. Rather than fit motion to that aliasing, a new density-three fixture uses the original69px
+glyph and834×186px bar. The small fixture still verifies visible displacement and stable layout.
+The full-density fixture measures **69px rest,72px held,76px extreme**, compared with the original
+69/73/76px and the recorded1.29px maximum threshold/edge residual. Held-to-extreme shift is **-12px**
+against-11.5px; tolerance1.5px. Release recovers the exact original raster bounds.
+
+| Held, software Compose | Extreme, software Compose |
+| --- | --- |
+| ![Held ink](atlas/nav-foreground-held.png) | ![Extreme ink](atlas/nav-foreground-extreme.png) |
+
+These use synthetic white square glyphs and quarter-scale backdrop sampling; they verify the
+drawing envelope, not a complete optical match to iOS. A separate renderer test draws identical
+ink in bar and shifted selector nodes across press, vertical pull and diagonal shear: all channels
+register within1 level. All14 Calm gesture tests pass, including cancellation, fling and reduced motion.
+Together with the growth/shape and full-density tests, **25 focused tests pass**. Full-suite,
+native and hosted verification of this newer candidate is **pending**. The preceding `06c9114`
+full/native results establish that earlier material-only implementation, not this foreground change.
 
 ### Avoiding duplicate held brightness
 

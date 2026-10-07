@@ -73,9 +73,12 @@ optical role from a magnifier; using the held-selector map on a free lens caused
 Calm navigation keeps a reference-backed 5% whole-bar touch expansion, with its slower timing and
 restrained drag independent of that expansion. Generic cards retain the 3% / 2dp-per-edge press cap.
 Navigation couples mild stretch with narrowing through `GlassPullShape.AreaPreserving`; generic cards
-keep `Adaptive` and its absolute extension limit. Layout and normal labels remain anchored.
+keep `Adaptive` and its absolute extension limit. Layout and hit targets remain anchored.
 The navigation material can bias slightly toward a pull, capped by the selected iOS reference;
-its control bounds and ordinary labels stay fixed. Press alone does not introduce that bias.
+Calm navigation shares this drawing response with both ordinary and selected icons, as supported
+by the [original foreground trace](review/ATLAS-STABILIZATION.md#rejected-assumption-ordinary-ink-must-remain-visibly-fixed).
+Set `deformItemsWithBar = false` on the bar style for fixed visible items. Generic cards keep fixed
+foreground by default. Press alone does not introduce the directional bias.
 Resting tap travel also changes height before arrival; its geometry response is separate from optical
 formation. The [original midpoint comparison](review/ATLAS-STABILIZATION.md#resting-tap-midpoint-height-was-late)
 records the measured bounds, correction and remaining timing uncertainty.

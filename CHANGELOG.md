@@ -12,6 +12,9 @@ This file records user-visible development changes. Published artifacts are iden
   by material and foreground, with input validation and rendered continuity regressions.
 - `GlassInteraction.Calm` and `GlassResponse`: restrained press expansion and progressively resisted drag.
 - `GlassTabBarStyle.Calm()`: separate whole-bar feedback and selector travel deformation.
+- `GlassTabBarStyle.deformItemsWithBar`: shares one resolved bar drawing transform with ordinary
+  and selected ink, using the bar pivot even in a moving selector node. Enabled by `Calm()`;
+  older presets retain fixed item drawing. Layout, hit targets and generic card text are unchanged.
 - Optional pull displacement in `GlassPressSource.press` for hosts that already own their gesture.
 - Atlas Studio's sky, typography and grid scenes, native app-buffer captures and redraw timing output.
 - Dependabot configuration, private security reporting instructions and tighter workflow permissions.
@@ -50,7 +53,7 @@ This file records user-visible development changes. Published artifacts are iden
 - Calm resting-tap height no longer waits through two springs before changing. A separate transit
   pressure response and reduced spine gain fit the original midpoint's height and width together;
   held pressure, optical formation and historical presets retain their existing response.
-- Calm navigation restores the original ordinary touch growth with a material-only 5% press while
+- Calm navigation restores the original ordinary touch growth with a 5% press while
   retaining restrained drag. Its held brightness no longer adds generic control lift a second time.
 - Portable viewport-limited press targets animate gradually instead of clipping growth mid-animation.
 - Portable wide-tone sampling preserves opaque edges even for tiny backdrops and fractional
