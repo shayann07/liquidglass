@@ -6,13 +6,26 @@ Read this first after an interruption. Detailed evidence belongs in
 
 ## Current checkpoint
 
-**Current candidate: asymmetric material drawing.** A fail-first regression caught top/bottom
+**Current implementation: `06c9114`, asymmetric material drawing.** A fail-first regression caught top/bottom
 edges 181.15/385.85px against the selected original's 171–172/375px. A bounded material-only bias
 now gives 170.73/375.43px, with unchanged size. Layout and ordinary icon pixels remain fixed in the
-actual Compose render test. Twenty focused Kotlin tests, 13 portable math/controller tests and
-13 Skia tests pass. Full library/Atlas/Android verification is running; inspect the live handle in
-`.local/active-goal-checkpoint.txt` before starting any further build. This candidate is not yet
-covered by the earlier full/native checkpoint below.
+actual Compose render test. The full local run passed in **10m31s: 305 library tests passed,
+27 skipped, zero failures; both Atlas tests passed; Android sample assembled**. Native Atlas
+launched and its 1920×1051 Direct3D capture was inspected. Static redraw submission:
+**9.3877ms median / 19.9661ms p95 / 23.1281ms maximum**, 120 samples after ten warmups.
+This is not presented FPS or native gesture latency. Both local processes have finished.
+Twenty focused Kotlin tests, 13 portable math/controller tests and 13 Skia tests also pass.
+[Hosted build verification](https://github.com/shayann07/liquidglass/actions/runs/37674667084)
+is still pending; the other required checks passed. Inspect that existing run before publishing
+a new head, so it is not cancelled. Do not rerun completed local tests.
+
+**Next evidence-backed correction:** the fixed-visible-icon contract is an Astra assumption,
+not an iOS observation. A same-gesture audit accepts 45 threshold probes in 15 original frames,
+rejecting 96 obscured/ambiguous probes. Independently measured bar geometry predicts icon centre Y
+within **0.96px**, versus up to **13.5px** error for an anchored glyph, and height within **1.30px**.
+Keep layout/hit targets fixed, but investigate shared **drawing-only** foreground deformation.
+X drift, selected-ink registration and optical mechanism remain unresolved; no production
+foreground change is included in `06c9114`.
 
 **Verified and pushed:** navigation now has a shared area-preserving drag policy. The dimensional
 regression failed at 872.98×198.02px, then passed at 835.49×204.70px. Full local and hosted tests
@@ -28,14 +41,14 @@ equivalence to explicit sources, and the terminal example rendered successfully.
 restored from cache; this is not a new Compose run. All seven required checks passed, including CodeQL.
 
 - One canonical checkout, branch `codex/atlas-stabilization`, [draft PR #6](https://github.com/shayann07/liquidglass/pull/6).
-- Latest verified implementation: `124ae178e0635b4191257205833ecd5662db9c78`.
+- Previous fully hosted-verified Compose implementation: `124ae178e0635b4191257205833ecd5662db9c78`.
 - Its [hosted run](https://github.com/shayann07/liquidglass/actions/runs/37237373943) passed all seven required checks.
   Fresh library execution: **303 passed, 27 skipped, zero failures**; **two Atlas tests passed**.
   Twelve Skia renderer tests, thirteen portable math tests and five browser tests passed.
 - Full local library/desktop tests and Android sample build also passed in **20m10s**.
 - Native Atlas launched successfully: Direct3D, 1920×1051. Static redraw submission median **9.3334ms**,
   p95 **15.1117ms**, max **21.271ms** (120 samples after ten warmups). This is not presented FPS or touch latency.
-- Those earlier test and capture processes finished. The current candidate's full run is listed above.
+- Those earlier test and capture processes finished. The newer local/native results are listed above.
 - Evidence/documentation for this checkpoint are in this change. The PR is still draft; no release or merge occurred.
 
 ## Requirement tracker
@@ -43,7 +56,7 @@ restored from cache; this is not a new Compose run. All seven required checks pa
 | ID | Requirement | Verified work | Still needed |
 | --- | --- | --- | --- |
 | M1 | Correct distance-dependent tap, hold and throw deformation | Separate shape/centre response; throws retain shape; end-anchor over-pull does not excite a stationary selector; original tap midpoint now 329.74×171.36px against 330±12 × 172±4px | More independent original trajectories/shape phases; exact timing is not identified by untimed stills |
-| M2 | Squeeze belongs on the whole bar; screen-corner extremes stay subtle | Separate selector travel/bar feedback; bounded growth/narrowing; current material-only bias fits selected top/bottom edges, preserves ordinary icon pixels and passes viewport checks | Full verification of the bias candidate; independent trajectories, foreground optical behaviour and exact timing remain unverified |
+| M2 | Squeeze belongs on the whole bar; screen-corner extremes stay subtle | Separate selector travel/bar feedback; bounded growth/narrowing; material bias fits selected top/bottom edges; full local/Atlas/Android tests pass | Hosted build pending; original foreground geometry contradicts fixed visible ink; shared drawing response, independent trajectories and timing remain unfinished |
 | M3 | Calm interaction on every glass surface, stable controls | Shared modifier and portable controller; separate press/pull; reduced motion; bounded large-card strain and viewport containment | Preserve generic card behavior while correcting navigation's measured response; verify all affected paths |
 | O1 | Remove recurring magnifier split rim | Continuous shared material/ink map; gradient/coverage regressions; native line-grid proof | Full optical identity to Apple is unproven; Android compositor precision still differs |
 | A1 | Better Atlas Studio and desktop visual proof | Shared sky/type/grid scenes, lens, note card, navigation; native capture and software gesture captures | Native gesture timing and presented-frame performance, plus later owner visual acceptance |
@@ -55,15 +68,18 @@ Passing tests establish their named contracts, not the complete goal. Do not mar
 
 ## Next work, in order
 
-1. **Finish verification of M2's asymmetric material candidate.** A 47-frame original T04 audit shows 186px rest,
+1. **Finish hosted verification of `06c9114`; local/native verification is complete.** A 47-frame original T04 audit shows 186px rest,
    196px ordinary hold, 205–206px prolonged drag, then 186px rest again. The visible centre rises 10.5–11px
    during the same gesture. All 141 threshold/frame probes have majority agreement. The new shared
    `GlassPullShape.AreaPreserving` policy now gives 835.49×204.70px; generic cards stay Adaptive.
    The clean original width is 833px at PTS 31074/600, where height is 206px. Current width differs by
    2.49px and height by -1.30px from that late frame. Timing/input gain remain authored.
-2. Inspect the current full run, hosted checks and actual captures. The candidate limits material bias
+2. **Correct navigation foreground from evidence, preserving stable hit targets.** The candidate limits material bias
    to 5.6% of the short side, below the selected 10.5px bound. Its chosen-edge fit is not proof of
    Apple's underlying mechanism, other directions, foreground optics or a matched timed trajectory.
+   The new Contacts trace rejects anchoring visible ink as a parity assumption. Share one bounded
+   drawing transform with both ordinary/selected ink; verify their registration before changing
+   the navigation preset. Generic cards' anchored text remains a separate API contract.
 3. Run focused tests first. Once the change is stable, run the full suite **once**, then capture native Atlas
    after the CPU tests finish. Inspect the images, record what each proves, and push the reviewable result.
 4. Continue M1/O1/P1 against their actual remaining requirements. A documented portability contract is
@@ -79,6 +95,12 @@ Passing tests establish their named contracts, not the complete goal. Do not mar
   [measurement tool](tools/measure_phone_bar_sequence.py). Decode command is in the review record.
   This is stronger evidence than an isolated extreme. The older 205px ceiling is a selected-frame bound,
   not the maximum of the entire recording. Do not fit motion to inherited yellow ellipse annotations.
+- [Same-gesture foreground audit](review/atlas/reference-foreground-sequence.png),
+  [all accepted/rejected probes](review/atlas/reference-foreground-sequence.json),
+  [reproduction tool](tools/measure_phone_foreground_sequence.py). Bar geometry predicts vertical
+  glyph output without fitting motion coefficients. This does not identify a shader or X motion.
+- [Current native Atlas](review/atlas/checkpoint-06c9114-native.png),
+  [static redraw timings](review/atlas/checkpoint-06c9114-native-timing.json).
 - [Native Atlas](review/atlas/checkpoint-124ae17-native.png), [timings](review/atlas/checkpoint-124ae17-native-timing.json),
   [Atlas corner pull](review/atlas/checkpoint-124ae17-extreme.png), [bar corner pull](review/atlas/checkpoint-124ae17-corner.png),
   [bar upward pull](review/atlas/checkpoint-124ae17-top.png), [ordinary hold](review/atlas/checkpoint-124ae17-held.png).

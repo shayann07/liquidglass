@@ -300,8 +300,65 @@ All13 Skia tests pass after adding a navigation case to the actual rendering tes
 zero-centre/card-width assertions remain for generic cards; the navigation case instead checks its
 bounded drawing offset and unchanged diagonal press dimensions. The initial run correctly failed
 the old zero-centre assertion for that newly added navigation case; its raster tolerance remains0.5px.
-Full library/Atlas/Android and native verification of this candidate are **pending**. Earlier full
-results above are not counted as verification of this newer change.
+Full local verification of implementation `06c91141806a11b4f0d79a2858053415f4714ded`
+passed in **10m31s**: **305 library tests passed, 27 skipped, zero failures/errors**, both Atlas
+tests passed, and Android sample assembled. XML suite durations sum to520.151s for the library
+and100.684s for Atlas. These tests executed; they were not restored from cache.
+The subsequent native launch completed in25s and its app-owned capture was inspected:
+
+![Native Atlas after the asymmetric material change](atlas/checkpoint-06c9114-native.png)
+
+Direct3D,1920×1051; grid magnification is continuous and selected ink remains visible.
+[120 static redraw submissions after10 warmups](atlas/checkpoint-06c9114-native-timing.json)
+give **9.3877ms median,19.9661ms p95,23.1281ms maximum**. The p95 exceeds16.67ms;
+this records submission work, not presented FPS, a controlled speed comparison or native gesture latency.
+[Hosted build37674667084](https://github.com/shayann07/liquidglass/actions/runs/37674667084)
+is still pending; web, Skia, dependency review, CodeQL and docs passed. The existing local/native
+verification remains valid independently of that pending hosted build.
+
+### Rejected assumption: ordinary ink must remain visibly fixed
+
+Layout and hit targets need stable coordinates. That does not establish that visible glyph pixels
+must stay fixed. The earlier three-frame measurements already contradicted that additional Astra
+assumption. A fresh same-gesture audit now compares Contacts with independently measured bar geometry,
+using the exact same47 crops and checking their SHA256 hashes. It does not fit a spring or pointer gain.
+
+![Original Contacts geometry across T04](atlas/reference-foreground-sequence.png)
+
+Of141 threshold/frame probes, **45 across15 frames** contain a usable neutral glyph. All96 rejected
+probes remain in [the record](atlas/reference-foreground-sequence.json), with gaps in the plot.
+Samples19,20 and40 are explicitly excluded after visual inspection: the selected lens covers part
+of Contacts. The other rejections have no unique complete bright glyph in the fixed ROI.
+The drawing prediction uses only the first-frame glyph and the independently measured bar:
+
+```text
+scaleY = currentBarHeight / restingBarHeight
+predictedGlyphY = currentBarCentre + (restingGlyphY - restingBarCentre) * scaleY
+predictedGlyphHeight = restingGlyphHeight * scaleY
+```
+
+Both centres use pixel extents; the bar's integer edge-index midpoint is converted with+0.5px.
+Across all accepted probes, absolute centre-Y error is **0.2043px median /0.9570px maximum**;
+height error is **0.2903px median /1.2903px maximum**. The fixed-glyph hypothesis instead has
+**12.5px median /13.5px maximum** centre-Y error. Original icon dimensions/position recover on
+release. The old three-frame measurement tool still reproduces its JSON unchanged after extraction
+of a reusable measurement function.
+
+This supports shared *visible vertical deformation*, not a claim about Apple's internal renderer.
+X drift is measured but not explained; the ordinary and selected ink must still register correctly
+through a moving lens. The production candidate deliberately retains fixed ordinary ink, so that
+test currently protects an API contract rather than proving iOS foreground parity. The next change
+must separate drawing-only navigation feedback from stable layout/hit testing and generic card text.
+
+```sh
+python tools/measure_phone_foreground_sequence.py .local/t04-motion \
+  --bar review/atlas/reference-bar-sequence.json --exclude-frames 19 20 40 \
+  --output review/atlas/reference-foreground-sequence.json \
+  --plot review/atlas/reference-foreground-sequence.png
+```
+
+Pillow is required; plotting also needs matplotlib and numpy. Decode the original crops with the
+T04 command above. No new production motion constant or timing claim is derived from this audit.
 
 ### Avoiding duplicate held brightness
 
