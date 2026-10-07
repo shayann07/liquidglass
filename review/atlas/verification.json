@@ -845,7 +845,108 @@
     "focusedTests": 25,
     "failed": 0,
     "inputRegistration": "ordinary and shifted-selector node input images within1channel level over press, vertical pull and diagonal shear",
-    "fullVerification": "pending",
-    "scope": "Navigation drawing-only transform, shared bounded material state; no layout/hit target transform or generic card text change. No complete iOS optics/timing claim."
+    "fullVerification": "local, native and all seven required hosted checks passed",
+    "scope": "Navigation drawing-only transform, shared bounded material state; no layout/hit target transform or generic card text change. No complete iOS optics/timing claim.",
+    "commit": "302e5e1e3c7a411c3ad17a41d1ada06b30dacbf4",
+    "local": {
+      "result": "BUILD SUCCESSFUL",
+      "duration": "10m21s",
+      "library": {
+        "total": 334,
+        "passed": 307,
+        "skipped": 27,
+        "failed": 0,
+        "errors": 0,
+        "reportedSeconds": 520.394
+      },
+      "desktop": {
+        "passed": 2,
+        "failed": 0,
+        "reportedSeconds": 97.037
+      },
+      "androidSample": "assembled",
+      "execution": "fresh"
+    },
+    "native": {
+      "image": "checkpoint-302e5e1-native.png",
+      "timing": "checkpoint-302e5e1-native-timing.json",
+      "visualInspection": "completed",
+      "scope": "Resting native app-owned buffer; static redraw submission only"
+    },
+    "hosted": {
+      "run": 37678836069,
+      "build": "passed; fresh execution; job30m45s, Gradle30m14s",
+      "web": "first attempt cancelled during Ubuntu mirror downloads; retry of web job alone passed in48s",
+      "otherRequiredChecks": "passed"
+    }
+  },
+  "tap-arrival-recoil": {
+    "status": "focused passed; full local/hosted pending",
+    "reference": "reference-tap-arrival.json",
+    "trace": "tap-arrival-trace.csv",
+    "figure": "tap-arrival-comparison.png",
+    "original": {
+      "compressed": [
+        227.5,
+        174
+      ],
+      "settled": [
+        235,
+        164
+      ],
+      "widthRatio": 0.9680851063829787,
+      "heightRatio": 1.0609756097560976
+    },
+    "negativeControl": {
+      "width": 222.87769,
+      "height": 163.19904,
+      "heightRatio": 1.0073937,
+      "result": "failed final paired-state height gate with tapRecoilArea=false"
+    },
+    "after": {
+      "width": 222.55109,
+      "height": 170.40918,
+      "widthRatio": 0.9676691,
+      "heightRatio": 1.0519066,
+      "minimumWidth": 218.63428,
+      "minimumWidthRatio": 0.95063853
+    },
+    "bounds": {
+      "pairedRatioTolerance": 0.02,
+      "selectedMinimumWidthRatio": 0.9480851063829787
+    },
+    "authored": {
+      "mechanism": "projected capsule area exchange during resting-tap spine compression only",
+      "pressureRatePerSecond": 104
+    },
+    "rejected": [
+      "pressure-scaled resting spine altered midpoint",
+      "ordinary45/s pressure lagged recoil",
+      "initial paired-extremum assertion exceeded what untimed stills establish"
+    ],
+    "focused": {
+      "broaderPassed": 57,
+      "followupArrivalClassPassed": 3,
+      "overlap": 2,
+      "failed": 0,
+      "cadenceHz": [
+        30,
+        60,
+        90,
+        120
+      ],
+      "distances": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "reducedMotion": "unchanged dimensions"
+    },
+    "unchangedMidpoint": [
+      329.73853,
+      171.35977
+    ],
+    "scope": "Calibration to paired untimed stills, not independent validation or recovered timing. Figure is computed geometry, not rendered capture. Historical, held/throw and generic glass unchanged."
   }
 }

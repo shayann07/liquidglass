@@ -81,7 +81,10 @@ Set `deformItemsWithBar = false` on the bar style for fixed visible items. Gener
 foreground by default. Press alone does not introduce the directional bias.
 Resting tap travel also changes height before arrival; its geometry response is separate from optical
 formation. The [original midpoint comparison](review/ATLAS-STABILIZATION.md#resting-tap-midpoint-height-was-late)
-records the measured bounds, correction and remaining timing uncertainty.
+records the measured bounds, correction and remaining timing uncertainty. On arrival, slight width
+compression now produces height recovery instead of losing area. This Calm-only response is checked
+against [paired original stills](review/ATLAS-STABILIZATION.md#resting-tap-arrival-paired-recoil);
+the stills do not identify spring timing or prove a complete motion match.
 
 Desktop Calm selectors also compose refracted ink and material together in the final shader, avoiding
 one intermediate rounding step. The [porting guide](docs/porting.md#combining-refracted-ink-with-glass)

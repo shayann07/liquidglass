@@ -49,6 +49,9 @@ This file records user-visible development changes. Published artifacts are iden
   size is checked against the original Phone reference independently of authored drag sensitivity.
 - Calm resting taps keep a small compression/recovery on arrival. Shape damping and stretch gain are
   tuned separately from the critical centre and press springs; the previous preset had lost this phase.
+- Calm resting-tap arrival exchanges spine compression for cap growth, retaining the original paired
+  width/height recoil without altering held/throw behavior or the existing midpoint fit. Historical
+  presets remain unchanged. Tests cover reverse travel, presentation cadence and reduced motion.
 - Further outward movement beyond an end anchor no longer stretches a stationary Calm selector.
 - Calm resting-tap height no longer waits through two springs before changing. A separate transit
   pressure response and reduced spine gain fit the original midpoint's height and width together;

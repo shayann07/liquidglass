@@ -246,6 +246,9 @@ internal data class GlassPoseSpec(
     val travelOnly: Boolean = false,
     /** Keep the released capsule responsive to travel while press formation subsides. */
     val releaseTravel: Boolean = false,
+    /** Couple resting-tap spine compression to cap growth. Opt-in authored area response,
+     * constrained by the paired IMG6694/6701 arrival dimensions; not an Apple fluid law. */
+    val tapRecoilArea: Boolean = false,
 ) {
     companion object {
         /** Authored response constrained by IMG_6756 T04 and the 6690–6701 transit stills.
@@ -271,6 +274,7 @@ internal data class GlassPoseSpec(
             maxAccommodationSlots = 0.15f,
             travelOnly = true,
             releaseTravel = true,
+            tapRecoilArea = true,
         )
     }
 }
@@ -869,6 +873,23 @@ internal class GlassPoseController(
         val transitPressure = mode == GlassPoseMode.TapTransit && spec.tapPressureOmega > 0f
         val pressureFormation = if (transitPressure) formTarget else formation
         equilibrium.p = if (motionEnabled) heldPressure * pressureFormation - squeeze + pullPressure else 0f
+        val recoilPressure = transitPressure && spec.tapRecoilArea && motionEnabled &&
+            kotlin.math.hypot(pose.dx, pose.dy) < reference.a
+        if (recoilPressure) {
+            // A capsule's projected area is pi*r^2 +4*a*r. The underdamped spine may
+            // recoil below its resting length; exchange that shortening for cap growth
+            // instead of deleting area. Positive transit elongation remains independent.
+            // The original stills constrain paired output, not this inferred mechanism.
+            val radius = reference.r * exp(equilibrium.p)
+            val restingSpine = reference.a
+            val compressedSpine = kotlin.math.hypot(pose.dx, pose.dy)
+            if (compressedSpine < restingSpine && radius > 0f) {
+                val area = kotlin.math.PI.toFloat() * radius * radius + 4f * restingSpine * radius
+                val recoveredRadius = area / (sqrt(4f * compressedSpine * compressedSpine +
+                    kotlin.math.PI.toFloat() * area) + 2f * compressedSpine)
+                equilibrium.p += kotlin.math.ln(recoveredRadius / radius)
+            }
+        }
 
         val ax = accelX / slot
         val ay = accelY / slot
@@ -931,6 +952,9 @@ internal class GlassPoseController(
         val pz = spec.pressureZeta
         // Subsiding after a release is slower than growing or being squeezed under a finger.
         val pressureRate = when {
+            // Approximate a geometric area constraint faster than the spine's recovery;
+            // this rate is authored, not a new touch/held response or measured Apple timing.
+            recoilPressure -> max(spec.tapPressureOmega, 4f * spec.tapSpineOmega)
             transitPressure -> spec.tapPressureOmega
             mode != GlassPoseMode.Held && equilibrium.p < pose.p -> spec.pressureFallOmega
             else -> po

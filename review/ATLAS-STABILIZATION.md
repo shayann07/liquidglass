@@ -384,9 +384,21 @@ These use synthetic white square glyphs and quarter-scale backdrop sampling; the
 drawing envelope, not a complete optical match to iOS. A separate renderer test draws identical
 ink in bar and shifted selector nodes across press, vertical pull and diagonal shear: all channels
 register within1 level. All14 Calm gesture tests pass, including cancellation, fling and reduced motion.
-Together with the growth/shape and full-density tests, **25 focused tests pass**. Full-suite,
-native and hosted verification of this newer candidate is **pending**. The preceding `06c9114`
-full/native results establish that earlier material-only implementation, not this foreground change.
+Together with the growth/shape and full-density tests, **25 focused tests pass**.
+Implementation `302e5e1e3c7a411c3ad17a41d1ada06b30dacbf4` passed full local verification
+in **10m21s:307 library tests passed,27 skipped,zero failures/errors; both Atlas tests passed**;
+Android sample assembled. Fresh XML durations sum to520.394s/97.037s for library/Atlas.
+
+![Native Atlas after foreground correction](atlas/checkpoint-302e5e1-native.png)
+
+The subsequent native launch completed in14s; its1920×1051 Direct3D app buffer was inspected.
+[Static redraw submissions](atlas/checkpoint-302e5e1-native-timing.json),120samples after10warmups:
+**10.2552ms median /12.9977ms p95 /21.4913ms maximum**. This is neither presented FPS nor native
+gesture latency or a controlled speed comparison. All seven required checks passed in
+[CI 37678836069](https://github.com/shayann07/liquidglass/actions/runs/37678836069).
+The build took 30m45s (Gradle 30m14s), with fresh library/desktop execution. The web job first
+timed out during Ubuntu mirror downloads, before browser tests. Once the build finished, retrying
+only that job passed in 48s; no product test failed and the successful build was not rerun.
 
 ### Avoiding duplicate held brightness
 
@@ -592,6 +604,59 @@ press and held-travel settings stay unchanged.
 [Raw tap trace](atlas/selector-arrival.csv). All 38 focused controller/reference/lifecycle tests pass
 after the correction, including cadence, idle resume, held extremes and throw recovery. The initial
 failed Calm arrival check remains recorded in `verification.json`.
+
+### Resting-tap arrival: paired recoil
+
+![Arrival shape comparison](atlas/tap-arrival-comparison.png)
+
+Original `IMG_6694` and `IMG_6701` supply two states from the owner's ordered arrival
+stills. Fixed unscaled scan windows give median compressed/settled dimensions of **227.5×174px /
+235×164px**: width ratio **0.968085**, height ratio **1.060976**. The record includes all sixteen
+gradient probes per axis (luma and RGB at four positions), original hashes and exact scan windows.
+The windows exclude neighboring Chats ink and the surrounding bar. These untimed stills identify
+a paired shape, not a peak, frame rate, finger trace or spring constant.
+
+The previous controller compressed width without appreciable vertical recovery. With the final
+regression and the correction disabled, its closest paired state was **222.88×163.20px**, with
+height ratio **1.007394**, failing the selected **1.060976±0.02** gate. The correction passes at
+**222.55×170.41px**, ratios **0.967669 / 1.051907**. The fixture's settled geometry is 230×162px;
+normalization avoids pretending it has the original's exact resting dimensions. The production path
+in the figure is computed geometry, not a rendered screenshot. Its timing is not matched to iOS.
+
+Calm opts into an internal `tapRecoilArea` policy. Only during resting-tap compression, the pressure
+target exchanges a shortened spine for cap growth using the projected capsule area
+`A = pi*r*r + 4*a*r`. For compressed half-spine `b`, the stable positive-radius solution is
+`r' = A / (sqrt(4*b*b + pi*A) + 2*b)`. The existing pressure state approaches that target at an
+authored rate of `max(tapPressureOmega, 4*tapSpineOmega)` (104/s in Calm). This is an approximation
+to a geometric constraint, not an Apple fluid law, recovered timing, or faster touch response.
+Positive travel elongation, held/throw response, historical presets and generic glass are unchanged.
+The measured midpoint remains **329.7385×171.3598px**.
+
+Two rejected candidates matter: multiplying the resting spine by pressure changed the already-fitted
+midpoint, and ordinary transit pressure recovered height too late. An initial assertion also wrongly
+treated `IMG_6694` as the minimum-width instant. The final test searches for a **joint** width/height
+state after 95% travel and separately caps compression at the selected conservative width floor
+`0.968085 - 0.02`. The observed minimum is **0.950639**. This floor is a chosen regression bound,
+not a claim that the two stills establish Apple's maximum compression. Matching this calibration
+pair is not independent validation of complete parity.
+
+The broader focused run passed **57 tests**. The subsequent three-test arrival class also passed
+with reversed one-to-four-slot trips at 30/60/90/120 Hz, subpixel shape agreement and unchanged
+reduced-motion dimensions. The final negative control failed before restoration of the correction.
+Full local/hosted verification of this arrival change is pending; the foreground results above
+describe the previous commit.
+
+Reproduce measurements and the optional chart:
+
+```sh
+python tools/measure_tap_arrival.py review/atlas/reference-6694.png review/atlas/reference-6701.png \
+  --output review/atlas/reference-tap-arrival.json \
+  --trace review/atlas/tap-arrival-trace.csv --plot review/atlas/tap-arrival-comparison.png
+```
+
+Pillow is required; the optional figure additionally uses Matplotlib and NumPy.
+[Raw reference scans](atlas/reference-tap-arrival.json) and
+[production-controller trace](atlas/tap-arrival-trace.csv) are preserved separately.
 
 ### Resting-tap midpoint: height was late
 

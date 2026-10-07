@@ -1,132 +1,77 @@
 # LiquidGlass / Atlas progress and recovery
 
-Last updated: 2026-10-08. **Goal active; full 1:1 iOS parity is not established.**
-Read this first after an interruption. Detailed evidence belongs in
-[the review record](review/ATLAS-STABILIZATION.md), not in repeated conversation summaries.
+Updated 2026-10-08. **Goal active; full 1:1 iOS parity is not established.**
+Read this after an interruption. This file contains the current state; the
+[review record](review/ATLAS-STABILIZATION.md) and [verification ledger](review/atlas/verification.json)
+preserve detailed measurements and earlier attempts.
 
 ## Current checkpoint
 
-**New foreground candidate:** Calm navigation now shares one animated, bounded drawing transform
-with the material and both ink variants. The selected row uses the bar pivot despite its different
-node origin. Layout/hit targets stay fixed; generic card text is unchanged. **25 focused tests passed**:
-full-density glyphs measured69/72/76px at rest/hold/extreme and a12px held-to-extreme shift, with
-exact release recovery; ordinary/selected input images register within one channel level; all14
-Calm gesture tests pass. Full/native/hosted verification of this newer candidate is pending.
-Failures before the fix and the low-density measurement issue are recorded in the review.
+- Canonical checkout: `D:/Work/AndroidStudioProjects/SideProjects/kmp/liquidglass`.
+- Branch: `codex/atlas-stabilization`; [draft PR #6](https://github.com/shayann07/liquidglass/pull/6).
+- Last fully verified implementation: **`302e5e1`**, navigation foreground correction.
+- Current arrival-recoil change: **focused tests passed; full local verification running**.
+  Original paired width/height recoil now appears without changing the existing midpoint fit.
+  Inspect `.local/active-goal-checkpoint.txt` and the actual process before starting another run.
+- Commits/pushes authorized. No release, tag or implicit PR #6 review-rule bypass.
 
-**Verified previous implementation: `06c9114`, asymmetric material drawing.** A fail-first regression caught top/bottom
-edges 181.15/385.85px against the selected original's 171–172/375px. A bounded material-only bias
-now gives 170.73/375.43px, with unchanged size. Layout and ordinary icon pixels remain fixed in the
-actual Compose render test. The full local run passed in **10m31s: 305 library tests passed,
-27 skipped, zero failures; both Atlas tests passed; Android sample assembled**. Native Atlas
-launched and its 1920×1051 Direct3D capture was inspected. Static redraw submission:
-**9.3877ms median / 19.9661ms p95 / 23.1281ms maximum**, 120 samples after ten warmups.
-This is not presented FPS or native gesture latency. Both local processes have finished.
-Twenty focused Kotlin tests, 13 portable math/controller tests and 13 Skia tests also pass.
-[Hosted build verification](https://github.com/shayann07/liquidglass/actions/runs/37674667084)
-passed, along with all seven required checks. Do not rerun completed tests for that implementation;
-the new foreground candidate requires its own full verification.
+## Completed and verified
 
-**Next evidence-backed correction:** the fixed-visible-icon contract is an Astra assumption,
-not an iOS observation. A same-gesture audit accepts 45 threshold probes in 15 original frames,
-rejecting 96 obscured/ambiguous probes. Independently measured bar geometry predicts icon centre Y
-within **0.96px**, versus up to **13.5px** error for an anchored glyph, and height within **1.30px**.
-The new candidate follows this **drawing-only** deformation while keeping layout/hit targets fixed.
-Its input-image registration passes; original X drift, complete optical identity and timing remain
-unresolved. No production foreground change is included in the earlier `06c9114` baseline.
+| Work | Verification | Evidence |
+| --- | --- | --- |
+| Calm bar material stretch/narrowing and bounded directional bias | Local and all hosted checks passed at `06c9114`; 305 library passed, 27 skipped; 2 Atlas passed; Android built | [Original bar sequence](review/atlas/reference-bar-sequence.png), [measurements](review/atlas/reference-bar-sequence.json) |
+| Navigation material and both ink variants share one drawing transform; layout/hit targets remain fixed | At `302e5e1`: 307 library passed, 27 skipped, zero failures; 2 Atlas passed; Android built; local 10m21s; all 7 required hosted checks passed | [Original foreground audit](review/atlas/reference-foreground-sequence.png), [CI](https://github.com/shayann07/liquidglass/actions/runs/37678836069) |
+| Native Atlas after foreground correction | Inspected 1920×1051 Direct3D app capture; 120 static redraw submissions after 10 warmups: median 10.2552ms, p95 12.9977ms, max 21.4913ms | [Screenshot](review/atlas/checkpoint-302e5e1-native.png), [timings](review/atlas/checkpoint-302e5e1-native-timing.json) |
+| Original resting-tap midpoint | 329.74×171.36px against 330±12×172±4px; full local/hosted verification recorded | [Reference](review/atlas/reference-6698.png), [scans](review/atlas/reference-tap-midpoint.json) |
+| Continuous standalone magnifier map, scene API and portable painter defaults | Render/coverage regressions; one shared backdrop; terminal and hosted tests for bundled Skia shader defaults | [Review](review/ATLAS-STABILIZATION.md), [porting guide](docs/porting.md) |
+| Open-source integration and repository maintenance | README/API/research guides, Apache-2.0/NOTICE; free CodeQL/Dependabot and 7 required checks; protected branch | [Contributing](CONTRIBUTING.md), [security](SECURITY.md) |
 
-**Verified and pushed:** navigation now has a shared area-preserving drag policy. The dimensional
-regression failed at 872.98×198.02px, then passed at 835.49×204.70px. Full local and hosted tests
-passed for this implementation; fresh native and gesture images are inspected and saved below.
-At this earlier checkpoint the visible-centre asymmetry was open. The width gate uses the clear late T04 frame; the
-height ceiling deliberately retains the earlier selected frame, not a claim of an exact paired-frame fit.
+Static redraw submission is **not** presented FPS, native gesture latency or a controlled speedup.
+The hosted foreground web job initially timed out downloading Ubuntu dependencies. Retrying only
+that job passed in 48s; the successful 30m45s build was preserved. All those processes are finished.
 
-**Portable integration follow-up:** `createGlassPainter(CanvasKit)` now bundles its production shader
-defaults, removing manual shader-file loading. All 13 local Skia tests pass, including exact pixel
-equivalence to explicit sources, and the terminal example rendered successfully. At `7906d9d`,
-[hosted CI](https://github.com/shayann07/liquidglass/actions/runs/37300220285) passed 13 Skia tests,
-13 portable math/controller tests and all five browser tests. The unchanged JVM/desktop tests were
-restored from cache; this is not a new Compose run. All seven required checks passed, including CodeQL.
+## Current change: arrival recoil
 
-- One canonical checkout, branch `codex/atlas-stabilization`, [draft PR #6](https://github.com/shayann07/liquidglass/pull/6).
-- Previous fully hosted-verified Compose implementation: `124ae178e0635b4191257205833ecd5662db9c78`.
-- Its [hosted run](https://github.com/shayann07/liquidglass/actions/runs/37237373943) passed all seven required checks.
-  Fresh library execution: **303 passed, 27 skipped, zero failures**; **two Atlas tests passed**.
-  Twelve Skia renderer tests, thirteen portable math tests and five browser tests passed.
-- Full local library/desktop tests and Android sample build also passed in **20m10s**.
-- Native Atlas launched successfully: Direct3D, 1920×1051. Static redraw submission median **9.3334ms**,
-  p95 **15.1117ms**, max **21.271ms** (120 samples after ten warmups). This is not presented FPS or touch latency.
-- Those earlier test and capture processes finished. The newer local/native results are listed above.
-- Evidence/documentation for this checkpoint are in this change. The PR is still draft; no release or merge occurred.
+Original IMG6694/6701 measure 227.5×174 / 235×164px: normalized width/height 0.968085 / 1.060976.
+The old model compressed horizontally without corresponding vertical recovery. Calm now exchanges
+spine compression for cap growth using an authored projected-area response; held/throw and historical
+presets are unchanged. The existing midpoint remains 329.7385×171.3598px.
 
-## Requirement tracker
+- Final negative control with the correction disabled fails the paired-state height gate.
+- Corrected matched shape: 222.55×170.41px, ratios 0.967669 / 1.051907.
+- 57 broader focused tests passed; the subsequent 3-test arrival class passed, including reverse
+  trips, 30–120 Hz playback and reduced motion (two tests overlap the broader run).
+- [Comparison](review/atlas/tap-arrival-comparison.png), [reference scans](review/atlas/reference-tap-arrival.json),
+  [production trace](review/atlas/tap-arrival-trace.csv), [reproduction tool](tools/measure_tap_arrival.py).
+- The chart is computed geometry, not a screenshot. Stills establish neither timing nor peak extrema.
+  Rejected models and the corrected overstrict peak assertion remain in the review record.
+- Full local/hosted and fresh native verification: **pending**. Do not label focused success as full parity.
 
-| ID | Requirement | Verified work | Still needed |
-| --- | --- | --- | --- |
-| M1 | Correct distance-dependent tap, hold and throw deformation | Separate shape/centre response; throws retain shape; end-anchor over-pull does not excite a stationary selector; original tap midpoint now 329.74×171.36px against 330±12 × 172±4px | More independent original trajectories/shape phases; exact timing is not identified by untimed stills |
-| M2 | Squeeze belongs on the whole bar; screen-corner extremes stay subtle | Material bias fully verified locally/on GitHub; new foreground candidate fits original-density glyphs and preserves hit targets in focused tests | Full/native/hosted foreground verification; independent trajectories, X drift and timing remain unfinished |
-| M3 | Calm interaction on every glass surface, stable controls | Shared modifier and portable controller; separate press/pull; reduced motion; bounded large-card strain and viewport containment | Preserve generic card behavior while correcting navigation's measured response; verify all affected paths |
-| O1 | Remove recurring magnifier split rim | Continuous shared material/ink map; gradient/coverage regressions; native line-grid proof | Full optical identity to Apple is unproven; Android compositor precision still differs |
-| A1 | Better Atlas Studio and desktop visual proof | Shared sky/type/grid scenes, lens, note card, navigation; native capture and software gesture captures | Native gesture timing and presented-frame performance, plus later owner visual acceptance |
-| P1 | Simple integration in any UI stack | Compose scene API; production CanvasKit painter with bundled shader defaults, rounded surfaces, dependency-free preview and timestamped interaction controller; defaults verified in terminal and hosted browser tests | Packaged/tested native adapters for other frameworks; automatic host backdrop capture is not provided |
-| D1 | Open-source README, research, usage, licensing | README, API/porting/interaction guides, provenance and limitation records, Apache-2.0/NOTICE | Keep examples, measurements and status synchronized with each implementation change |
-| C1 | Free PR automation and repository protection | Seven required checks, CodeQL/Dependabot, strict updates, review/conversation requirements, no force-push/deletion | Final review and authorized merge when the actual implementation is ready; do not bypass protection implicitly |
+## Remaining requirements
 
-Passing tests establish their named contracts, not the complete goal. Do not mark parity complete from green CI.
+| ID | Requirement | Remaining work |
+| --- | --- | --- |
+| M1 | Distance-dependent tap, hold and throw | Finish arrival verification; test independent original trajectories and more phases. Original timing is unidentified. |
+| M2 | Whole-bar squeeze and restrained corner extremes | Current material/ink correction verified; independent trajectories, horizontal ink drift and full optical mechanism remain unresolved. |
+| M3 | Generic calm interaction with stable controls | Preserve existing card limits, motion accessibility, hit targets and gesture ownership through subsequent changes. |
+| O1 | Continuous glass without a split rim | Current lens continuity tested; complete Apple optical identity and Android endpoint precision remain unproven. |
+| A1 | Atlas demonstration and performance | Native gesture/presented-frame measurements, owner acceptance and later physical-device verification. |
+| P1 | Easy integration across UI stacks | Compose and production CanvasKit paths exist; packaged native adapters for other frameworks and automatic host backdrop capture do not. |
+| D1 | Useful open-source documentation | Keep the README, usage, research and evidence synchronized with actual verified behavior. |
+| C1 | PR automation and protection | Keep required checks green; final review/merge when ready, without silently bypassing review. |
 
-## Next work, in order
+## Next steps and resume protocol
 
-1. **Finish verification of the foreground candidate; `06c9114` is fully verified.** A 47-frame original T04 audit shows 186px rest,
-   196px ordinary hold, 205–206px prolonged drag, then 186px rest again. The visible centre rises 10.5–11px
-   during the same gesture. All 141 threshold/frame probes have majority agreement. The new shared
-   `GlassPullShape.AreaPreserving` policy now gives 835.49×204.70px; generic cards stay Adaptive.
-   The clean original width is 833px at PTS 31074/600, where height is 206px. Current width differs by
-   2.49px and height by -1.30px from that late frame. Timing/input gain remain authored.
-2. **Verify the foreground candidate fully, preserving stable hit targets.** The candidate limits material bias
-   to 5.6% of the short side, below the selected 10.5px bound. Its chosen-edge fit is not proof of
-   Apple's underlying mechanism, other directions, foreground optics or a matched timed trajectory.
-   The new Contacts trace rejects anchoring visible ink as a parity assumption. Share one bounded
-   drawing transform now serves both ordinary/selected ink; focused registration and original-density
-   tests pass. Generic cards' anchored text remains a separate API contract. Reuse the recorded
-   completed runs; inspect the live checkpoint before starting another full build.
-3. Run focused tests first. Once the change is stable, run the full suite **once**, then capture native Atlas
-   after the CPU tests finish. Inspect the images, record what each proves, and push the reviewable result.
-4. Continue M1/O1/P1 against their actual remaining requirements. A documented portability contract is
-   useful but is not a shipped native adapter for every stack. No physical device is currently available.
+1. Read `WORKSPACE.md`, this file, `git status` and `.local/active-goal-checkpoint.txt`.
+2. **Inspect existing live handles/logs first.** Current full run is `.local/tap-arrival-full.log`.
+   Do not restart a long run because an observation timed out; do not rerun finished baselines.
+3. Finish the arrival full run. Inspect test XML, capture Atlas after tests stop, inspect the image,
+   and record results with the exact implementation revision. Push the reviewable checkpoint.
+4. Inspect required checks for that exact head. Save outcomes in this file and the ledger; update PR #6.
+5. Continue M1/O1/P1 from their stated gaps. Passing regression tests does not complete the whole goal.
 
-## Evidence map and rejected assumptions
-
-- [Tap midpoint](review/atlas/reference-6698.png), [pixel measurements](review/atlas/reference-tap-midpoint.json),
-  [measurement tool](tools/measure_tap_midpoint.py), `GlassTapPhaseReferenceTest`.
-  Before: height 162.96px failed. Height-only correction: width 344.81px failed. Current 329.74×171.36px passes.
-  `tapPressureOmega=45/s` and spine gain 0.36 are **authored**, not recovered Apple spring constants.
-- [Whole-bar sequence](review/atlas/reference-bar-sequence.png), [native timestamps and votes](review/atlas/reference-bar-sequence.json),
-  [measurement tool](tools/measure_phone_bar_sequence.py). Decode command is in the review record.
-  This is stronger evidence than an isolated extreme. The older 205px ceiling is a selected-frame bound,
-  not the maximum of the entire recording. Do not fit motion to inherited yellow ellipse annotations.
-- [Same-gesture foreground audit](review/atlas/reference-foreground-sequence.png),
-  [all accepted/rejected probes](review/atlas/reference-foreground-sequence.json),
-  [reproduction tool](tools/measure_phone_foreground_sequence.py). Bar geometry predicts vertical
-  glyph output without fitting motion coefficients. This does not identify a shader or X motion.
-- [Current native Atlas](review/atlas/checkpoint-06c9114-native.png),
-  [static redraw timings](review/atlas/checkpoint-06c9114-native-timing.json).
-- [Native Atlas](review/atlas/checkpoint-124ae17-native.png), [timings](review/atlas/checkpoint-124ae17-native-timing.json),
-  [Atlas corner pull](review/atlas/checkpoint-124ae17-extreme.png), [bar corner pull](review/atlas/checkpoint-124ae17-corner.png),
-  [bar upward pull](review/atlas/checkpoint-124ae17-top.png), [ordinary hold](review/atlas/checkpoint-124ae17-held.png).
-  The first is a native resting capture; the last two are Compose software-rendered gesture tests.
-- [Versioned verification ledger](review/atlas/verification.json) preserves failures and distinguishes fresh/cached execution.
-- Historical Astra/Fable/Antigravity presets and evidence remain provenance. Do not restore retired workspaces.
-
-## Resume efficiently
-
-1. Read this file, `WORKSPACE.md`, current `git status`, and the PR's actual head/check state.
-2. Check the machine-local `.local/active-goal-checkpoint.txt` for current process handles, dirty experiments
-   and exact commands. A file alone is not proof that a process is still running: inspect the live handle.
-3. Reuse existing evidence for unchanged code. Do not rerun expensive render suites for documentation-only edits.
-4. At every completed fix or new measurement, update this checklist, the local checkpoint and the review ledger;
-   commit/push supported work. Include failed candidates and pending checks explicitly.
-
-Use `tools/workspace.ps1` for the private build caches. JDK 21 and Android SDK are described in `WORKSPACE.md`.
-Work alone with terminal commands and app-owned screenshots: **no subagents or computer-use tools**.
-Vitals is out of scope. No device operations without the shared lease. Do not publish private transcripts,
-credentials, raw desktop screenshots or the unrelated-window capture under `.local/`.
+Use `tools/workspace.ps1` and the private caches described in `WORKSPACE.md`.
+Work alone through terminal commands and app-owned captures: **no subagents or computer-use tools**.
+Vitals is excluded. No physical device is available; any later device use requires the shared lease.
+Never publish private logs/transcripts, credentials, raw desktop grabs or unrelated windows from `.local/`.
+At each completed fix, save tests, failed candidates and the next action here and in the ledger.
