@@ -21,6 +21,11 @@ edit_uri: edit/main/docs/
 # rather than shipping one.
 strict: true
 
+# Keep incoming original recordings local; publish only inspected evidence crops.
+exclude_docs: |
+  /1.MP4
+  /2.MP4
+
 theme:
   name: material
   language: en

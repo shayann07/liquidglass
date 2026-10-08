@@ -12,13 +12,22 @@ Read this first after an interruption. Detailed history lives in the
   exports skipped, zero failures**; both Atlas tests passed and Android assembled. Local17m16s;
   [hosted37770922905](https://github.com/shayann07/liquidglass/actions/runs/37770922905) all seven required checks passed.
 - Desktop diagnostics **0e5c1d6** pushed. Corrected native runs passed with16 snapshots, without
-  readback and at rest. The library is unchanged. Check the local checkpoint for final hosted status.
+  readback and at rest. All seven hosted checks passed in run37822979856:312 library passed/27
+  optional skips/zero failures;2 Atlas passed. Fresh executions13m31.84s/2m15.39s; build18m24s.
 - Preceding desktop **078357d** passed all seven checks in
   [run37812243775](https://github.com/shayann07/liquidglass/actions/runs/37812243775): library FROM-CACHE
   from820659d, both Atlas tests fresh in5m7.41s, build6m55s. Do not repeat this finished run.
 - Portable scene **014b16e** verified:20 Skia tests,13 math tests, strict TypeScript consumers,
   five hosted browser tests; all seven checks passed. Native adapters beyond Compose remain absent.
 - Commits/pushes authorized. No release, tag or implicit PR #6 administrator review bypass.
+
+## New primary motion recordings
+
+The owner supplied `docs/1.MP4` (tap-only) and `docs/2.MP4` (hold, early/held throws, extremes and
+soft/hard landings). Both hashes and metadata are verified. Raw files stay local and are excluded
+from Git/MkDocs. **Read the [live research log](research/analysis/MOTION-2026-10-08.md) next.**
+Every decoding step, uncertainty, measured episode and model change is to be recorded there as it
+happens. These labelled recordings supersede speculative gesture classification in older captures.
 
 ## Latest findings
 
@@ -59,9 +68,11 @@ the historical spring's source comment is corrected, without changing its value.
 1. Read `WORKSPACE.md`, this file, `git status` and `.local/active-goal-checkpoint.txt`.
 2. Inspect **existing live handles first**. Full library baseline and native diagnostic sessions
    58306/55336/50321 are finished. Observation timeout does not mean a job stopped; never duplicate it.
-3. Inspect exact0e5c1d6 hosted build37822979856 before launching new checks. CodeQL37822979949 and
-   Docs37822979553 already passed. Preserve fresh/cache classifications in the ledger.
-4. Next M1 action: select a clean continuous original contour sequence with native timestamps,
+3. Exact0e5c1d6 hosted build37822979856 is finished and all required checks passed; reports inspected.
+   Reuse its evidence. Inspect the latest checkpoint for the next pushed revision and live run.
+4. Next M1 action: catalogue the TWO NEW videos using the live log, then measure their native-PTS
+   tap/hold/throw episodes. Do not resume the old T04 timing fit ahead of these labelled inputs.
+   For older material, select a clean continuous original contour sequence with native timestamps,
    verify its edge track and compare production output. JGEY2190n176–182 is **not an isolated tap**;
    inherited rim/glyph tracks are neither reliable release contours nor finger trajectories.
    LOLL8185CFR1944–1988 is now also rejected as calibrated isolated release: its assumed rest

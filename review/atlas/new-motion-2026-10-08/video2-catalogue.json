@@ -1,0 +1,220 @@
+{
+  "sourceName": "2.MP4",
+  "sourceSha256": "b1daa86ae7a6f9246fb56b19af9a82ec939ad2315c947954ee1e6869a8168006",
+  "metadataFrames": 1993,
+  "decodedFrames": 1993,
+  "timeBase": "1/600",
+  "firstPts": 0,
+  "lastPts": 21522,
+  "crop": [
+    0,
+    420,
+    1170,
+    260
+  ],
+  "command": [
+    "ffmpeg",
+    "-hide_banner",
+    "-copyts",
+    "-i",
+    "docs\\2.MP4",
+    "-an",
+    "-vf",
+    "zscale=t=linear:npl=100,format=gbrpf32le,zscale=p=bt709:t=iec61966-2-1:m=bt709:r=full,format=rgb24,crop=1170:260:0:420,showinfo",
+    "-fps_mode",
+    "passthrough",
+    "-f",
+    "rawvideo",
+    "-pix_fmt",
+    "rgb24",
+    "pipe:1"
+  ],
+  "method": "Blue visible-ink count in fixed icon ROIs; B-R>=50, B-G>=15, B>=80. Candidate requires200pixels and35% dominance; runs require120ms of consistent candidate.",
+  "limits": "Proposals only. Refraction can distort/duplicate ink, so these are not finger events, target selection, body centres, silhouettes or verified gestures. No CFR resampling. All uncertain frames remain in CSV.",
+  "stableInkRuns": [
+    {
+      "candidate": "Calls",
+      "startFrame": 0,
+      "endFrame": 98,
+      "start": 0.0,
+      "end": 2.156667,
+      "duration": 2.156667
+    },
+    {
+      "candidate": "Keypad",
+      "startFrame": 102,
+      "endFrame": 212,
+      "start": 2.223333,
+      "end": 4.19,
+      "duration": 1.966667
+    },
+    {
+      "candidate": "Calls",
+      "startFrame": 216,
+      "endFrame": 355,
+      "start": 4.256667,
+      "end": 6.69,
+      "duration": 2.433333
+    },
+    {
+      "candidate": "Contacts",
+      "startFrame": 357,
+      "endFrame": 412,
+      "start": 6.723333,
+      "end": 7.638333,
+      "duration": 0.915
+    },
+    {
+      "candidate": "Keypad",
+      "startFrame": 415,
+      "endFrame": 467,
+      "start": 7.688333,
+      "end": 8.555,
+      "duration": 0.866667
+    },
+    {
+      "candidate": "Calls",
+      "startFrame": 471,
+      "endFrame": 540,
+      "start": 8.621667,
+      "end": 9.788333,
+      "duration": 1.166666
+    },
+    {
+      "candidate": "Keypad",
+      "startFrame": 545,
+      "endFrame": 606,
+      "start": 9.871667,
+      "end": 10.921667,
+      "duration": 1.05
+    },
+    {
+      "candidate": "Calls",
+      "startFrame": 612,
+      "endFrame": 692,
+      "start": 11.021667,
+      "end": 12.355,
+      "duration": 1.333333
+    },
+    {
+      "candidate": "Keypad",
+      "startFrame": 696,
+      "endFrame": 770,
+      "start": 12.421667,
+      "end": 13.655,
+      "duration": 1.233333
+    },
+    {
+      "candidate": "Calls",
+      "startFrame": 774,
+      "endFrame": 837,
+      "start": 13.721667,
+      "end": 14.771667,
+      "duration": 1.05
+    },
+    {
+      "candidate": "Keypad",
+      "startFrame": 843,
+      "endFrame": 893,
+      "start": 14.871667,
+      "end": 15.705,
+      "duration": 0.833333
+    },
+    {
+      "candidate": "Calls",
+      "startFrame": 897,
+      "endFrame": 950,
+      "start": 15.771667,
+      "end": 16.653333,
+      "duration": 0.881666
+    },
+    {
+      "candidate": "Keypad",
+      "startFrame": 954,
+      "endFrame": 1011,
+      "start": 16.72,
+      "end": 17.736667,
+      "duration": 1.016667
+    },
+    {
+      "candidate": "Calls",
+      "startFrame": 1015,
+      "endFrame": 1068,
+      "start": 17.82,
+      "end": 18.786667,
+      "duration": 0.966667
+    },
+    {
+      "candidate": "Calls",
+      "startFrame": 1258,
+      "endFrame": 1309,
+      "start": 22.271667,
+      "end": 23.205,
+      "duration": 0.933333
+    },
+    {
+      "candidate": "Keypad",
+      "startFrame": 1314,
+      "endFrame": 1351,
+      "start": 23.288333,
+      "end": 23.971667,
+      "duration": 0.683334
+    },
+    {
+      "candidate": "Calls",
+      "startFrame": 1355,
+      "endFrame": 1433,
+      "start": 24.038333,
+      "end": 25.488333,
+      "duration": 1.45
+    },
+    {
+      "candidate": "Keypad",
+      "startFrame": 1437,
+      "endFrame": 1519,
+      "start": 25.555,
+      "end": 27.088333,
+      "duration": 1.533333
+    },
+    {
+      "candidate": "Calls",
+      "startFrame": 1522,
+      "endFrame": 1596,
+      "start": 27.155,
+      "end": 28.521667,
+      "duration": 1.366667
+    },
+    {
+      "candidate": "Keypad",
+      "startFrame": 1600,
+      "endFrame": 1761,
+      "start": 28.605,
+      "end": 31.586667,
+      "duration": 2.981667
+    },
+    {
+      "candidate": "Calls",
+      "startFrame": 1765,
+      "endFrame": 1843,
+      "start": 31.653333,
+      "end": 33.136667,
+      "duration": 1.483334
+    },
+    {
+      "candidate": "Keypad",
+      "startFrame": 1848,
+      "endFrame": 1925,
+      "start": 33.22,
+      "end": 34.653333,
+      "duration": 1.433333
+    },
+    {
+      "candidate": "Calls",
+      "startFrame": 1932,
+      "endFrame": 1992,
+      "start": 34.786667,
+      "end": 35.87,
+      "duration": 1.083333
+    }
+  ]
+}

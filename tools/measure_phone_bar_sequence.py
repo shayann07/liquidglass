@@ -76,6 +76,6 @@ if args.plot:
         ax.spines[["right", "top"]].set_visible(False)
         ax.grid(alpha=.2)
     fig.suptitle("Original iOS T04: press, prolonged drag, then release")
-    fig.text(.5, -.06, "47 native-timestamp samples. Output geometry only; finger positions and input gain are not identified.",
+    fig.text(.5, -.06, f"{len(frames)} native-timestamp samples. Output geometry only; finger positions and input gain are not identified.",
              ha="center", fontsize=9)
     fig.savefig(args.plot, dpi=160, bbox_inches="tight")

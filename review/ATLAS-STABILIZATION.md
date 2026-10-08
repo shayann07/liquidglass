@@ -934,7 +934,9 @@ CSV, metadata, all images and static timing are kept in the [corrected evidence 
 The preceding playback implementation **078357d** passed all seven required hosted checks in
 [run 37812243775](https://github.com/shayann07/liquidglass/actions/runs/37812243775). Library tests
 were restored from their verified 820659d cache; both Atlas tests ran freshly in 5m7.41s. The build
-job took 6m55s (Gradle 5m59s). Hosted verification of this dispatcher correction is tracked separately.
+job took 6m55s (Gradle 5m59s). The dispatcher correction0e5c1d6 subsequently passed all seven required checks in run37822979856.
+Fresh library:312 passed/27 optional showcases skipped/zero failures in13m31.84s; both Atlas tests
+passed freshly in2m15.39s. Build job18m24s; Gradle17m49s. Reports were inspected.
 
 ### Resting-tap midpoint: height was late
 

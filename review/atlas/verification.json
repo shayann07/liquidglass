@@ -1268,7 +1268,7 @@
     }
   },
   "native-diagnostic-dispatcher": {
-    "status": "corrected snapshot, no-readback and static native runs passed locally; hosted follow-up pending",
+    "status": "local native snapshot/control/static and all seven required hosted checks passed at0e5c1d6",
     "scope": "desktop diagnostics only; library source unchanged from820659d",
     "directory": "review/atlas/native-motion-swing-2026-10-08",
     "failure": "Compose FlushCoroutineDispatcher re-entered playback during forced redraw, raised ConcurrentModificationException/CoroutinesInternalError and delivered invalid pointer transitions; held selection assertion failed",
@@ -1335,7 +1335,28 @@
       "inspected": true
     },
     "interpretation": "Snapshot work strongly perturbs timing. Even corrected submissions vary; requested phase delays are not visible frame times. No controlled speedup, presented FPS, native input latency or established renderer bottleneck claimed.",
-    "next": "Keep diagnostics separate from motion tuning. Compare the production selector silhouette against independent original reference phases; profile rendering without readback only if a reproducible symptom warrants it."
+    "next": "Keep diagnostics separate from motion tuning. Compare the production selector silhouette against independent original reference phases; profile rendering without readback only if a reproducible symptom warrants it.",
+    "hosted": {
+      "commit": "0e5c1d6ca8b7355b533397b6cbfb2cf9d57b43a3",
+      "run": 37822979856,
+      "requiredChecks": "all seven passed",
+      "library": {
+        "passed": 312,
+        "skipped": 27,
+        "failed": 0,
+        "execution": "fresh",
+        "duration": "13m31.84s"
+      },
+      "desktop": {
+        "passed": 2,
+        "skipped": 0,
+        "failed": 0,
+        "execution": "fresh",
+        "duration": "2m15.39s"
+      },
+      "buildJob": "18m24s",
+      "gradle": "17m49s"
+    }
   },
   "held-additional-shapes": {
     "status": "two paired spatial states pass existing6px gate; IMG6728 width unresolved; no tuning",
