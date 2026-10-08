@@ -249,7 +249,16 @@ internal data class GlassPoseSpec(
     /** Couple resting-tap spine compression to cap growth. Opt-in authored area response,
      * constrained by the paired IMG6694/6701 arrival dimensions; not an Apple fluid law. */
     val tapRecoilArea: Boolean = false,
+    /** Opt-in faster geometry contraction during along-bar held travel, separate from ordinary
+     * press growth/recovery. Zero preserves historical behavior. Rate is authored, not timed iOS data. */
+    val heldTravelPressureOmega: Float = 0f,
+    /** Tap spine safety envelope, independent of the held gain. Calm retains its previous
+     * .45-slot allowance for spring overshoot while reducing held elongation. This also sizes
+     * the render node; a held tuning change must not clip a resting tap or its recoil. */
+    val tapSpineLimitSlots: Float = tapElongationSlots,
 ) {
+    internal val spineLimitSlots: Float get() = max(elongationSlots, tapSpineLimitSlots)
+
     companion object {
         /** Authored response constrained by IMG_6756 T04 and the 6690–6701 transit stills.
          * Off-axis free-button strain was never measured on a selector; keep it on the bar.
@@ -268,13 +277,18 @@ internal data class GlassPoseSpec(
             pressureOmega = 22f, pressureFallOmega = 14f, formRiseOmega = 30f,
             tapPressureOmega = 45f,
             heldHeightRatio = 1.20f, heldReferenceSpeed = 12f,
-            elongationSlots = 0.45f, squeeze = 0.10f,
+            // IMG6735:314x142 selector inside186px bar. The old .10 contraction could
+            // never reach its flattened shape; .45 spine gain simultaneously grew too wide.
+            // These gains/rates define a spatial envelope, not measured finger timing.
+            elongationSlots = 0.28f, squeeze = 0.47f,
             pullStrainPerDp = 0f, pullPressurePerDp = 0f, pullFollow = 0f,
             endTravelCapRatio = 0.025f, graspOmega = 40f,
             maxAccommodationSlots = 0.15f,
             travelOnly = true,
             releaseTravel = true,
             tapRecoilArea = true,
+            heldTravelPressureOmega = 60f,
+            tapSpineLimitSlots = 0.45f,
         )
     }
 }
@@ -872,7 +886,10 @@ internal class GlassPoseController(
         // its pressure continues to subside without travel re-inflating it.
         val transitPressure = mode == GlassPoseMode.TapTransit && spec.tapPressureOmega > 0f
         val pressureFormation = if (transitPressure) formTarget else formation
-        equilibrium.p = if (motionEnabled) heldPressure * pressureFormation - squeeze + pullPressure else 0f
+        // Travel contraction forms with held material. Applying its full amount to an
+        // unformed press would collapse below the original's selected lower envelope.
+        val formedSqueeze = if (spec.heldTravelPressureOmega > 0f) squeeze * pressureFormation else squeeze
+        equilibrium.p = if (motionEnabled) heldPressure * pressureFormation - formedSqueeze + pullPressure else 0f
         val recoilPressure = transitPressure && spec.tapRecoilArea && motionEnabled &&
             kotlin.math.hypot(pose.dx, pose.dy) < reference.a
         if (recoilPressure) {
@@ -936,7 +953,12 @@ internal class GlassPoseController(
         if (motionEnabled && speed2 > 1e-9f) {
             val horizontalSpeed2 = nvx * nvx
             val along = horizontalSpeed2 / (vRef * vRef + horizontalSpeed2)
-            ex += (if (tapMotion) spec.tapElongationSlots else spec.elongationSlots) * slot * along
+            // The paired IMG6734/6735 states widen first, then flatten with little extra
+            // width. An authored concave travel curve keeps that intermediate breadth
+            // without raising the maximum spine extension. Tap/release curves stay separate.
+            val travel = if (mode == GlassPoseMode.Held && spec.heldTravelPressureOmega > 0f)
+                along * (2f - along) else along
+            ex += (if (tapMotion) spec.tapElongationSlots else spec.elongationSlots) * slot * travel
         }
         equilibrium.dx = ex
         equilibrium.dy = ey
@@ -955,6 +977,8 @@ internal class GlassPoseController(
             // Approximate a geometric area constraint faster than the spine's recovery;
             // this rate is authored, not a new touch/held response or measured Apple timing.
             recoilPressure -> max(spec.tapPressureOmega, 4f * spec.tapSpineOmega)
+            mode == GlassPoseMode.Held && spec.heldTravelPressureOmega > 0f &&
+                equilibrium.p < pose.p && speed2 > 1e-9f -> spec.heldTravelPressureOmega
             transitPressure -> spec.tapPressureOmega
             mode != GlassPoseMode.Held && equilibrium.p < pose.p -> spec.pressureFallOmega
             else -> po
@@ -1533,7 +1557,7 @@ internal class GlassPoseController(
         }
         if (pose.acc < 0f) { pose.acc = 0f; velocity.acc = 0f }
         // The spine may not exceed what the node is sized for, whatever the springs do on the way.
-        val maxSpine = reference.a + spec.elongationSlots * max(bar.slotWidth, 1f)
+        val maxSpine = reference.a + spec.spineLimitSlots * max(bar.slotWidth, 1f)
         val length = sqrt(pose.dx * pose.dx + pose.dy * pose.dy)
         if (length > maxSpine && length > 1e-6f) {
             val s = maxSpine / length
@@ -1587,7 +1611,7 @@ internal fun GlassSelectorSpec.maxAccommodationWidth(
     val a = max(bar.baseHalfWidth - r, 0f)
     val held = exp(max(poseHeldPressure(pose.heldHeightRatio, bar.height, 2f * r), 0f))
     val slot = max(bar.slotWidth, 1f)
-    val halfSpine = a + pose.elongationSlots * slot + pose.maxAccommodationSlots * slot
+    val halfSpine = a + pose.spineLimitSlots * slot + pose.maxAccommodationSlots * slot
     return 2f * (halfSpine + r * held) * exp(pose.maxStrain) * (1f + pose.maxTaper) + 4f
 }
 
@@ -1608,7 +1632,7 @@ internal fun GlassSelectorSpec.maxAccommodationOverflow(
     val held = exp(max(poseHeldPressure(pose.heldHeightRatio, bar.height, 2f * r), 0f))
     val growth = r * held * (1f + pose.maxTaper) - bar.height / 2f
     val a = max(bar.baseHalfWidth - r, 0f)
-    val halfSpine = a + (pose.elongationSlots + pose.maxAccommodationSlots) * max(bar.slotWidth, 1f)
+    val halfSpine = a + (pose.spineLimitSlots + pose.maxAccommodationSlots) * max(bar.slotWidth, 1f)
     val support = (halfSpine * kotlin.math.sinh(pose.maxStrain) + r * held * exp(pose.maxStrain)) * (1f + pose.maxTaper)
     return max(support - bar.height / 2f, growth) + 8f
 }

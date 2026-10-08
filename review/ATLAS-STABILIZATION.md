@@ -721,6 +721,76 @@ The dashed [previous trace](atlas/tap-arrival-before-trace.csv) was sampled from
 controller before the correction, using the same fixture and 480 Hz sampling. Each curve is
 normalized by its own settled dimensions; neither curve contains recorded iOS timing.
 
+### Held travel: two shapes instead of one frame
+
+![Computed held-travel envelope and original crops](atlas/held-travel-comparison.png)
+
+Original IMG6734/6735 contradict the previous held model's nearly constant height. Fixed unscaled
+gradient scans give **326×174px** for the intermediate selector and **313.5×142px** for the
+flattened selector, with a **186px** bar. These are bar-only crops `(0,108,1168,302)` of the
+existing 1168×360 images. Every luma/R/G/B probe, signed edge window and crop hash is preserved
+in the [intermediate](atlas/reference-held-intermediate.json) and
+[strong-travel](atlas/reference-held-travel.json) records. Optical rim/ink ambiguity motivates
+the authored ±6px regression tolerance; it is not a statistical confidence interval.
+
+The prior Calm model reached 313.66px width with **215.46px height**, far from the flattened
+original. The candidate uses a .28-slot held half-spine gain (previously .45), .47 maximum log
+contraction (previously .10), and an authored 60/s pressure response only while contracting during
+held travel. Ordinary 22/s press growth is unchanged. Contraction scales with material formation
+to avoid collapsing an unformed press during immediate fast travel. The held spine follows
+`s*(2-s)`, where `s=v²/(V²+v²)`, retaining intermediate breadth without raising maximum extension.
+Off-axis selector gains remain zero: perpendicular pull belongs to the bar. Rates are authored.
+
+Production-controller sweeps cover four-slot trips lasting an authored 60–1500ms at 480Hz after
+a stationary hold. They reach **314.03×144.19px** and **326.03×173.93px**; minimum height is
+**143.56px**, above the chosen 136px floor. Stationary held height recovers. These matched states
+can come from different sweeps: this proves joint width/height reachability, not one matched iOS
+trajectory. Both stills are now calibration data. The graph is computed geometry, not a screenshot.
+
+| Rejected candidate | Result |
+| --- | --- |
+| .22 gain, .40 contraction, ordinary pressure rate | About 314×165px; too tall |
+| .25 gain, .47 contraction, 60/s travel contraction | About 304×144px; too narrow |
+| .28 gain, linear speed-to-spine response | Strong state passed; intermediate about 302×172px failed |
+| Concave held response with shared safety limit | Both held states passed; lowering held gain clipped independent tap motion |
+
+The last defect required a separate tap allowance. Calm retains its previous .45-slot envelope
+for tap spring overshoot; controller clamp and render-node allocation use the largest declared
+tap/held allowance. A fail-first test caught a 351.89→351.21px tap-width change. After correction,
+all 481 sampled tap states match the previous curve within 0.001px. Midpoint remains
+**329.73853×171.35977px**, paired arrival **222.55109×170.40918px**.
+
+All 12 focused tests passed, covering ordinary press identity, early drag bounds, end anchors,
+off-axis ownership, reverse/throw cadence and tap recoil. Full local verification finished in
+**17m16s: 312 library passed, 27 optional showcases skipped, zero failures/errors; both Atlas tests
+passed; Android assembled**. Library execution reported 851.847s and Atlas 163.227s, all fresh.
+Hosted verification is pending; [PROGRESS.md](../PROGRESS.md) identifies the checkpoint.
+
+![Native Atlas after held-travel correction](atlas/held-travel-native.png)
+
+The app-owned 1920×1051 Direct3D capture was inspected after CPU tests finished. Its
+[static redraw submissions](atlas/held-travel-native-timing.json) measured **8.1551ms median,
+13.4829ms p95, 54.0905ms maximum** over 120 samples after 10 warmups. This verifies native launch
+and resting rendering, not transient held motion, input latency, presented FPS or a controlled
+speedup. Failed candidates remain in local logs; the next motion work needs independent trajectories.
+
+Reproduce with Pillow; the optional plot also requires Matplotlib and NumPy:
+
+```sh
+python tools/measure_held_travel.py review/atlas/reference-6734-bar.png --state intermediate \
+  --output review/atlas/reference-held-intermediate.json
+python tools/measure_held_travel.py review/atlas/reference-6735-bar.png \
+  --output review/atlas/reference-held-travel.json
+python tools/plot_held_travel.py --trace review/atlas/held-travel-trace.csv \
+  --before review/atlas/held-travel-before-trace.csv \
+  --strong review/atlas/reference-held-travel.json \
+  --intermediate review/atlas/reference-held-intermediate.json \
+  --output review/atlas/held-travel-comparison.png
+```
+
+`GlassHeldTravelReferenceTest` emits the CSV under `liquidglass/build/reports/atlas/`.
+The [before trace](atlas/held-travel-before-trace.csv) uses the same fixture and input sweep.
+
 ### Resting-tap midpoint: height was late
 
 ![Original untimed long-tap midpoint, IMG_6698](atlas/reference-6698.png)

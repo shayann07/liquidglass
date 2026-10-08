@@ -127,6 +127,16 @@ at 252px. These supersede the earlier model outcomes above, not the reference me
 The [review record](https://github.com/shayann07/liquidglass/blob/main/review/ATLAS-STABILIZATION.md#resting-tap-midpoint-height-was-late)
 includes the unscaled original, pixel probes, reproduction command and failed candidates.
 
+Two original held-travel states then exposed excessive width with insufficient flattening. Measured
+selectors are 326×174px and 313.5×142px inside a 186px bar. Calm now separates held contraction
+from ordinary touch growth and uses a concave held-spine response with a smaller maximum gain.
+Authored speed sweeps reach 326.03×173.93px and 314.03×144.19px; these are shape-envelope fits,
+not timed iOS trajectories. The earlier one-state fit failed the intermediate-width check.
+An independent tap allocation also prevents held tuning from clipping tap spring overshoot:
+481 tap samples match the preceding curve within 0.001px. Whole-bar squeeze remains separate.
+The [held-travel research](https://github.com/shayann07/liquidglass/blob/main/review/ATLAS-STABILIZATION.md#held-travel-two-shapes-instead-of-one-frame)
+includes original crops, probe uncertainty, failed candidates, traces and verification status.
+
 Input targets are integrated on their timestamps in the calm path. Previously, multiple pointer
 samples between display frames overwrote the preceding target, making the same gesture depend on
 presentation cadence. The new reversal/throw regression compares 30, 60, 90 and 120Hz against the

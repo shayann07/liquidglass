@@ -85,6 +85,10 @@ records the measured bounds, correction and remaining timing uncertainty. On arr
 compression now produces height recovery instead of losing area. This Calm-only response is checked
 against [paired original stills](review/ATLAS-STABILIZATION.md#resting-tap-arrival-paired-recoil);
 the stills do not identify spring timing or prove a complete motion match.
+Held travel has its own response: moderate movement widens the selector, stronger travel flattens it,
+and a stationary hold recovers calmly. The [held-travel comparison](review/ATLAS-STABILIZATION.md#held-travel-two-shapes-instead-of-one-frame)
+records both original bounds and regression results. This changes along-bar travel; perpendicular
+squeeze still belongs to the whole bar. Its gains are authored, not recovered iOS timing.
 
 Desktop Calm selectors also compose refracted ink and material together in the final shader, avoiding
 one intermediate rounding step. The [porting guide](docs/porting.md#combining-refracted-ink-with-glass)

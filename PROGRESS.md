@@ -18,6 +18,28 @@ preserve detailed measurements and earlier attempts.
   Inspect `.local/active-goal-checkpoint.txt` and the actual process before starting another run.
 - Commits/pushes authorized. No release, tag or implicit PR #6 review-rule bypass.
 
+## Active experiment: held travel
+
+Original selectors measure 313.5×142px (IMG6735) and 326×174px (IMG6734), inside a 186px bar.
+The verified prior model could not flatten enough: its selected-width state was 313.66×215.46px.
+The new candidate reaches **314.03×144.19px** and **326.03×173.93px**, with a narrower maximum
+spine and a concave travel response. Ordinary hold growth and off-axis ownership remain unchanged.
+
+An initial one-frame fit failed the intermediate-width check. A second defect was caught by an
+explicit regression: lowering the held gain also clipped resting taps through their shared safety
+limit. Tap allocation now keeps its previous allowance, independently of held tuning. All 481
+tap samples match the previous curve to 0.001px; the verified arrival/midpoint values are restored.
+
+**Local verification complete; hosted verification pending.** The full run finished in 17m16s:
+312 library tests passed, 27 optional showcases skipped, zero failures/errors; both Atlas tests
+passed and Android assembled. All execution was fresh. Sessions 44574 and 42724 are finished.
+The [native Atlas capture](review/atlas/held-travel-native.png) was inspected at 1920×1051 Direct3D.
+Static redraw submission: 8.1551ms median, 13.4829ms p95, 54.0905ms maximum (120 samples / 10 warmups).
+This is not presented FPS, motion capture or a controlled speedup. Failed candidates, two cropped
+originals and the computed comparison are preserved in the [held-travel record](review/ATLAS-STABILIZATION.md#held-travel-two-shapes-instead-of-one-frame).
+These untimed stills are calibration evidence, not measured timing or independent validation.
+Next: inspect exact-head hosted checks, then continue independent trajectory and native motion work.
+
 ## Completed and verified
 
 | Work | Verification | Evidence |
@@ -65,7 +87,7 @@ presets are unchanged. The existing midpoint remains 329.7385×171.3598px.
 
 | ID | Requirement | Remaining work |
 | --- | --- | --- |
-| M1 | Distance-dependent tap, hold and throw | Arrival correction verified; test independent original trajectories and more phases. Original timing is unidentified. |
+| M1 | Distance-dependent tap, hold and throw | Arrival correction verified; paired held shapes pass locally. Verify hosted checks and independent original trajectories/more phases. Original timing is unidentified. |
 | M2 | Whole-bar squeeze and restrained corner extremes | Current material/ink correction verified; independent trajectories, horizontal ink drift and full optical mechanism remain unresolved. |
 | M3 | Generic calm interaction with stable controls | Preserve existing card limits, motion accessibility, hit targets and gesture ownership through subsequent changes. |
 | O1 | Continuous glass without a split rim | Current lens continuity tested; complete Apple optical identity and Android endpoint precision remain unproven. |
@@ -77,14 +99,16 @@ presets are unchanged. The existing midpoint remains 329.7385×171.3598px.
 ## Next steps and resume protocol
 
 1. Read `WORKSPACE.md`, this file, `git status` and `.local/active-goal-checkpoint.txt`.
-2. **Inspect existing live handles/logs first.** The full run `.local/tap-arrival-full.log` is finished.
+2. **Inspect existing live handles/logs first.** The full runs `.local/tap-arrival-full.log` and `.local/held-travel-full.log` are finished.
    Do not restart a long run because an observation timed out; do not rerun finished baselines.
 3. The arrival full run and native capture are finished. Reuse their evidence; do not restart them.
    Hosted verification has also passed; preserve these completed runs when continuing new work.
 4. Portable scene verification is finished at `014b16e` / CI 37732791140. The unchanged JVM/Atlas
    tests were restored from cache; their fresh execution is recorded at `8d9917a`. Do not rerun them
    for documentation-only updates. Check only the latest required-check status before final delivery.
-5. Continue M1/O1/P1 from their stated gaps. Passing regression tests does not complete the whole goal.
+5. Held-travel local tests and native capture are complete. Inspect the latest hosted run recorded in
+   `.local/active-goal-checkpoint.txt`; do not duplicate any of these completed local runs.
+6. Continue M1/O1/P1 from their stated gaps. Passing regression tests does not complete the whole goal.
 
 Use `tools/workspace.ps1` and the private caches described in `WORKSPACE.md`.
 Work alone through terminal commands and app-owned captures: **no subagents or computer-use tools**.

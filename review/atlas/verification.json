@@ -1058,5 +1058,130 @@
     "source": "completed336-case JVM XML reports at8d9917a",
     "reason": "All27 cases assume -Pliquidglass.showcase=<dir>; optional showcase exports",
     "result": "recorded as skipped, not passed"
+  },
+  "held-travel-paired-shape": {
+    "date": "2026-10-08",
+    "baselineCommit": "c17b9aa1e745e5234d1f6308b9ffcdfa81d89fab",
+    "sourceSha256": "9087f5fd5fddc1bda1fdc18965cd31019e08ff36ddeb71e7b47fa73e23198c66",
+    "status": "Full local and inspected native passed; exact-head hosted checks pending",
+    "original": {
+      "intermediate": [
+        326,
+        174
+      ],
+      "strong": [
+        313.5,
+        142
+      ],
+      "barHeight": 186,
+      "files": [
+        "reference-held-intermediate.json",
+        "reference-held-travel.json"
+      ],
+      "tolerance": "Authored 6px per axis, optical rim/ink uncertainty; not statistical confidence"
+    },
+    "candidate": {
+      "strong": {
+        "duration": 0.06,
+        "time": 0.110416666,
+        "width": 314.03442,
+        "height": 144.18707,
+        "phase": 0.7870772
+      },
+      "intermediate": {
+        "duration": 0.3,
+        "time": 0.37708333,
+        "width": 326.02838,
+        "height": 173.93384,
+        "phase": 0.97994
+      },
+      "minimumHeight": 143.56003,
+      "chosenHeightFloor": 136,
+      "ordinaryHold": "481 samples unchanged within .001px",
+      "restingTap": "481 samples unchanged within .001px after separate tap allocation",
+      "midpoint": [
+        329.73853,
+        171.35977
+      ],
+      "arrival": [
+        222.55109,
+        170.40918
+      ]
+    },
+    "rejected": [
+      {
+        "candidate": "prior Calm",
+        "paired": [
+          313.65985,
+          215.46494
+        ]
+      },
+      {
+        "candidate": "gain .22, contraction .40, ordinary pressure rate",
+        "paired": [
+          314.02,
+          165.13
+        ]
+      },
+      {
+        "candidate": "gain .25, contraction .47, contraction rate60",
+        "paired": [
+          303.91,
+          143.76
+        ]
+      },
+      {
+        "candidate": "gain .28, linear speed/spine",
+        "intermediate": [
+          301.785,
+          172.468
+        ]
+      },
+      {
+        "candidate": "shared spine safety limit",
+        "result": "held gain clipped independent tap: expected351.89368 actual351.20834"
+      }
+    ],
+    "local": {
+      "library": {
+        "tests": 339,
+        "skipped": 27,
+        "failures": 0,
+        "errors": 0,
+        "passed": 312,
+        "reportedSeconds": 851.847
+      },
+      "desktop": {
+        "tests": 2,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "passed": 2,
+        "reportedSeconds": 163.227
+      },
+      "androidSample": "assembled",
+      "execution": "fresh",
+      "buildSummary": "BUILD SUCCESSFUL in 17m 16s"
+    },
+    "trace": "held-travel-trace.csv",
+    "beforeTrace": "held-travel-before-trace.csv",
+    "figure": "held-travel-comparison.png",
+    "limits": "Computed joint shape reachability across authored 60-1500ms four-slot inputs, not one matched trajectory or recovered Apple timing. Both stills are calibration, not independent validation. No device available.",
+    "native": {
+      "image": "held-travel-native.png",
+      "timing": {
+        "metric": "native static-scene forced redraw; GPU submission, not presented FPS",
+        "backend": "DIRECT3D",
+        "width": 1920,
+        "height": 1051,
+        "samples": 120,
+        "warmup": 10,
+        "p50_ms": 8.1551,
+        "p95_ms": 13.4829,
+        "max_ms": 54.0905
+      },
+      "scope": "Resting app-owned desktop buffer; static redraw submission, not transient motion or input latency",
+      "inspection": "completed"
+    }
   }
 }

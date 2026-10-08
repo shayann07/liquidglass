@@ -39,6 +39,11 @@ This file records user-visible development changes. Published artifacts are iden
 
 ### Fixed
 
+- Calm held travel now reaches both intermediate and flattened original selector shapes with less
+  maximum horizontal extension. Travel contraction is separate from ordinary touch growth and forms
+  with the material. Tap spring allocation is independent of held tuning, preserving the verified
+  resting-tap curve. Whole-bar drag and historical presets retain their previous settings.
+
 - Calm navigation's material-only directional bias now matches the selected original's top and bottom
   edges separately, capped below its measured displacement. Layout and ordinary labels stay fixed;
   the portable controller exposes the drawing bias as `state.offset`.
