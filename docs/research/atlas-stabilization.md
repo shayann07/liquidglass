@@ -3,6 +3,16 @@
 This is an authored refinement informed by the owner's original iPhone captures. It does not replace
 historical measured presets or claim recovery of Apple's private rendering implementation.
 
+## Release attribution correction
+
+The inherited LOLL8185 release calibration is not reliable. Exact native-time crops at
+CFR1968/1980 still contain a large refracting lens where the previous analysis reported zero
+raised area and assumed trailing rest. The314ms area decay and367ms fitted equivalent therefore
+do not identify an isolated release-to-rest or a finger-up time. The historical spring remains
+unchanged and is labelled an authored baseline. See the
+[original frames and provenance audit](https://github.com/shayann07/liquidglass/blob/main/review/ATLAS-STABILIZATION.md#release-attribution-the-assumed-rest-still-contains-a-lens).
+Earlier research is retained as history; this correction supersedes its release attribution.
+
 ## Evidence changed the model
 
 The previous Atlas magnifier reused `Held`, a navigation lens whose material and ink intentionally

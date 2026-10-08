@@ -1336,5 +1336,21 @@
     },
     "interpretation": "Snapshot work strongly perturbs timing. Even corrected submissions vary; requested phase delays are not visible frame times. No controlled speedup, presented FPS, native input latency or established renderer bottleneck claimed.",
     "next": "Keep diagnostics separate from motion tuning. Compare the production selector silhouette against independent original reference phases; profile rendering without readback only if a reproducible symptom warrants it."
+  },
+  "held-additional-shapes": {
+    "status": "two paired spatial states pass existing6px gate; IMG6728 width unresolved; no tuning",
+    "modelCommit": "820659de4f93acce96d59c60f00422cea2bed4ad",
+    "data": "review/atlas/held-travel-validation.json",
+    "tool": "tools/measure_held_validation.py",
+    "imagesInspected": true,
+    "scope": "additional original stills scored against the existing production trace; no library rerun required",
+    "limits": "Not a full contour, original input/timing or release-state validation. Accepted pairs come from different authored sweep samples, not a single recovered gesture."
+  },
+  "release-attribution-audit": {
+    "status": "inherited isolated-release calibration rejected by original pixels",
+    "data": "review/atlas/release-attribution.json",
+    "inspection": "three exact-PTS bar crops inspected",
+    "sourceComment": "GlassTabBarStyle.subside: authored historical baseline, no numerical change",
+    "limitation": "No observed finger-up timestamp or replacement release rate; full parity remains open"
   }
 }

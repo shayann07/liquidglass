@@ -1,145 +1,78 @@
 # LiquidGlass / Atlas progress and recovery
 
-Updated 2026-10-08. **Goal active; full 1:1 iOS parity is not established.**
-Read this after an interruption. This file contains the current state; the
-[review record](review/ATLAS-STABILIZATION.md) and [verification ledger](review/atlas/verification.json)
-preserve detailed measurements and earlier attempts.
+Updated 2026-10-08. **Goal active: full 1:1 iOS parity is not established.**
+Read this first after an interruption. Detailed history lives in the
+[review](review/ATLAS-STABILIZATION.md) and [verification ledger](review/atlas/verification.json).
 
-## Current checkpoint
+## Current state
 
 - Canonical checkout: `D:/Work/AndroidStudioProjects/SideProjects/kmp/liquidglass`.
 - Branch: `codex/atlas-stabilization`; [draft PR #6](https://github.com/shayann07/liquidglass/pull/6).
-- Last fully verified library implementation: **`820659d`**, paired held-travel correction; all seven required checks passed.
-- Portable scene **`014b16e` verified**: 20 Skia tests, 13 portable math tests, strict TypeScript
-  consumers and all five hosted browser tests passed. All seven required checks passed.
-  One scene combines the painter and calm controller; examples use it directly.
-- Current arrival-recoil change **`8d9917a`: full local, inspected native and all seven required hosted checks passed**.
-  Original paired width/height recoil now appears without changing the existing midpoint fit.
-  Inspect `.local/active-goal-checkpoint.txt` and the actual process before starting another run.
-- Desktop diagnostics: 078357d hosted verification complete; subsequent Swing correction verified
-  locally with snapshots, without readback and at rest. Consult the checkpoint for its latest CI.
-- Commits/pushes authorized. No release, tag or implicit PR #6 review-rule bypass.
+- Library **820659d** verified locally and on GitHub: **312 tests passed, 27 optional showcase
+  exports skipped, zero failures**; both Atlas tests passed and Android assembled. Local17m16s;
+  [hosted37770922905](https://github.com/shayann07/liquidglass/actions/runs/37770922905) all seven required checks passed.
+- Desktop diagnostics **0e5c1d6** pushed. Corrected native runs passed with16 snapshots, without
+  readback and at rest. The library is unchanged. Check the local checkpoint for final hosted status.
+- Preceding desktop **078357d** passed all seven checks in
+  [run37812243775](https://github.com/shayann07/liquidglass/actions/runs/37812243775): library FROM-CACHE
+  from820659d, both Atlas tests fresh in5m7.41s, build6m55s. Do not repeat this finished run.
+- Portable scene **014b16e** verified:20 Skia tests,13 math tests, strict TypeScript consumers,
+  five hosted browser tests; all seven checks passed. Native adapters beyond Compose remain absent.
+- Commits/pushes authorized. No release, tag or implicit PR #6 administrator review bypass.
 
-## Verified checkpoint: held travel
+## Latest findings
 
-Original selectors measure 313.5×142px (IMG6735) and 326×174px (IMG6734), inside a 186px bar.
-The verified prior model could not flatten enough: its selected-width state was 313.66×215.46px.
-The new candidate reaches **314.03×144.19px** and **326.03×173.93px**, with a narrower maximum
-spine and a concave travel response. Ordinary hold growth and off-axis ownership remain unchanged.
+**Diagnostics:** forced redraw re-entered the Compose playback coroutine, causing duplicate input
+and a failed selection assertion. Static and motion diagnostics now use the plain Swing dispatcher
+with capture/pointer guards. The earlier122.8ms timing is provisional, not a proven renderer defect.
+Corrected snapshot/control/static runs all passed. Readback perturbs timing; neither submission
+durations nor phase screenshots establish presented FPS or native input latency.
+[Correction, rejected trace and inspected images](review/ATLAS-STABILIZATION.md#native-diagnostic-correction-isolate-redraw-from-playback).
 
-An initial one-frame fit failed the intermediate-width check. A second defect was caught by an
-explicit regression: lowering the held gain also clipped resting taps through their shared safety
-limit. Tap allocation now keeps its previous allowance, independently of held tuning. All 481
-tap samples match the previous curve to 0.001px; the verified arrival/midpoint values are restored.
+**Held motion:** current model reaches original326×174 and314×142 paired shapes. Tap allocation is
+independent; all481 resting-tap samples retain the prior curve. Ordinary hold and selector off-axis
+ownership are unchanged. Additional IMG6727/6729 shape pairs pass the existing6px gate without
+retuning; IMG6728 width is unresolved because an icon contaminates the edge. These are spatial
+checks, not recovery of one original trajectory or full contour.
+[Additional original audit](review/ATLAS-STABILIZATION.md#additional-held-shapes-audit-the-frozen-model).
 
-**Local, native and hosted verification complete at 820659d.** The full local run finished in 17m16s:
-312 library tests passed, 27 optional showcases skipped, zero failures/errors; both Atlas tests
-passed and Android assembled. All execution was fresh. Sessions 44574 and 42724 are finished.
-The [native Atlas capture](review/atlas/held-travel-native.png) was inspected at 1920×1051 Direct3D.
-Static redraw submission: 8.1551ms median, 13.4829ms p95, 54.0905ms maximum (120 samples / 10 warmups).
-This is not presented FPS, motion capture or a controlled speedup. Failed candidates, two cropped
-originals and the computed comparison are preserved in the [held-travel record](review/ATLAS-STABILIZATION.md#held-travel-two-shapes-instead-of-one-frame).
-These untimed stills are calibration evidence, not measured timing or independent validation.
-[Hosted run 37770922905](https://github.com/shayann07/liquidglass/actions/runs/37770922905) passed all seven
-required checks. Fresh library: 312 passed / 27 skipped / zero failures in 23m43.86s; fresh Atlas:
-both passed in 4m51.41s. Build job 30m52s; Gradle 30m18s. Reports and logs inspected.
+**Release provenance:** fresh exact-PTS LOLL8185 crops still contain a refracting Calls lens
+where the inherited E7 record labels trailing rest. Its314/367ms release attribution is withdrawn;
+the historical spring's source comment is corrected, without changing its value.
+[Original evidence and rejected assumption](review/ATLAS-STABILIZATION.md#release-attribution-the-assumed-rest-still-contains-a-lens).
 
-## Current follow-up: desktop diagnostic correction
+## Requirements still open
 
-**The previous 122.8ms scene-switch result is provisional.** Disabling screenshots exposed
-re-entry of the measurement coroutine during forced redraw, duplicated pointer input and a
-failed selection assertion. This was a diagnostic bug; it did not establish a renderer defect.
-
-The correction runs both static and motion diagnostics on the plain Swing dispatcher, guards
-input/capture sequencing and preserves bitmap cleanup on failures. The library remains unchanged.
-Two final native runs passed selection/layout and event-sequence checks: 16 inspected snapshots
-(1m32s) and 16 phases without readback (39s). A separate static capture passed (15s).
-[Corrected images, raw events and interpretation](review/ATLAS-STABILIZATION.md#native-diagnostic-correction-isolate-redraw-from-playback).
-
-Snapshot first submission: 757.5ms; no-readback first submission: 59.9ms, overall 8.3–82.3ms.
-The large variability and capture overhead do not establish presented FPS, input latency,
-speedup or a renderer bottleneck. Keep performance diagnosis separate from material tuning.
-
-**Prior follow-up 078357d is fully verified:** all seven required hosted checks passed in
-[run 37812243775](https://github.com/shayann07/liquidglass/actions/runs/37812243775). Library tests
-were restored from the verified 820659d cache; both Atlas tests ran freshly in 5m7.41s.
-Build job 6m55s; Gradle 5m59s. No need to repeat the unchanged full library suite.
-The dispatcher correction's hosted status and any live handles are in the local checkpoint.
-
-## Completed and verified
-
-| Work | Verification | Evidence |
+| ID | Requested outcome | Verified work / remaining gap |
 | --- | --- | --- |
-| Calm bar material stretch/narrowing and bounded directional bias | Local and all hosted checks passed at `06c9114`; 305 library passed, 27 skipped; 2 Atlas passed; Android built | [Original bar sequence](review/atlas/reference-bar-sequence.png), [measurements](review/atlas/reference-bar-sequence.json) |
-| Navigation material and both ink variants share one drawing transform; layout/hit targets remain fixed | At `302e5e1`: 307 library passed, 27 skipped, zero failures; 2 Atlas passed; Android built; local 10m21s; all 7 required hosted checks passed | [Original foreground audit](review/atlas/reference-foreground-sequence.png), [CI](https://github.com/shayann07/liquidglass/actions/runs/37678836069) |
-| Native Atlas after foreground correction | Inspected 1920×1051 Direct3D app capture; 120 static redraw submissions after 10 warmups: median 10.2552ms, p95 12.9977ms, max 21.4913ms | [Screenshot](review/atlas/checkpoint-302e5e1-native.png), [timings](review/atlas/checkpoint-302e5e1-native-timing.json) |
-| Original resting-tap midpoint | 329.74×171.36px against 330±12×172±4px; full local/hosted verification recorded | [Reference](review/atlas/reference-6698.png), [scans](review/atlas/reference-tap-midpoint.json) |
-| Continuous standalone magnifier map, scene API and portable painter defaults | Render/coverage regressions; one shared backdrop; terminal and hosted tests for bundled Skia shader defaults | [Review](review/ATLAS-STABILIZATION.md), [porting guide](docs/porting.md) |
-| Open-source integration and repository maintenance | README/API/research guides, Apache-2.0/NOTICE; free CodeQL/Dependabot and 7 required checks; protected branch | [Contributing](CONTRIBUTING.md), [security](SECURITY.md) |
+| M1 | Distance-dependent tap, hold and throw | Midpoint, arrival recoil and paired held shapes corrected; cadence/ownership regressions passed. Independent continuous contour/timing comparison remains. |
+| M2 | Whole-bar squeeze, subtle corner extremes | Shared bounded material/ink transform; fixed layout/hit targets; original vertical asymmetry audited. Horizontal ink drift and exact optical mechanism remain. |
+| M3 | Calm generic controls | Existing card limits, accessibility and gesture ownership verified. Preserve them through further changes. |
+| O1 | Continuous glass without a split rim | Standalone continuous lens and endpoint regressions passed. Full Apple optics and Android endpoint precision remain unproven. |
+| A1 | Atlas UI and credible performance | Redesigned studio, native phase captures and stable input checks. Presented-frame performance, owner acceptance and later physical-device verification remain. |
+| P1 | Easy integration across UI stacks | Compose scene and typed CanvasKit scene share a backdrop with multiple surfaces. More native bindings and automatic host backdrop capture remain absent. |
+| D1 | Open-source documentation | README, usage, research and evidence maintained; keep statements tied to the actual verified commit. |
+| C1 | Free CI, licensing and protection | Apache-2.0/NOTICE, CodeQL, Dependabot and seven protected checks configured. Final review/merge remains after implementation acceptance. |
 
-All 27 skipped JVM cases are opt-in showcase exports, confirmed from their assumption messages;
-use `-Pliquidglass.showcase=<output-directory>` when exporting that separate gallery.
-
-Static redraw submission is **not** presented FPS, native gesture latency or a controlled speedup.
-The hosted foreground web job initially timed out downloading Ubuntu dependencies. Retrying only
-that job passed in 48s; the successful 30m45s build was preserved. All those processes are finished.
-
-## Current change: arrival recoil
-
-Original IMG6694/6701 measure 227.5×174 / 235×164px: normalized width/height 0.968085 / 1.060976.
-The old model compressed horizontally without corresponding vertical recovery. Calm now exchanges
-spine compression for cap growth using an authored projected-area response; held/throw and historical
-presets are unchanged. The existing midpoint remains 329.7385×171.3598px.
-
-- Final negative control with the correction disabled fails the paired-state height gate.
-- Corrected matched shape: 222.55×170.41px, ratios 0.967669 / 1.051907.
-- 57 broader focused tests passed; the subsequent 3-test arrival class passed, including reverse
-  trips, 30–120 Hz playback and reduced motion (two tests overlap the broader run).
-- [Comparison](review/atlas/tap-arrival-comparison.png), [reference scans](review/atlas/reference-tap-arrival.json),
-  [production trace](review/atlas/tap-arrival-trace.csv), [reproduction tool](tools/measure_tap_arrival.py).
-- The chart is computed geometry, not a screenshot. Stills establish neither timing nor peak extrema.
-  Rejected models and the corrected overstrict peak assertion remain in the review record.
-- Full local verification passed in **10m 20s: 309 library passed, 27 skipped, zero failures;
-  both Atlas tests passed; Android assembled**. All execution was fresh.
-- [Native Atlas at rest](review/atlas/checkpoint-8d9917a-native.png) inspected: 1920×1051 Direct3D.
-  [Static redraw submissions](review/atlas/checkpoint-8d9917a-native-timing.json):
-  **11.2165ms median / 19.8045ms p95 / 23.3515ms maximum**, 120 samples after 10 warmups.
-  This verifies native launch/rendering; it is not a capture of arrival motion or input latency.
-- [Hosted run 37683713350](https://github.com/shayann07/liquidglass/actions/runs/37683713350): **all seven required checks passed**.
-  Fresh library execution: 309 passed / 27 skipped / zero failures (17m23.81s); both Atlas tests passed
-  freshly (2m55.19s). Build job: 22m19s. This verifies the named contracts, not full iOS parity.
-
-## Remaining requirements
-
-| ID | Requirement | Remaining work |
-| --- | --- | --- |
-| M1 | Distance-dependent tap, hold and throw | Arrival and paired held shapes verified locally/hosted. Native phases inspected; independent original trajectories/more phases and timing remain unresolved. |
-| M2 | Whole-bar squeeze and restrained corner extremes | Current material/ink correction verified; independent trajectories, horizontal ink drift and full optical mechanism remain unresolved. |
-| M3 | Generic calm interaction with stable controls | Preserve existing card limits, motion accessibility, hit targets and gesture ownership through subsequent changes. |
-| O1 | Continuous glass without a split rim | Current lens continuity tested; complete Apple optical identity and Android endpoint precision remain unproven. |
-| A1 | Atlas demonstration and performance | Corrected own-window gesture phases verified. Avoid timing conclusions from screenshot overhead; presented-frame measurements, owner acceptance and later physical-device verification remain. |
-| P1 | Easy integration across UI stacks | Typed CanvasKit scene verified in terminal and hosted browser; removes per-widget controller/matrix setup. Other native bindings and automatic host backdrop capture remain absent. |
-| D1 | Useful open-source documentation | Keep the README, usage, research and evidence synchronized with actual verified behavior. |
-| C1 | PR automation and protection | Keep required checks green; final review/merge when ready, without silently bypassing review. |
-
-## Next steps and resume protocol
+## Resume in this order
 
 1. Read `WORKSPACE.md`, this file, `git status` and `.local/active-goal-checkpoint.txt`.
-2. **Inspect existing live handles/logs first.** The full runs `.local/tap-arrival-full.log` and `.local/held-travel-full.log` are finished.
-   Do not restart a long run because an observation timed out; do not rerun finished baselines.
-3. The arrival full run and native capture are finished. Reuse their evidence; do not restart them.
-   Hosted verification has also passed; preserve these completed runs when continuing new work.
-4. Portable scene verification is finished at `014b16e` / CI 37732791140. The unchanged JVM/Atlas
-   tests were restored from cache; their fresh execution is recorded at `8d9917a`. Do not rerun them
-   for documentation-only updates. Check only the latest required-check status before final delivery.
-5. Held-travel hosted verification is complete. Native motion playback/local sample checks are also
-   finished. Inspect the latest hosted follow-up recorded in `.local/active-goal-checkpoint.txt`;
-   do not duplicate completed runs. Native diagnostic sessions 58306, 55336 and 50321 all finished
-   successfully. The old Compose-dispatcher timing is provisional; use the corrected paired traces.
-6. Continue M1/O1/P1 from their stated gaps. Passing regression tests does not complete the whole goal.
+2. Inspect **existing live handles first**. Full library baseline and native diagnostic sessions
+   58306/55336/50321 are finished. Observation timeout does not mean a job stopped; never duplicate it.
+3. Inspect exact0e5c1d6 hosted build37822979856 before launching new checks. CodeQL37822979949 and
+   Docs37822979553 already passed. Preserve fresh/cache classifications in the ledger.
+4. Next M1 action: select a clean continuous original contour sequence with native timestamps,
+   verify its edge track and compare production output. JGEY2190n176–182 is **not an isolated tap**;
+   inherited rim/glyph tracks are neither reliable release contours nor finger trajectories.
+   LOLL8185CFR1944–1988 is now also rejected as calibrated isolated release: its assumed rest
+   retains a visible lens. Find a true resting endpoint before fitting a release time.
+   Additional stills do not justify fitting timing. Reuse the current traces; do not rerun full
+   tests for unchanged geometry or documentation. If a proposed motion change is unsupported,
+   record the rejected hypothesis and proceed to another concrete M1/O1/P1 gap.
+5. At each completed change save the exact revision, test result, evidence, failed attempts and
+   next action in the review/ledger and local checkpoint. Keep this overview short; history stays there.
 
-Use `tools/workspace.ps1` and the private caches described in `WORKSPACE.md`.
-Work alone through terminal commands and app-owned captures: **no subagents or computer-use tools**.
-Vitals is excluded. No physical device is available; any later device use requires the shared lease.
-Never publish private logs/transcripts, credentials, raw desktop grabs or unrelated windows from `.local/`.
-At each completed fix, save tests, failed candidates and the next action here and in the ledger.
+Work alone using the private wrapper, terminal commands and app-owned captures: **no subagents,
+computer-use tools or Vitals work**. No physical device is available; later use requires the shared
+lease. Do not publish private transcripts, credentials, raw desktop grabs or unrelated windows.
+Passing regression tests does not complete the whole goal.

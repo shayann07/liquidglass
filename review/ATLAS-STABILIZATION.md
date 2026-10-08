@@ -795,6 +795,66 @@ python tools/plot_held_travel.py --trace review/atlas/held-travel-trace.csv \
 `GlassHeldTravelReferenceTest` emits the CSV under `liquidglass/build/reports/atlas/`.
 The [before trace](atlas/held-travel-before-trace.csv) uses the same fixture and input sweep.
 
+### Release attribution: the assumed rest still contains a lens
+
+The inherited `GlassTabBarStyle.subside` comment called LOLL8185 CFR1944 an observed finger-up
+and cited a367ms release. The research E7 record later separated a313.8ms raised-area measurement
+from that fitted first-order duration, but retained CFR1968–1988 as trailing rest. Fresh decoding
+of the hash-verified original contradicts that baseline:
+
+| Inherited label | Exact native time | Original bar-only crop |
+| --- | --- | --- |
+| Finger lifted, CFR1944 | PTS19441/600 =32.401667s | ![Claimed release, lens over Contacts](atlas/release-attribution-1944.png) |
+| Trailing rest starts, CFR1968 | PTS19681/600 =32.801667s | ![Assumed rest still has Calls lens](atlas/release-attribution-1968.png) |
+| Within trailing rest, CFR1980 | PTS19801/600 =33.001667s | ![Calls lens remains present](atlas/release-attribution-1980.png) |
+
+The latter two inherited rows report `raised_area=0` and no lens bounds, yet the original pixels
+still show a large rim and refracted/magnified Calls icon. The selector has travelled from Contacts
+toward Calls. A disappearing above-bar detector signal therefore does **not** establish a flat
+resting inset or an isolated release-to-rest. No finger event is visible, so this does not prove
+exactly when the owner released; it rejects the claimed calibration, not every possible release.
+
+The [provenance manifest](atlas/release-attribution.json) retains the original source hash, exact
+PTS, decoded image hashes, inherited rows, crop and reproduction command. The first-frame `showinfo`
+PTS was checked against each inherited row. CFR labels were not divided by60 and silently treated
+as native source indices. A trial interpretation as native indices landed in an unrelated App Store
+traverse around41–42s and was rejected. Only the matched native-time crops above are public evidence.
+
+The source comment now calls the existing historical spring an **authored compatibility baseline**.
+No release constant changed on this evidence. Earlier research remains preserved as history;
+its314/367ms attribution must not be reused as a verified release target. The next timing fit needs
+an inspected sequence that actually settles to a resting inset, with a defensible gesture boundary.
+
+### Additional held shapes: audit the frozen model
+
+The 820659d correction was calibrated with IMG6734/6735. Three other original stills,
+IMG6727/6728/6729, were measured afterward against the **unchanged, already verified** production
+trace. These frames were inspected historically; they were not used to choose the 820659d gains.
+They are an additional spatial audit, not independent timed validation.
+
+| Original bar-only crop | Median measured width × height | Full probe ranges | Frozen model's closest paired state |
+| --- | --- | --- | --- |
+| ![IMG6727](atlas/reference-6727-bar.png) | 309×188px | Width307–309; height188 | 309.07×184.13px: within existing6px gate |
+| ![IMG6728](atlas/reference-6728-bar.png) | Width unresolved; height161.5px | Width294–308; height159–163 | Not scored: side glyph contamination exceeds the existing tolerance |
+| ![IMG6729](atlas/reference-6729-bar.png) | 290×154px | Width289–292; height152–154 | 289.87×153.50px: within existing6px gate |
+
+The [measurement tool](../tools/measure_held_validation.py) records every fixed-window RGB probe,
+input-image hashes, the frozen trace hash and the selected authored samples in the
+[audit data](atlas/held-travel-validation.json). It does not widen the tolerance or silently
+drop disagreeing probes. Reproduce with:
+
+```sh
+python tools/measure_held_validation.py review/atlas review/atlas/held-travel-trace.csv --output validation.json
+```
+
+No motion constant changed from this audit. The accepted pairs occur at different positions and
+speeds in the authored sweep. Finding them establishes **shape reachability only**; it neither
+reconstructs the original gesture nor proves its contour, timing, release state or optical identity.
+Width and height alone remain insufficient. The original JGEY2190 dataset has timestamped frames,
+but its inherited rim detector drops the body during release and its glyph track is tab-quantized;
+those tracks must not be treated as a measured finger trajectory. The next motion comparison needs
+an inspected, continuous contour track before changing rates from those data.
+
 ### Native motion phase captures
 
 The initial [phase sheet](atlas/native-motion-phases.png) is historical evidence. Its timing
