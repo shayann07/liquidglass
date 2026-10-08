@@ -881,7 +881,7 @@
     }
   },
   "tap-arrival-recoil": {
-    "status": "full local and inspected native passed; hosted build pending",
+    "status": "full local, native and all seven required hosted checks passed",
     "reference": "reference-tap-arrival.json",
     "trace": "tap-arrival-trace.csv",
     "figure": "tap-arrival-comparison.png",
@@ -989,7 +989,26 @@
     "beforeTrace": "tap-arrival-before-trace.csv",
     "hosted": {
       "run": 37683713350,
-      "status": "pending; inspect exact run before claiming success"
+      "result": "passed",
+      "requiredChecks": 7,
+      "jobDuration": "22m19s",
+      "gradleDuration": "21m42s",
+      "library": {
+        "total": 336,
+        "passed": 309,
+        "skipped": 27,
+        "failed": 0,
+        "duration": "17m23.81s",
+        "execution": "fresh"
+      },
+      "desktop": {
+        "passed": 2,
+        "failed": 0,
+        "duration": "2m55.19s",
+        "execution": "fresh"
+      },
+      "web": "passed",
+      "skia": "passed"
     }
   }
 }

@@ -653,8 +653,10 @@ The inspected native app-owned capture is 1920×1051 Direct3D. After CPU tests f
 [120 static redraw submissions after ten warmups](atlas/checkpoint-8d9917a-native-timing.json)
 measured **11.2165ms median / 19.8045ms p95 / 23.3515ms maximum**.
 This resting capture verifies native launch/rendering, not the transient recoil; submission timings
-are not presented FPS or input latency. Hosted build [37683713350](https://github.com/shayann07/liquidglass/actions/runs/37683713350)
-is pending; local success is recorded independently.
+are not presented FPS or input latency. All seven required checks passed in [hosted run 37683713350](https://github.com/shayann07/liquidglass/actions/runs/37683713350).
+The build job took **22m19s** (Gradle **21m42s**); fresh library execution passed 309 tests with
+27 skipped and zero failures in 17m23.81s. Both Atlas tests executed freshly and passed in 2m55.19s.
+Skia, browser, dependency review, both CodeQL jobs and documentation also passed.
 
 Reproduce measurements and the optional chart:
 

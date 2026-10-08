@@ -9,8 +9,8 @@ preserve detailed measurements and earlier attempts.
 
 - Canonical checkout: `D:/Work/AndroidStudioProjects/SideProjects/kmp/liquidglass`.
 - Branch: `codex/atlas-stabilization`; [draft PR #6](https://github.com/shayann07/liquidglass/pull/6).
-- Last fully verified implementation: **`302e5e1`**, navigation foreground correction.
-- Current arrival-recoil change **`8d9917a`: full local and inspected native verification passed; hosted build pending**.
+- Last fully verified implementation: **`8d9917a`**, paired arrival recoil and navigation foreground correction.
+- Current arrival-recoil change **`8d9917a`: full local, inspected native and all seven required hosted checks passed**.
   Original paired width/height recoil now appears without changing the existing midpoint fit.
   Inspect `.local/active-goal-checkpoint.txt` and the actual process before starting another run.
 - Commits/pushes authorized. No release, tag or implicit PR #6 review-rule bypass.
@@ -51,8 +51,9 @@ presets are unchanged. The existing midpoint remains 329.7385×171.3598px.
   [Static redraw submissions](review/atlas/checkpoint-8d9917a-native-timing.json):
   **11.2165ms median / 19.8045ms p95 / 23.3515ms maximum**, 120 samples after 10 warmups.
   This verifies native launch/rendering; it is not a capture of arrival motion or input latency.
-- [Hosted run 37683713350](https://github.com/shayann07/liquidglass/actions/runs/37683713350): **build pending**.
-  Do not label completed local tests as hosted success or full parity.
+- [Hosted run 37683713350](https://github.com/shayann07/liquidglass/actions/runs/37683713350): **all seven required checks passed**.
+  Fresh library execution: 309 passed / 27 skipped / zero failures (17m23.81s); both Atlas tests passed
+  freshly (2m55.19s). Build job: 22m19s. This verifies the named contracts, not full iOS parity.
 
 ## Remaining requirements
 
@@ -73,7 +74,7 @@ presets are unchanged. The existing midpoint remains 329.7385×171.3598px.
 2. **Inspect existing live handles/logs first.** Current full run is `.local/tap-arrival-full.log`.
    Do not restart a long run because an observation timed out; do not rerun finished baselines.
 3. The arrival full run and native capture are finished. Reuse their evidence; do not restart them.
-   Finish hosted verification, then push the saved evidence follow-up without cancelling its build.
+   Hosted verification has also passed; preserve these completed runs when continuing new work.
 4. Inspect required checks for that exact head. Save outcomes in this file and the ledger; update PR #6.
 5. Continue M1/O1/P1 from their stated gaps. Passing regression tests does not complete the whole goal.
 
