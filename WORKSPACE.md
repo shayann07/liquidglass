@@ -49,6 +49,23 @@ Vitals is outside the current work scope; its commands above remain for maintain
 material/ink/aperture shaders and a CanvasKit adapter. Both have terminal tests and CI;
 neither silently captures content from another UI stack.
 
+### Native motion diagnostics
+
+Atlas can replay navigation input through its own AWT component and save app-owned phase snapshots:
+
+```powershell
+$motionOutput = Join-Path (Get-Location) '.local/atlas-motion'
+./tools/workspace.ps1 library :desktop:run "-Patlas.motionCapture=$motionOutput"
+python tools/plot_native_motion.py $motionOutput --output .local/atlas-motion.png
+```
+
+Use a wide desktop window and the default Sky scene. This opt-in diagnostic verifies tap/held-drag
+selection, full-corner pulls and fixed layout bounds. It never moves the OS cursor or reads other
+windows. Each phase replays its gesture independently because native screenshot readback can be
+slow. CSV timestamps describe actual input and render-start times; PNG encoding follows input.
+The contact sheet preserves source pixels. These are phase snapshots, not a continuous recording,
+presented-frame benchmark or measured iOS timing. Pillow is needed only for the optional sheet.
+
 ## Recovery and local evidence
 
 [Retired source history](archive/retired-workflows/2026-10-03/README.md) is committed

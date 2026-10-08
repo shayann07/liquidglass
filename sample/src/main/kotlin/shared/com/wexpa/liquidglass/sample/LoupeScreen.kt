@@ -16,11 +16,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.*
@@ -50,15 +53,20 @@ internal fun boundedLens(position: Offset, size: IntSize, radius: Float, margin:
     return Offset(axis(position.x, size.width), axis(position.y, size.height))
 }
 
-/** Shared Android/desktop demo. The sky is illustrative, not an astronomical instrument. */
+/** Shared Android/desktop demo. The sky is illustrative, not an astronomical instrument.
+ * Optional sample diagnostics report untransformed navigation bounds in root pixels and actual
+ * scene-selection callbacks. They do not control the library's input, material or animation. */
 @Composable
 fun LoupeScreen(reduceMotion: Boolean = false, modifier: Modifier = Modifier,
-                loupeStyle: GlassStyle = GlassStyle.clearLens(), initialScene: Int = 0) {
+                loupeStyle: GlassStyle = GlassStyle.clearLens(), initialScene: Int = 0,
+                onNavigationLayout: ((Rect) -> Unit)? = null,
+                onSceneObserved: ((Int) -> Unit)? = null) {
     var scene by remember { mutableIntStateOf(initialScene.coerceIn(0, 2)) }
     var field by remember { mutableIntStateOf(0) }
     var motion by remember { mutableStateOf(!reduceMotion) }
     var magnification by remember { mutableFloatStateOf(1.25f) }
     var lensVisible by remember { mutableStateOf(true) }
+    val selectScene: (Int) -> Unit = { scene = it; onSceneObserved?.invoke(it) }
     // Honor later host accessibility changes; the in-app toggle can always reduce further.
     val interaction = if (motion && !reduceMotion) GlassInteraction.Calm else GlassInteraction.ReducedMotion
     Column(modifier.fillMaxSize().background(Ground).statusBarsPadding().navigationBarsPadding().padding(20.dp)) {
@@ -86,12 +94,13 @@ fun LoupeScreen(reduceMotion: Boolean = false, modifier: Modifier = Modifier,
                         }
                         if (spacious) Label("Drag the lens. Notice the details.", 12, Muted)
                     }
-                    AtlasCanvas(scene, { scene = it }, field, magnification, lensVisible, interaction,
-                        loupeStyle.copy(heldMagnification = 1f - 1f / magnification), Modifier.weight(1f).fillMaxWidth())
+                    AtlasCanvas(scene, selectScene, field, magnification, lensVisible, interaction,
+                        loupeStyle.copy(heldMagnification = 1f - 1f / magnification), Modifier.weight(1f).fillMaxWidth(),
+                        onNavigationLayout)
                     Row(Modifier.fillMaxWidth().padding(top = 12.dp), verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         Scenes.forEachIndexed { index, name ->
-                            Action(name, "scene-$index", scene == index, { scene = index })
+                            Action(name, "scene-$index", scene == index, { selectScene(index) })
                         }
                         Spacer(Modifier.weight(1f))
                         Action("−", "zoom-out", onClick = { magnification = (magnification - .1f).coerceAtLeast(1f) })
@@ -135,7 +144,8 @@ fun LoupeScreen(reduceMotion: Boolean = false, modifier: Modifier = Modifier,
 }
 
 @Composable private fun AtlasCanvas(scene: Int, onScene: (Int) -> Unit, field: Int, magnification: Float, lensVisible: Boolean,
-                                    interaction: GlassInteraction, style: GlassStyle, modifier: Modifier) {
+                                    interaction: GlassInteraction, style: GlassStyle, modifier: Modifier,
+                                    onNavigationLayout: ((Rect) -> Unit)?) {
     val density = LocalDensity.current
     var viewport by remember { mutableStateOf(IntSize.Zero) }
     var normalized by remember(field) { mutableStateOf(Offset(.52f, .45f)) }
@@ -178,7 +188,8 @@ fun LoupeScreen(reduceMotion: Boolean = false, modifier: Modifier = Modifier,
         }
         if (with(density) { viewport.width.toDp() } >= 640.dp) {
             GlassTabBar(state, Scenes.size, scene, onScene,
-                modifier = Modifier.align(Alignment.BottomEnd).padding(24.dp).width(280.dp),
+                modifier = Modifier.align(Alignment.BottomEnd).padding(24.dp).width(280.dp)
+                    .onGloballyPositioned { onNavigationLayout?.invoke(it.boundsInRoot()) },
                 style = GlassTabBarStyle.Calm(), motionEnabled = interaction != GlassInteraction.ReducedMotion) { index, selected ->
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Label(listOf("✦", "Aa", "▦")[index], 18, if (selected) Accent else Ink)

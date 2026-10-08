@@ -12,6 +12,8 @@ A refracting material for Compose UI, with a shared backdrop, shaped glass surfa
 a simpler scene API and a redesigned Atlas Studio. These additions are not in the published `0.1.0` artifact.
 They are authored models informed by iPhone references; **full 1:1 iOS parity is not established**.
 See the [verification record](review/ATLAS-STABILIZATION.md) for rendered evidence and remaining work.
+The [native motion phases](review/ATLAS-STABILIZATION.md#native-motion-phase-captures) show real
+desktop input, travel, release and extreme pulls, with actual timestamps and capture limitations.
 The [progress tracker](PROGRESS.md) lists the verified checkpoint, unfinished requirements and next steps.
 
 ## Start with one scene

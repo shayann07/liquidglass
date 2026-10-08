@@ -1,6 +1,7 @@
 package com.wexpa.liquidglass.sample.desktop
 
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.application
@@ -28,8 +29,19 @@ fun main() = application {
         title = "Atlas Studio - LiquidGlass",
         state = windowState,
     ) {
+        val motionProbe = remember { AtlasMotionProbe() }
         LaunchedEffect(Unit) {
             try {
+                System.getProperty("atlas.motionCapture")?.let { path ->
+                    require(System.getProperty("atlas.capture") == null) { "Choose static or motion capture" }
+                    require((System.getProperty("atlas.scene")?.toIntOrNull() ?: 0) == 0) {
+                        "Motion capture starts with atlas.scene=0"
+                    }
+                    delay(3000)
+                    captureAtlasMotion(window, motionProbe, File(path))
+                    exitApplication()
+                    return@LaunchedEffect
+                }
                 System.getProperty("atlas.capture")?.let { path ->
                     delay(3000)
                     // Read this application's render buffer. Desktop screen grabs can capture
@@ -67,9 +79,12 @@ fun main() = application {
                 }
             } catch (e: Throwable) {
                 e.printStackTrace()
-                if (System.getProperty("atlas.capture") != null) kotlin.system.exitProcess(1)
+                if (System.getProperty("atlas.capture") != null || System.getProperty("atlas.motionCapture") != null)
+                    kotlin.system.exitProcess(1)
             }
         }
-        LoupeScreen(initialScene = System.getProperty("atlas.scene")?.toIntOrNull() ?: 0)
+        LoupeScreen(initialScene = System.getProperty("atlas.scene")?.toIntOrNull() ?: 0,
+            onNavigationLayout = { motionProbe.navigation = it },
+            onSceneObserved = { motionProbe.scene = it })
     }
 }

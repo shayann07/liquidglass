@@ -1,0 +1,6 @@
+{
+          "backend":"DIRECT3D","scale":1.25,
+          "navigation":{"left":1515.0,"top":804.0,"width":350.0,"height":80.0},
+          "input":"AWT events dispatched only to this application's Compose component",
+          "timing":"Each phase uses a fresh gesture replay because native readback is slow. CSV capture timestamps are render-start times. PNG encoding follows input. Not a continuous video, presented FPS or measured iOS timing."
+        }

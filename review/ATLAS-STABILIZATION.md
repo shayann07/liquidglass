@@ -764,7 +764,11 @@ All 12 focused tests passed, covering ordinary press identity, early drag bounds
 off-axis ownership, reverse/throw cadence and tap recoil. Full local verification finished in
 **17m16s: 312 library passed, 27 optional showcases skipped, zero failures/errors; both Atlas tests
 passed; Android assembled**. Library execution reported 851.847s and Atlas 163.227s, all fresh.
-Hosted verification is pending; [PROGRESS.md](../PROGRESS.md) identifies the checkpoint.
+Implementation **820659d** passed all seven required checks in
+[hosted run 37770922905](https://github.com/shayann07/liquidglass/actions/runs/37770922905).
+Fresh library execution: 312 passed / 27 skipped / zero failures in 23m43.86s; both Atlas tests
+passed freshly in 4m51.41s. The build job took 30m52s (Gradle 30m18s). The full report and build
+log were inspected; neither JVM nor Atlas execution was restored from cache.
 
 ![Native Atlas after held-travel correction](atlas/held-travel-native.png)
 
@@ -790,6 +794,47 @@ python tools/plot_held_travel.py --trace review/atlas/held-travel-trace.csv \
 
 `GlassHeldTravelReferenceTest` emits the CSV under `liquidglass/build/reports/atlas/`.
 The [before trace](atlas/held-travel-before-trace.csv) uses the same fixture and input sweep.
+
+### Native motion phase captures
+
+![Native Atlas phase snapshots, in input order](atlas/native-motion-phases.png)
+
+Atlas's opt-in `atlas.motionCapture` mode exercises the real sample through its own Compose AWT
+mouse component. It does not retarget the controller, set selection directly, move the OS cursor
+or capture another window. Layout bounds in root pixels determine input coordinates, converted
+once by the native content scale (1.25 here). The ordinary sample selection callback and layout
+observer verify Sky→Lines taps, Lines→Sky held drags, extreme-corner selection and fixed bounds.
+The library implementation is unchanged from **820659d**.
+
+The inspected run saved 16 native Direct3D snapshots: rest, four tap phases, a stationary hold,
+three held-travel phases, four release phases, two ±4000px corner pulls and recovery. Navigation
+layout stayed at `(1515,804,350,80)` pixels. The visible bar deforms mildly within this fixed
+layout; held selectors travel and recover. These 350×80 desktop controls are not a pixel-aligned
+comparison against the original 1044×186 iOS fixture. Mouse delivery also does not replace
+physical touch verification.
+
+The first approach was rejected: a screenshot after every phase paused input for roughly 1.4s.
+Deferring PNG encoding did not solve it; native bitmap readback itself was slow. Each final phase
+therefore starts a fresh gesture replay, with **no preceding screenshot during that gesture**.
+PNG encoding is deferred until input completes. The contact sheet keeps source pixels unscaled
+and follows CSV order, not filename sorting. It is not a continuous video.
+
+The CSV records actual times, not requested delays. For example, the requested 25ms tap snapshot
+started rendering 30.4ms after UP but its redraw submission took **122.8ms**. The 70ms snapshot
+began at 76.2ms and took 19.4ms. Those replays are not interchangeable samples of one ideal timed
+curve: first scene-switch/JIT/render work can change the result. Other sampled redraws took
+8.4–31.9ms; readback took 1.35–1.52s. These are diagnostic submission/readback durations, not
+presented FPS or end-to-end input latency. The initial scene-switch cost needs profiling before
+making a smoothness claim; its cause is not established by this capture.
+
+All native selection/layout assertions passed in the 1m3s run. The earlier stale observation
+through a deferred composition side effect was replaced by observation at the sample's actual
+selection callback; images had already shown selection changing. No library behavior was patched
+to satisfy the playback. The separate desktop/Android regression run is recorded in the ledger.
+
+[Original PNGs, events and metadata](atlas/native-motion-2026-10-08/) are preserved together.
+[Reproduction commands](../WORKSPACE.md#native-motion-diagnostics) use only the private wrapper
+and application-owned capture mode. The [plotter](../tools/plot_native_motion.py) needs Pillow.
 
 ### Resting-tap midpoint: height was late
 

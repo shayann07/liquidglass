@@ -1063,7 +1063,7 @@
     "date": "2026-10-08",
     "baselineCommit": "c17b9aa1e745e5234d1f6308b9ffcdfa81d89fab",
     "sourceSha256": "9087f5fd5fddc1bda1fdc18965cd31019e08ff36ddeb71e7b47fa73e23198c66",
-    "status": "Full local and inspected native passed; exact-head hosted checks pending",
+    "status": "Full local, inspected native and all seven required hosted checks passed",
     "original": {
       "intermediate": [
         326,
@@ -1182,6 +1182,74 @@
       },
       "scope": "Resting app-owned desktop buffer; static redraw submission, not transient motion or input latency",
       "inspection": "completed"
+    },
+    "commit": "820659de4f93acce96d59c60f00422cea2bed4ad",
+    "hosted": {
+      "run": 37770922905,
+      "requiredChecks": 7,
+      "result": "passed",
+      "library": {
+        "total": 339,
+        "passed": 312,
+        "skipped": 27,
+        "failed": 0,
+        "duration": "23m43.86s",
+        "execution": "fresh"
+      },
+      "desktop": {
+        "passed": 2,
+        "failed": 0,
+        "duration": "4m51.41s",
+        "execution": "fresh"
+      },
+      "jobDuration": "30m52s",
+      "gradleDuration": "30m18s"
     }
+  },
+  "native-motion-playback": {
+    "status": "native input/layout checks and local desktop/Android verification passed; hosted follow-up pending",
+    "libraryCommit": "820659de4f93acce96d59c60f00422cea2bed4ad",
+    "images": 16,
+    "inspection": "completed",
+    "directory": "review/atlas/native-motion-2026-10-08",
+    "contactSheet": "native-motion-phases.png",
+    "metadata": {
+      "backend": "DIRECT3D",
+      "scale": 1.25,
+      "navigation": {
+        "left": 1515.0,
+        "top": 804.0,
+        "width": 350.0,
+        "height": 80.0
+      },
+      "input": "AWT events dispatched only to this application's Compose component",
+      "timing": "Each phase uses a fresh gesture replay because native readback is slow. CSV capture timestamps are render-start times. PNG encoding follows input. Not a continuous video, presented FPS or measured iOS timing."
+    },
+    "local": {
+      "nativeRun": "1m3s",
+      "desktopTests": 2,
+      "desktopFailed": 0,
+      "desktopReportedSeconds": 181.033,
+      "android": "assembled",
+      "build": "3m37s",
+      "library": "unchanged; verified at820659d, not rerun"
+    },
+    "firstSceneSwitchRenderMs": 122.8055,
+    "otherRenderMs": [
+      8.4296,
+      31.876
+    ],
+    "readbackMs": [
+      1353.1182,
+      1518.5333
+    ],
+    "checks": [
+      "tap selects Lines",
+      "held drag selects Sky",
+      "extreme drag selects terminal tab",
+      "navigation layout fixed within.01px"
+    ],
+    "rejectedMethod": "Repeated snapshots within one gesture paused input ~1.4s. Deferred encoding alone did not fix slow native readback; each final phase replays independently.",
+    "limits": "Mouse-based own-window input. Snapshot readback and forced redraw are not presented FPS or input latency. Nominal delays differ from actual times; first scene-switch redraw cost needs profiling. Not pixel-aligned iOS comparison or one continuous recorded trajectory."
   }
 }

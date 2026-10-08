@@ -38,6 +38,7 @@ compose.desktop {
             jvmArgs += "-Datlas.capture=$it"
         }
         providers.gradleProperty("atlas.scene").orNull?.let { jvmArgs += "-Datlas.scene=$it" }
+        providers.gradleProperty("atlas.motionCapture").orNull?.let { jvmArgs += "-Datlas.motionCapture=$it" }
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "LiquidGlassStudio"

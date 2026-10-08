@@ -9,7 +9,7 @@ preserve detailed measurements and earlier attempts.
 
 - Canonical checkout: `D:/Work/AndroidStudioProjects/SideProjects/kmp/liquidglass`.
 - Branch: `codex/atlas-stabilization`; [draft PR #6](https://github.com/shayann07/liquidglass/pull/6).
-- Last fully verified implementation: **`014b16e`**, typed portable scenes; underlying Compose arrival correction **`8d9917a`**.
+- Last fully verified library implementation: **`820659d`**, paired held-travel correction; all seven required checks passed.
 - Portable scene **`014b16e` verified**: 20 Skia tests, 13 portable math tests, strict TypeScript
   consumers and all five hosted browser tests passed. All seven required checks passed.
   One scene combines the painter and calm controller; examples use it directly.
@@ -18,7 +18,7 @@ preserve detailed measurements and earlier attempts.
   Inspect `.local/active-goal-checkpoint.txt` and the actual process before starting another run.
 - Commits/pushes authorized. No release, tag or implicit PR #6 review-rule bypass.
 
-## Active experiment: held travel
+## Verified checkpoint: held travel
 
 Original selectors measure 313.5×142px (IMG6735) and 326×174px (IMG6734), inside a 186px bar.
 The verified prior model could not flatten enough: its selected-width state was 313.66×215.46px.
@@ -30,7 +30,7 @@ explicit regression: lowering the held gain also clipped resting taps through th
 limit. Tap allocation now keeps its previous allowance, independently of held tuning. All 481
 tap samples match the previous curve to 0.001px; the verified arrival/midpoint values are restored.
 
-**Local verification complete; hosted verification pending.** The full run finished in 17m16s:
+**Local, native and hosted verification complete at 820659d.** The full local run finished in 17m16s:
 312 library tests passed, 27 optional showcases skipped, zero failures/errors; both Atlas tests
 passed and Android assembled. All execution was fresh. Sessions 44574 and 42724 are finished.
 The [native Atlas capture](review/atlas/held-travel-native.png) was inspected at 1920×1051 Direct3D.
@@ -38,7 +38,22 @@ Static redraw submission: 8.1551ms median, 13.4829ms p95, 54.0905ms maximum (120
 This is not presented FPS, motion capture or a controlled speedup. Failed candidates, two cropped
 originals and the computed comparison are preserved in the [held-travel record](review/ATLAS-STABILIZATION.md#held-travel-two-shapes-instead-of-one-frame).
 These untimed stills are calibration evidence, not measured timing or independent validation.
-Next: inspect exact-head hosted checks, then continue independent trajectory and native motion work.
+[Hosted run 37770922905](https://github.com/shayann07/liquidglass/actions/runs/37770922905) passed all seven
+required checks. Fresh library: 312 passed / 27 skipped / zero failures in 23m43.86s; fresh Atlas:
+both passed in 4m51.41s. Build job 30m52s; Gradle 30m18s. Reports and logs inspected.
+
+## Current follow-up: native motion evidence
+
+Atlas now has an opt-in own-window input playback mode. Sixteen native phase snapshots were inspected;
+tap/drag/corner selection and fixed layout assertions passed. [Contact sheet and method](review/ATLAS-STABILIZATION.md#native-motion-phase-captures).
+Each phase uses a fresh replay because synchronous readback costs 1.35–1.52s here. This is not a
+continuous video or presented-FPS result. The first scene-switch redraw took 122.8ms; other sampled
+redraws took 8.4–31.9ms. Profile that initial cost before claiming smoothness.
+
+The tooling/shared-sample change passed both desktop regressions (181.033s) and Android assembly
+in a fresh 3m37s run. Library source is unchanged from 820659d, so its full suite was not repeated.
+Hosted verification of this follow-up is pending. All local playback/test jobs are finished;
+consult the local checkpoint for the latest exact-head hosted run and the next concrete action.
 
 ## Completed and verified
 
@@ -87,11 +102,11 @@ presets are unchanged. The existing midpoint remains 329.7385×171.3598px.
 
 | ID | Requirement | Remaining work |
 | --- | --- | --- |
-| M1 | Distance-dependent tap, hold and throw | Arrival correction verified; paired held shapes pass locally. Verify hosted checks and independent original trajectories/more phases. Original timing is unidentified. |
+| M1 | Distance-dependent tap, hold and throw | Arrival and paired held shapes verified locally/hosted. Native phases inspected; independent original trajectories/more phases and timing remain unresolved. |
 | M2 | Whole-bar squeeze and restrained corner extremes | Current material/ink correction verified; independent trajectories, horizontal ink drift and full optical mechanism remain unresolved. |
 | M3 | Generic calm interaction with stable controls | Preserve existing card limits, motion accessibility, hit targets and gesture ownership through subsequent changes. |
 | O1 | Continuous glass without a split rim | Current lens continuity tested; complete Apple optical identity and Android endpoint precision remain unproven. |
-| A1 | Atlas demonstration and performance | Native gesture/presented-frame measurements, owner acceptance and later physical-device verification. |
+| A1 | Atlas demonstration and performance | Own-window native gesture phases verified. Profile first scene-switch cost; presented-frame measurements, owner acceptance and later physical-device verification remain. |
 | P1 | Easy integration across UI stacks | Typed CanvasKit scene verified in terminal and hosted browser; removes per-widget controller/matrix setup. Other native bindings and automatic host backdrop capture remain absent. |
 | D1 | Useful open-source documentation | Keep the README, usage, research and evidence synchronized with actual verified behavior. |
 | C1 | PR automation and protection | Keep required checks green; final review/merge when ready, without silently bypassing review. |
@@ -106,8 +121,9 @@ presets are unchanged. The existing midpoint remains 329.7385×171.3598px.
 4. Portable scene verification is finished at `014b16e` / CI 37732791140. The unchanged JVM/Atlas
    tests were restored from cache; their fresh execution is recorded at `8d9917a`. Do not rerun them
    for documentation-only updates. Check only the latest required-check status before final delivery.
-5. Held-travel local tests and native capture are complete. Inspect the latest hosted run recorded in
-   `.local/active-goal-checkpoint.txt`; do not duplicate any of these completed local runs.
+5. Held-travel hosted verification is complete. Native motion playback/local sample checks are also
+   finished. Inspect the latest hosted follow-up recorded in `.local/active-goal-checkpoint.txt`;
+   do not duplicate completed runs. Profile initial native redraw cost separately from slow readback.
 6. Continue M1/O1/P1 from their stated gaps. Passing regression tests does not complete the whole goal.
 
 Use `tools/workspace.ps1` and the private caches described in `WORKSPACE.md`.
