@@ -1207,7 +1207,7 @@
     }
   },
   "native-motion-playback": {
-    "status": "native input/layout checks and local desktop/Android verification passed; hosted follow-up pending",
+    "status": "input/layout/local and hosted checks passed at078357d; historical timing is provisional after diagnostic re-entrancy discovery",
     "libraryCommit": "820659de4f93acce96d59c60f00422cea2bed4ad",
     "images": 16,
     "inspection": "completed",
@@ -1250,6 +1250,91 @@
       "navigation layout fixed within.01px"
     ],
     "rejectedMethod": "Repeated snapshots within one gesture paused input ~1.4s. Deferred encoding alone did not fix slow native readback; each final phase replays independently.",
-    "limits": "Mouse-based own-window input. Snapshot readback and forced redraw are not presented FPS or input latency. Nominal delays differ from actual times; first scene-switch redraw cost needs profiling. Not pixel-aligned iOS comparison or one continuous recorded trajectory."
+    "limits": "Historical images are native phase snapshots. A later no-readback run exposed unsafe Compose dispatcher re-entrancy; do not infer a renderer defect from the122.8ms submission. Superseded measurement method is preserved, not erased. Neither run establishes presented FPS, input latency or original iOS timing.",
+    "hosted": {
+      "commit": "078357da12f76d94429e12ca799263c7c8949f64",
+      "run": 37812243775,
+      "requiredChecks": "all seven passed",
+      "library": "FROM-CACHE; unchanged verified820659d",
+      "desktop": {
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0,
+        "execution": "fresh",
+        "duration": "5m7.41s"
+      },
+      "jobDuration": "6m55s",
+      "gradleDuration": "5m59s"
+    }
+  },
+  "native-diagnostic-dispatcher": {
+    "status": "corrected snapshot, no-readback and static native runs passed locally; hosted follow-up pending",
+    "scope": "desktop diagnostics only; library source unchanged from820659d",
+    "directory": "review/atlas/native-motion-swing-2026-10-08",
+    "failure": "Compose FlushCoroutineDispatcher re-entered playback during forced redraw, raised ConcurrentModificationException/CoroutinesInternalError and delivered invalid pointer transitions; held selection assertion failed",
+    "correction": "Run static and motion diagnostics on Dispatchers.Swing. Guard capture and DOWN/DRAG/UP sequencing, record checksPassed, close bitmaps even if metadata/encoding fails. Direct desktop coroutines-swing1.11.0 matches existing transitive runtime.",
+    "rejected": {
+      "phases": 13,
+      "invalidTransitionLines": [
+        135,
+        137
+      ],
+      "releasedAtEnd": true,
+      "firstSceneSwitchRenderMs": 888.2324,
+      "renderRangeMs": [
+        11.3664,
+        888.2324
+      ],
+      "readbackRangeMs": [
+        0.0,
+        0.0
+      ]
+    },
+    "snapshots": {
+      "phases": 16,
+      "invalidTransitionLines": [],
+      "releasedAtEnd": true,
+      "firstSceneSwitchRenderMs": 757.5149,
+      "renderRangeMs": [
+        9.5018,
+        757.5149
+      ],
+      "readbackRangeMs": [
+        2546.8525,
+        3664.709
+      ],
+      "duration": "1m32s",
+      "inspected": true
+    },
+    "noReadback": {
+      "phases": 16,
+      "invalidTransitionLines": [],
+      "releasedAtEnd": true,
+      "firstSceneSwitchRenderMs": 59.8941,
+      "renderRangeMs": [
+        8.3413,
+        82.2719
+      ],
+      "readbackRangeMs": [
+        0.0,
+        0.0
+      ],
+      "duration": "39s"
+    },
+    "static": {
+      "metric": "native static-scene forced redraw; GPU submission, not presented FPS",
+      "backend": "DIRECT3D",
+      "width": 1920,
+      "height": 1051,
+      "samples": 120,
+      "warmup": 10,
+      "p50_ms": 15.781,
+      "p95_ms": 18.9464,
+      "max_ms": 23.9217,
+      "duration": "15s",
+      "inspected": true
+    },
+    "interpretation": "Snapshot work strongly perturbs timing. Even corrected submissions vary; requested phase delays are not visible frame times. No controlled speedup, presented FPS, native input latency or established renderer bottleneck claimed.",
+    "next": "Keep diagnostics separate from motion tuning. Compare the production selector silhouette against independent original reference phases; profile rendering without readback only if a reproducible symptom warrants it."
   }
 }

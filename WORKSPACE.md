@@ -63,6 +63,12 @@ Use a wide desktop window and the default Sky scene. This opt-in diagnostic veri
 selection, full-corner pulls and fixed layout bounds. It never moves the OS cursor or reads other
 windows. Each phase replays its gesture independently because native screenshot readback can be
 slow. CSV timestamps describe actual input and render-start times; PNG encoding follows input.
+Use `-Patlas.motionReadback=false` with a **different output directory** to replay the same
+assertions without screenshots. This records CSV/metadata only; do not run the image plotter on it.
+Diagnostics run on the plain Swing dispatcher because forced redraw can re-enter Compose's
+coroutine dispatcher. Capture and pointer-sequence guards fail the run instead of accepting a
+corrupted trace. Check `checksPassed` in `capture.json`, and use actual CSV timestamps rather
+than the nominal phase names. Timing can vary substantially even without screenshot readback.
 The contact sheet preserves source pixels. These are phase snapshots, not a continuous recording,
 presented-frame benchmark or measured iOS timing. Pillow is needed only for the optional sheet.
 

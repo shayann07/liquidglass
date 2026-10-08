@@ -13,7 +13,8 @@ a simpler scene API and a redesigned Atlas Studio. These additions are not in th
 They are authored models informed by iPhone references; **full 1:1 iOS parity is not established**.
 See the [verification record](review/ATLAS-STABILIZATION.md) for rendered evidence and remaining work.
 The [native motion phases](review/ATLAS-STABILIZATION.md#native-motion-phase-captures) show real
-desktop input, travel, release and extreme pulls, with actual timestamps and capture limitations.
+desktop input, travel, release and extreme pulls. The [measurement correction](review/ATLAS-STABILIZATION.md#native-diagnostic-correction-isolate-redraw-from-playback)
+documents a rejected timing method and verified replacement; screenshots do not establish frame rate.
 The [progress tracker](PROGRESS.md) lists the verified checkpoint, unfinished requirements and next steps.
 
 ## Start with one scene

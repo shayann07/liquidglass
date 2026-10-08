@@ -16,6 +16,8 @@ preserve detailed measurements and earlier attempts.
 - Current arrival-recoil change **`8d9917a`: full local, inspected native and all seven required hosted checks passed**.
   Original paired width/height recoil now appears without changing the existing midpoint fit.
   Inspect `.local/active-goal-checkpoint.txt` and the actual process before starting another run.
+- Desktop diagnostics: 078357d hosted verification complete; subsequent Swing correction verified
+  locally with snapshots, without readback and at rest. Consult the checkpoint for its latest CI.
 - Commits/pushes authorized. No release, tag or implicit PR #6 review-rule bypass.
 
 ## Verified checkpoint: held travel
@@ -42,18 +44,27 @@ These untimed stills are calibration evidence, not measured timing or independen
 required checks. Fresh library: 312 passed / 27 skipped / zero failures in 23m43.86s; fresh Atlas:
 both passed in 4m51.41s. Build job 30m52s; Gradle 30m18s. Reports and logs inspected.
 
-## Current follow-up: native motion evidence
+## Current follow-up: desktop diagnostic correction
 
-Atlas now has an opt-in own-window input playback mode. Sixteen native phase snapshots were inspected;
-tap/drag/corner selection and fixed layout assertions passed. [Contact sheet and method](review/ATLAS-STABILIZATION.md#native-motion-phase-captures).
-Each phase uses a fresh replay because synchronous readback costs 1.35–1.52s here. This is not a
-continuous video or presented-FPS result. The first scene-switch redraw took 122.8ms; other sampled
-redraws took 8.4–31.9ms. Profile that initial cost before claiming smoothness.
+**The previous 122.8ms scene-switch result is provisional.** Disabling screenshots exposed
+re-entry of the measurement coroutine during forced redraw, duplicated pointer input and a
+failed selection assertion. This was a diagnostic bug; it did not establish a renderer defect.
 
-The tooling/shared-sample change passed both desktop regressions (181.033s) and Android assembly
-in a fresh 3m37s run. Library source is unchanged from 820659d, so its full suite was not repeated.
-Hosted verification of this follow-up is pending. All local playback/test jobs are finished;
-consult the local checkpoint for the latest exact-head hosted run and the next concrete action.
+The correction runs both static and motion diagnostics on the plain Swing dispatcher, guards
+input/capture sequencing and preserves bitmap cleanup on failures. The library remains unchanged.
+Two final native runs passed selection/layout and event-sequence checks: 16 inspected snapshots
+(1m32s) and 16 phases without readback (39s). A separate static capture passed (15s).
+[Corrected images, raw events and interpretation](review/ATLAS-STABILIZATION.md#native-diagnostic-correction-isolate-redraw-from-playback).
+
+Snapshot first submission: 757.5ms; no-readback first submission: 59.9ms, overall 8.3–82.3ms.
+The large variability and capture overhead do not establish presented FPS, input latency,
+speedup or a renderer bottleneck. Keep performance diagnosis separate from material tuning.
+
+**Prior follow-up 078357d is fully verified:** all seven required hosted checks passed in
+[run 37812243775](https://github.com/shayann07/liquidglass/actions/runs/37812243775). Library tests
+were restored from the verified 820659d cache; both Atlas tests ran freshly in 5m7.41s.
+Build job 6m55s; Gradle 5m59s. No need to repeat the unchanged full library suite.
+The dispatcher correction's hosted status and any live handles are in the local checkpoint.
 
 ## Completed and verified
 
@@ -106,7 +117,7 @@ presets are unchanged. The existing midpoint remains 329.7385×171.3598px.
 | M2 | Whole-bar squeeze and restrained corner extremes | Current material/ink correction verified; independent trajectories, horizontal ink drift and full optical mechanism remain unresolved. |
 | M3 | Generic calm interaction with stable controls | Preserve existing card limits, motion accessibility, hit targets and gesture ownership through subsequent changes. |
 | O1 | Continuous glass without a split rim | Current lens continuity tested; complete Apple optical identity and Android endpoint precision remain unproven. |
-| A1 | Atlas demonstration and performance | Own-window native gesture phases verified. Profile first scene-switch cost; presented-frame measurements, owner acceptance and later physical-device verification remain. |
+| A1 | Atlas demonstration and performance | Corrected own-window gesture phases verified. Avoid timing conclusions from screenshot overhead; presented-frame measurements, owner acceptance and later physical-device verification remain. |
 | P1 | Easy integration across UI stacks | Typed CanvasKit scene verified in terminal and hosted browser; removes per-widget controller/matrix setup. Other native bindings and automatic host backdrop capture remain absent. |
 | D1 | Useful open-source documentation | Keep the README, usage, research and evidence synchronized with actual verified behavior. |
 | C1 | PR automation and protection | Keep required checks green; final review/merge when ready, without silently bypassing review. |
@@ -123,7 +134,8 @@ presets are unchanged. The existing midpoint remains 329.7385×171.3598px.
    for documentation-only updates. Check only the latest required-check status before final delivery.
 5. Held-travel hosted verification is complete. Native motion playback/local sample checks are also
    finished. Inspect the latest hosted follow-up recorded in `.local/active-goal-checkpoint.txt`;
-   do not duplicate completed runs. Profile initial native redraw cost separately from slow readback.
+   do not duplicate completed runs. Native diagnostic sessions 58306, 55336 and 50321 all finished
+   successfully. The old Compose-dispatcher timing is provisional; use the corrected paired traces.
 6. Continue M1/O1/P1 from their stated gaps. Passing regression tests does not complete the whole goal.
 
 Use `tools/workspace.ps1` and the private caches described in `WORKSPACE.md`.

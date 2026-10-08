@@ -18,6 +18,8 @@ kotlin {
             dependencies {
                 implementation(project(":liquidglass"))
                 implementation(compose.desktop.currentOs)
+                // Already supplied at runtime by Compose; needed directly for non-reentrant diagnostics.
+                implementation(libs.kotlinx.coroutines.swing)
             }
             kotlin.srcDirs("src/jvmMain/kotlin", "../sample/src/main/kotlin/shared")
         }
@@ -39,6 +41,7 @@ compose.desktop {
         }
         providers.gradleProperty("atlas.scene").orNull?.let { jvmArgs += "-Datlas.scene=$it" }
         providers.gradleProperty("atlas.motionCapture").orNull?.let { jvmArgs += "-Datlas.motionCapture=$it" }
+        providers.gradleProperty("atlas.motionReadback").orNull?.let { jvmArgs += "-Datlas.motionReadback=$it" }
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "LiquidGlassStudio"

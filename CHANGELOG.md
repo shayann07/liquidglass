@@ -10,7 +10,9 @@ This file records user-visible development changes. Published artifacts are iden
 - Opt-in Atlas native motion playback using its own AWT input component, with selection/layout
   assertions, app-owned phase snapshots and actual event/render timestamps. Each phase replays
   independently to keep slow readback out of subsequent input; an optional contact-sheet tool
-  preserves source pixels. This is diagnostic evidence, not a presented-FPS benchmark.
+  preserves source pixels. A readback-free control and an isolated Swing dispatcher prevent
+  redraw from re-entering playback; pointer guards reject invalid traces. This is diagnostic
+  evidence, not a presented-FPS benchmark.
 
 - Portable `createGlassScene`: one borrowed backdrop, multiple surfaces/lenses, calm feedback and
   draw transforms behind a reusable host API. Logical coordinates and pixel density are explicit;

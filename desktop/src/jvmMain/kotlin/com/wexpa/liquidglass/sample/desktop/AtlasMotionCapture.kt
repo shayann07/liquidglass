@@ -28,7 +28,8 @@ internal class AtlasMotionProbe {
 }
 
 /** Own-window AWT input and own-buffer captures; no global cursor, screen grab or OS automation. */
-internal suspend fun captureAtlasMotion(window: Container, probe: AtlasMotionProbe, directory: File) {
+internal suspend fun captureAtlasMotion(window: Container, probe: AtlasMotionProbe, directory: File,
+                                       readback: Boolean = true) {
     check(SwingUtilities.isEventDispatchThread())
     fun descendants(component: Component): Sequence<Component> = sequence {
         yield(component)
@@ -48,6 +49,8 @@ internal suspend fun captureAtlasMotion(window: Container, probe: AtlasMotionPro
     val frames = ArrayList<Pair<String, Bitmap>>()
     var pressed = false
     var lastPoint = Offset.Zero
+    var capturing = false
+    var checksPassed = false
     val crop = IRect.makeLTRB(floor(bounds.left - bounds.height).toInt().coerceAtLeast(0),
         floor(bounds.top - bounds.height).toInt().coerceAtLeast(0),
         ceil(bounds.right + bounds.height).toInt(), ceil(bounds.bottom + bounds.height).toInt())
@@ -60,6 +63,8 @@ internal suspend fun captureAtlasMotion(window: Container, probe: AtlasMotionPro
         }
     }
     fun send(id: Int, point: Offset, down: Boolean) {
+        check(!capturing) { "Playback re-entered input during native redraw/readback" }
+        check(if (id == MouseEvent.MOUSE_PRESSED) !pressed else pressed) { "Invalid pointer transition: $id" }
         val local = SwingUtilities.convertPoint(layer,
             (point.x / scale).roundToInt(), (point.y / scale).roundToInt(), input)
         input.dispatchEvent(MouseEvent(input, id, System.currentTimeMillis(),
@@ -71,12 +76,17 @@ internal suspend fun captureAtlasMotion(window: Container, probe: AtlasMotionPro
         lastPoint = point
     }
     fun capture(name: String) {
-        fixedLayout()
-        val start = System.nanoTime()
-        layer.renderImmediately()
-        val rendered = System.nanoTime()
-        frames += name to checkNotNull(layer.screenshot())
-        rows += "$name,${(start-started)/1e6},capture,,,${probe.scene},${(rendered-start)/1e6},${(System.nanoTime()-rendered)/1e6}"
+        check(!capturing) { "Re-entrant native capture" }
+        capturing = true
+        try {
+            fixedLayout()
+            val start = System.nanoTime()
+            layer.renderImmediately()
+            val rendered = System.nanoTime()
+            if (readback) frames += name to checkNotNull(layer.screenshot())
+            val readbackMs = if (readback) (System.nanoTime()-rendered)/1e6 else 0.0
+            rows += "$name,${(start-started)/1e6},capture,,,${probe.scene},${(rendered-start)/1e6},$readbackMs"
+        } finally { capturing = false }
     }
     val left = Offset(bounds.left + bounds.width / 6f, bounds.center.y)
     val right = Offset(bounds.right - bounds.width / 6f, bounds.center.y)
@@ -138,19 +148,20 @@ internal suspend fun captureAtlasMotion(window: Container, probe: AtlasMotionPro
         send(MouseEvent.MOUSE_RELEASED, bottomRight, false)
         delay(1000); capture("07-recovered")
         check(probe.scene == 2) { "Extreme drag lost selection intent: ${probe.scene}" }
+        checksPassed = true
     } finally {
-        // Do not leave a held pointer behind if a verification assertion fails.
-        if (pressed) send(MouseEvent.MOUSE_RELEASED, lastPoint, false)
-        File(directory, "events.csv").writeText(rows.joinToString("\n") + "\n")
-        File(directory, "capture.json").writeText("""{
-          "backend":"${layer.renderApi}","scale":$scale,
-          "navigation":{"left":${bounds.left},"top":${bounds.top},"width":${bounds.width},"height":${bounds.height}},
-          "input":"AWT events dispatched only to this application's Compose component",
-          "timing":"Each phase uses a fresh gesture replay because native readback is slow. CSV capture timestamps are render-start times. PNG encoding follows input. Not a continuous video, presented FPS or measured iOS timing."
-        }""")
-        // Encoding can take much longer than drawing. It must not pause an active gesture.
-        // Release every owned bitmap even if an assertion or encoder fails.
         try {
+            // Do not leave a held pointer behind if a verification assertion fails.
+            if (pressed) send(MouseEvent.MOUSE_RELEASED, lastPoint, false)
+            File(directory, "events.csv").writeText(rows.joinToString("\n") + "\n")
+            File(directory, "capture.json").writeText("""{
+              "backend":"${layer.renderApi}","scale":$scale,"readbackEnabled":$readback,"checksPassed":$checksPassed,
+              "navigation":{"left":${bounds.left},"top":${bounds.top},"width":${bounds.width},"height":${bounds.height}},
+              "input":"AWT events dispatched only to this application's Compose component",
+              "timing":"Each phase uses a fresh gesture replay because native readback is slow. CSV capture timestamps are render-start times. PNG encoding follows input. Not a continuous video, presented FPS or measured iOS timing."
+            }""")
+            // Encoding can take much longer than drawing. It must not pause an active gesture.
+            // Release every owned bitmap even if an assertion or encoder fails.
             withContext(Dispatchers.IO) {
                 for ((name, bitmap) in frames) {
                     Bitmap().use { subset ->

@@ -797,7 +797,8 @@ The [before trace](atlas/held-travel-before-trace.csv) uses the same fixture and
 
 ### Native motion phase captures
 
-![Native Atlas phase snapshots, in input order](atlas/native-motion-phases.png)
+The initial [phase sheet](atlas/native-motion-phases.png) is historical evidence. Its timing
+method is superseded by the dispatcher correction below; the native images remain preserved.
 
 Atlas's opt-in `atlas.motionCapture` mode exercises the real sample through its own Compose AWT
 mouse component. It does not retarget the controller, set selection directly, move the OS cursor
@@ -824,8 +825,8 @@ started rendering 30.4ms after UP but its redraw submission took **122.8ms**. Th
 began at 76.2ms and took 19.4ms. Those replays are not interchangeable samples of one ideal timed
 curve: first scene-switch/JIT/render work can change the result. Other sampled redraws took
 8.4–31.9ms; readback took 1.35–1.52s. These are diagnostic submission/readback durations, not
-presented FPS or end-to-end input latency. The initial scene-switch cost needs profiling before
-making a smoothness claim; its cause is not established by this capture.
+presented FPS or end-to-end input latency. A subsequent diagnostic failure made the 122.8ms result provisional. It must not be treated
+as an established renderer bottleneck; see the corrected paired runs below.
 
 All native selection/layout assertions passed in the 1m3s run. The earlier stale observation
 through a deferred composition side effect was replaced by observation at the sample's actual
@@ -835,6 +836,45 @@ to satisfy the playback. The separate desktop/Android regression run is recorded
 [Original PNGs, events and metadata](atlas/native-motion-2026-10-08/) are preserved together.
 [Reproduction commands](../WORKSPACE.md#native-motion-diagnostics) use only the private wrapper
 and application-owned capture mode. The [plotter](../tools/plot_native_motion.py) needs Pillow.
+
+### Native diagnostic correction: isolate redraw from playback
+
+![Corrected native phase snapshots](atlas/native-motion-swing-2026-10-08/phases.png)
+
+Turning off readback exposed a flaw in the measurement tool: forced native redraw could flush
+the Compose coroutine dispatcher and re-enter its own playback continuation. That run raised
+`ConcurrentModificationException` / `CoroutinesInternalError`, delivered a drag after release
+and failed the Sky selection assertion. Its [event trace](atlas/native-motion-swing-2026-10-08/rejected-compose-dispatcher-events.csv)
+is retained as a rejected run. It is not evidence of a glass rendering or gesture-controller defect.
+
+Static and motion diagnostics now run on the plain Swing dispatcher. Explicit guards reject
+capture re-entry and invalid pointer transitions. Metadata reports whether assertions completed;
+bitmap cleanup also covers metadata/encoding failures. The desktop-only coroutine dependency is
+the same 1.11.0 already supplied at runtime by Compose. Library behavior is unchanged.
+
+Both corrected runs passed selection and fixed-layout assertions, produced 16 phase records,
+and passed a separate event-sequence audit with the pointer released at the end:
+
+| Corrected own-window run | First scene-switch submission | All sampled submissions | Readback | Duration |
+| --- | ---: | ---: | ---: | ---: |
+| Native snapshots | 757.5ms | 9.5–757.5ms | 2546.9–3664.7ms | 1m32s |
+| Readback disabled | 59.9ms | 8.3–82.3ms | None | 39s |
+
+An earlier corrected no-readback run measured 74.2ms for the first scene switch. This variation
+and the snapshot overhead preclude a controlled speedup or renderer-cause claim. In the final
+sheet, the requested 25ms phase begins rendering 31.2ms after UP, but its submission takes 757.5ms;
+the image can therefore look farther progressed than the later nominal phase. **Requested delay
+is not visible frame time.** These are independent native snapshots, not a presented-frame trace.
+
+The [corrected static Atlas screenshot](atlas/native-motion-swing-2026-10-08/static.png) was also
+inspected at 1920×1051 Direct3D. Its 120 submissions after ten warmups measured 15.781ms median,
+18.9464ms p95 and 23.9217ms maximum. This verifies the corrected capture path, not interactive FPS.
+CSV, metadata, all images and static timing are kept in the [corrected evidence directory](atlas/native-motion-swing-2026-10-08/).
+
+The preceding playback implementation **078357d** passed all seven required hosted checks in
+[run 37812243775](https://github.com/shayann07/liquidglass/actions/runs/37812243775). Library tests
+were restored from their verified 820659d cache; both Atlas tests ran freshly in 5m7.41s. The build
+job took 6m55s (Gradle 5m59s). Hosted verification of this dispatcher correction is tracked separately.
 
 ### Resting-tap midpoint: height was late
 
