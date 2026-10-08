@@ -7,6 +7,12 @@ This file records user-visible development changes. Published artifacts are iden
 
 ### Added
 
+- Portable `createGlassScene`: one borrowed backdrop, multiple surfaces/lenses, calm feedback and
+  draw transforms behind a reusable host API. Logical coordinates and pixel density are explicit;
+  input, semantics and labels remain with the host. Includes appearance updates and lifecycle cleanup.
+- TypeScript declarations for high-level portable APIs, packaged LICENSE/NOTICE and a standalone
+  runtime isolation check. The scene's motion bundle is generated from the existing portable source.
+
 - `GlassScene` and its scoped `Modifier.glass`, connecting one recorded backdrop to multiple overlays.
 - `GlassStyle.clearLens(magnification)` and `GlassProfile.Lens`: a continuous magnifier mapping shared
   by material and foreground, with input validation and rendered continuity regressions.

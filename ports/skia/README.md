@@ -39,6 +39,63 @@ Press Space or hold and pull the card; its material deforms while the label stay
 motion disables geometry immediately. This is separate whole-surface feedback, not selector travel.
 See the [portable feedback API](../../docs/porting.md#portable-calm-feedback) for other hosts.
 
+## Start with one scene
+
+`createGlassScene` combines the painter and calm feedback controller. Add surfaces once; the scene
+applies their drawing transforms and tells your host when another animation frame is needed.
+Use it with any UI framework that can supply a CanvasKit canvas and an opaque source image:
+
+```js
+import { createGlassScene } from 'liquidglass-skia-preview';
+
+const scene = createGlassScene(CanvasKit, { width: 800, height: 600, pixelRatio: 2 });
+scene.setSource(backdropImage); // 1600×1200 opaque image, borrowed from the host
+const card = scene.addSurface({ x: 24, y: 440, width: 320, height: 96, radius: 24 }, { dark: true });
+const lens = scene.addLens({ x: 240, y: 100, width: 180, magnification: 1.25 });
+
+// From your existing input handlers: monotonic seconds, total displacement from pointer-down.
+card.press(time, totalDx, totalDy);
+card.release(time); // also use on cancellation or when scrolling wins the gesture
+
+// From your host's frame callback:
+const animateAgain = scene.draw(canvas, time);
+drawYourLabelsAndControls(canvas); // stay in the host's layout; not transformed by the glass
+surface.flush();
+// Schedule another frame while animateAgain is true, or when source/input/layout changes.
+
+card.setBounds({ x: 40, width: 360 }, time); // layout change cancels stale pointer coordinates
+card.setMaterial({ dark: false, increasedContrast: 1 });
+lens.setBounds({ magnification: 1.5 }, time);
+scene.setReducedMotion(prefersReducedMotion, time);
+scene.dispose(); // on unmount/context loss, before the host deletes its source/surface
+```
+
+Initialize CanvasKit and the host surface using its [official setup](https://skia.org/docs/user/modules/canvaskit/).
+For this preview, install the checked-out directory as a local dependency, or import `./index.mjs`.
+Nothing is published to npm. The root scene, painter and interaction exports include TypeScript declarations,
+checked against strict consumer examples. `./scene` and `./interaction` also provide typed subpath imports.
+
+Scene bounds and displacement use **logical pixels**. Supply a canvas/image at `pixelRatio` times those
+dimensions (ratio in `(0, 4]`); the scene converts material coordinates and density exactly once.
+`scene.resize({width, height, pixelRatio}, time)` updates containment and cancels existing gestures.
+Resize/recreate your backing surface and replace the source yourself. The image is sampled at its native
+size; the scene does not stretch it to cover a differently sized canvas. Source replacement requires
+`scene.setSource(newImage)` before deleting the previous image.
+
+`scene.draw` paints the source followed by glass in insertion order; `{drawBackdrop: false}` skips the
+source draw when your host already painted it. Glass samples the supplied backdrop, excluding other
+glass overlays. Labels, layout, hit testing, semantics and gesture arbitration remain in the host.
+It owns no DOM listeners, automatic screenshot capture, timers, navigation selection or render surface.
+`layer.bounds` and `layer.feedback` are defensive snapshots; feedback never writes layout. Use `remove()`
+when a layer leaves your UI. Dispose the scene once its graphics context is lost and recreate it on
+restoration, as the browser example does.
+
+The package bundles the existing portable feedback source, with a drift check rather than a second
+maintained implementation. After changing `ports/web/core.mjs` or `interaction.mjs`, run
+`npm run generate:interaction` here. An isolation test copies only package runtime files to a temporary
+directory and renders without the sibling web checkout. LICENSE/NOTICE are included and checked against
+the repository copies. This is a reusable CanvasKit integration, not a native binding for every framework.
+
 ## Draw a lens without managing uniforms
 
 Initialize CanvasKit using its [official setup](https://skia.org/docs/user/modules/canvaskit/).
@@ -73,7 +130,7 @@ shader strings explicitly. The default strings are generated from `shaders/*.sks
 rejects a stale bundle, and the JVM test verifies those exports against Kotlin's production strings.
 After regenerating the production exports, run `npm run generate:shaders` here and commit both.
 
-The package's root export is `createGlassPainter`. For a local dependency installed from this
+The package also exports `createGlassPainter`. For a local dependency installed from this
 directory, use `import { createGlassPainter } from 'liquidglass-skia-preview'`. The preview remains
 private/unpublished; no npm registry package or remote CDN is required or implied. `./renderer`
 exposes the lower-level bindings and `./shaders` exports the immutable `glassShaderSources` object.

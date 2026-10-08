@@ -56,6 +56,26 @@ belong to the integration. No arbitrary-view capture or drop-in support for unte
 
 ## The small contract
 
+For a CanvasKit host, start with `createGlassScene` from the local `liquidglass-skia-preview` package.
+It combines one borrowed source image, multiple lenses/cards, calm interaction and drawing transforms.
+This removes per-widget matrix setup and uses logical coordinates with an explicit `pixelRatio`.
+The host still supplies input, labels, accessible controls, frame scheduling and a matching source/canvas.
+The root scene, painter and interaction exports have TypeScript declarations; native bindings for
+other languages are still separate work. See the
+[scene example and lifecycle](https://github.com/shayann07/liquidglass/blob/main/ports/skia/README.md#start-with-one-scene).
+
+```js
+const scene = createGlassScene(CanvasKit, { width: 800, height: 600 });
+scene.setSource(backdropImage);
+const panel = scene.addSurface({ x: 24, y: 440, width: 320, height: 96, radius: 24 }, { dark: true });
+panel.press(timeInSeconds, cumulativeDx, cumulativeDy);
+const animateAgain = scene.draw(canvas, timeInSeconds);
+// Draw ordinary content, flush, and schedule again while animateAgain is true.
+// On cancellation: panel.release(timeInSeconds). On unmount: scene.dispose().
+```
+
+The following contract remains useful for other rendering backends and more specialized hosts.
+
 1. **Record the backdrop once.** Supply an opaque texture for the region behind glass, with a declared
    top-left origin, pixel density and colour space. Exclude the glass overlays to avoid recursive feedback.
 2. **Supply geometry in one frame.** A surface has local dimensions, shape, a transform into the backdrop

@@ -1010,5 +1010,30 @@
       "web": "passed",
       "skia": "passed"
     }
+  },
+  "portable-scene": {
+    "status": "terminal/types/docs passed; hosted browser pending",
+    "tests": {
+      "skia": 20,
+      "portableMath": 13,
+      "typeConsumers": "strict root/subpath imports and negative API cases passed",
+      "isolatedPackage": "real Skia rendering without sibling checkout; source ownership and notices verified",
+      "skiaDurationMs": 14566.1453
+    },
+    "image": "skia-scene-example.png",
+    "imageScope": "640x360 software Skia terminal fixture, inspected; not native or iOS comparison",
+    "coordinates": "logical units with explicit pixelRatio; exact resting pixels versus painter at1x/2x",
+    "behavior": [
+      "stable layout and independent layers",
+      "exact release and reduced-motion recovery",
+      "resize cancellation",
+      "appearance updates",
+      "host canvas restoration on failure",
+      "borrowed source ownership",
+      "source replacement and optional backdrop drawing"
+    ],
+    "scope": "CanvasKit host integration only; no automatic capture, native bindings for other frameworks or selector controller",
+    "typescriptDevVersion": "7.0.2",
+    "runtimePublished": false
   }
 }

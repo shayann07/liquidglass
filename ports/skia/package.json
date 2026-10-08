@@ -4,15 +4,50 @@
   "private": true,
   "type": "module",
   "license": "Apache-2.0",
+  "types": "./index.d.mts",
+  "files": [
+    "index.mjs",
+    "scene.mjs",
+    "painter.mjs",
+    "renderer.mjs",
+    "material.mjs",
+    "backdrop.mjs",
+    "interaction.mjs",
+    "shaders.mjs",
+    "shaders/",
+    "LICENSE",
+    "NOTICE",
+    "index.d.mts",
+    "scene.d.mts",
+    "interaction.d.mts"
+  ],
   "exports": {
-    ".": "./painter.mjs",
+    ".": {
+      "types": "./index.d.mts",
+      "default": "./index.mjs"
+    },
+    "./scene": {
+      "types": "./scene.d.mts",
+      "default": "./scene.mjs"
+    },
+    "./interaction": {
+      "types": "./interaction.d.mts",
+      "default": "./interaction.mjs"
+    },
     "./renderer": "./renderer.mjs",
     "./shaders": "./shaders.mjs"
   },
   "scripts": {
     "generate:shaders": "node generate-shaders.mjs",
-    "test": "node generate-shaders.mjs --check && node --test renderer.test.mjs painter.test.mjs",
+    "generate:interaction": "node generate-interaction.mjs",
+    "test:types": "tsc -p tsconfig.types.json",
+    "test": "node generate-shaders.mjs --check && node generate-interaction.mjs --check && npm run test:types && node --test renderer.test.mjs painter.test.mjs scene.test.mjs",
     "example": "node example.mjs"
   },
-  "dependencies": { "canvaskit-wasm": "0.42.0" }
+  "dependencies": {
+    "canvaskit-wasm": "0.42.0"
+  },
+  "devDependencies": {
+    "typescript": "7.0.2"
+  }
 }
