@@ -1,0 +1,29 @@
+{
+  "sourceSha256": "b1daa86ae7a6f9246fb56b19af9a82ec939ad2315c947954ee1e6869a8168006",
+  "command": [
+    "ffmpeg",
+    "-hide_banner",
+    "-copyts",
+    "-ss",
+    "1.0",
+    "-i",
+    "docs\\2.MP4",
+    "-an",
+    "-vf",
+    "trim=start=1.0:end=3.0,zscale=t=linear:npl=100,format=gbrpf32le,zscale=p=bt709:t=iec61966-2-1:m=bt709:r=full,format=rgb24,crop=1170:260:0:420,showinfo",
+    "-fps_mode",
+    "passthrough",
+    ".local\\motion-2026-10-08\\video2-first-hold-travel\\frame-%03d.png"
+  ],
+  "source": "2.MP4",
+  "crop": [
+    0,
+    420,
+    1170,
+    260
+  ],
+  "timeBase": "1/600",
+  "frames": 108,
+  "firstPts": 624,
+  "lastPts": 1794
+}

@@ -16,6 +16,9 @@ The [native motion phases](review/ATLAS-STABILIZATION.md#native-motion-phase-cap
 desktop input, travel, release and extreme pulls. The [measurement correction](review/ATLAS-STABILIZATION.md#native-diagnostic-correction-isolate-redraw-from-playback)
 documents a rejected timing method and verified replacement; screenshots do not establish frame rate.
 The [progress tracker](PROGRESS.md) lists the verified checkpoint, unfinished requirements and next steps.
+The [new labelled motion audit](research/analysis/MOTION-2026-10-08.md) preserves native timestamps,
+original measurements and a failing production baseline. Short and long taps expose shape differences
+that the earlier still-image checks did not cover; those checks do not establish motion parity.
 
 ## Start with one scene
 

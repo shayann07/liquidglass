@@ -1373,5 +1373,28 @@
     "inspection": "three exact-PTS bar crops inspected",
     "sourceComment": "GlassTabBarStyle.subside: authored historical baseline, no numerical change",
     "limitation": "No observed finger-up timestamp or replacement release rate; full parity remains open"
+  },
+  "labelled-phone-motion-baseline": {
+    "status": "new source counterexamples and failing baseline saved; no production tuning",
+    "modelCommit": "f24634d97ed1a2e7d89eeef5563d19c24bdb9771",
+    "packet": "review/atlas/new-motion-2026-10-08/README.md",
+    "log": "research/analysis/MOTION-2026-10-08.md",
+    "nativeFrames": [
+      1751,
+      1993
+    ],
+    "touchSamples": 14430,
+    "plainRetargetSamples": 2886,
+    "currentLimits": "Independent contour/timing fit remains open. Short tap329x204 versus186bar, long396x159. Cross-section vs bounds diagnostic only; press duration not recovered.",
+    "compile": "passed32s",
+    "hosted": {
+      "commit": "f24634d97ed1a2e7d89eeef5563d19c24bdb9771",
+      "run": 37830422383,
+      "requiredChecks": "all seven passed",
+      "library": "FROM-CACHE verified0e5c1d6",
+      "desktop": "FROM-CACHE verified0e5c1d6",
+      "build": "1m31s",
+      "gradle": "58s"
+    }
   }
 }

@@ -3,6 +3,21 @@
 This is an authored refinement informed by the owner's original iPhone captures. It does not replace
 historical measured presets or claim recovery of Apple's private rendering implementation.
 
+## New labelled motion recordings
+
+The owner's new tap-only and held/throw recordings are being audited at their native timestamps.
+The first short tap includes a 329×204px visible selector against a 186px bar. A long tap instead
+has a much flatter 396×159px cross-section. Authored 40–240ms press alternatives in the unchanged
+controller do not recover these paired shapes at the observed travel phases. These comparisons
+use inspected pixel cross-sections and model bounds; they are not a complete contour or timing fit.
+
+The [live research log](https://github.com/shayann07/liquidglass/blob/main/research/analysis/MOTION-2026-10-08.md)
+preserves hashes, failures, uncertain measurements and next steps. The
+[comparison packet](https://github.com/shayann07/liquidglass/blob/main/review/atlas/new-motion-2026-10-08/README.md)
+includes original crops, raw probes and the unchanged production baseline. No new motion constant
+has been accepted from these recordings yet. Earlier green tests remain regression evidence,
+not proof of full motion parity.
+
 ## Release attribution correction
 
 The inherited LOLL8185 release calibration is not reliable. Exact native-time crops at

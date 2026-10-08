@@ -31,6 +31,14 @@ happens. These labelled recordings supersede speculative gesture classification 
 
 ## Latest findings
 
+**New recordings:** [failing baseline packet](review/atlas/new-motion-2026-10-08/README.md) saved.
+Native RGB probes give long-tap396x159 and short-tap329x204 inside186px outer-bar geometry.
+The unchanged controller misses paired shape even across authored40..240ms touch alternatives.
+Tap-only is the owner's class, not a known finger duration. Full contour/timing fit remains open;
+no production parameter changed from this research. Read the live log's final next-action section.
+Exactf24634d all seven checks passed; library/Atlas FROM-CACHE of verified0e5c1d6, build1m31s.
+
+
 **Diagnostics:** forced redraw re-entered the Compose playback coroutine, causing duplicate input
 and a failed selection assertion. Static and motion diagnostics now use the plain Swing dispatcher
 with capture/pointer guards. The earlier122.8ms timing is provisional, not a proven renderer defect.
@@ -70,8 +78,8 @@ the historical spring's source comment is corrected, without changing its value.
    58306/55336/50321 are finished. Observation timeout does not mean a job stopped; never duplicate it.
 3. Exact0e5c1d6 hosted build37822979856 is finished and all required checks passed; reports inspected.
    Reuse its evidence. Inspect the latest checkpoint for the next pushed revision and live run.
-4. Next M1 action: catalogue the TWO NEW videos using the live log, then measure their native-PTS
-   tap/hold/throw episodes. Do not resume the old T04 timing fit ahead of these labelled inputs.
+4. Next M1 action: follow the final next-action section of the live log. Both new videos are
+   indexed; first tap counterexamples and unchanged production baselines are saved. Do not resume the old T04 timing fit ahead of these labelled inputs.
    For older material, select a clean continuous original contour sequence with native timestamps,
    verify its edge track and compare production output. JGEY2190n176–182 is **not an isolated tap**;
    inherited rim/glyph tracks are neither reliable release contours nor finger trajectories.

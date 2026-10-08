@@ -1278,3 +1278,17 @@ strict endpoint gate; the historical and Android path remains above it.
 The new calm timing is authored; whole-bar extreme gestures need further matched original-frame comparisons.
 Universal native bindings, complete web host/compositor integration, presented-frame motion performance,
 and current physical-device verification remain incomplete. The active goal is not marked complete.
+
+## Newly labelled Phone recordings: preserve the failing baseline
+
+The [live audit](../research/analysis/MOTION-2026-10-08.md) now includes complete native indexes
+for both new recordings, fixed-window RGB probes and unchanged production-controller traces.
+A short tap reaches329x204px against a186px bar; a long tap has a396x159px cross-section.
+Authored40..240ms contact alternatives do not recover the paired dimensions at comparable
+travel phases. No numerical library tuning has been accepted from this evidence yet.
+
+[Original crops, comparison plot, caveats and reproduction](atlas/new-motion-2026-10-08/README.md).
+The comparison is between optical cross-sections and model bounds, not a complete contour or
+input-timing fit. This new evidence takes precedence over earlier assumed tap containment.
+Exactf24634d CI37830422383 passed all seven required checks. Library and Atlas tests were
+restored FROM-CACHE of verified0e5c1d6; build1m31s/Gradle58s, not fresh test execution.
