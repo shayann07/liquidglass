@@ -1012,7 +1012,7 @@
     }
   },
   "portable-scene": {
-    "status": "terminal/types/docs passed; hosted browser pending",
+    "status": "terminal, types, docs and hosted browser passed; all seven required checks passed",
     "tests": {
       "skia": 20,
       "portableMath": 13,
@@ -1034,6 +1034,29 @@
     ],
     "scope": "CanvasKit host integration only; no automatic capture, native bindings for other frameworks or selector controller",
     "typescriptDevVersion": "7.0.2",
-    "runtimePublished": false
+    "runtimePublished": false,
+    "commit": "014b16e7cb45e132b73ab82d29d2f44b9ca9b905",
+    "hosted": {
+      "run": 37732791140,
+      "requiredChecks": 7,
+      "skiaPassed": 20,
+      "skiaDurationMs": 12431.82693,
+      "typeConsumers": "passed",
+      "portableMathPassed": 13,
+      "browserPassed": 5,
+      "browserSeconds": 26.0,
+      "jvmAndDesktop": "unchanged, restored from verified cache; fresh execution at8d9917a"
+    },
+    "browserImages": [
+      "skia-scene-browser-held.png",
+      "skia-scene-browser-restored.png"
+    ],
+    "browserInspection": "completed"
+  },
+  "showcase-skip-audit": {
+    "count": 27,
+    "source": "completed336-case JVM XML reports at8d9917a",
+    "reason": "All27 cases assume -Pliquidglass.showcase=<dir>; optional showcase exports",
+    "result": "recorded as skipped, not passed"
   }
 }

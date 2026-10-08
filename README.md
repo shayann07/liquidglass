@@ -168,6 +168,8 @@ Tests compile the production shaders through Skia, exercise gesture ownership an
 pixels. They also distinguish ordinary travel from extreme drags. Native screenshots complement
 these tests; a passing build alone does not prove optical parity. [Contributing](CONTRIBUTING.md)
 describes evidence requirements and [security reporting](SECURITY.md) explains the trust boundaries.
+The 27 skipped cases in ordinary JVM runs are opt-in showcase exports. Enable them with
+`-Pliquidglass.showcase=<output-directory>` when producing that separate gallery.
 
 ## Research and limitations
 

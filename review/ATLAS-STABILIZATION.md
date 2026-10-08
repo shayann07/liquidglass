@@ -1,4 +1,4 @@
-# Atlas and material stabilization â€” 2026-10-03
+# Atlas and material stabilization — 2026-10-03
 
 ## Plan and acceptance gates
 
@@ -72,10 +72,10 @@ it can overestimate the visible body. Do not fit pointer gain to that annotation
 ![Original Phone T01 sequence](atlas/reference-T01_sheet.png)
 
 The earlier original-frame audit records a 186px bar and approximately 225px settled held height
-(about 1.21 bar heights, +/-4px edge uncertainty), versus a 284Ã—162px resting selector. This supplies
+(about 1.21 bar heights, +/-4px edge uncertainty), versus a 284×162px resting selector. This supplies
 a conservative **1.23 bar-height** ceiling for the new synthetic hold tests. The new preset aims at
-1.20. The initial 1.16 choice failed the original settled-height tolerance: 215.76px instead of 225Â±4px.
-Restoring 1.20 gives 223.20px height and 345.19px width, within the original 225Â±4px and 350Â±10px bounds.
+1.20. The initial 1.16 choice failed the original settled-height tolerance: 215.76px instead of 225±4px.
+Restoring 1.20 gives 223.20px height and 345.19px width, within the original 225±4px and 350±10px bounds.
 This chosen bound is not a universal maximum for all Apple materials or a measured finger trace.
 The existing reference fixture preserves the previous T01 height fit independently.
 
@@ -83,7 +83,7 @@ The existing reference fixture preserves the previous T01 height fit independent
 
 The selector-height audit above does not bound the surrounding bar. A fresh decode of the original
 `IMG_6756.MP4` at PTS 20819/600 (34.698333s, rest) and 29863/600 (49.771667s, T04 extreme hold)
-gives the following outer-body measurements. These are full-density 1170Ã—440 crops at `(0,2092)`,
+gives the following outer-body measurements. These are full-density 1170×440 crops at `(0,2092)`,
 not resized contact-sheet tiles.
 
 | Rest | Ordinary hold | Extreme hold |
@@ -91,39 +91,39 @@ not resized contact-sheet tiles.
 | ![Original resting bar](atlas/reference-bar-rest.png) | ![Original held bar](atlas/reference-bar-held.png) | ![Original extreme whole bar](atlas/reference-bar-extreme.png) |
 
 At unoccluded columns 400, 450, 500 and 550, thresholds 5/10/15 out of 255 give **186px** resting
-height and **204â€“205px** held height. All four columns agree. The resting top/bottom rows are
-191/376; the held top is 171â€“172 and bottom 375, relative to the crop. Thus most of the growth is
+height and **204–205px** held height. All four columns agree. The resting top/bottom rows are
+191/376; the held top is 171–172 and bottom 375, relative to the crop. Thus most of the growth is
 above the original bar. This contradicts treating the reference as a perfectly centre-symmetric
 expansion. The current anchored material model is intentionally conservative; that asymmetric response
 is still a parity difference, not silently dismissed as measurement noise. Neither frame reveals a
 finger position, so these values cannot identify input gain or a timing curve.
 
-The intervening ordinary hold at PTS 21019/600 (35.031667s) measures **196px**, rows 186â€“381,
+The intervening ordinary hold at PTS 21019/600 (35.031667s) measures **196px**, rows 186–381,
 at the same columns and all three thresholds. Its growth is approximately symmetric about the
-resting centre. The extra extreme deformation is therefore 8â€“9px beyond ordinary hold, not the
-full 18â€“19px beyond rest. This independently supports separating press from drag strain. The generic
-Calm press alone gives 191.58px; a fail-first test rejected it against 196Â±1px. The navigation preset
+resting centre. The extra extreme deformation is therefore 8–9px beyond ordinary hold, not the
+full 18–19px beyond rest. This independently supports separating press from drag strain. The generic
+Calm press alone gives 191.58px; a fail-first test rejected it against 196±1px. The navigation preset
 now reuses the earlier rounded 1.05 scale, giving **195.3px**, on the material alone. Its label scale
 stays 1.0. Generic cards retain 3%/2dp press growth. The Calm timing and all drag coefficients stay
 unchanged; restoring normal touch amplitude must not increase drag sensitivity.
 
 The portable Calm regression now uses the measured **205px** upper height as a separate bound. It
-tests 72 pull directions, 10,000 logical-pixel excursions, and press/release frames with the 834Ã—186px
+tests 72 pull directions, 10,000 logical-pixel excursions, and press/release frames with the 834×186px
 bar at density three. Generic feedback peaks at **194.2524px**. With the navigation press override,
 the maximum is **198.0169px**. A Kotlin test exercises the production deformation functions across
 72 directions, six press amounts and five pull distances; independent capsule support gives
-**198.01695px**. This passes a no-excess-stretch bound, but remains 6â€“7px below the original extreme
+**198.01695px**. This passes a no-excess-stretch bound, but remains 6–7px below the original extreme
 and does **not** establish matched iOS deformation. Twelve portable numerical tests pass, including
 gradual viewport-limited press targets and unchanged generic defaults.
 
 The visible foreground also changes in these originals. Isolating the unselected Contacts icon
 at thresholds 160/200/230 gives the following bounds (the table uses threshold 200):
 
-| State | Icon width Ã— height | Icon bounds centre, crop pixels |
+| State | Icon width × height | Icon bounds centre, crop pixels |
 | --- | --- | --- |
-| Rest | 69 Ã— 69 | 479.5, 263.5 |
-| Ordinary hold | 73 Ã— 73 | 482.5, 262.5 |
-| Extreme hold | 69 Ã— 76 | 475.5, 251.0 |
+| Rest | 69 × 69 | 479.5, 263.5 |
+| Ordinary hold | 73 × 73 | 482.5, 262.5 |
+| Extreme hold | 69 × 76 | 475.5, 251.0 |
 
 The icon centre is 11.5px higher at extreme than at ordinary hold at all three thresholds; its
 shape changes too. The outer-bar measurements therefore cannot be explained by symmetric growth
@@ -161,8 +161,8 @@ not a like-for-like optical comparison with iOS:
 
 A second audit uses one continuous T04 episode rather than comparing its extreme with an earlier
 gesture. Before/after rest both measure 186px, centred at y 283.5 in the same crop. Ordinary hold
-measures 196px at that centre. During the prolonged drag the bar grows gradually to 205â€“206px and
-its visible centre rises 10.5â€“11px, then both recover. This rules out a different resting placement
+measures 196px at that centre. During the prolonged drag the bar grows gradually to 205–206px and
+its visible centre rises 10.5–11px, then both recover. This rules out a different resting placement
 between the two gestures as the explanation for the previously reported asymmetry.
 
 ![Original T04 whole-bar height and visible centre](atlas/reference-bar-sequence.png)
@@ -197,14 +197,14 @@ tap correction or generic card defaults. No new Apple timing constant is inferre
 
 The original T04 crop at PTS 31074/600 has a clear bar boundary at its central row 272: x63..895,
 or 833px wide, with 206px height. Earlier sustained samples measure 205px high. The before/after
-rest widths are 832â€“834px. These values reject a model that only adds height while retaining the
-ordinary-held width: the previous implementation gave **872.98Ã—198.02px**. The new transverse
+rest widths are 832–834px. These values reject a model that only adds height while retaining the
+ordinary-held width: the previous implementation gave **872.98×198.02px**. The new transverse
 probes are included in the sequence JSON; ROI-clipped rows and rows with protruding selected lenses
 are not clean surrounding-bar widths and must not be fitted blindly.
 
 The recommended navigation preset now uses `GlassPullShape.AreaPreserving`. A small bounded
 log-strain couples lengthening with narrowing; the calibrated reference-sized fixture gives
-**835.49Ã—204.70px**, passing the independent rounded gates 834Â±4 Ã— 205Â±1.1px. Its determinant is 1
+**835.49×204.70px**, passing the independent rounded gates 834±4 × 205±1.1px. Its determinant is 1
 before press and viewport limiting. The height gate retains the earlier selected-frame ceiling;
 the width gate uses the clear late frame. Against that late frame itself the residual is +2.49px
 width and -1.30px height. This is a conservative multi-frame fit, not an exact paired-frame match.
@@ -223,7 +223,7 @@ paired dimensions, opposite/diagonal pulls, 72 directions, zero translation and 
 gate that prevents early saturation. Thirteen portable math/controller tests passed, including
 the same paired dimensions, release recovery, reduced motion and viewport outline containment
 under both policies. Full renderer/desktop verification passed for this change at `124ae17`; the
-successful `87e17a4` runs below precede it. The reference's 10.5â€“11px upward visible-centre shift
+successful `87e17a4` runs below precede it. The reference's 10.5–11px upward visible-centre shift
 is still unmatched; the new dimensions alone do not establish full parity.
 
 ### Verified checkpoint: 124ae17
@@ -243,13 +243,13 @@ inspected, rather than treating a cache-restored result as a new execution.
 | --- | --- | --- |
 | ![Held navigation](atlas/checkpoint-124ae17-held.png) | ![Upward pull](atlas/checkpoint-124ae17-top.png) | ![Corner pull](atlas/checkpoint-124ae17-corner.png) |
 
-These are **480Ã—220 Compose software-rendered** fixtures over the same striped source, with
+These are **480×220 Compose software-rendered** fixtures over the same striped source, with
 quarter-scale backdrop sampling. The upward pull narrows the material relative to ordinary hold;
 ordinary foreground and layout stay fixed. They establish rendered behaviour, not an iOS optical match.
 
 ![Fresh native Atlas line-grid capture](atlas/checkpoint-124ae17-native.png)
 
-Atlas then launched after the CPU tests finished, using Direct3D at **1920Ã—1051**. The line-grid lens
+Atlas then launched after the CPU tests finished, using Direct3D at **1920×1051**. The line-grid lens
 has continuous detail through its interior; the scene and selected navigation ink are visible.
 Static redraw submissions over 120 samples after ten warmups measured **9.3334ms median / 15.1117ms
 p95 / 21.271ms maximum** ([raw timing](atlas/checkpoint-124ae17-native-timing.json)). The earlier
@@ -260,20 +260,20 @@ speedup claim. Neither run measures presented frames or native gesture latency.
 Full parity remains open, including the reference's asymmetric visible boundary, input/timing
 identification, Android compositor precision and current physical-device verification.
 
-### Asymmetric material drawing â€” 2026-10-08 candidate
+### Asymmetric material drawing — 2026-10-08 candidate
 
 Total size alone hid a persistent error. The original selected T04 frame (PTS29863/600,
-`reference-bar-extreme.png`) has top rows171â€“172 and bottom375, with a resting centre at283.5.
+`reference-bar-extreme.png`) has top rows171–172 and bottom375, with a resting centre at283.5.
 A new independent edge test rejected the centred candidate before changing the implementation:
 
 | Edge in original crop coordinates | Selected original | Centred candidate | Directional material candidate |
 | --- | --- | --- | --- |
-| Top |171â€“172px |181.15088px |170.73486px |
+| Top |171–172px |181.15088px |170.73486px |
 | Bottom |375px |385.84912px |375.43310px |
 | Visible-centre displacement |about -10.5px |0px |-10.416px |
 
 `AreaPreserving` now adds a drawing bias toward the resisted pull, capped at **5.6% of the
-unpressed short side**. The existing matrix still gives835.49Ã—204.70px. This is an authored
+unpressed short side**. The existing matrix still gives835.49×204.70px. This is an authored
 spatial fit below the selected10.5px displacement; no finger gain, timing or Apple rendering
 mechanism is identified. Extending the same bounded law to other directions is an explicit
 extrapolation. Ordinary press adds no bias; generic Adaptive cards/controls are unchanged.
@@ -289,7 +289,7 @@ that foreground optical difference remains open.
 | --- | --- | --- |
 | ![Held material](atlas/bar-asymmetric-held.png) | ![Upward biased material](atlas/bar-asymmetric-top.png) | ![Corner biased material](atlas/bar-asymmetric-corner.png) |
 
-These are480Ã—220 software Compose frames over a synthetic stripe source, not like-for-like
+These are480×220 software Compose frames over a synthetic stripe source, not like-for-like
 optical comparisons to iOS. The new Kotlin checks sample the full biased contour at every viewport
 edge, preserve ordinary icon pixels and keep the chosen height/displacement bounds. **20 focused
 Kotlin tests and13 portable math/controller tests pass.** The portable state now exposes
@@ -308,7 +308,7 @@ The subsequent native launch completed in25s and its app-owned capture was inspe
 
 ![Native Atlas after the asymmetric material change](atlas/checkpoint-06c9114-native.png)
 
-Direct3D,1920Ã—1051; grid magnification is continuous and selected ink remains visible.
+Direct3D,1920×1051; grid magnification is continuous and selected ink remains visible.
 [120 static redraw submissions after10 warmups](atlas/checkpoint-06c9114-native-timing.json)
 give **9.3877ms median,19.9661ms p95,23.1281ms maximum**. The p95 exceeds16.67ms;
 this records submission work, not presented FPS, a controlled speed comparison or native gesture latency.
@@ -371,7 +371,7 @@ Other presets default to false; callers may set it false explicitly for fixed vi
 The fail-first real-pointer regression expected a bounded upward glyph shift and found0px. The first
 candidate fixed the shift, but a32px low-density glyph's threshold box quantized a small strain to
 35px. Rather than fit motion to that aliasing, a new density-three fixture uses the original69px
-glyph and834Ã—186px bar. The small fixture still verifies visible displacement and stable layout.
+glyph and834×186px bar. The small fixture still verifies visible displacement and stable layout.
 The full-density fixture measures **69px rest,72px held,76px extreme**, compared with the original
 69/73/76px and the recorded1.29px maximum threshold/edge residual. Held-to-extreme shift is **-12px**
 against-11.5px; tolerance1.5px. Release recovers the exact original raster bounds.
@@ -391,7 +391,7 @@ Android sample assembled. Fresh XML durations sum to520.394s/97.037s for library
 
 ![Native Atlas after foreground correction](atlas/checkpoint-302e5e1-native.png)
 
-The subsequent native launch completed in14s; its1920Ã—1051 Direct3D app buffer was inspected.
+The subsequent native launch completed in14s; its1920×1051 Direct3D app buffer was inspected.
 [Static redraw submissions](atlas/checkpoint-302e5e1-native-timing.json),120samples after10warmups:
 **10.2552ms median /12.9977ms p95 /21.4913ms maximum**. This is neither presented FPS nor native
 gesture latency or a controlled speed comparison. All seven required checks passed in
@@ -406,13 +406,13 @@ only that job passed in 48s; no product test failed and the successful build was
 The Calm bar reused V3's reference-backed `heldLift` and also inherited generic `pressLift=0.04`.
 `GlassTabBar` added the first to the style; `liquidGlass` added the second at draw time. The new
 material regression combines both paths before rendering against the independent Phone plateau.
-It failed at **54/255 versus 44Â±1**, then passed at **44/255** after setting the bar interaction's
+It failed at **54/255 versus 44±1**, then passed at **44/255** after setting the bar interaction's
 additional `pressLift` to zero. Touch illumination, bar growth and all generic control presets
 remain unchanged. This corrects duplicated ownership rather than refitting an optical constant.
 
 As a separate original-frame check, the untouched interior patch `(330,250)` to `(369,284)` in
 the full-density crops above contains only RGB `(32,32,32)` at rest and `(43,43,43)` in the ordinary
-hold. Those decoded video values support the existing 44Â±1 held tolerance; they are not calibrated
+hold. Those decoded video values support the existing 44±1 held tolerance; they are not calibrated
 display photometry. The extreme crop is excluded because its selector overlaps that patch.
 The synthetic held-bar image above predates this brightness correction; it documents geometry only.
 
@@ -435,7 +435,7 @@ tests (299 passed, 27 skipped), both desktop tests, Android builds and portable/
 The hosted build took 15m22s. Its local serial run later lost its process handle without writing
 a completion result; that local run is **not** counted as passed or silently restarted.
 
-The corrected source also launches and captures its own native Direct3D buffer at 1920Ã—1051:
+The corrected source also launches and captures its own native Direct3D buffer at 1920×1051:
 
 ![Native Atlas after bar corrections](atlas/brightness-native.png)
 
@@ -448,7 +448,7 @@ controlled benchmark; Android performance remains unverified.
 
 ## Portable rounded surfaces
 
-### Shared scene integration â€” 2026-10-08
+### Shared scene integration — 2026-10-08
 
 The previous high-level painter still required hosts to build a separate motion controller and apply
 its matrix around the correct pivot for every widget. `createGlassScene` now owns those connections
@@ -471,11 +471,24 @@ No package was published; `npm pack --dry-run` confirms the runtime/type/license
 
 ![Portable scene terminal output](atlas/skia-scene-example.png)
 
-This inspected 640Ã—360 software Skia render contains two lenses and two material surfaces over a
+This inspected 640×360 software Skia render contains two lenses and two material surfaces over a
 generated grid. It demonstrates the scene's production draw path, not a native desktop window,
 gesture recording or Apple optical comparison. Reproduce with `npm run example` in `ports/skia`.
 All **20 Skia tests**, **13 portable math/controller tests**, strict consumer type checks and strict
-documentation build pass locally. Hosted browser integration is pending; no browser tool was used locally.
+documentation build pass locally. All seven required checks passed at `014b16e` in
+[CI 37732791140](https://github.com/shayann07/liquidglass/actions/runs/37732791140).
+Hosted execution passed 20 Skia tests (12.43s), strict consumer types, 13 portable math tests and
+all five browser tests (26.0s). The unchanged JVM/Atlas tasks were restored from the verified cache;
+this was not a new Compose test run. The browser example exercises the new scene's input, source
+replacement and context recovery. No browser tool was used locally.
+
+| Held card through the scene API | Source replacement and restored context |
+| --- | --- |
+| ![Scene held in hosted Chromium](atlas/skia-scene-browser-held.png) | ![Scene restored in hosted Chromium](atlas/skia-scene-browser-restored.png) |
+
+Both hosted Chromium images were inspected. They are browser-rendered fixtures, not native Atlas
+or physical GPU performance evidence. The 27 skipped cases in the separate JVM suite were also
+audited: all require the opt-in showcase-output flag, and are recorded as skipped rather than passed.
 
 The scene is usable with any host that supplies a compatible CanvasKit canvas/image. Packaged native
 adapters for other languages, arbitrary DOM/backdrop capture, automatic gesture arbitration and the
@@ -489,7 +502,7 @@ labels and input. The terminal and browser examples use the same API.
 
 ![Production shaders outside Compose: lenses above, dark and light surfaces below](atlas/portable-surfaces.png)
 
-This is a 640Ã—360 CanvasKit software render, not an iOS comparison or native GPU performance result.
+This is a 640×360 CanvasKit software render, not an iOS comparison or native GPU performance result.
 Nine earlier portable checks plus the new Gaussian-scale check pass. The source/profile fixtures
 still agree with independent JVM pixels within one channel level. Eighteen parameter fixtures come
 from the actual Kotlin `GlassStyle.inApp` factory: both appearances at nine tint values. That test
@@ -512,10 +525,10 @@ densities can replace the single cache. No bounded frame-time claim is made for 
 The edge audit caught a separate defect: a one-pixel opaque `(64,128,192,255)` source produced
 `(4,8,11,15)` through the tone buffer. A bounded image draw lost coverage while being blurred at
 quarter resolution. Drawing an edge-clamped source shader before blur preserves the opaque page.
-The regression checks all four corners and the centre for five source sizes from 1Ã—1 to 241Ã—181
+The regression checks all four corners and the centre for five source sizes from 1×1 to 241×181
 and three blur sigmas, within one code value. All **12 portable Skia tests pass** locally after
 this correction. Sinusoid attenuation is now **0.6119**, still within the same independent
-0.6176 Â± 0.04 gate. The public painter also renders identical light/dark material (within one level) from a full-size
+0.6176 ± 0.04 gate. The public painter also renders identical light/dark material (within one level) from a full-size
 constant backdrop or the same color supplied as a single pixel. Source replacement and coordinates pass.
 The equivalent hosted WebGL test also passes at `f179971` in the run recorded below.
 
@@ -539,8 +552,8 @@ Compiled shader uniform names, offsets and child bindings are now inspected once
 public layout API returns copies, so inspection cannot mutate later drawing. Named-input validation
 and all rendered comparisons remain enabled. An alternating seven-batch CPU comparison against
 `a4ed995` measured **105.047ms before / 13.100ms after** per 2,000 material bindings and native shader
-creations/deletions (one warmup per version, Node 24.19.0 on Windows). This is approximately 52.5Âµs
-versus 6.55Âµs per binding in this batch, not a whole-renderer speedup or an FPS measurement.
+creations/deletions (one warmup per version, Node 24.19.0 on Windows). This is approximately 52.5µs
+versus 6.55µs per binding in this batch, not a whole-renderer speedup or an FPS measurement.
 [Raw timings](atlas/portable-bindings-timing.json) retain every batch. Reproduce with
 `node ports/skia/benchmark-bindings.mjs path/to/baseline-renderer.mjs`, saving the earlier renderer
 from Git first; omitting the argument measures only the current implementation.
@@ -554,7 +567,7 @@ tests. This is valid reuse of the earlier suites, not a fresh native or physical
 
 ## Desktop visual evidence
 
-Both full-window images below are native Skia buffer captures on Windows, at 1920Ã—1051, Direct3D.
+Both full-window images below are native Skia buffer captures on Windows, at 1920×1051, Direct3D.
 The before image is from base `dd52d12`; the after image includes the new public APIs and calm bar.
 
 | Before | After |
@@ -591,16 +604,16 @@ no physical Android performance claim follows from them.
 | --- | --- | --- |
 | ![Held navigation](atlas/bar-held.png) | ![Upward pull](atlas/bar-top.png) | ![Corner pull](atlas/bar-corner.png) |
 
-These are actual production navigation renders in the Compose desktop test harness, 480Ã—220,
+These are actual production navigation renders in the Compose desktop test harness, 480×220,
 not iOS screenshots or native-window screenshots. The same pointer stays down while travelling
-through Â±2000px in both axes. The test checks unchanged layout/hit bounds, valid selector geometry
+through ±2000px in both axes. The test checks unchanged layout/hit bounds, valid selector geometry
 and release ownership. Labels stay anchored and the bar's long axis stays level. The captures
 show the selected item changing on horizontal travel, without a free-button vertical squeeze.
 
 An additional defect was found in inherited release dynamics: it zeroed the speed driving the spine.
 The calm preset now uses the body's release speed for travel deformation while press formation
 continues fading. In the authored 360px-bar trace, short/long held trips add 3.93/12.09px of half-spine;
-released trips add 13.38/26.37px after the arrival refinement below. Both return to 78Ã—58px rest. The original-reference 1.23-height
+released trips add 13.38/26.37px after the arrival refinement below. Both return to 78×58px rest. The original-reference 1.23-height
 ceiling remains satisfied. [Raw traces](atlas/selector-travel.csv) preserve every sampled frame.
 These figures characterize this model; they are not measured Apple motion rates.
 
@@ -621,7 +634,7 @@ controller clock/rebase behavior is preserved outside the calm path.
 | --- | --- |
 | ![Apple transient arrival](atlas/reference-6695.png) | ![Apple settled rest](atlas/reference-6701.png) |
 
-These existing decoded crops belong to the owner's untimed 6690â€“6701 tap sequence. They support
+These existing decoded crops belong to the owner's untimed 6690–6701 tap sequence. They support
 the ordered shape change; they are not timestamped finger samples. No exact colour or timing fit is
 claimed from them, and adjacent stills are not independent holdouts.
 
@@ -630,7 +643,7 @@ The existing historical recovery test was not exercising Calm. Adding it reveale
 Reducing shape damping from 0.72 to 0.45 and target half-spine gain from 0.55 to 0.42 slots restores
 that phase without increasing the peak. It now reaches 450.63px, compresses to 238.08px (5.5%) and
 settles at 252px. The one-slot peak is 327.88px. These are authored model outcomes; the test's broad
-2.5â€“14% compression bound is a review constraint, not a measured Apple spring constant. Centre,
+2.5–14% compression bound is a review constraint, not a measured Apple spring constant. Centre,
 press and held-travel settings stay unchanged.
 
 ![Production selector arrival trace](atlas/selector-arrival.png)
@@ -644,16 +657,16 @@ failed Calm arrival check remains recorded in `verification.json`.
 ![Arrival shape comparison](atlas/tap-arrival-comparison.png)
 
 Original `IMG_6694` and `IMG_6701` supply two states from the owner's ordered arrival
-stills. Fixed unscaled scan windows give median compressed/settled dimensions of **227.5Ã—174px /
-235Ã—164px**: width ratio **0.968085**, height ratio **1.060976**. The record includes all sixteen
+stills. Fixed unscaled scan windows give median compressed/settled dimensions of **227.5×174px /
+235×164px**: width ratio **0.968085**, height ratio **1.060976**. The record includes all sixteen
 gradient probes per axis (luma and RGB at four positions), original hashes and exact scan windows.
 The windows exclude neighboring Chats ink and the surrounding bar. These untimed stills identify
 a paired shape, not a peak, frame rate, finger trace or spring constant.
 
 The previous controller compressed width without appreciable vertical recovery. With the final
-regression and the correction disabled, its closest paired state was **222.88Ã—163.20px**, with
-height ratio **1.007394**, failing the selected **1.060976Â±0.02** gate. The correction passes at
-**222.55Ã—170.41px**, ratios **0.967669 / 1.051907**. The fixture's settled geometry is 230Ã—162px;
+regression and the correction disabled, its closest paired state was **222.88×163.20px**, with
+height ratio **1.007394**, failing the selected **1.060976±0.02** gate. The correction passes at
+**222.55×170.41px**, ratios **0.967669 / 1.051907**. The fixture's settled geometry is 230×162px;
 normalization avoids pretending it has the original's exact resting dimensions. The production path
 in the figure is computed geometry, not a rendered screenshot. Its timing is not matched to iOS.
 
@@ -664,7 +677,7 @@ target exchanges a shortened spine for cap growth using the projected capsule ar
 authored rate of `max(tapPressureOmega, 4*tapSpineOmega)` (104/s in Calm). This is an approximation
 to a geometric constraint, not an Apple fluid law, recovered timing, or faster touch response.
 Positive travel elongation, held/throw response, historical presets and generic glass are unchanged.
-The measured midpoint remains **329.7385Ã—171.3598px**.
+The measured midpoint remains **329.7385×171.3598px**.
 
 Two rejected candidates matter: multiplying the resting spine by pressure changed the already-fitted
 midpoint, and ordinary transit pressure recovered height too late. An initial assertion also wrongly
@@ -683,7 +696,7 @@ reported 519.189s for the library and 98.647s for Atlas. Tests executed freshly.
 
 ![Native Atlas at rest after arrival correction](atlas/checkpoint-8d9917a-native.png)
 
-The inspected native app-owned capture is 1920Ã—1051 Direct3D. After CPU tests finished,
+The inspected native app-owned capture is 1920×1051 Direct3D. After CPU tests finished,
 [120 static redraw submissions after ten warmups](atlas/checkpoint-8d9917a-native-timing.json)
 measured **11.2165ms median / 19.8045ms p95 / 23.3515ms maximum**.
 This resting capture verifies native launch/rendering, not the transient recoil; submission timings
@@ -713,10 +726,10 @@ normalized by its own settled dimensions; neither curve contains recorded iOS ti
 ![Original untimed long-tap midpoint, IMG_6698](atlas/reference-6698.png)
 
 The earlier arrival correction above still left the selector too flat midway through the trip.
-This original owner-supplied 1170Ã—324 crop shows 171â€“173px height in six clear central columns.
-Seven horizontal scans give 325â€“328px width, with centre about 574px; approximate settled centres
+This original owner-supplied 1170×324 crop shows 171–173px height in six clear central columns.
+Seven horizontal scans give 325–328px width, with centre about 574px; approximate settled centres
 189/981 place it at 48.6% of the trip. These are selected cross sections, not a complete silhouette
-fit. The conservative rounded test gates are 172Â±4px high and 330Â±12px wide at phase 0.487.
+fit. The conservative rounded test gates are 172±4px high and 330±12px wide at phase 0.487.
 The fixture retains the inherited rounded 186px bar height although this crop spans about 184px.
 
 | Same production controller fixture / phase 0.4911 | Width | Height | Reference gates |
@@ -731,7 +744,7 @@ movement target. Its authored rate is 45/s; target half-spine gain falls from 0.
 the taller end caps also add width. Centre motion, optical formation, held/released pressure and
 historical presets are unchanged. This is a spatial fit, **not recovery of Apple's timing**.
 
-The separate 1150Ã—186px fixture now peaks at 429.27px on a four-slot trip, compresses to 232.87px
+The separate 1150×186px fixture now peaks at 429.27px on a four-slot trip, compresses to 232.87px
 (7.6% below its 252px rest width), then recovers. The one-slot peak is 319.88px. These replace the
 earlier authored outcomes above; that earlier plot and CSV remain labelled historical evidence.
 Fifteen focused controller/reference tests passed, including held/throw behavior, endpoint bounds
@@ -756,7 +769,7 @@ it is not an independent validation set or evidence of full 1:1 parity.
 
 ![Native Atlas at rest after the tap correction, 87e17a4](atlas/checkpoint-87e17a4-native.png)
 
-This fresh 1920Ã—1051 Direct3D capture reads Atlas's own render buffer. The library and desktop test
+This fresh 1920×1051 Direct3D capture reads Atlas's own render buffer. The library and desktop test
 processes had finished before capture. Static forced redraw submissions measured 9.2794ms median,
 12.2323ms p95 and 14.3365ms maximum over 120 samples after 10 warmups
 ([raw timing](atlas/checkpoint-87e17a4-timing.json)). These are neither presented FPS nor input
@@ -767,8 +780,8 @@ The screenshot is a resting frame; the phase-specific correction is scored by th
 | --- | --- |
 | ![Atlas lens at the canvas corner](atlas/checkpoint-87e17a4-extreme.png) | ![Production Calm bar at an extreme corner pull](atlas/checkpoint-87e17a4-bar.png) |
 
-These two current gesture captures come from desktop Compose software tests (800Ã—600 Atlas;
-480Ã—220 navigation fixture with quarter-scale backdrop). They verify rendered containment and
+These two current gesture captures come from desktop Compose software tests (800×600 Atlas;
+480×220 navigation fixture with quarter-scale backdrop). They verify rendered containment and
 stable layout in the tested paths, not native GPU gesture latency or matched Apple optics.
 
 ### End-anchor travel: movement outside the bar is not selector travel
@@ -778,7 +791,7 @@ prompted an additional audit at the end anchors. The centre was already bounded,
 still used raw finger speed. Reversing between two positions far beyond the same end therefore
 stretched and squeezed a selector that had nowhere left to travel.
 
-| 360Ã—64px controller fixture, saturated left anchor | Before | After |
+| 360×64px controller fixture, saturated left anchor | Before | After |
 | --- | ---: | ---: |
 | Maximum width change from the settled hold | 72.47px | 0.00px |
 | Maximum height change from the settled hold | 7.30px | 0.00px |
@@ -799,13 +812,13 @@ test passes in 5.72s. The combined full build for this correction is pending.
 
 ![Production bar during continued outward pointer motion](atlas/bar-outward-motion.png)
 
-This is a 480Ã—220px Compose software-renderer capture with quarter-scale backdrop sampling. Its
+This is a 480×220px Compose software-renderer capture with quarter-scale backdrop sampling. Its
 selector is at the left anchor and the pointer keeps moving between x=-2000 and x=-4000. The bar's
 layout bounds and valid selector geometry are asserted throughout. This is not a matched iOS render.
 
 ![Current Atlas native Lines scene](atlas/native-end-anchor.png)
 
-The current Atlas application also launched and captured its own 1920Ã—1051 Direct3D buffer.
+The current Atlas application also launched and captured its own 1920×1051 Direct3D buffer.
 The line-grid magnifier retains a continuous interior. Static redraw submissions over 120 samples
 after ten warmups measured median 10.83ms, p95 14.66ms and maximum 18.31ms;
 [raw timings](atlas/native-end-anchor-timing.json). These are not presented frames or input latency,
@@ -816,7 +829,7 @@ and the static native capture does not itself verify the edge gesture covered by
 `ports/skia` exports the evaluated production material/content/aperture shaders and provides a
 CanvasKit adapter. Its terminal tests compile all three, render all four material profiles and
 compare against independent JVM-generated premultiplied RGBA fixtures. Maximum channel difference
-was 1/255 in each profile (mean 0.00098â€“0.00214 levels). This establishes software-backend agreement
+was 1/255 in each profile (mean 0.00098–0.00214 levels). This establishes software-backend agreement
 for those fixtures. It does not verify every style, platform integration, browser GPU or navigation host.
 
 The [web preview capture](atlas/web-preview-ci.png) is from headless Chromium in GitHub Actions.
@@ -830,7 +843,7 @@ platform capture policy. `npm run example` produces the following grid using tha
 ![Two positioned production-shader lenses on a grid](atlas/skia-painter.png)
 
 This is a terminal CanvasKit software render, not a browser screenshot or an Apple reference. The
-left lens uses 1.25Ã— centre magnification; the right uses 1.6Ã—. The example has no Compose dependency.
+left lens uses 1.25× centre magnification; the right uses 1.6×. The example has no Compose dependency.
 
 ![Production Skia painter in hosted Chromium](atlas/skia-browser-ci.png)
 
@@ -947,7 +960,7 @@ that draws the production filter graph through viewport clipping at every edge.
 
 ![Corrected native candidate: selected label preserved](atlas/endpoint-native-corrected.png)
 
-These are full native Atlas render-buffer captures at 1920Ã—1051. The corrected capture measured
+These are full native Atlas render-buffer captures at 1920×1051. The corrected capture measured
 120 forced redraws after ten warmups: median 9.21ms, p95 12.46ms, maximum 14.90ms
 ([raw timing](atlas/endpoint-native-timing.json)). This is static redraw/submission cost, not
 presented FPS, a performance improvement, or touch latency. No CPU renderer test was running
@@ -972,12 +985,12 @@ That run also passed all four hosted browser tests. No current physical-device v
 
 ![Corrected production compositor during a hold](atlas/endpoint-bar-held.png)
 
-This last image is a 480Ã—220 Compose software-rendered fixture with quarter-scale backdrop
+This last image is a 480×220 Compose software-rendered fixture with quarter-scale backdrop
 sampling and native-resolution semantic ink, not a physical-device or native-window capture.
 
 ## Native redraw cost
 
-120 forced redraw submissions after ten warmups, 1920Ã—1051, Direct3D:
+120 forced redraw submissions after ten warmups, 1920×1051, Direct3D:
 
 | Scene | Median | p95 | Maximum |
 | --- | --- | --- | --- |
@@ -1030,7 +1043,7 @@ fetch lifecycle. It makes no claim about reducing CanvasKit runtime size or rend
 
 ![Production lenses and rounded surfaces using only bundled defaults](atlas/portable-defaults.png)
 
-This is a 640Ã—360 terminal-rendered CanvasKit example, not a native desktop or browser GPU capture.
+This is a 640×360 terminal-rendered CanvasKit example, not a native desktop or browser GPU capture.
 
 The default-call regression first failed with missing shader sources. After the change, it renders a
 nonuniform backdrop through a lens and a rounded surface and compares the complete buffers exactly

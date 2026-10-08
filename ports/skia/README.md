@@ -5,7 +5,7 @@ files can be compiled by a compatible Skia RuntimeEffect host. The included Java
 uses CanvasKit 0.42.0 and runs in Node or a browser. Other Skia bindings require host integration;
 this is not a ready-made Flutter, SwiftUI, Unity or React Native component.
 
-The source is Apache-2.0 under the root LICENSE/NOTICE. CanvasKit is a separate BSD-3-Clause
+The source is Apache-2.0; included LICENSE/NOTICE copies match the repository root. CanvasKit is a separate BSD-3-Clause
 dependency with its own bundled third-party licenses; preserve its notices when redistributing.
 No hosted service, subscription or runtime network request is required. Vendor the pinned files.
 
