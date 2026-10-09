@@ -1,0 +1,61 @@
+{
+  "library": {
+    "tests": 344,
+    "passed": 317,
+    "skipped": 27,
+    "failures": 0,
+    "errors": 0,
+    "testcaseSeconds": 619.53
+  },
+  "desktop": {
+    "tests": 2,
+    "passed": 2,
+    "failures": 0,
+    "errors": 0,
+    "testcaseSeconds": 102.125
+  },
+  "android": "assembleDebug passed",
+  "native": {
+    "backend": "DIRECT3D",
+    "scale": 1.25,
+    "readbackEnabled": true,
+    "checksPassed": true,
+    "navigation": {
+      "left": 1515.0,
+      "top": 804.0,
+      "width": 350.0,
+      "height": 80.0
+    },
+    "input": "AWT events dispatched only to this application's Compose component",
+    "timing": "Each phase uses a fresh gesture replay because native readback is slow. CSV capture timestamps are render-start times. PNG encoding follows input. Not a continuous video, presented FPS or measured iOS timing.",
+    "phaseSnapshots": 16,
+    "imagesInspected": true,
+    "startupRetry": "First run rejected after maximization changed initial coordinates; stable-layout startup rerun passed1m18s."
+  },
+  "sourceSha256": "04ddab47bc26c7df767ecdb5789b1e8082c0eddcc46dbba6dfc11f2bc5317420",
+  "source": "liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/GlassPoseDynamics.kt",
+  "runtime": "Microsoft OpenJDK21.0.12.1",
+  "limits": "Spatial calibration, not recovered original input/contours. Early long sample remains12.80px too wide. Native snapshots are separate replays; redraw submission is not presented FPS. Android assembled but no physical device tested. Full1:1 unproven.",
+  "localBuild": "SUCCESSFUL12m11s; private wrapper; fresh full library/Atlas tests and Android assembly",
+  "static": {
+    "metric": "native static-scene forced redraw; GPU submission, not presented FPS",
+    "backend": "DIRECT3D",
+    "width": 1920,
+    "height": 1051,
+    "samples": 120,
+    "warmup": 10,
+    "p50_ms": 13.386,
+    "p95_ms": 23.336,
+    "max_ms": 29.5398,
+    "imageInspected": true
+  },
+  "sourceAfterTests": "Only library comments changed after full tests. Native recorder startup stabilization added and its actual capture rerun passed.",
+  "finalWorkingSourceSha256": {
+    "liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/GlassPoseDynamics.kt": "f4761366d08cb592ebf98c5bcbfcd7f2e00c52b4bf87adb0f6f23941047799b4",
+    "desktop/src/jvmMain/kotlin/com/wexpa/liquidglass/sample/desktop/AtlasMotionCapture.kt": "fd090753891b762a380489931024b8e8d3d96effd915f97012ec388deed28dc1",
+    "tools/PhoneTapProbe.java": "650ddb92dfd23fc18593757d556cdf260c6d2ac70bfda19f47ccc1b6b425cc83",
+    "tools/PhoneTapBenchmark.java": "5b3ffad313252712f6b9f4e7643da7004f20ca4e3e5b727f698fcd30f8e7c648",
+    "tools/compare_phone_tap_candidate.py": "3e5b4f858bc6faa6188fa3be71b5dfc0122a4bcb7c27158768908e1127812836"
+  },
+  "hosted": "Pending push/CI; see PROGRESS.md and local checkpoint for current revision/run."
+}

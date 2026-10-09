@@ -256,6 +256,18 @@ internal data class GlassPoseSpec(
      * .45-slot allowance for spring overshoot while reducing held elongation. This also sizes
      * the render node; a held tuning change must not clip a resting tap or its recoil. */
     val tapSpineLimitSlots: Float = tapElongationSlots,
+    /** Experimental opt-in coupled tap area. Authored from the owner's labelled Phone
+     * recordings; spatial calibration is not identification of Apple's fluid or timing law.
+     * Zero keeps the historical independent pressure/spine path. */
+    val tapAreaGain: Float = 0f,
+    val tapAreaOmega: Float = 42f,
+    val tapAreaReferenceSpeed: Float = 2.4f,
+    /** Body-width-relative spine demand and slower relaxation of that demand. */
+    val tapBodyElongation: Float = 0.15f,
+    val tapSpineFallOmega: Float = 12f,
+    val tapAreaSpineOmega: Float = 40f,
+    val tapAreaSpineZeta: Float = .38f,
+    val tapAreaBodySpeed: Float = 10.2f,
 ) {
     internal val spineLimitSlots: Float get() = max(elongationSlots, tapSpineLimitSlots)
 
@@ -264,7 +276,7 @@ internal data class GlassPoseSpec(
          * Off-axis free-button strain was never measured on a selector; keep it on the bar.
          * The held height stays below T04's approximately 1.23-bar-height sequence envelope.
          * Rates are deliberately not described as fitted Apple timing. */
-        val Calm = GlassPoseSpec(
+        val CalmIndependent = GlassPoseSpec(
             centreOmega = 24f, spineOmega = 30f, spineZeta = 0.78f,
             // Loosen shape recovery without speeding up the centre or increasing peak stretch.
             // The original resting-tap stills include a compressed arrival before settling.
@@ -290,6 +302,13 @@ internal data class GlassPoseSpec(
             heldTravelPressureOmega = 60f,
             tapSpineLimitSlots = 0.45f,
         )
+
+        /** Coupled-area development preset; independent reference retained for comparison.
+         * Spatial/cadence regressions are not proof of full iOS contour or timing parity. */
+        val CalmVolume = CalmIndependent.copy(
+            tapAreaGain = .51f,
+        )
+        val Calm = CalmVolume
     }
 }
 
@@ -356,6 +375,9 @@ internal class GlassPoseController(
     /** 0 the flat resting inset, 1 the fully formed held material. */
     private val form = GlassSpring()
     val formation: Float get() = form.value.coerceIn(0f, 1f)
+    private val tapArea = GlassSpring()
+    private var tapAreaActive = false
+    private var tapDistance = 0f
 
     // ------------------------------------------------------------------- the clock
 
@@ -518,6 +540,8 @@ internal class GlassPoseController(
 
     /** Put the body at rest on [index] with no motion. */
     fun snapToRest(index: Int) {
+        tapAreaActive = false
+        tapDistance = 0f
         requestedIndex = index
         restIndex = index.coerceIn(0, max(bar.count - 1, 0))
         pose.reset()
@@ -546,6 +570,9 @@ internal class GlassPoseController(
 
     /** Aim the resting body at [index] without disturbing what it is doing. */
     fun retarget(index: Int) {
+        if (index != requestedIndex && mode != GlassPoseMode.Held && mode != GlassPoseMode.Released) {
+            tapDistance = abs(bar.centreOf(index.coerceIn(0, max(bar.count - 1, 0))) - pose.cx)
+        }
         requestedIndex = index
         restIndex = index.coerceIn(0, max(bar.count - 1, 0))
         // Aiming where the body already is is not travel: it must not wake the frame loop.
@@ -767,7 +794,11 @@ internal class GlassPoseController(
             }
             remaining = maxCatchUpSeconds
         }
-        val maxStep = 1f / 240f
+        // Coupled tap demand is nonlinear in centre speed and switches spine recovery
+        // rate. Resolve that drive independently of 90Hz presentation partitions.
+        // Keep the previously verified integration cadence for all other paths.
+        val maxStep = if (spec.tapAreaGain > 0f && tapDistance > .25f &&
+            (mode == GlassPoseMode.TapTransit || mode == GlassPoseMode.PressPending)) 1f / 960f else 1f / 240f
         while (remaining > 1e-7f) {
             val dt = min(remaining, maxStep)
             substep(dt)
@@ -821,6 +852,25 @@ internal class GlassPoseController(
         val speed = sqrt(speed2)
         val tapMotion = mode != GlassPoseMode.Held &&
             (mode != GlassPoseMode.Released || spec.releaseTravel)
+        val coupleTapArea = motionEnabled && spec.tapAreaGain > 0f && tapDistance > .25f &&
+            (mode == GlassPoseMode.TapTransit || mode == GlassPoseMode.PressPending)
+        if (coupleTapArea && !tapAreaActive) {
+            // Seed from the actual material, including its velocity, at every ownership
+            // transition. Never reset a moving body's area to the resting reference.
+            val radius = reference.r * exp(pose.p)
+            val spine = kotlin.math.hypot(pose.dx, pose.dy)
+            val spineVelocity = if (spine > 1e-5f)
+                (pose.dx * velocity.dx + pose.dy * velocity.dy) / spine else 0f
+            tapArea.snapTo(kotlin.math.PI.toFloat() * radius * radius + 4f * spine * radius)
+            tapArea.velocity = (2f * kotlin.math.PI.toFloat() * radius + 4f * spine) * radius * velocity.p +
+                4f * radius * spineVelocity
+        }
+        tapAreaActive = coupleTapArea
+        // The older five-item reference crosses more than three resting body widths;
+        // the new Phone long tap crosses fewer than two. A bounded, C1 extra drive keeps
+        // those distances distinct without making ordinary adjacent taps more sensitive.
+        val distanceExcess = if (coupleTapArea) (tapDistance / reference.width - 2f).coerceAtLeast(0f) else 0f
+        val longTapDrive = 1f - exp(-distanceExcess * distanceExcess / (distanceExcess + .5f))
         val vRef = max(when {
             mode == GlassPoseMode.Held -> spec.heldReferenceSpeed
             tapMotion -> spec.tapReferenceSpeed
@@ -890,7 +940,7 @@ internal class GlassPoseController(
         // unformed press would collapse below the original's selected lower envelope.
         val formedSqueeze = if (spec.heldTravelPressureOmega > 0f) squeeze * pressureFormation else squeeze
         equilibrium.p = if (motionEnabled) heldPressure * pressureFormation - formedSqueeze + pullPressure else 0f
-        val recoilPressure = transitPressure && spec.tapRecoilArea && motionEnabled &&
+        val recoilPressure = !coupleTapArea && transitPressure && spec.tapRecoilArea && motionEnabled &&
             kotlin.math.hypot(pose.dx, pose.dy) < reference.a
         if (recoilPressure) {
             // A capsule's projected area is pi*r^2 +4*a*r. The underdamped spine may
@@ -950,7 +1000,16 @@ internal class GlassPoseController(
         val restSpine = reference.a
         var ex = restSpine
         var ey = 0f
-        if (motionEnabled && speed2 > 1e-9f) {
+        if (coupleTapArea) {
+            // Bounded eighth-power response: shorter trips remain rounder, while a longer
+            // trip puts more area into its spine. Normalize by body width, not item count.
+            val speedFraction = abs(vx) / (abs(vx) + spec.tapAreaBodySpeed * reference.width).coerceAtLeast(1f)
+            fun eighth(value: Float): Float { val square=value*value; val fourth=square*square; return fourth*fourth }
+            val moving=eighth(speedFraction)
+            val still=eighth(1f-speedFraction)
+            ex += spec.tapBodyElongation * reference.width * (1f + .3f * longTapDrive) *
+                moving / (moving + still).coerceAtLeast(1e-8f)
+        } else if (motionEnabled && speed2 > 1e-9f) {
             val horizontalSpeed2 = nvx * nvx
             val along = horizontalSpeed2 / (vRef * vRef + horizontalSpeed2)
             // The paired IMG6734/6735 states widen first, then flatten with little extra
@@ -983,17 +1042,44 @@ internal class GlassPoseController(
             mode != GlassPoseMode.Held && equilibrium.p < pose.p -> spec.pressureFallOmega
             else -> po
         }
-        stepState(dt, pose.p, velocity.p, equilibrium.p, pressureRate, pz).let { pose.p = it[0]; velocity.p = it[1] }
+        if (!coupleTapArea) {
+            stepState(dt, pose.p, velocity.p, equilibrium.p, pressureRate, pz).let { pose.p = it[0]; velocity.p = it[1] }
+        }
         stepState(dt, pose.acc, velocity.acc, equilibrium.acc, spec.accommodationOmega, 1f).let { pose.acc = it[0]; velocity.acc = it[1] }
         val spo = when {
+            coupleTapArea && equilibrium.dx < pose.dx -> spec.tapSpineFallOmega
+            coupleTapArea -> spec.tapAreaSpineOmega
             mode == GlassPoseMode.Released -> spec.spineReleaseOmega
             tapMotion -> spec.tapSpineOmega
             else -> spec.spineOmega
         }
-        val spz = if (tapMotion) spec.tapSpineZeta else spec.spineZeta
+        val spz = when {
+            coupleTapArea -> spec.tapAreaSpineZeta
+            tapMotion -> spec.tapSpineZeta
+            else -> spec.spineZeta
+        }
         stepState(dt, pose.dx, velocity.dx, equilibrium.dx, spo, spz).let { pose.dx = it[0]; velocity.dx = it[1] }
         stepState(dt, pose.dy, velocity.dy, equilibrium.dy, spo, spz).let { pose.dy = it[0]; velocity.dy = it[1] }
         clampShape()
+        if (coupleTapArea) {
+            // Spring projected area, then derive radius from the ACTUAL spine. A second
+            // independent radius spring would break the coupling and delay the flattening.
+            val r0 = reference.r
+            val restArea = kotlin.math.PI.toFloat() * r0 * r0 + 4f * reference.a * r0
+            val phaseSpeed = abs(vx) / max(tapDistance, reference.width * .9f)
+            val q = phaseSpeed / (phaseSpeed + spec.tapAreaReferenceSpeed).coerceAtLeast(1e-5f)
+            val excitation = q*q / (q*q + (1f-q)*(1f-q)).coerceAtLeast(1e-8f)
+            tapArea.target = restArea * (1f + spec.tapAreaGain * (1f + longTapDrive) * excitation)
+            tapArea.step(dt, spec.tapAreaOmega, 1f)
+            val area = tapArea.value.coerceAtLeast(restArea * .5f)
+            val spine = kotlin.math.hypot(pose.dx, pose.dy)
+            val spineVelocity = if (spine > 1e-5f)
+                (pose.dx * velocity.dx + pose.dy * velocity.dy) / spine else 0f
+            val radius = area / (sqrt(4f*spine*spine + kotlin.math.PI.toFloat()*area) + 2f*spine)
+            pose.p = kotlin.math.ln(radius / r0)
+            velocity.p = (tapArea.velocity - 4f*radius*spineVelocity) /
+                ((2f*kotlin.math.PI.toFloat()*radius + 4f*spine)*radius).coerceAtLeast(1e-5f)
+        }
 
         // ---- the centre
         if (mode == GlassPoseMode.Held && hasGrasp) {
@@ -1037,6 +1123,9 @@ internal class GlassPoseController(
         // Held has NO resting-bar contact: a held body is permitted to protrude. A released body
         // regains it only once it is entirely back inside the margin.
         val wantsContact = when (mode) {
+            // The new tap-only source protrudes on a short trip. Resting-bar contact is
+            // therefore not a valid constraint on every travelling tap frame.
+            GlassPoseMode.TapTransit, GlassPoseMode.PressPending -> !coupleTapArea
             GlassPoseMode.Held -> false
             // Section 5.1: a released body regains resting contact only after the whole body is
             // back inside the margin AND its next predicted step is feasible. While the held
@@ -1084,7 +1173,26 @@ internal class GlassPoseController(
                 pose.rho < 0.005f && abs(pose.p) < 0.005f && form.value < 0.01f &&
                 abs(spineLength - restHalfSpine) < 0.25f &&
                 abs(velocity.dx) < 1.5f && abs(velocity.dy) < 1.5f
-            if (settled) mode = GlassPoseMode.Rest
+            // Radius and spine exchange area, so their errors can oppose each other.
+            // Bound the actual horizontal/vertical contour offsets, not the sum of
+            // absolute state errors. One eighth of a pixel is the authored finish threshold.
+            val radiusError = reference.r * (exp(pose.p) - 1f)
+            val visuallySettledTap = coupleTapArea && quietSteps >= QUIET_STEPS &&
+                abs(pose.cx - bar.centreOf(restIndex)) < .125f &&
+                abs(pose.cy - bar.centreY) < .125f && form.value < .01f &&
+                abs(spineLength - restHalfSpine + radiusError) < .125f && abs(radiusError) < .125f
+            if (settled || visuallySettledTap) {
+                if (coupleTapArea) {
+                    // Finish a coupled tap at exact rest after the velocity criteria or
+                    // quiet subpixel contour criteria pass. Otherwise the independent rest path
+                    // can preserve a small area residual after scheduling goes idle.
+                    snapToRest(restIndex)
+                } else {
+                    mode = GlassPoseMode.Rest
+                    tapDistance = 0f
+                    tapAreaActive = false
+                }
+            }
         }
     }
 
@@ -1479,7 +1587,7 @@ internal class GlassPoseController(
      * that will fire it.
      */
     val isIdle: Boolean
-        get() = mode != GlassPoseMode.PressPending && quietSteps >= QUIET_STEPS
+        get() = mode != GlassPoseMode.PressPending && !tapAreaActive && quietSteps >= QUIET_STEPS
 
     private var quietSteps: Int = 0
     private val lastPublished = GlassPose()

@@ -1,0 +1,5 @@
+model,hz,median_batch_mean_ms_per_advance,max_batch_mean_ms_per_advance
+independent,60,0.019889,0.028849
+coupled,60,0.009460,0.009707
+independent,120,0.009473,0.010477
+coupled,120,0.003782,0.004063

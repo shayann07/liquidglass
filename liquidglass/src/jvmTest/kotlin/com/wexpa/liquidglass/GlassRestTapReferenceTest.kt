@@ -39,7 +39,11 @@ class GlassRestTapReferenceTest {
                 c.advanceTo(t); c.extents(e)
                 assertTrue(!c.isHeld)
                 assertTrue(!c.solverFailed, "contact failed at distance=$distance t=$t")
-                assertTrue(c.protrusion() < .1f, "ordinary tap escaped its envelope")
+                if (spec.tapAreaGain == 0f) {
+                    assertTrue(c.protrusion() < .1f, "historical tap escaped its envelope")
+                } else {
+                    assertTrue(e.height <= b.height * 1.23f, "tap exceeded the original material envelope")
+                }
                 listOf(t, c.centreX, e.width, e.height)
             }
         }

@@ -1,11 +1,20 @@
 # LiquidGlass / Atlas progress and recovery
 
-Updated 2026-10-08. **Goal active: full 1:1 iOS parity is not established.**
+Updated 2026-10-09. **Goal active: full 1:1 iOS parity is not established.**
 Read this first after an interruption. Detailed history lives in the
 [review](review/ATLAS-STABILIZATION.md) and [verification ledger](review/atlas/verification.json).
 
 ## Current state
 
+- **Working change:** coupled tap area/spine in the opt-in Calm selector. Focused integration:
+  **24 passed** (including older tap/held/growth references, cadence, interruption and idle/wake).
+  [Candidate data and explanation](review/atlas/phone-tap-volume-2026-10-09/README.md) preserve
+  every model alternative, a before/after plot and the remaining early-frame width mismatch.
+  Full library: **317 passed, 27 optional exports skipped, zero failures**; Android assembled.
+  Both Atlas tests passed; full command12m11s. Native16-phase capture passed selection, extreme
+  corners, recovery and fixed layout. Static1920×1051 capture inspected; redraw submission
+  median13.386ms/p9523.336ms (not presented FPS). Full1:1 remains open. Inspect the local checkpoint
+  for the pushed revision and hosted checks; all local test/capture jobs for this iteration are done.
 - Canonical checkout: `D:/Work/AndroidStudioProjects/SideProjects/kmp/liquidglass`.
 - Branch: `codex/atlas-stabilization`; [draft PR #6](https://github.com/shayann07/liquidglass/pull/6).
 - Library **820659d** verified locally and on GitHub: **312 tests passed, 27 optional showcase
@@ -35,8 +44,12 @@ happens. These labelled recordings supersede speculative gesture classification 
 Native RGB probes give long-tap396x159 and short-tap329x204 inside186px outer-bar geometry.
 The unchanged controller misses paired shape even across authored40..240ms touch alternatives.
 Tap-only is the owner's class, not a known finger duration. Full contour/timing fit remains open;
-no production parameter changed from this research. Read the live log's final next-action section.
-Exactf24634d all seven checks passed; library/Atlas FROM-CACHE of verified0e5c1d6, build1m31s.
+The new local candidate springs projected area and derives radius from its actual spine, allowing
+shorter trips to become rounder while longer trips flatten. Its three Phone pairs now pass the
+declared spatial gates, alongside older five-slot midpoint/recoil gates. These are authored
+spatial calibrations, not measured Apple rates. Read the live log's final entries for all failures
+and the current validation state. Exact3180cec all seven hosted checks passed; library/Atlas
+FROM-CACHE of verified0e5c1d6, build53s. That is the research baseline, not the new implementation.
 
 
 **Diagnostics:** forced redraw re-entered the Compose playback coroutine, causing duplicate input

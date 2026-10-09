@@ -65,6 +65,8 @@ windows. Each phase replays its gesture independently because native screenshot 
 slow. CSV timestamps describe actual input and render-start times; PNG encoding follows input.
 Use `-Patlas.motionReadback=false` with a **different output directory** to replay the same
 assertions without screenshots. This records CSV/metadata only; do not run the image plotter on it.
+Before input, diagnostics redraw and wait for stable layout/layer dimensions so asynchronous
+window maximization cannot invalidate the initial coordinates. Gesture-time layout checks remain strict.
 Diagnostics run on the plain Swing dispatcher because forced redraw can re-enter Compose's
 coroutine dispatcher. Capture and pointer-sequence guards fail the run instead of accepting a
 corrupted trace. Check `checksPassed` in `capture.json`, and use actual CSV timestamps rather

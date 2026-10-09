@@ -1292,3 +1292,21 @@ The comparison is between optical cross-sections and model bounds, not a complet
 input-timing fit. This new evidence takes precedence over earlier assumed tap containment.
 Exactf24634d CI37830422383 passed all seven required checks. Library and Atlas tests were
 restored FROM-CACHE of verified0e5c1d6; build1m31s/Gradle58s, not fresh test execution.
+
+## Coupled resting-tap area — 2026-10-09
+
+The labelled Phone sources reject the earlier assumption that all tap motion stays within the bar.
+Calm now springs projected area and derives radius from its actual horizontal spine: short trips
+become rounder, long trips flatten, and arrival can exchange width for height. The default historical
+path and held/bar/card constants remain unchanged. Existing paired-shape tolerances were retained.
+
+[Implementation, original comparisons, native screenshots and reproduction](atlas/phone-tap-volume-2026-10-09/README.md).
+The three selected source pairs pass their spatial gates; an additional early long frame remains
+12.80px too wide. Parameters are authored, and original timing/full contours remain unresolved.
+
+Local verification:317 library tests passed,27optional exports skipped,0failures; both Atlas tests
+passed; Android assembled; total12m11s. Native16-phase capture passed selection, extreme corners,
+recovery and fixed-layout checks. Startup layout capture was corrected after a rejected run caught
+asynchronous window maximization. The final static1920x1051 Direct3D capture has13.386ms median /
+23.336ms p95 forced-redraw submission, not presented FPS. The separate CPU-controller benchmark and
+all failed attempts are preserved in the packet/live log. Full1:1 iOS parity is not established.

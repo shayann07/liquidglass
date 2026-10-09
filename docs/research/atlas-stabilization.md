@@ -14,9 +14,11 @@ use inspected pixel cross-sections and model bounds; they are not a complete con
 The [live research log](https://github.com/shayann07/liquidglass/blob/main/research/analysis/MOTION-2026-10-08.md)
 preserves hashes, failures, uncertain measurements and next steps. The
 [comparison packet](https://github.com/shayann07/liquidglass/blob/main/review/atlas/new-motion-2026-10-08/README.md)
-includes original crops, raw probes and the unchanged production baseline. No new motion constant
-has been accepted from these recordings yet. Earlier green tests remain regression evidence,
-not proof of full motion parity.
+includes original crops, raw probes and the unchanged production baseline. The
+[coupled tap candidate](https://github.com/shayann07/liquidglass/blob/main/review/atlas/phone-tap-volume-2026-10-09/README.md)
+springs projected area and derives radius from the actual spine. This improves the paired short/long
+shapes without adding application-side tuning. The rates are authored; a remaining early-frame width
+mismatch and unknown original input timing are recorded. Green regression tests do not prove full parity.
 
 ## Release attribution correction
 

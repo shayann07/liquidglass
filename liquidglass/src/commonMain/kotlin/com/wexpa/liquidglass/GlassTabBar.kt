@@ -938,9 +938,8 @@ fun GlassTabBar(
                             pressSource = press,
                             refractContent = lensCarriesInk,
                             through = barState,
-                            // The bar's outline is not enlarged to hide the body: containment is
-                            // what keeps a tap inside it, and a hold is allowed out by its own
-                            // declared envelope (V3-MODEL section 12).
+                            // The bar keeps its own outline. The node's declared envelope
+                            // accommodates held growth and Calm's rounded moving taps.
                             fuse = null,
                             lensFormation = 0f,
                             body = handle?.body?.movedInto(nodeLeftPx.toFloat(), overflowTopPx.toFloat()),
@@ -1232,7 +1231,7 @@ internal object GlassTabBarSemantics {
     val Formation = SemanticsPropertyKey<Float>("GlassTabBarFormation")
     val BodyWidth = SemanticsPropertyKey<Float>("GlassTabBarBodyWidth")
     val BodySkew = SemanticsPropertyKey<Float>("GlassTabBarBodySkew")
-    /** How far the body's contour is outside the resting bar, in px; 0 during an ordinary tap. */
+    /** How far the body's contour is outside the resting bar, in px; Calm taps may protrude. */
     val Protrusion = SemanticsPropertyKey<Float>("GlassTabBarProtrusion")
 
     /**

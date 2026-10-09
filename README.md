@@ -17,8 +17,9 @@ desktop input, travel, release and extreme pulls. The [measurement correction](r
 documents a rejected timing method and verified replacement; screenshots do not establish frame rate.
 The [progress tracker](PROGRESS.md) lists the verified checkpoint, unfinished requirements and next steps.
 The [new labelled motion audit](research/analysis/MOTION-2026-10-08.md) preserves native timestamps,
-original measurements and a failing production baseline. Short and long taps expose shape differences
-that the earlier still-image checks did not cover; those checks do not establish motion parity.
+original measurements and a failing production baseline. The [coupled tap candidate](review/atlas/phone-tap-volume-2026-10-09/README.md)
+exchanges area between the rounded ends and horizontal spine, improving short/long travel shapes.
+Its record includes the remaining early-frame mismatch; these spatial checks do not establish motion parity.
 
 ## Start with one scene
 

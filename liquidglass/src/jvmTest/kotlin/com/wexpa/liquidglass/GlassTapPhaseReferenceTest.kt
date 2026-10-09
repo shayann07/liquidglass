@@ -37,7 +37,7 @@ class GlassTapPhaseReferenceTest {
                 }
             }
             assertFalse(controller.solverFailed)
-            assertTrue(controller.protrusion() < .1f)
+            assertTrue(extent.height <= bar.height * 1.23f)
         }
         val widthRatio = matchedWidth / extent.width
         val heightRatio = pairedHeight / extent.height
@@ -68,7 +68,7 @@ class GlassTapPhaseReferenceTest {
                 controller.advanceFrameTo(i.toFloat() / hz)
                 controller.extents(extent)
                 assertFalse(controller.solverFailed)
-                assertTrue(controller.protrusion() < .1f)
+                assertTrue(extent.height <= bar.height * 1.23f)
                 if (!motion) {
                     assertEquals(230f, extent.width, .1f, "reduced motion grew a recoil")
                     assertEquals(162f, extent.height, .1f, "reduced motion grew a recoil")
@@ -113,7 +113,7 @@ class GlassTapPhaseReferenceTest {
             controller.advanceTo(i / 480f); controller.extents(extent)
             assertFalse(controller.isHeld)
             assertFalse(controller.solverFailed)
-            assertTrue(controller.protrusion() < .1f)
+            assertTrue(extent.height <= bar.height * 1.23f)
             val phase = (controller.centreX - bar.centreOf(0)) / (bar.centreOf(4) - bar.centreOf(0))
             if (abs(phase - .487f) < best) {
                 best = abs(phase - .487f)

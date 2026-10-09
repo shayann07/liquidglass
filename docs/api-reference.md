@@ -179,16 +179,19 @@ morphs between, exposed so a host can start from them.
 
 #### `selector` — the deforming body
 
-Null keeps the capsule selector this component shipped with, and every preset above is on that
-path. Non-null replaces it with the convex hull of two unequal disks, whose length, mean radius and
-end asymmetry evolve separately; the selector's outline, normal, optical band and coverage all come
-from that body, so the aperture really changes rather than a finished picture being stretched.
-Nothing rasterised is scaled to fake the deformation.
+Null keeps the original capsule selector. `V3()` and `Calm()` supply a non-null selector spec and
+use its default pose controller: the outline, normal, optical band and coverage follow the same
+deforming body. The historical two-disk controller remains available with `poseMotion = false`
+for comparison. Most fields in `GlassSelectorSpec` tune that historical controller; the pose path
+uses its internal preset, selected by `response`. They are not per-screen knobs for `Calm()`.
 
-Containment is by construction: both generating disks are projected into an inscribed polygon of
-the bar, which puts their whole convex hull inside it. An ordinary tap therefore deforms *within*
-the bar however fast it travels, and only a hold that outlives the threshold is granted the larger
-envelope — touch-down alone does not start the held lens.
+The historical two-disk controller projects both disks into an inscribed polygon of the bar.
+The opt-in `Calm()` pose controller has a different travel response: it couples projected area
+and spine length, allowing a short moving tap to grow above and below the resting bar, as in the
+owner's labelled Phone recording. This does not make that tap a held gesture. Ordinary hold growth,
+selector travel and the bar's anchored drag strain remain separate. Applications using `Calm()`
+do not need to implement this deformation or tune it per item. See the
+[motion evidence and limitations](research/atlas-stabilization.md#new-labelled-motion-recordings).
 
 `GlassTabBarStyle.V3(dark, tintAmount, spec, edgeFold)` is the measured preset with this selector,
 the exact ink compositor and the straight-run fold turned on together.

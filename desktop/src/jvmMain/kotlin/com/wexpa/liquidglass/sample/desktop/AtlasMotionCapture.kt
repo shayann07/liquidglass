@@ -39,6 +39,28 @@ internal suspend fun captureAtlasMotion(window: Container, probe: AtlasMotionPro
     val input = descendants(layer).firstOrNull { component ->
         component.mouseListeners.any { it.javaClass.name.startsWith("androidx.compose.ui.scene.ComposeSceneMediator") }
     } ?: error("No Compose mouse input component in this window")
+    // Maximization and the first GPU redraw can publish another layout after the
+    // window becomes visible. Establish coordinates before ANY injected input.
+    // Keep the subsequent fixed-layout assertions strict throughout each gesture.
+    var previousBounds = Rect.Zero
+    var previousSize = 0L
+    var stableSince = System.nanoTime()
+    val layoutDeadline = stableSince + 10_000_000_000L
+    while (true) {
+        layer.renderImmediately()
+        delay(100)
+        val currentBounds = probe.navigation
+        val currentSize = (layer.width.toLong() shl 32) or layer.height.toLong()
+        val currentTime = System.nanoTime()
+        if (currentBounds != previousBounds || currentSize != previousSize || currentBounds.width <= 0f) {
+            stableSince = currentTime
+            previousBounds = currentBounds
+            previousSize = currentSize
+        } else if (currentTime - stableSince >= 500_000_000L) {
+            break
+        }
+        check(currentTime < layoutDeadline) { "Atlas layout did not stabilize before native input" }
+    }
     val bounds = probe.navigation
     check(bounds.width > 0f && bounds.height > 0f) { "Atlas navigation needs a wide desktop window" }
     check(probe.scene == 0) { "Motion capture starts with the Sky scene" }
