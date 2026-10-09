@@ -22,6 +22,8 @@ exchanges area between the rounded ends and horizontal spine, improving short/lo
 Its record includes the remaining early-frame mismatch; these spatial checks do not establish motion parity.
 The [endpoint landing comparison](review/atlas/phone-throw-2026-10-09/README.md) adds compression
 near a hard landing, with measured source width, partial-cap curvature and reproducible input sweeps.
+The [consecutive recovery audit](review/atlas/phone-landing-sequence-2026-10-09/README.md) records
+remaining trajectory errors in both directions; matching one compression frame is insufficient.
 
 ## Start with one scene
 

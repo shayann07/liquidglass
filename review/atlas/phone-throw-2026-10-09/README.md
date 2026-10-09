@@ -10,6 +10,10 @@ This improves a measured spatial mismatch. **Full 1:1 motion and timing parity r
 The source does not expose finger-up time or force, and the model does not reproduce its centre
 overshoot. The original optical image and controller geometry below are labelled separately.
 
+The later [consecutive audit](../phone-landing-sequence-2026-10-09/README.md) refines that centre
+interpretation: both original endpoint-facing edges stay nearly fixed as width recovers. Apparent
+centre excursion does not by itself prove mass-centre overshoot. Recovery trajectory remains open.
+
 ![Source cap probes and same-input controller comparison](comparison.png)
 
 ## Original evidence

@@ -13,9 +13,19 @@ and the static1920×1051 capture are now inspected and saved in the
 [landing packet](review/atlas/phone-throw-2026-10-09/README.md). Endpoint compression/recovery is
 visible in both directions. Static redraw submission median19.526ms/p9523.139ms is not presented
 FPS. No runtime code changed after verification; no completed suite was restarted.
-Preparing the verified commit/push; preceding HEAD7c09000 passed all seven hosted checks.
+Committed/pushed as **d3b8b25**. All seven required hosted checks passed in CI37940076776,
+CodeQL37940076765 and Docs37940076743. Library/Atlas tasks executed freshly; build14m47s,
+Gradle14m22s. No hosted/local verification remains live for this checkpoint.
 The new packet records the unmatched original centre overshoot and unknown input timing.
 Read `.local/active-goal-checkpoint.txt` and the live log for current revision/run status.
+
+**New consecutive evidence:** [both endpoint recovery sequences](review/atlas/phone-landing-sequence-2026-10-09/README.md)
+show the endpoint-facing edge staying within2px while the inner edge moves43–44px. The current
+candidate broadens too quickly and does not reproduce that joint edge/centre trajectory.
+Do not equate the apparent centre movement with a separate mass-centre overshoot. Next M1
+experiment: endpoint contact coupled to changing shape, keeping pose/velocity continuity and
+all existing ownership/scale/reduced-motion guarantees. Research-only tools/data preserve the
+unchanged runtime's full-test evidence. Private left-landing images remain local.
 
 
 - **Working change:** coupled tap area/spine in the opt-in Calm selector. Focused integration:
@@ -87,7 +97,7 @@ the historical spring's source comment is corrected, without changing its value.
 
 | ID | Requested outcome | Verified work / remaining gap |
 | --- | --- | --- |
-| M1 | Distance-dependent tap, hold and throw | Midpoint, arrival recoil and paired held shapes corrected; cadence/ownership regressions passed. Independent continuous contour/timing comparison remains. |
+| M1 | Distance-dependent tap, hold and throw | Paired tap/held/landing shapes improved; regressions passed. Consecutive recovery exposes too-fast broadening and missing endpoint-edge anchoring; full contour/timing comparison remains. |
 | M2 | Whole-bar squeeze, subtle corner extremes | Shared bounded material/ink transform; fixed layout/hit targets; original vertical asymmetry audited. Horizontal ink drift and exact optical mechanism remain. |
 | M3 | Calm generic controls | Existing card limits, accessibility and gesture ownership verified. Preserve them through further changes. |
 | O1 | Continuous glass without a split rim | Standalone continuous lens and endpoint regressions passed. Full Apple optics and Android endpoint precision remain unproven. |

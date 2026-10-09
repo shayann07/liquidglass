@@ -1,0 +1,67 @@
+{
+  "runtimeCommit": "d3b8b25cd02827c459edd7d7657b754be306beb3",
+  "productionChanged": false,
+  "productionTests": "Reused completed323pass/27skip,2Atlaspass,Androidassembly; no rerun for analysis-only work.",
+  "right": {
+    "nativeSamples": 31,
+    "acceptedCrossSections": 31,
+    "acceptedCapFits": 31,
+    "acceptedBarProbes": 31,
+    "allOverlaysInspected": true
+  },
+  "left": {
+    "decodedFrames": 94,
+    "lateSamples": 29,
+    "acceptedCrossSections": 23,
+    "acceptedCapFits": 29,
+    "acceptedBarProbes": 0,
+    "excludedCrossSections": [
+      "frame-066.png",
+      "frame-067.png",
+      "frame-068.png",
+      "frame-069.png",
+      "frame-070.png",
+      "frame-071.png"
+    ],
+    "allOverlaysInspected": true,
+    "publication": "Raw crops and overlays excluded: private text in the background. Only numeric probes/metadata published."
+  },
+  "endpoints": {
+    "Right endpoint": {
+      "samples": 29,
+      "first": 2.523333,
+      "last": 2.99,
+      "leadingEdgeRange": [
+        882.5,
+        884.5
+      ],
+      "trailingEdgeRange": [
+        599.5,
+        642.5
+      ],
+      "minimumWidth": 241.0,
+      "finalWidth": 285.0
+    },
+    "Left endpoint": {
+      "samples": 23,
+      "first": 4.573333,
+      "last": 4.94,
+      "leadingEdgeRange": [
+        74.5,
+        76.5
+      ],
+      "trailingEdgeRange": [
+        315.5,
+        359.5
+      ],
+      "minimumWidth": 239.0,
+      "finalWidth": 284.0
+    }
+  },
+  "reproduction": "Generalized annotation-aware tool reproduced right numeric widths/centres/cap radii exactly; all original image hashes checked. Comparison reads frozen production CSV.",
+  "sourceSha256": {
+    "tools/measure_phone_landing_sequence.py": "35ddd0e1ab7abcbc8946375b86ca4ec891664a00a7c043259d1c8f68af71298a",
+    "tools/compare_phone_landing_sequence.py": "8d1d5103f1399ab73cfa09b470716b2c3b91ee8c1af1a2d3198c0e2c3cf837fc"
+  },
+  "limits": "Measurement diagnostics, not full contour/optical parity. Input timestamps unknown. Left late window may not establish exact rest; edge plot is relative to its final sample. Partial-cap curvature depends on arc window. No production change based on these observations yet."
+}
