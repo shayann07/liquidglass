@@ -1,0 +1,99 @@
+{
+  "sourceSha256": "b1daa86ae7a6f9246fb56b19af9a82ec939ad2315c947954ee1e6869a8168006",
+  "samples": [
+    {
+      "file": "frame-073.png",
+      "ys": [
+        125,
+        130,
+        135
+      ],
+      "xs": [
+        720,
+        750,
+        780
+      ],
+      "left": [
+        600,
+        640
+      ],
+      "right": [
+        872,
+        890
+      ],
+      "top": [
+        42,
+        64
+      ],
+      "bottom": [
+        197,
+        213
+      ],
+      "inspectionFlags": {}
+    },
+    {
+      "file": "frame-082.png",
+      "ys": [
+        125,
+        130,
+        135
+      ],
+      "xs": [
+        720,
+        750,
+        780
+      ],
+      "left": [
+        625,
+        665
+      ],
+      "right": [
+        872,
+        890
+      ],
+      "top": [
+        23,
+        47
+      ],
+      "bottom": [
+        198,
+        225
+      ],
+      "inspectionFlags": {
+        "vertical": [
+          "body and outer-bar top edge may merge; bound only, not accepted isolated body height"
+        ]
+      }
+    },
+    {
+      "file": "frame-108.png",
+      "ys": [
+        125,
+        130,
+        135
+      ],
+      "xs": [
+        720,
+        735,
+        750
+      ],
+      "left": [
+        584,
+        620
+      ],
+      "right": [
+        872,
+        890
+      ],
+      "top": [
+        42,
+        65
+      ],
+      "bottom": [
+        194,
+        212
+      ],
+      "inspectionFlags": {}
+    }
+  ]
+}

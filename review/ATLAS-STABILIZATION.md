@@ -1310,3 +1310,15 @@ recovery and fixed-layout checks. Startup layout capture was corrected after a r
 asynchronous window maximization. The final static1920x1051 Direct3D capture has13.386ms median /
 23.336ms p95 forced-redraw submission, not presented FPS. The separate CPU-controller benchmark and
 all failed attempts are preserved in the packet/live log. Full1:1 iOS parity is not established.
+
+## Phone endpoint landing — 2026-10-09
+
+Calm now transfers endpoint deceleration into spine compression while coupling radius to area.
+This reaches the original narrow-body/large-cap pair without giving the selector perpendicular
+squeeze. Ordinary holds and middle landings preserve their previous response; reduced-motion
+interruption discards stored deformation. The [landing packet](atlas/phone-throw-2026-10-09/README.md)
+preserves source probes, rejected experiments, authored gains, native images and exact limits.
+
+Completed local verification:323library passed/27optional skips/zero failures, both Atlas tests
+passed, Android assembled,21native phases passed and inspected. Full1:1 remains open: source
+centre overshoot, continuous contour/optical comparison and original input timing are unmatched.

@@ -61,7 +61,8 @@ python tools/plot_native_motion.py $motionOutput --output .local/atlas-motion.pn
 
 Use a wide desktop window and the default Sky scene. This opt-in diagnostic verifies tap/held-drag
 selection, full-corner pulls and fixed layout bounds. It never moves the OS cursor or reads other
-windows. Each phase replays its gesture independently because native screenshot readback can be
+windows. It also replays early and formed endpoint flings in both directions, then captures recovery.
+The complete sequence produces 21 phase snapshots. Each phase replays its gesture independently because native screenshot readback can be
 slow. CSV timestamps describe actual input and render-start times; PNG encoding follows input.
 Use `-Patlas.motionReadback=false` with a **different output directory** to replay the same
 assertions without screenshots. This records CSV/metadata only; do not run the image plotter on it.

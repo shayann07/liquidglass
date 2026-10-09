@@ -1,0 +1,15 @@
+{
+  "sourceSha256": "b1daa86ae7a6f9246fb56b19af9a82ec939ad2315c947954ee1e6869a8168006",
+  "samples": [
+    {
+      "file": "source-landing.png", "seconds": 2.556667, "pts": 1534,
+      "xWindow": [620, 707], "yRange": [48, 205, 3], "excludeRows": [[148, 183]],
+      "initial": [756, 125, 116], "bounds": [[650, 100, 70], [850, 150, 160]]
+    },
+    {
+      "file": "source-rest.png", "seconds": 2.99, "pts": 1794,
+      "xWindow": [580, 694], "yRange": [59, 195, 3], "excludeRows": [[148, 183]],
+      "initial": [680, 125, 80], "bounds": [[650, 100, 70], [850, 150, 160]]
+    }
+  ]
+}

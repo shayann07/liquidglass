@@ -186,8 +186,11 @@ for comparison. Most fields in `GlassSelectorSpec` tune that historical controll
 uses its internal preset, selected by `response`. They are not per-screen knobs for `Calm()`.
 
 The historical two-disk controller projects both disks into an inscribed polygon of the bar.
-The opt-in `Calm()` pose controller has a different travel response: it couples projected area
-and spine length, allowing a short moving tap to grow above and below the resting bar, as in the
+The opt-in `Calm()` pose controller couples projected area and spine length for taps and moving
+endpoint landings. A released selector compresses as it decelerates near an end tab; middle-tab
+and stationary releases retain their previous response. Setting `motionEnabled = false` during
+recovery clears stored deformation on the next advance. Short moving taps can grow above and
+below the resting bar, as in the
 owner's labelled Phone recording. This does not make that tap a held gesture. Ordinary hold growth,
 selector travel and the bar's anchored drag strain remain separate. Applications using `Calm()`
 do not need to implement this deformation or tune it per item. See the

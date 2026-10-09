@@ -20,6 +20,8 @@ The [new labelled motion audit](research/analysis/MOTION-2026-10-08.md) preserve
 original measurements and a failing production baseline. The [coupled tap candidate](review/atlas/phone-tap-volume-2026-10-09/README.md)
 exchanges area between the rounded ends and horizontal spine, improving short/long travel shapes.
 Its record includes the remaining early-frame mismatch; these spatial checks do not establish motion parity.
+The [endpoint landing comparison](review/atlas/phone-throw-2026-10-09/README.md) adds compression
+near a hard landing, with measured source width, partial-cap curvature and reproducible input sweeps.
 
 ## Start with one scene
 
@@ -96,6 +98,9 @@ Held travel has its own response: moderate movement widens the selector, stronge
 and a stationary hold recovers calmly. The [held-travel comparison](review/ATLAS-STABILIZATION.md#held-travel-two-shapes-instead-of-one-frame)
 records both original bounds and regression results. This changes along-bar travel; perpendicular
 squeeze still belongs to the whole bar. Its gains are authored, not recovered iOS timing.
+Moving releases into an endpoint now exchange spine length for cap growth as they slow;
+middle-tab and stationary releases retain their prior response. Disabling motion during recovery
+also clears stored deformation immediately. All of this is selected by `GlassTabBarStyle.Calm()`.
 
 Desktop Calm selectors also compose refracted ink and material together in the final shader, avoiding
 one intermediate rounding step. The [porting guide](docs/porting.md#combining-refracted-ink-with-glass)

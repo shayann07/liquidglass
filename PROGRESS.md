@@ -6,6 +6,18 @@ Read this first after an interruption. Detailed history lives in the
 
 ## Current state
 
+**Latest checkpoint, 9 October:** endpoint landing correction passed the completed full suite:
+**323 library tests passed, 27 optional skips, zero failures; both Atlas tests passed; Android
+assembled** (10m21s). Native21-phase capture passed selection/layout checks; all new images
+and the static1920×1051 capture are now inspected and saved in the
+[landing packet](review/atlas/phone-throw-2026-10-09/README.md). Endpoint compression/recovery is
+visible in both directions. Static redraw submission median19.526ms/p9523.139ms is not presented
+FPS. No runtime code changed after verification; no completed suite was restarted.
+Preparing the verified commit/push; preceding HEAD7c09000 passed all seven hosted checks.
+The new packet records the unmatched original centre overshoot and unknown input timing.
+Read `.local/active-goal-checkpoint.txt` and the live log for current revision/run status.
+
+
 - **Working change:** coupled tap area/spine in the opt-in Calm selector. Focused integration:
   **24 passed** (including older tap/held/growth references, cadence, interruption and idle/wake).
   [Candidate data and explanation](review/atlas/phone-tap-volume-2026-10-09/README.md) preserve

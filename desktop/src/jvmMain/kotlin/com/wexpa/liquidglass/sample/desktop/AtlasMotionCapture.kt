@@ -170,6 +170,24 @@ internal suspend fun captureAtlasMotion(window: Container, probe: AtlasMotionPro
         send(MouseEvent.MOUSE_RELEASED, bottomRight, false)
         delay(1000); capture("07-recovered")
         check(probe.scene == 2) { "Extreme drag lost selection intent: ${probe.scene}" }
+        // A short and a formed fling in both directions. Replays use real AWT time;
+        // the CSV preserves scheduling delay rather than claiming exact input cadence.
+        for (reverse in listOf(false,true)) for (hold in listOf(40L,650L)) {
+            prepare(if(reverse)2 else 0)
+            val from=if(reverse)right else left
+            val to=if(reverse)left else right
+            send(MouseEvent.MOUSE_PRESSED,from,true)
+            delay(hold)
+            for(i in 1..6) {
+                delay(10)
+                send(MouseEvent.MOUSE_DRAGGED,from+(to-from)*(i/6f),true)
+            }
+            send(MouseEvent.MOUSE_RELEASED,to,false)
+            delay(180)
+            capture("08-fling-${if(reverse)"left" else "right"}-hold${hold}ms")
+            check(probe.scene == if(reverse)0 else 2) { "Fling lost selection intent: ${probe.scene}" }
+        }
+        delay(1000);capture("09-fling-recovered")
         checksPassed = true
     } finally {
         try {
