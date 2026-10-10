@@ -187,14 +187,22 @@ uses its internal preset, selected by `response`. They are not per-screen knobs 
 
 The historical two-disk controller projects both disks into an inscribed polygon of the bar.
 The opt-in `Calm()` pose controller couples projected area and spine length for taps and moving
-endpoint landings. A released selector compresses as it decelerates near an end tab; middle-tab
-and stationary releases retain their previous response. Setting `motionEnabled = false` during
+endpoint landings. During a moving endpoint release, its leading edge recovers toward the
+resting endpoint while its centre follows from the changing width. This keeps translation and
+shape connected without moving layout or hit targets. A released selector compresses as it
+decelerates near an end tab; middle-tab and stationary releases retain their previous response.
+Setting `motionEnabled = false` during
 recovery clears stored deformation on the next advance. Short moving taps can grow above and
-below the resting bar, as in the
-owner's labelled Phone recording. This does not make that tap a held gesture. Ordinary hold growth,
+below the resting bar, as in the owner's labelled Phone recording. This does not make that tap
+a held gesture. Ordinary hold growth,
 selector travel and the bar's anchored drag strain remain separate. Applications using `Calm()`
 do not need to implement this deformation or tune it per item. See the
 [motion evidence and limitations](research/atlas-stabilization.md#new-labelled-motion-recordings).
+
+Calm's resting inset tint is limited to the underlying bar's shape, even while the recovering
+body extends above or below it. Refraction, rim lighting and body coverage stay independent.
+The mask follows the bar's drawing transform without changing its layout or hit targets;
+applications do not supply a separate clipping shape.
 
 `GlassTabBarStyle.V3(dark, tintAmount, spec, edgeFold)` is the measured preset with this selector,
 the exact ink compositor and the straight-run fold turned on together.

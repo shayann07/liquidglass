@@ -6,51 +6,36 @@ Read this first after an interruption. Detailed history lives in the
 
 ## Current state
 
-**Latest checkpoint, 9 October:** endpoint landing correction passed the completed full suite:
-**323 library tests passed, 27 optional skips, zero failures; both Atlas tests passed; Android
-assembled** (10m21s). Native21-phase capture passed selection/layout checks; all new images
-and the static1920×1051 capture are now inspected and saved in the
-[landing packet](review/atlas/phone-throw-2026-10-09/README.md). Endpoint compression/recovery is
-visible in both directions. Static redraw submission median19.526ms/p9523.139ms is not presented
-FPS. No runtime code changed after verification; no completed suite was restarted.
-Committed/pushed as **d3b8b25**. All seven required hosted checks passed in CI37940076776,
-CodeQL37940076765 and Docs37940076743. Library/Atlas tasks executed freshly; build14m47s,
-Gradle14m22s. No hosted/local verification remains live for this checkpoint.
-The new packet records the unmatched original centre overshoot and unknown input timing.
-Read `.local/active-goal-checkpoint.txt` and the live log for current revision/run status.
+**Latest verified local checkpoint, 10 October:** endpoint recovery follows the leading edge
+while the body changes width, and the resting inset tint is limited to the actual bar shape.
+The owner rejected the preceding dark-disc images; that visual sign-off remains withdrawn.
+The corrected native images preserve the resting inset exactly and remove the dark exterior
+caps on both backgrounds. A thin glass rim remains during recovery.
 
-**New consecutive evidence:** [both endpoint recovery sequences](review/atlas/phone-landing-sequence-2026-10-09/README.md)
-show the endpoint-facing edge staying within2px while the inner edge moves43–44px. The current
-candidate broadens too quickly and does not reproduce that joint edge/centre trajectory.
-Do not equate the apparent centre movement with a separate mass-centre overshoot. Next M1
-experiment: endpoint contact coupled to changing shape, keeping pose/velocity continuity and
-all existing ownership/scale/reduced-motion guarantees. Research-only tools/data preserve the
-unchanged runtime's full-test evidence. Private left-landing images remain local.
-
-
-- **Working change:** coupled tap area/spine in the opt-in Calm selector. Focused integration:
-  **24 passed** (including older tap/held/growth references, cadence, interruption and idle/wake).
-  [Candidate data and explanation](review/atlas/phone-tap-volume-2026-10-09/README.md) preserve
-  every model alternative, a before/after plot and the remaining early-frame width mismatch.
-  Full library: **317 passed, 27 optional exports skipped, zero failures**; Android assembled.
-  Both Atlas tests passed; full command12m11s. Native16-phase capture passed selection, extreme
-  corners, recovery and fixed layout. Static1920×1051 capture inspected; redraw submission
-  median13.386ms/p9523.336ms (not presented FPS). Full1:1 remains open. Inspect the local checkpoint
-  for the pushed revision and hosted checks; all local test/capture jobs for this iteration are done.
+- [Material correction and rejected/current native images](review/atlas/inset-material-2026-10-10/README.md).
+- [Leading-edge motion calibration and remaining curvature error](review/atlas/phone-edge-2026-10-09/README.md).
+- [Consecutive source measurements in both directions](review/atlas/phone-landing-sequence-2026-10-09/README.md).
+- **329 library cases passed, 27 optional skips, zero remaining failures; both Atlas tests passed;
+  Android assembled.** The full run initially failed one stale uniform inventory and an Android
+  binding overload. Their targeted repair passed in 2m30s; unchanged renderer cases were reused.
+- Native 21-phase replay passed selection/layout checks in 2m13s; all images inspected.
+  Six focused material/coordinate checks and 20 portable Skia tests plus strict types passed.
+  Native phase captures do not prove continuous timing or presented FPS. First-held redraw
+  1647.7ms remains a diagnostic outlier, not an accepted performance result.
+- No local verification process remains running. Sessions27266/50471 are terminal. Do not repeat
+  these completed suites. Exact reports and source hashes are in the material packet/ledger.
+- Preparing commit/push of the verified work. Current preceding HEAD/origin **4a2c50f** passed all
+  seven required hosted checks. Use the local checkpoint for the subsequent revision/run.
 - Canonical checkout: `D:/Work/AndroidStudioProjects/SideProjects/kmp/liquidglass`.
 - Branch: `codex/atlas-stabilization`; [draft PR #6](https://github.com/shayann07/liquidglass/pull/6).
-- Library **820659d** verified locally and on GitHub: **312 tests passed, 27 optional showcase
-  exports skipped, zero failures**; both Atlas tests passed and Android assembled. Local17m16s;
-  [hosted37770922905](https://github.com/shayann07/liquidglass/actions/runs/37770922905) all seven required checks passed.
-- Desktop diagnostics **0e5c1d6** pushed. Corrected native runs passed with16 snapshots, without
-  readback and at rest. All seven hosted checks passed in run37822979856:312 library passed/27
-  optional skips/zero failures;2 Atlas passed. Fresh executions13m31.84s/2m15.39s; build18m24s.
-- Preceding desktop **078357d** passed all seven checks in
-  [run37812243775](https://github.com/shayann07/liquidglass/actions/runs/37812243775): library FROM-CACHE
-  from820659d, both Atlas tests fresh in5m7.41s, build6m55s. Do not repeat this finished run.
-- Portable scene **014b16e** verified:20 Skia tests,13 math tests, strict TypeScript consumers,
-  five hosted browser tests; all seven checks passed. Native adapters beyond Compose remain absent.
-- Commits/pushes authorized. No release, tag or implicit PR #6 administrator review bypass.
+- Commit/push/final merge authorized; no releases, tags or blanket PR6 review bypass.
+
+The improved width/edge trajectory does not establish complete optical parity. Right/left width
+RMS is2.31/2.39px and centre RMS1.08/1.28px; the visible right arc RMS is2.40px. Partial-cap radius
+still recovers too early, with maximum errors12.59/11.58px. Original input timing, other gesture
+classes, presented-frame performance and additional native integration paths remain open.
+Historical checkpoint totals and rejected experiments are retained in the verification ledger,
+review packets and live research log rather than repeated here.
 
 ## New primary motion recordings
 
@@ -97,7 +82,7 @@ the historical spring's source comment is corrected, without changing its value.
 
 | ID | Requested outcome | Verified work / remaining gap |
 | --- | --- | --- |
-| M1 | Distance-dependent tap, hold and throw | Paired tap/held/landing shapes improved; regressions passed. Consecutive recovery exposes too-fast broadening and missing endpoint-edge anchoring; full contour/timing comparison remains. |
+| M1 | Distance-dependent tap, hold and throw | Consecutive endpoint width/edge recovery improved and dark exterior tint corrected. Full contour/optical timing across all supplied gestures remains open. |
 | M2 | Whole-bar squeeze, subtle corner extremes | Shared bounded material/ink transform; fixed layout/hit targets; original vertical asymmetry audited. Horizontal ink drift and exact optical mechanism remain. |
 | M3 | Calm generic controls | Existing card limits, accessibility and gesture ownership verified. Preserve them through further changes. |
 | O1 | Continuous glass without a split rim | Standalone continuous lens and endpoint regressions passed. Full Apple optics and Android endpoint precision remain unproven. |

@@ -271,6 +271,12 @@ internal data class GlassPoseSpec(
     /** Endpoint landing: transfer lost centre speed into spine compression near the target.
      * Authored from video2's narrower landing silhouette; zero preserves the historical path. */
     val releaseImpactGain: Float = 0f,
+    /** Experimental endpoint coordinate: recover the leading edge while the body changes
+     * width. Authored from consecutive bilateral landings; not a measured Apple law. */
+    val releaseEdgeAnchor: Boolean = false,
+    /** Coupled landing recovery only; zero retains the preceding spine response. */
+    val releaseRecoveryOmega: Float = 0f,
+    val releaseRecoveryZeta: Float = 1f,
 ) {
     internal val spineLimitSlots: Float get() = max(elongationSlots, tapSpineLimitSlots)
 
@@ -311,7 +317,9 @@ internal data class GlassPoseSpec(
         val CalmVolume = CalmIndependent.copy(
             tapAreaGain = .51f,
         )
-        val Calm = CalmVolume.copy(releaseImpactGain = 2.25f)
+        val CalmEndpoint = CalmVolume.copy(releaseImpactGain = 2.25f)
+        val Calm = CalmEndpoint.copy(releaseImpactGain = 4f, releaseEdgeAnchor = true,
+            releaseRecoveryOmega = 14f)
     }
 }
 
@@ -382,6 +390,8 @@ internal class GlassPoseController(
     private var tapAreaActive = false
     private var tapDistance = 0f
     private var releaseImpactActive = false
+    private val releaseEdge = GlassSpring()
+    private var releaseEdgeActive = false
 
     // ------------------------------------------------------------------- the clock
 
@@ -544,6 +554,7 @@ internal class GlassPoseController(
 
     /** Put the body at rest on [index] with no motion. */
     fun snapToRest(index: Int) {
+        releaseEdgeActive = false
         tapAreaActive = false
         tapDistance = 0f
         releaseImpactActive = false
@@ -588,6 +599,7 @@ internal class GlassPoseController(
     }
 
     private fun clearOwnership() {
+        releaseEdgeActive = false
         releaseImpactActive = false
         accommodationValid = false
         pressEligible = false
@@ -608,6 +620,7 @@ internal class GlassPoseController(
      * owner-repair pass and is the reason velocity here is worth measuring at all.
      */
     fun pointerDown(x: Float, y: Float, eventSeconds: Double, eligible: Boolean) {
+        releaseEdgeActive = false
         releaseImpactActive = false
         pressStart = now
         pressEligible = eligible
@@ -872,6 +885,19 @@ internal class GlassPoseController(
         val coupleTapArea = motionEnabled && spec.tapAreaGain > 0f && tapDistance > .25f &&
             (mode == GlassPoseMode.TapTransit || mode == GlassPoseMode.PressPending)
         val coupleReleaseArea = motionEnabled && releaseImpactActive && mode == GlassPoseMode.Released
+        // This coordinate is exact for the horizontal, unstrained Calm capsule. Historical
+        // rotated/tapered/strain models keep their existing centre/contact law.
+        val coupleReleaseEdge = coupleReleaseArea && spec.releaseEdgeAnchor && spec.travelOnly &&
+            spec.stretchGain == 0f && spec.taperFromAcceleration == 0f && spec.taperFromVelocity == 0f &&
+            reference.accommodation == GlassAccommodation.Spine
+        val endpointDirection = if (restIndex == 0) -1f else 1f
+        if (coupleReleaseEdge && !releaseEdgeActive) {
+            releaseEdge.value = pose.cx + endpointDirection * landingHalfWidth()
+            releaseEdge.velocity = velocity.cx + endpointDirection * landingHalfWidthVelocity()
+            releaseEdge.target = bar.centreOf(restIndex) + endpointDirection * reference.width * .5f
+        }
+        releaseEdgeActive = coupleReleaseEdge
+        val edgeVx = releaseEdge.velocity
         val coupleArea = coupleTapArea || coupleReleaseArea
         if (coupleArea && !tapAreaActive) {
             // Seed from the actual material, including its velocity, at every ownership
@@ -1066,6 +1092,7 @@ internal class GlassPoseController(
         }
         stepState(dt, pose.acc, velocity.acc, equilibrium.acc, spec.accommodationOmega, 1f).let { pose.acc = it[0]; velocity.acc = it[1] }
         val spo = when {
+            coupleReleaseArea && spec.releaseRecoveryOmega > 0f -> spec.releaseRecoveryOmega
             coupleTapArea && equilibrium.dx < pose.dx -> spec.tapSpineFallOmega
             coupleTapArea -> spec.tapAreaSpineOmega
             mode == GlassPoseMode.Released -> spec.spineReleaseOmega
@@ -1073,6 +1100,7 @@ internal class GlassPoseController(
             else -> spec.spineOmega
         }
         val spz = when {
+            coupleReleaseArea && spec.releaseRecoveryOmega > 0f -> spec.releaseRecoveryZeta
             coupleTapArea -> spec.tapAreaSpineZeta
             tapMotion -> spec.tapSpineZeta
             else -> spec.spineZeta
@@ -1130,6 +1158,12 @@ internal class GlassPoseController(
             updateShapeVelocity()
             velocity.cx = graspX.velocity - shapeVel[0]
             velocity.cy = spec.pullFollow * (1f - response * response) * graspY.velocity - shapeVel[1]
+        } else if (coupleReleaseEdge) {
+            releaseEdge.step(dt, spec.centreOmega, spec.centreZeta)
+            pose.cx = releaseEdge.value - endpointDirection * landingHalfWidth()
+            velocity.cx = releaseEdge.velocity - endpointDirection * landingHalfWidthVelocity()
+            stepState(dt, pose.cy, velocity.cy, bar.centreY, spec.centreOmega, spec.centreZeta)
+                .let { pose.cy = it[0]; velocity.cy = it[1] }
         } else {
             val targetX = bar.centreOf(restIndex)
             val targetY = bar.centreY
@@ -1147,11 +1181,15 @@ internal class GlassPoseController(
         if (coupleReleaseArea) {
             // Existing centre deceleration supplies a bounded shape impulse; no new
             // pointer force or off-axis squeeze is assigned to the selector.
-            val towardEndpoint = vx * (bar.centreOf(restIndex) - pose.cx) >= 0f
-            val distance = abs(bar.centreOf(restIndex) - pose.cx) / (reference.width * .25f)
+            val driverBefore = if (coupleReleaseEdge) edgeVx else vx
+            val driverAfter = if (coupleReleaseEdge) releaseEdge.velocity else velocity.cx
+            val displacement = if (coupleReleaseEdge) releaseEdge.target - releaseEdge.value else
+                bar.centreOf(restIndex) - pose.cx
+            val towardEndpoint = driverBefore * displacement >= 0f
+            val distance = abs(displacement) / (reference.width * .25f)
             val proximity = exp(-distance * distance)
             if (towardEndpoint) velocity.dx -= spec.releaseImpactGain * proximity *
-                (abs(vx) - abs(velocity.cx)).coerceAtLeast(0f)
+                (abs(driverBefore) - abs(driverAfter)).coerceAtLeast(0f)
         }
         frame.update(reference, pose)
 
@@ -1233,6 +1271,12 @@ internal class GlassPoseController(
     }
 
     private val shapeVel = FloatArray(2)
+
+    private fun landingHalfWidth(): Float = reference.r * exp(pose.p) +
+        pose.dx + max(pose.acc, 0f)
+
+    private fun landingHalfWidthVelocity(): Float = reference.r * exp(pose.p) * velocity.p +
+        velocity.dx + if (pose.acc > 0f) velocity.acc else 0f
 
     private fun updateShapeVelocity() {
         val h = 1f / 4800f

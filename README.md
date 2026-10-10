@@ -24,6 +24,11 @@ The [endpoint landing comparison](review/atlas/phone-throw-2026-10-09/README.md)
 near a hard landing, with measured source width, partial-cap curvature and reproducible input sweeps.
 The [consecutive recovery audit](review/atlas/phone-landing-sequence-2026-10-09/README.md) records
 remaining trajectory errors in both directions; matching one compression frame is insufficient.
+The [shape-aware landing candidate](review/atlas/phone-edge-2026-10-09/README.md) couples the
+endpoint-facing edge to changing width and preserves the remaining cap-curvature mismatch.
+The [inset material correction](review/atlas/inset-material-2026-10-10/README.md) records the
+rejected dark-disc appearance and the native before/after: resting tint now stays on the bar
+while the recovering glass can extend beyond it.
 
 ## Start with one scene
 

@@ -298,6 +298,8 @@ internal fun Modifier.liquidGlassCore(
     packedEndpoint: Boolean = false,
     /** Optional shared drawing state for navigation's ordinary/selected ink. */
     materialDrawing: GlassMaterialDrawingState? = null,
+    /** Navigation inset tint is confined to this underlying material's actual shape. */
+    tintWithinThrough: GlassMaterialDrawingState? = null,
 ): Modifier = composed {
     val glassLayer = rememberGraphicsLayer()
     val endpointLayer = rememberGraphicsLayer()
@@ -334,6 +336,7 @@ internal fun Modifier.liquidGlassCore(
     val density = LocalDensity.current
     val direction = LocalLayoutDirection.current
     val measured = Size(layoutSize.width.toFloat(), layoutSize.height.toFloat())
+    val footprint=rememberGlassFootprint(shape,measured,density,direction,materialDrawing!=null)
     // The field is rasterised at the same origin the layer is recorded at: one pad, computed by
     // one function, so the shader's uPad addresses the field where it was drawn (a field built
     // with ceil(padPx) while the layer used ceil(pad * rs) / rs put the two on different origins:
@@ -436,7 +439,7 @@ internal fun Modifier.liquidGlassCore(
     // it during drawing, so they do not run separate springs or transform pointer targets.
     SideEffect {
         materialDrawing?.drawing = GlassMaterialDrawing(pullDeformation, pressScaleX, pressScaleY,
-            Offset(measured.width / 2f, measured.height / 2f))
+            Offset(measured.width / 2f, measured.height / 2f), footprint)
     }
 
     this
@@ -483,6 +486,10 @@ internal fun Modifier.liquidGlassCore(
                 val pad = style.recordPad(radii, size, fuse, this, state.renderScale, bandPx)
                 val useEndpoint = endpointComposite && refractContent && LiquidGlassSupport.hasShaders
                 val sizeFactor = elementSizeFactor(size, this)
+                val tintDrawing=tintWithinThrough?.drawing
+                val tintOrigin=through?.let { panelOffsetInSource(it.sourceCoordinates,coordinates) }
+                val tintField=tintDrawing?.footprint?.takeIf { poseBody!=null && tintOrigin!=null }
+                val tintMap=if(tintField!=null) tintDrawing!!.footprintMap(tintOrigin!!) else null
                 val contactShadow = glassShadow(sizeFactor)
                 val contactShadowAlpha = contactShadow.alpha * style.contactShadow.coerceIn(0f, 1f)
                 val bounds = sampleBounds(pad, delta, size, state.sourceSize)
@@ -551,7 +558,9 @@ internal fun Modifier.liquidGlassCore(
                         shapeKind = if (pathField != null) 1f else 0f,
                         fieldRange = pathField?.range ?: 1f,
                         fieldScale = pathField?.scale ?: 1f,
-                        field = pathField?.bitmap,
+                        field = tintField ?: pathField?.bitmap,
+                        tintMaskX = tintMap?.first ?: EMPTY_FUSE,
+                        tintMaskY = tintMap?.second ?: EMPTY_FUSE,
                         mirror = style.mirror,
                         fresnel = style.fresnel,
                         highlightChroma = style.highlightChroma,
@@ -976,6 +985,8 @@ internal fun GlassUniforms.scaledBy(s: Float): GlassUniforms =
             height = height * s,
             pad = pad * s,
             inkStrip = inkStrip * s,
+            tintMaskX = floatArrayOf(tintMaskX[0]/s,tintMaskX[1]/s,tintMaskX[2],tintMaskX[3]),
+            tintMaskY = floatArrayOf(tintMaskY[0]/s,tintMaskY[1]/s,tintMaskY[2],tintMaskY[3]),
             radii = FloatArray(radii.size) { radii[it] * s },
             refractBand = refractBand * s,
             refractDepth = refractDepth * s,
@@ -1055,6 +1066,9 @@ internal data class GlassUniforms(
     val endpointAlpha: Float = 0f,
     /** Positive only for packed endpoints: native-pixel offset of the separate ink strip. */
     val inkStrip: Float = 0f,
+    /** Optional inverse affine rows into an alpha footprint bound as field for pose bodies. */
+    val tintMaskX: FloatArray = EMPTY_FUSE,
+    val tintMaskY: FloatArray = EMPTY_FUSE,
     /** Straight-run fold strength on the measured profile ([GlassStyle.edgeFold]). */
     val edgeFold: Float = 0f,
     /** Per-channel split for semantic ink; 0 takes one sharp sample. */
@@ -1155,7 +1169,9 @@ internal data class GlassUniforms(
             body.contentEquals(other.body) && bodyY == other.bodyY && bodyKind == other.bodyKind &&
             poseA.contentEquals(other.poseA) && poseAInv.contentEquals(other.poseAInv) &&
             poseC.contentEquals(other.poseC) && poseD.contentEquals(other.poseD) &&
-            endpointAlpha == other.endpointAlpha && inkStrip == other.inkStrip && edgeFold == other.edgeFold &&
+            endpointAlpha == other.endpointAlpha && inkStrip == other.inkStrip &&
+            tintMaskX.contentEquals(other.tintMaskX) && tintMaskY.contentEquals(other.tintMaskY) &&
+            edgeFold == other.edgeFold &&
             inkSplit == other.inkSplit && heldInk == other.heldInk &&
             wideKernel == other.wideKernel && fineShare == other.fineShare &&
             fuse.contentEquals(other.fuse) && fuseRadius == other.fuseRadius &&

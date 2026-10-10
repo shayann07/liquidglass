@@ -94,6 +94,8 @@ internal object GlassRender {
         edgeFold: Float = 0f,
         /** 1 emits the opaque endpoint B1 instead of B1 premultiplied by coverage. */
         endpointAlpha: Float = 0f,
+        /** Alpha-only substrate coverage in the padded layer's coordinates. */
+        tintMask: ((x: Int, y: Int) -> Float)? = null,
         backdrop: (x: Int, y: Int) -> Int,
     ): IntArray {
         val w = width + pad * 2
@@ -134,7 +136,12 @@ internal object GlassRender {
 
         val b = RuntimeShaderBuilder(effect)
         b.child("content", srcShader)
-        if (field != null) {
+        if (tintMask != null) {
+            val mask=Bitmap().apply { allocPixels(ImageInfo(w,h,ColorType.BGRA_8888,ColorAlphaType.PREMUL)) }
+            val alpha=IntArray(w*h) { i -> (tintMask(i%w,i/w).coerceIn(0f,1f)*255f).toInt() shl 24 }
+            mask.installPixels(ImageInfo(w,h,ColorType.BGRA_8888,ColorAlphaType.PREMUL),intsToBgra(alpha,w,h),w*4)
+            b.child("field",Image.makeFromBitmap(mask).makeShader(FilterTileMode.CLAMP,FilterTileMode.CLAMP,SamplingMode.LINEAR))
+        } else if (field != null) {
             val fb = field.bitmap.asSkiaBitmap()
             b.child("field", Image.makeFromBitmap(fb).makeShader(FilterTileMode.CLAMP, FilterTileMode.CLAMP, SamplingMode.LINEAR))
         } else {
@@ -177,6 +184,8 @@ internal object GlassRender {
         b.uniform("uHiChroma", highlightChroma)
         b.uniform("uInnerShadow", innerShadow)
         b.uniform("uTint", tint.first, tint.second, tint.third, tintAlpha)
+        b.uniform("uTintMaskX",1f,0f,pad.toFloat(),if(tintMask!=null)1f else 0f)
+        b.uniform("uTintMaskY",0f,1f,pad.toFloat(),0f)
         b.uniform("uAdaptive", 0f)
         b.uniform("uLegibility", legibility)
         b.uniform("uProfile", profile)

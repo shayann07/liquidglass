@@ -1,0 +1,1406 @@
+[
+  {
+    "parameters": [
+      6.0,
+      12.0,
+      1.0,
+      0.8,
+      0.1,
+      10.0
+    ],
+    "minimum": {
+      "gain": 6.0,
+      "recoveryOmega": 12.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 10.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.2375,
+      "cx": 698.4616,
+      "width": 248.29065,
+      "height": 239.20728,
+      "formation": 0.07338785
+    },
+    "errors": {
+      "width": {
+        "rms": 4.245542858336812,
+        "max": 7.724783947958315
+      },
+      "radius": {
+        "rms": 4.461376360679567,
+        "max": 9.648266646940627
+      },
+      "centre": {
+        "rms": 1.6691102542174485,
+        "max": 3.538400000000024
+      }
+    },
+    "score": 4.461376360679567,
+    "postMinimumWidthMaximum": 284.9928
+  },
+  {
+    "parameters": [
+      2.0,
+      12.0,
+      1.0,
+      0.8,
+      0.1,
+      10.0
+    ],
+    "minimum": {
+      "gain": 2.0,
+      "recoveryOmega": 12.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 10.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.23125,
+      "cx": 697.7486,
+      "width": 249.57385,
+      "height": 239.20337,
+      "formation": 0.08037469
+    },
+    "errors": {
+      "width": {
+        "rms": 4.762964536559368,
+        "max": 9.249572194723896
+      },
+      "radius": {
+        "rms": 4.726069416451312,
+        "max": 10.098246646940623
+      },
+      "centre": {
+        "rms": 1.7644864271566385,
+        "max": 4.25139999999999
+      }
+    },
+    "score": 4.762964536559368,
+    "postMinimumWidthMaximum": 284.9928
+  },
+  {
+    "parameters": [
+      4.0,
+      12.0,
+      1.0,
+      0.8,
+      0.1,
+      10.0
+    ],
+    "minimum": {
+      "gain": 4.0,
+      "recoveryOmega": 12.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 10.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.225,
+      "cx": 697.3032,
+      "width": 250.29578,
+      "height": 240.18018,
+      "formation": 0.087984964
+    },
+    "errors": {
+      "width": {
+        "rms": 4.902745655654178,
+        "max": 9.650404940912182
+      },
+      "radius": {
+        "rms": 4.399183848313208,
+        "max": 9.457726646940614
+      },
+      "centre": {
+        "rms": 1.9012553546678939,
+        "max": 4.696800000000053
+      }
+    },
+    "score": 4.902745655654178,
+    "postMinimumWidthMaximum": 284.9928
+  },
+  {
+    "parameters": [
+      6.0,
+      12.0,
+      1.0,
+      0.8,
+      0.1,
+      12.0
+    ],
+    "minimum": {
+      "gain": 6.0,
+      "recoveryOmega": 12.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 12.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.23333333,
+      "cx": 701.2096,
+      "width": 242.7024,
+      "height": 234.96323,
+      "formation": 0.07797883
+    },
+    "errors": {
+      "width": {
+        "rms": 3.8469783803540962,
+        "max": 6.956899078891809
+      },
+      "radius": {
+        "rms": 5.192760557917096,
+        "max": 11.294291646940621
+      },
+      "centre": {
+        "rms": 2.0682695923369625,
+        "max": 3.2924659756255714
+      }
+    },
+    "score": 5.192760557917096,
+    "postMinimumWidthMaximum": 284.9928
+  },
+  {
+    "parameters": [
+      6.0,
+      14.0,
+      1.0,
+      0.8,
+      0.1,
+      10.0
+    ],
+    "minimum": {
+      "gain": 6.0,
+      "recoveryOmega": 14.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 10.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.21666667,
+      "cx": 696.97644,
+      "width": 250.67603,
+      "height": 242.54034,
+      "formation": 0.09918747
+    },
+    "errors": {
+      "width": {
+        "rms": 5.291065391461984,
+        "max": 10.275693599717755
+      },
+      "radius": {
+        "rms": 4.489350321149622,
+        "max": 9.280826275923815
+      },
+      "centre": {
+        "rms": 1.9437848966125293,
+        "max": 5.023559999999975
+      }
+    },
+    "score": 5.291065391461984,
+    "postMinimumWidthMaximum": 285.0083
+  },
+  {
+    "parameters": [
+      4.0,
+      12.0,
+      1.0,
+      0.8,
+      0.1,
+      12.0
+    ],
+    "minimum": {
+      "gain": 4.0,
+      "recoveryOmega": 12.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 12.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.22291666,
+      "cx": 700.12146,
+      "width": 244.5968,
+      "height": 235.1973,
+      "formation": 0.090668686
+    },
+    "errors": {
+      "width": {
+        "rms": 3.7147416933034565,
+        "max": 6.30286000000001
+      },
+      "radius": {
+        "rms": 5.350195620282559,
+        "max": 11.578224785041641
+      },
+      "centre": {
+        "rms": 1.798296717373272,
+        "max": 2.9199678575748074
+      }
+    },
+    "score": 5.350195620282559,
+    "postMinimumWidthMaximum": 284.9928
+  },
+  {
+    "parameters": [
+      3.0,
+      12.0,
+      1.0,
+      0.8,
+      0.1,
+      12.0
+    ],
+    "minimum": {
+      "gain": 3.0,
+      "recoveryOmega": 12.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 12.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.21458334,
+      "cx": 699.2592,
+      "width": 246.0326,
+      "height": 235.6955,
+      "formation": 0.10218953
+    },
+    "errors": {
+      "width": {
+        "rms": 3.851008201495586,
+        "max": 5.917359999999974
+      },
+      "radius": {
+        "rms": 5.369661439008422,
+        "max": 11.585660417580371
+      },
+      "centre": {
+        "rms": 1.7363455992067673,
+        "max": 2.7408000000000357
+      }
+    },
+    "score": 5.369661439008422,
+    "postMinimumWidthMaximum": 284.9928
+  },
+  {
+    "parameters": [
+      3.0,
+      12.0,
+      1.0,
+      0.8,
+      0.1,
+      10.0
+    ],
+    "minimum": {
+      "gain": 3.0,
+      "recoveryOmega": 12.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 10.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.21666667,
+      "cx": 696.4182,
+      "width": 251.79272,
+      "height": 240.7117,
+      "formation": 0.09918747
+    },
+    "errors": {
+      "width": {
+        "rms": 5.496528705513085,
+        "max": 11.142954603089294
+      },
+      "radius": {
+        "rms": 4.391098874163917,
+        "max": 9.405374681509784
+      },
+      "centre": {
+        "rms": 2.1643278849851897,
+        "max": 5.581800000000044
+      }
+    },
+    "score": 5.496528705513085,
+    "postMinimumWidthMaximum": 284.9928
+  },
+  {
+    "parameters": [
+      2.0,
+      12.0,
+      1.0,
+      0.8,
+      0.1,
+      12.0
+    ],
+    "minimum": {
+      "gain": 2.0,
+      "recoveryOmega": 12.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 12.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.22708334,
+      "cx": 700.5185,
+      "width": 243.92493,
+      "height": 234.93237,
+      "formation": 0.085375965
+    },
+    "errors": {
+      "width": {
+        "rms": 3.4421725216102397,
+        "max": 5.9354191480466625
+      },
+      "radius": {
+        "rms": 5.49703151927785,
+        "max": 11.761941646940613
+      },
+      "centre": {
+        "rms": 1.6514180718749711,
+        "max": 2.7223679042686317
+      }
+    },
+    "score": 5.49703151927785,
+    "postMinimumWidthMaximum": 284.9928
+  },
+  {
+    "parameters": [
+      6.0,
+      12.0,
+      1.0,
+      0.8,
+      0.1,
+      14.0
+    ],
+    "minimum": {
+      "gain": 6.0,
+      "recoveryOmega": 12.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 14.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.22916667,
+      "cx": 703.2472,
+      "width": 238.52368,
+      "height": 232.03156,
+      "formation": 0.08283983
+    },
+    "errors": {
+      "width": {
+        "rms": 4.805694647910108,
+        "max": 8.086058987491242
+      },
+      "radius": {
+        "rms": 5.600062216398793,
+        "max": 12.198251646940633
+      },
+      "centre": {
+        "rms": 2.8130155429333277,
+        "max": 4.053673414101519
+      }
+    },
+    "score": 5.600062216398793,
+    "postMinimumWidthMaximum": 284.9928
+  },
+  {
+    "parameters": [
+      4.0,
+      12.0,
+      1.0,
+      0.8,
+      0.1,
+      14.0
+    ],
+    "minimum": {
+      "gain": 4.0,
+      "recoveryOmega": 12.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 14.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.21666667,
+      "cx": 702.1904,
+      "width": 240.24854,
+      "height": 232.86014,
+      "formation": 0.09918747
+    },
+    "errors": {
+      "width": {
+        "rms": 4.35580625224451,
+        "max": 7.682369999999992
+      },
+      "radius": {
+        "rms": 5.617267828348416,
+        "max": 12.187199865083429
+      },
+      "centre": {
+        "rms": 2.500375931892488,
+        "max": 3.7412993328021784
+      }
+    },
+    "score": 5.617267828348416,
+    "postMinimumWidthMaximum": 284.9928
+  },
+  {
+    "parameters": [
+      4.0,
+      14.0,
+      1.0,
+      0.8,
+      0.1,
+      12.0
+    ],
+    "minimum": {
+      "gain": 4.0,
+      "recoveryOmega": 14.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 12.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.20416667,
+      "cx": 698.5133,
+      "width": 247.06079,
+      "height": 237.79272,
+      "formation": 0.1185108
+    },
+    "errors": {
+      "width": {
+        "rms": 3.6954122552953375,
+        "max": 6.884959369231012
+      },
+      "radius": {
+        "rms": 5.6728632708231475,
+        "max": 11.55228875835786
+      },
+      "centre": {
+        "rms": 1.2748627383588729,
+        "max": 3.4867000000000417
+      }
+    },
+    "score": 5.6728632708231475,
+    "postMinimumWidthMaximum": 284.9928
+  },
+  {
+    "parameters": [
+      3.0,
+      14.0,
+      1.0,
+      0.8,
+      0.1,
+      12.0
+    ],
+    "minimum": {
+      "gain": 3.0,
+      "recoveryOmega": 14.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 12.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.19583334,
+      "cx": 697.4641,
+      "width": 248.68408,
+      "height": 238.34338,
+      "formation": 0.1332719
+    },
+    "errors": {
+      "width": {
+        "rms": 4.4056020119204655,
+        "max": 8.45599724988358
+      },
+      "radius": {
+        "rms": 5.694867145314603,
+        "max": 11.6135239581522
+      },
+      "centre": {
+        "rms": 1.6360424396298265,
+        "max": 4.53589999999997
+      }
+    },
+    "score": 5.694867145314603,
+    "postMinimumWidthMaximum": 284.9928
+  },
+  {
+    "parameters": [
+      6.0,
+      14.0,
+      1.0,
+      0.8,
+      0.1,
+      12.0
+    ],
+    "minimum": {
+      "gain": 6.0,
+      "recoveryOmega": 14.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 12.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.21666667,
+      "cx": 699.853,
+      "width": 244.92322,
+      "height": 236.78723,
+      "formation": 0.09918747
+    },
+    "errors": {
+      "width": {
+        "rms": 2.8973377331045342,
+        "max": 4.952268611953741
+      },
+      "radius": {
+        "rms": 5.699755165648666,
+        "max": 11.662499572959163
+      },
+      "centre": {
+        "rms": 0.9533811287989659,
+        "max": 2.147000000000048
+      }
+    },
+    "score": 5.699755165648666,
+    "postMinimumWidthMaximum": 284.9928
+  },
+  {
+    "parameters": [
+      3.0,
+      12.0,
+      1.0,
+      0.8,
+      0.1,
+      14.0
+    ],
+    "minimum": {
+      "gain": 3.0,
+      "recoveryOmega": 12.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 14.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.21041666,
+      "cx": 701.40173,
+      "width": 241.57751,
+      "height": 232.66309,
+      "formation": 0.108449444
+    },
+    "errors": {
+      "width": {
+        "rms": 3.9269367067517194,
+        "max": 7.138300950401515
+      },
+      "radius": {
+        "rms": 5.850503402845601,
+        "max": 12.626596646940627
+      },
+      "centre": {
+        "rms": 2.1798921385628987,
+        "max": 3.39686544973667
+      }
+    },
+    "score": 5.850503402845601,
+    "postMinimumWidthMaximum": 284.9928
+  },
+  {
+    "parameters": [
+      4.0,
+      16.0,
+      1.0,
+      0.8,
+      0.1,
+      12.0
+    ],
+    "minimum": {
+      "gain": 4.0,
+      "recoveryOmega": 16.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 12.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.1875,
+      "cx": 696.83606,
+      "width": 249.34851,
+      "height": 240.62534,
+      "formation": 0.14970687
+    },
+    "errors": {
+      "width": {
+        "rms": 5.3337360661609585,
+        "max": 9.551509999999979
+      },
+      "radius": {
+        "rms": 5.916844622143858,
+        "max": 12.066009508881464
+      },
+      "centre": {
+        "rms": 2.067364404740543,
+        "max": 5.163940000000025
+      }
+    },
+    "score": 5.916844622143858,
+    "postMinimumWidthMaximum": 284.9928
+  },
+  {
+    "parameters": [
+      6.0,
+      16.0,
+      1.0,
+      0.8,
+      0.1,
+      12.0
+    ],
+    "minimum": {
+      "gain": 6.0,
+      "recoveryOmega": 16.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 12.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.2,
+      "cx": 698.43646,
+      "width": 246.98987,
+      "height": 239.50089,
+      "formation": 0.12569149
+    },
+    "errors": {
+      "width": {
+        "rms": 4.201854373257111,
+        "max": 7.5695799999999736
+      },
+      "radius": {
+        "rms": 5.95232414745614,
+        "max": 12.082794508881463
+      },
+      "centre": {
+        "rms": 1.408875854103134,
+        "max": 3.563539999999989
+      }
+    },
+    "score": 5.95232414745614,
+    "postMinimumWidthMaximum": 284.9928
+  },
+  {
+    "parameters": [
+      2.0,
+      12.0,
+      1.0,
+      0.8,
+      0.1,
+      14.0
+    ],
+    "minimum": {
+      "gain": 2.0,
+      "recoveryOmega": 12.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 14.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.225,
+      "cx": 702.6167,
+      "width": 239.66931,
+      "height": 231.3168,
+      "formation": 0.087984964
+    },
+    "errors": {
+      "width": {
+        "rms": 3.780769031094857,
+        "max": 6.878170000000011
+      },
+      "radius": {
+        "rms": 6.111727071123154,
+        "max": 13.063946646940622
+      },
+      "centre": {
+        "rms": 2.1853902463944856,
+        "max": 3.2643654465687284
+      }
+    },
+    "score": 6.111727071123154,
+    "postMinimumWidthMaximum": 284.9928
+  },
+  {
+    "parameters": [
+      6.0,
+      14.0,
+      1.0,
+      0.8,
+      0.1,
+      14.0
+    ],
+    "minimum": {
+      "gain": 6.0,
+      "recoveryOmega": 14.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 14.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.2125,
+      "cx": 701.9885,
+      "width": 240.49133,
+      "height": 233.78192,
+      "formation": 0.10527615
+    },
+    "errors": {
+      "width": {
+        "rms": 2.285386772555252,
+        "max": 4.523559999999975
+      },
+      "radius": {
+        "rms": 6.1442677965579575,
+        "max": 12.609551646940616
+      },
+      "centre": {
+        "rms": 1.321699884514414,
+        "max": 2.0393365953545093
+      }
+    },
+    "score": 6.1442677965579575,
+    "postMinimumWidthMaximum": 284.9928
+  },
+  {
+    "parameters": [
+      4.0,
+      14.0,
+      1.0,
+      0.8,
+      0.1,
+      14.0
+    ],
+    "minimum": {
+      "gain": 4.0,
+      "recoveryOmega": 14.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 14.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.2,
+      "cx": 700.6884,
+      "width": 242.4862,
+      "height": 234.73358,
+      "formation": 0.12569149
+    },
+    "errors": {
+      "width": {
+        "rms": 2.3142814689213633,
+        "max": 4.136469999999974
+      },
+      "radius": {
+        "rms": 6.165649401156582,
+        "max": 12.589701646940625
+      },
+      "centre": {
+        "rms": 1.0802586483059002,
+        "max": 1.810638538541614
+      }
+    },
+    "score": 6.165649401156582,
+    "postMinimumWidthMaximum": 284.9928
+  },
+  {
+    "parameters": [
+      3.0,
+      16.0,
+      1.0,
+      0.8,
+      0.1,
+      12.0
+    ],
+    "minimum": {
+      "gain": 3.0,
+      "recoveryOmega": 16.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 12.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.17916666,
+      "cx": 695.63434,
+      "width": 251.01477,
+      "height": 241.42761,
+      "formation": 0.16797088
+    },
+    "errors": {
+      "width": {
+        "rms": 6.177685906350915,
+        "max": 11.13415856210969
+      },
+      "radius": {
+        "rms": 5.902073999924035,
+        "max": 12.071532677534549
+      },
+      "centre": {
+        "rms": 2.5653315123182048,
+        "max": 6.365660000000048
+      }
+    },
+    "score": 6.177685906350915,
+    "postMinimumWidthMaximum": 284.9928
+  },
+  {
+    "parameters": [
+      4.0,
+      14.0,
+      1.0,
+      0.8,
+      0.1,
+      10.0
+    ],
+    "minimum": {
+      "gain": 4.0,
+      "recoveryOmega": 14.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 10.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.20416667,
+      "cx": 695.6051,
+      "width": 252.87683,
+      "height": 243.60913,
+      "formation": 0.1185108
+    },
+    "errors": {
+      "width": {
+        "rms": 6.407586063035325,
+        "max": 12.437071322786096
+      },
+      "radius": {
+        "rms": 4.426635434377443,
+        "max": 9.180544508881468
+      },
+      "centre": {
+        "rms": 2.547875430503313,
+        "max": 6.394900000000007
+      }
+    },
+    "score": 6.407586063035325,
+    "postMinimumWidthMaximum": 285.03125
+  },
+  {
+    "parameters": [
+      3.0,
+      14.0,
+      1.0,
+      0.8,
+      0.1,
+      14.0
+    ],
+    "minimum": {
+      "gain": 3.0,
+      "recoveryOmega": 14.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 14.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.19375,
+      "cx": 699.7263,
+      "width": 244.02393,
+      "height": 234.49307,
+      "formation": 0.13721777
+    },
+    "errors": {
+      "width": {
+        "rms": 2.6573770958853453,
+        "max": 4.152589999999975
+      },
+      "radius": {
+        "rms": 6.428832010161763,
+        "max": 13.088391646940622
+      },
+      "centre": {
+        "rms": 1.006803210554875,
+        "max": 2.2736999999999625
+      }
+    },
+    "score": 6.428832010161763,
+    "postMinimumWidthMaximum": 284.9928
+  },
+  {
+    "parameters": [
+      6.0,
+      16.0,
+      1.0,
+      0.8,
+      0.1,
+      14.0
+    ],
+    "minimum": {
+      "gain": 6.0,
+      "recoveryOmega": 16.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 14.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.19791667,
+      "cx": 700.68005,
+      "width": 242.38098,
+      "height": 235.66357,
+      "formation": 0.1294306
+    },
+    "errors": {
+      "width": {
+        "rms": 2.183083175360465,
+        "max": 4.214967883035115
+      },
+      "radius": {
+        "rms": 6.648987207246225,
+        "max": 13.203538822359974
+      },
+      "centre": {
+        "rms": 0.468318637616859,
+        "max": 1.3199499999999489
+      }
+    },
+    "score": 6.648987207246225,
+    "postMinimumWidthMaximum": 284.9928
+  },
+  {
+    "parameters": [
+      4.0,
+      16.0,
+      1.0,
+      0.8,
+      0.1,
+      14.0
+    ],
+    "minimum": {
+      "gain": 4.0,
+      "recoveryOmega": 16.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 14.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.1875,
+      "cx": 699.1964,
+      "width": 244.62793,
+      "height": 235.90454,
+      "formation": 0.14970687
+    },
+    "errors": {
+      "width": {
+        "rms": 3.2446053255092715,
+        "max": 6.1434300000000235
+      },
+      "radius": {
+        "rms": 6.881910751492644,
+        "max": 13.684431131787676
+      },
+      "centre": {
+        "rms": 0.992912360873758,
+        "max": 2.8035999999999603
+      }
+    },
+    "score": 6.881910751492644,
+    "postMinimumWidthMaximum": 284.9928
+  },
+  {
+    "parameters": [
+      3.0,
+      16.0,
+      1.0,
+      0.8,
+      0.1,
+      14.0
+    ],
+    "minimum": {
+      "gain": 3.0,
+      "recoveryOmega": 16.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 14.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.17916666,
+      "cx": 698.02246,
+      "width": 246.23877,
+      "height": 236.65137,
+      "formation": 0.16797088
+    },
+    "errors": {
+      "width": {
+        "rms": 3.9602671908161815,
+        "max": 7.269778059932946
+      },
+      "radius": {
+        "rms": 6.900216491113377,
+        "max": 13.75213679926533
+      },
+      "centre": {
+        "rms": 1.4328039242948192,
+        "max": 3.9775399999999763
+      }
+    },
+    "score": 6.900216491113377,
+    "postMinimumWidthMaximum": 284.9928
+  },
+  {
+    "parameters": [
+      3.0,
+      14.0,
+      1.0,
+      0.8,
+      0.1,
+      10.0
+    ],
+    "minimum": {
+      "gain": 3.0,
+      "recoveryOmega": 14.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 10.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.19583334,
+      "cx": 694.5473,
+      "width": 254.51746,
+      "height": 244.177,
+      "formation": 0.1332719
+    },
+    "errors": {
+      "width": {
+        "rms": 7.288705658346358,
+        "max": 14.09406025828838
+      },
+      "radius": {
+        "rms": 4.422959030682727,
+        "max": 9.182483060212007
+      },
+      "centre": {
+        "rms": 3.0313312634013827,
+        "max": 7.45270000000005
+      }
+    },
+    "score": 7.288705658346358,
+    "postMinimumWidthMaximum": 285.04932
+  },
+  {
+    "parameters": [
+      6.0,
+      16.0,
+      1.0,
+      0.8,
+      0.1,
+      10.0
+    ],
+    "minimum": {
+      "gain": 6.0,
+      "recoveryOmega": 16.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 10.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.20208333,
+      "cx": 695.5812,
+      "width": 252.81543,
+      "height": 244.51694,
+      "formation": 0.12205233
+    },
+    "errors": {
+      "width": {
+        "rms": 7.412699997430808,
+        "max": 13.074459999999988
+      },
+      "radius": {
+        "rms": 4.882805842956262,
+        "max": 10.210327620855523
+      },
+      "centre": {
+        "rms": 3.025284334489047,
+        "max": 6.418800000000033
+      }
+    },
+    "score": 7.412699997430808,
+    "postMinimumWidthMaximum": 285.21606
+  },
+  {
+    "parameters": [
+      2.0,
+      14.0,
+      1.0,
+      0.8,
+      0.1,
+      12.0
+    ],
+    "minimum": {
+      "gain": 2.0,
+      "recoveryOmega": 14.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 12.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.21458334,
+      "cx": 695.17346,
+      "width": 254.20471,
+      "height": 223.32626,
+      "formation": 0.10218953
+    },
+    "errors": {
+      "width": {
+        "rms": 7.398129592198371,
+        "max": 14.13190873889397
+      },
+      "radius": {
+        "rms": 8.433618198569352,
+        "max": 17.330410204415088
+      },
+      "centre": {
+        "rms": 2.9830463258834086,
+        "max": 6.826540000000023
+      }
+    },
+    "score": 8.433618198569352,
+    "postMinimumWidthMaximum": 284.9928
+  },
+  {
+    "parameters": [
+      4.0,
+      16.0,
+      1.0,
+      0.8,
+      0.1,
+      10.0
+    ],
+    "minimum": {
+      "gain": 4.0,
+      "recoveryOmega": 16.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 10.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.1875,
+      "cx": 693.92114,
+      "width": 255.17798,
+      "height": 246.45514,
+      "formation": 0.14970687
+    },
+    "errors": {
+      "width": {
+        "rms": 8.524612943500642,
+        "max": 15.090700000000027
+      },
+      "radius": {
+        "rms": 4.610480104304344,
+        "max": 9.692444508881465
+      },
+      "centre": {
+        "rms": 3.676638164603094,
+        "max": 8.078859999999963
+      }
+    },
+    "score": 8.524612943500642,
+    "postMinimumWidthMaximum": 285.30945
+  },
+  {
+    "parameters": [
+      2.0,
+      14.0,
+      1.0,
+      0.8,
+      0.1,
+      14.0
+    ],
+    "minimum": {
+      "gain": 2.0,
+      "recoveryOmega": 14.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 14.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.21041666,
+      "cx": 697.30994,
+      "width": 249.76172,
+      "height": 220.1849,
+      "formation": 0.108449444
+    },
+    "errors": {
+      "width": {
+        "rms": 5.224715094585523,
+        "max": 9.885499999999979
+      },
+      "radius": {
+        "rms": 9.007940062121746,
+        "max": 18.402371646940622
+      },
+      "centre": {
+        "rms": 1.9181173494073191,
+        "max": 4.690060000000017
+      }
+    },
+    "score": 9.007940062121746,
+    "postMinimumWidthMaximum": 284.9928
+  },
+  {
+    "parameters": [
+      3.0,
+      16.0,
+      1.0,
+      0.8,
+      0.1,
+      10.0
+    ],
+    "minimum": {
+      "gain": 3.0,
+      "recoveryOmega": 16.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 10.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.17916666,
+      "cx": 692.7337,
+      "width": 256.8158,
+      "height": 247.22882,
+      "formation": 0.16797088
+    },
+    "errors": {
+      "width": {
+        "rms": 9.457080513355134,
+        "max": 16.758418664637816
+      },
+      "radius": {
+        "rms": 4.578500307363608,
+        "max": 9.629027588758404
+      },
+      "centre": {
+        "rms": 4.21124951923541,
+        "max": 9.266300000000001
+      }
+    },
+    "score": 9.457080513355134,
+    "postMinimumWidthMaximum": 285.39587
+  },
+  {
+    "parameters": [
+      2.0,
+      14.0,
+      1.0,
+      0.8,
+      0.1,
+      10.0
+    ],
+    "minimum": {
+      "gain": 2.0,
+      "recoveryOmega": 14.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 10.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.21458334,
+      "cx": 692.2987,
+      "width": 259.95386,
+      "height": 229.07568,
+      "formation": 0.10218953
+    },
+    "errors": {
+      "width": {
+        "rms": 10.285372566755942,
+        "max": 19.531059361022983
+      },
+      "radius": {
+        "rms": 7.049815969875321,
+        "max": 14.756255367468995
+      },
+      "centre": {
+        "rms": 4.432750453981766,
+        "max": 9.701299999999947
+      }
+    },
+    "score": 10.285372566755942,
+    "postMinimumWidthMaximum": 285.06042
+  },
+  {
+    "parameters": [
+      2.0,
+      16.0,
+      1.0,
+      0.8,
+      0.1,
+      14.0
+    ],
+    "minimum": {
+      "gain": 2.0,
+      "recoveryOmega": 16.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 14.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.2,
+      "cx": 693.03503,
+      "width": 257.79395,
+      "height": 212.52972,
+      "formation": 0.12569149
+    },
+    "errors": {
+      "width": {
+        "rms": 9.661203533629287,
+        "max": 17.768372276152718
+      },
+      "radius": {
+        "rms": 11.003259266917501,
+        "max": 22.054516646940627
+      },
+      "centre": {
+        "rms": 4.1687728554128505,
+        "max": 8.964969999999994
+      }
+    },
+    "score": 11.003259266917501,
+    "postMinimumWidthMaximum": 284.9928
+  },
+  {
+    "parameters": [
+      2.0,
+      16.0,
+      1.0,
+      0.8,
+      0.1,
+      12.0
+    ],
+    "minimum": {
+      "gain": 2.0,
+      "recoveryOmega": 16.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 12.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.20416667,
+      "cx": 690.8709,
+      "width": 262.34656,
+      "height": 215.7677,
+      "formation": 0.1185108
+    },
+    "errors": {
+      "width": {
+        "rms": 11.991361400868849,
+        "max": 22.246165754441222
+      },
+      "radius": {
+        "rms": 10.336675848072158,
+        "max": 20.861873322135267
+      },
+      "centre": {
+        "rms": 5.320621758598955,
+        "max": 11.129099999999994
+      }
+    },
+    "score": 11.991361400868849,
+    "postMinimumWidthMaximum": 284.9928
+  },
+  {
+    "parameters": [
+      2.0,
+      16.0,
+      1.0,
+      0.8,
+      0.1,
+      10.0
+    ],
+    "minimum": {
+      "gain": 2.0,
+      "recoveryOmega": 16.0,
+      "recoveryZeta": 1.0,
+      "areaOmega": 10.0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "time": 0.20416667,
+      "cx": 687.9827,
+      "width": 268.12268,
+      "height": 221.54407,
+      "formation": 0.1185108
+    },
+    "errors": {
+      "width": {
+        "rms": 15.050764685734041,
+        "max": 27.74187743141988
+      },
+      "radius": {
+        "rms": 8.86764791909165,
+        "max": 18.227948397783024
+      },
+      "centre": {
+        "rms": 6.858138302881696,
+        "max": 14.017299999999977
+      }
+    },
+    "score": 15.050764685734041,
+    "postMinimumWidthMaximum": 285.55933
+  }
+]

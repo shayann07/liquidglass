@@ -1322,3 +1322,19 @@ preserves source probes, rejected experiments, authored gains, native images and
 Completed local verification:323library passed/27optional skips/zero failures, both Atlas tests
 passed, Android assembled,21native phases passed and inspected. Full1:1 remains open: source
 centre overshoot, continuous contour/optical comparison and original input timing are unmatched.
+
+## Endpoint contact and rejected inset appearance — 10 October 2026
+
+Consecutive bilateral originals keep the endpoint-facing edge within2px while the inner edge
+moves43–44px. Calm now recovers that leading edge and derives its centre from the changing
+width. The [motion packet](atlas/phone-edge-2026-10-09/README.md) preserves calibration and the
+remaining curvature mismatch. The owner correctly rejected its initial native dark-disc caps:
+optical formation faded while the whole-body resting tint still covered the page beyond the bar.
+The [material correction](atlas/inset-material-2026-10-10/README.md) confines tint/lift to an
+independent cached mask of the actual bar shape, transformed with its shared drawing state.
+
+The corrected native rest is pixel-identical; both endpoint caps preserve the page. The first
+packed-mask attempt failed native GPU cropping and remains rejected. Full verification covers
+329library passes/27optional skips,2Atlas passes and Android assembly after targeted uniform-list
+and Android-overload repairs.20portable Skia tests/types pass. No physical device or full1:1,
+owner acceptance, presented-frame rate or every-stack integration claim is made.

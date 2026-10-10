@@ -82,6 +82,8 @@ uniform float   uHiChroma;     // how much of the highlight is lightness rather 
 uniform float   uInnerShadow;  // strength of the inner thickness line
 
 uniform float4  uTint;         // rgb + strength
+uniform float4  uTintMaskX;   // inverse map from local pixels to native footprint: m00,m01,tx,enabled
+uniform float4  uTintMaskY;   // m10,m11,ty,unused; footprint reuses field for pose bodies
 uniform float   uAdaptive;     // how far the tint tone-maps against backdrop brightness
 uniform float   uLegibility;   // how far local backdrop contrast raises tint strength
 uniform float   uScale;        // element-size factor: 0 small and clear, 1 large and opaque
@@ -588,7 +590,14 @@ half4 main(float2 coord) {
     // keeps the shape and the lighting intact for anyone who still wants to see the edges.
     // The measured opacity is per role and already includes the element's size, so it is not
     // scaled by size again; the legacy path keeps its gentle size term.
-    float strength = uTint.a * mix(mix(0.9, 1.25, scale), 1.0, measured)
+    // Navigation's dark inset is a treatment of the bar substrate. A still-compressed
+    // recovering body must not paint that inset onto the page above/below the bar.
+    // Refraction, highlights and the geometric coverage stay independent of this tint mask.
+    float2 maskPoint = float2(dot(uTintMaskX.xy, local) + uTintMaskX.z,
+        dot(uTintMaskY.xy, local) + uTintMaskY.z);
+    float tintCoverage = (uTintMaskX.w > 0.5)
+        ? clamp(float(field.eval(maskPoint).a), 0.0, 1.0) : 1.0;
+    float strength = uTint.a * tintCoverage * mix(mix(0.9, 1.25, scale), 1.0, measured)
         + contrast * uLegibility * 0.25
         + clamp(uFrost, 0.0, 1.0) * 0.35;
     strength = clamp(strength * mat, 0.0, 0.95);
@@ -616,7 +625,7 @@ half4 main(float2 coord) {
     // The measured lift: the dark in-app material is black at its opacity plus a fixed 35/255;
     // the system backdrops lift by 142/255 minus 0.864 of the mean luma behind them, which is
     // what makes Control Center read light over dark content and dark over light.
-    float lift = uLift - uLiftAdapt * luma(wide);
+    float lift = (uLift - uLiftAdapt * luma(wide)) * tintCoverage;
     // Clamped only when it adapts: a fixed lift may be negative (the resting tab-bar indicator).
     lift = ((uLiftAdapt > 0.0) ? max(lift, 0.0) : lift) * mat;
     col += half3(half(lift));

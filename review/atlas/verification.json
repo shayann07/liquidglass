@@ -1583,5 +1583,189 @@
       "tools/compare_phone_landing_sequence.py": "8d1d5103f1399ab73cfa09b470716b2c3b91ee8c1af1a2d3198c0e2c3cf837fc"
     },
     "limits": "Measurement diagnostics, not full contour/optical parity. Input timestamps unknown. Left late window may not establish exact rest; edge plot is relative to its final sample. Partial-cap curvature depends on arc window. No production change based on these observations yet."
+  },
+  "shape-aware-endpoint": {
+    "packet": "review/atlas/phone-edge-2026-10-09/README.md",
+    "library": {
+      "tests": 353,
+      "skipped": 27,
+      "failures": 0,
+      "errors": 0,
+      "testcaseSeconds": 516.92,
+      "passed": 326
+    },
+    "desktop": {
+      "tests": 2,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0,
+      "testcaseSeconds": 90.863,
+      "passed": 2
+    },
+    "android": "assembleDebug passed",
+    "native": {
+      "backend": "DIRECT3D",
+      "scale": 1.25,
+      "readbackEnabled": true,
+      "checksPassed": true,
+      "navigation": {
+        "left": 1515.0,
+        "top": 804.0,
+        "width": 350.0,
+        "height": 80.0
+      },
+      "input": "AWT events dispatched only to this application's Compose component",
+      "timing": "Each phase uses a fresh gesture replay because native readback is slow. CSV capture timestamps are render-start times. PNG encoding follows input. Not a continuous video, presented FPS or measured iOS timing.",
+      "phaseSnapshots": 21,
+      "imagesInspected": true,
+      "inspection": "Images inspected; they visibly contain the rejected dark-disc defect. Passing selection/layout checks did not cover material appearance.",
+      "visualAcceptance": "REJECTED by owner: dark disc caps outside bar. Earlier assistant visual approval withdrawn."
+    },
+    "static": {
+      "metric": "native static-scene forced redraw; GPU submission, not presented FPS",
+      "backend": "DIRECT3D",
+      "width": 1920,
+      "height": 1051,
+      "samples": 120,
+      "warmup": 10,
+      "p50_ms": 6.5928,
+      "p95_ms": 9.009,
+      "max_ms": 9.6088,
+      "imageInspected": true,
+      "inspection": "Static grid magnification looks continuous; card/nav layout intact. No full optical parity claim."
+    },
+    "focused": {
+      "first": 29,
+      "second": 25,
+      "failed": 0
+    },
+    "sourceSha256": {
+      "liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/GlassPoseDynamics.kt": "065817c89d10fa82e6c63143851203a9985913f32f948e5ea0769a1a308b65be",
+      "liquidglass/src/jvmTest/kotlin/com/wexpa/liquidglass/GlassPhoneLandingSequenceTest.kt": "93a6d9a77cc9eaa2aa11111d76160787c2f04a5976e41118c445cf3232fcc6f2",
+      "tools/compare_phone_edge_candidate.py": "7faaae74478db244095056e7e23352fc102a5031ac339cdd212c88f7d86817d9"
+    },
+    "limits": "Consecutive width/edge calibration with an independent direction, not recovered finger timing. Partial-cap recovery still early: rightmax12.59px/leftmax11.58px. Phase snapshots are independent replays, not continuous recording or presented FPS. No device available. Full1:1 not proven.",
+    "localBuild": "SUCCESSFUL10m14s; full library and Atlas fresh; Android assembled",
+    "sourceAfterTests": "Runtime unchanged after completed full/native verification.",
+    "visibleRightContour": {
+      "candidate": {
+        "rms": 2.3967088039869098,
+        "maxAbsolute": 5.690411173383723
+      },
+      "previous": {
+        "rms": 17.25647815388256,
+        "maxAbsolute": 31.89152891555125
+      }
+    },
+    "hosted": "Pending checkpoint push;4a2c50f allseven required checks passed.",
+    "status": "Geometry/checkpoint tests passed; native optical appearance rejected. Rendering correction in progress."
+  },
+  "inset-substrate-correction": {
+    "packet": "review/atlas/inset-material-2026-10-10/README.md",
+    "library": {
+      "tests": 356,
+      "skipped": 27,
+      "failures": 0,
+      "errors": 0,
+      "testcaseSeconds": 1101.046,
+      "passed": 329
+    },
+    "desktop": {
+      "tests": 2,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0,
+      "testcaseSeconds": 111.86,
+      "passed": 2
+    },
+    "android": "assembleDebug passed after Android-only array-overload repair",
+    "focused": {
+      "tests": 6,
+      "failed": 0
+    },
+    "portable": {
+      "skiaTests": 20,
+      "failed": 0,
+      "types": "passed"
+    },
+    "native": {
+      "backend": "DIRECT3D",
+      "scale": 1.25,
+      "readbackEnabled": true,
+      "checksPassed": true,
+      "navigation": {
+        "left": 1515.0,
+        "top": 804.0,
+        "width": 350.0,
+        "height": 80.0
+      },
+      "input": "AWT events dispatched only to this application's Compose component",
+      "timing": "Each phase uses a fresh gesture replay because native readback is slow. CSV capture timestamps are render-start times. PNG encoding follows input. Not a continuous video, presented FPS or measured iOS timing.",
+      "images": 21,
+      "imagesInspected": true,
+      "inspection": "Current independent-shape mask removes dark exterior caps in both endpoints and preserves pixel-identical resting image. Early/formed throws, recovery and corner phases inspected. A faint optical rim remains.",
+      "limits": "Independent phase replays, not presented FPS or source input timing. First held redraw1647.7ms; no performance acceptance claimed."
+    },
+    "regression": {
+      "left": {
+        "top": {
+          "roi": [
+            133,
+            74,
+            148,
+            78
+          ],
+          "beforeMeanAbsoluteRgbDifference": 30.877777777777776,
+          "afterMeanAbsoluteRgbDifference": 0.2833333333333333
+        },
+        "bottom": {
+          "roi": [
+            133,
+            162,
+            148,
+            166
+          ],
+          "beforeMeanAbsoluteRgbDifference": 29.65,
+          "afterMeanAbsoluteRgbDifference": 0.03333333333333333
+        }
+      },
+      "right": {
+        "top": {
+          "roi": [
+            363,
+            74,
+            378,
+            78
+          ],
+          "beforeMeanAbsoluteRgbDifference": 29.555555555555557,
+          "afterMeanAbsoluteRgbDifference": 1.3611111111111112
+        },
+        "bottom": {
+          "roi": [
+            363,
+            162,
+            378,
+            166
+          ],
+          "beforeMeanAbsoluteRgbDifference": 26.505555555555556,
+          "afterMeanAbsoluteRgbDifference": 9.03888888888889
+        }
+      },
+      "restPixelsExactlyUnchanged": true
+    },
+    "sourceSha256": {
+      "liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/GlassMaterialDrawing.kt": "a87f654711ab0b9a89fdb772519ecd8482f4e7b966cca0a9a1d0a282e7b42642",
+      "liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/GlassPoseDynamics.kt": "065817c89d10fa82e6c63143851203a9985913f32f948e5ea0769a1a308b65be",
+      "liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/GlassShaderSource.kt": "12ddb58674119cbfdba67bd230ce1b48d9b7522ba07319c4c1c96dbf8597d9a8",
+      "liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/GlassTabBar.kt": "2a08670d06fa48c392bb19611fac7e7f17476c14a7245ccb41816fc75e78bf28",
+      "liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/LiquidGlass.kt": "4de610cdfcba1f2f70c312f959f579860ddaff9eca2668fd84349bb636fecb8f",
+      "liquidglass/src/jvmMain/kotlin/com/wexpa/liquidglass/LiquidGlass.jvm.kt": "f036174a9620a9f93246887f6b481539222a78c92621b698544af3109d0a0d6f",
+      "liquidglass/src/androidMain/kotlin/com/wexpa/liquidglass/LiquidGlass.android.kt": "2c90fda2b0c66be9db20ecad10041fd8d762721a2635ea796c79c7cb25c35265",
+      "liquidglass/src/jvmTest/kotlin/com/wexpa/liquidglass/GlassInsetMaterialTest.kt": "420a28a0df6fda581a712e9845a33c7164cc34b7a0c7f394a29ef7edfb6a7789"
+    },
+    "rejected": "Original full-body inset tint rejected by owner; first packed-mask strip rejected after native left inset disappeared. Both retained in research.",
+    "verificationReuse": "Full JVM run:356cases,328passed/27skipped/1failed (stale uniform inventory). After updating the exact list to include actual bindings, bothGlassShaderTest cases reran and passed. Aggregate329passes/27skips with every class covered; no common/JVM runtime changed. Android-only binding fix required platform retry. Earlier motion326-pass result is historical.",
+    "scope": "Specific native dark-cap defect corrected. No full iOS parity, universal-stack support, owner acceptance or presented-frame performance claim.",
+    "hosted": "Pending verified checkpoint push"
   }
 }

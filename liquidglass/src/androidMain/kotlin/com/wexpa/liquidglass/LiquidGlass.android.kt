@@ -126,6 +126,8 @@ internal actual fun createGlassRenderEffect(
     shader.setFloatUniform("uEdgeShadow", uniforms.edgeShadow)
     shader.setFloatUniform("uRimSoft", uniforms.rimSoft)
     shader.setFloatUniform("uTintAbsorb", uniforms.tintAbsorb)
+    shader.setFloatUniform("uTintMaskX", uniforms.tintMaskX)
+    shader.setFloatUniform("uTintMaskY", uniforms.tintMaskY)
     shader.setFloatUniform("uEdgeLight", uniforms.edgeLight)
     shader.setFloatUniform("uBevelPeak", uniforms.bevelPeak)
     shader.setFloatUniform(

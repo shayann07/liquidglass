@@ -946,6 +946,7 @@ fun GlassTabBar(
                             poseBody = poseHandle?.render,
                             endpointComposite = lensCarriesInk,
                             packedEndpoint = supportsGlassEndpointInputs && spec?.response == GlassResponse.Calm,
+                            tintWithinThrough = if (spec?.response == GlassResponse.Calm) barDrawing else null,
                         ),
                 ) {
                     if (lensCarriesInk) {

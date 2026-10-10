@@ -123,6 +123,26 @@ The packed desktop recording has twice the endpoint-layer area, before backend a
 the material and ink layers themselves are unchanged. See the [research record](research/atlas-stabilization.md)
 for the measured error and native redraw evidence. The simpler magnifier painter does not use this path.
 
+### Resting inset tint and the bar footprint
+
+A recovering navigation selector can remain taller than its bar after held optical formation fades.
+Applying its dark resting tint to the entire raised body paints dark caps onto the page. The Calm
+renderer limits that tint and tonal lift to a cached alpha mask of the actual underlying bar shape.
+Its refraction, lighting and body coverage remain independent.
+
+For a pose body, `uTintMaskX` and `uTintMaskY` are inverse affine rows from **local coordinates without
+padding** into native mask pixels: `(m00, m01, tx, enabled)` and `(m10, m11, ty, unused)`.
+When enabled, the `field` child supplies alpha coverage instead of the otherwise-unused pose distance
+field. Other materials leave `uTintMaskX.w = 0` and keep the usual distance-field behavior.
+The native mask includes a transparent border and the inverse map includes the bar's press/pull
+transform. At reduced material resolution, divide the two linear coefficients by render scale;
+the native mask and translation stay unchanged. Do not enable this alpha role on a material that
+also requires the same child for a generic distance field.
+
+Bind a separate image shader for this mask. A prototype read a packed alpha strip from the dynamic
+backdrop input; native GPU cropping removed part of that mask despite passing software tests. It was
+rejected. The current mask follows the real custom `Shape`, not a hardcoded navigation capsule.
+
 ## Web integration
 
 ```js

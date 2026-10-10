@@ -1,0 +1,47 @@
+{
+  "left": {
+    "top": {
+      "roi": [
+        133,
+        74,
+        148,
+        78
+      ],
+      "beforeMeanAbsoluteRgbDifference": 30.877777777777776,
+      "afterMeanAbsoluteRgbDifference": 0.2833333333333333
+    },
+    "bottom": {
+      "roi": [
+        133,
+        162,
+        148,
+        166
+      ],
+      "beforeMeanAbsoluteRgbDifference": 29.65,
+      "afterMeanAbsoluteRgbDifference": 0.03333333333333333
+    }
+  },
+  "right": {
+    "top": {
+      "roi": [
+        363,
+        74,
+        378,
+        78
+      ],
+      "beforeMeanAbsoluteRgbDifference": 29.555555555555557,
+      "afterMeanAbsoluteRgbDifference": 1.3611111111111112
+    },
+    "bottom": {
+      "roi": [
+        363,
+        162,
+        378,
+        166
+      ],
+      "beforeMeanAbsoluteRgbDifference": 26.505555555555556,
+      "afterMeanAbsoluteRgbDifference": 9.03888888888889
+    }
+  },
+  "restPixelsExactlyUnchanged": true
+}
