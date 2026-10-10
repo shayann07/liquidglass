@@ -1,0 +1,37 @@
+{
+  "scope": "CPU uniform binding and native shader creation/deletion only; no draw, GPU submission, presented frames or FPS",
+  "node": "v24.19.0",
+  "platform": "win32",
+  "bindingsPerBatch": 2000,
+  "warmupBatches": 1,
+  "measuredBatches": 7,
+  "alternatingOrder": true,
+  "results": [
+    {
+      "name": "baseline",
+      "milliseconds": [
+        113.36419999999998,
+        100.8374,
+        108.79969999999997,
+        105.04699999999991,
+        103.23230000000001,
+        104.26160000000004,
+        106.83619999999996
+      ],
+      "medianMs": 105.04699999999991
+    },
+    {
+      "name": "current",
+      "milliseconds": [
+        13.833399999999983,
+        12.792300000000012,
+        13.09960000000001,
+        12.728200000000015,
+        14.568700000000035,
+        14.630300000000034,
+        12.35979999999995
+      ],
+      "medianMs": 13.09960000000001
+    }
+  ]
+}

@@ -1,0 +1,293 @@
+
+uniform shader endpoint;       // composed C1, or opaque B1
+uniform shader ink;            // separate premultiplied ink at matching coordinates when uInkStrip > 0
+uniform shader field;          // sampled distance field, used only when uShapeKind is 1
+
+uniform float2  uSize;
+uniform float   uPad;
+uniform float   uInkStrip;     // 0 = composed C1; positive = B1 above a separate premultiplied ink strip
+uniform float4  uRadii;
+uniform float4  uFuse;
+uniform float2  uFuseShape;
+uniform float   uCornerPower;
+uniform float   uShapeKind;
+uniform float   uFieldRange;
+uniform float   uFieldScale;
+uniform float4  uBody;
+uniform float   uBodyY;
+uniform float   uBodyKind;     // 1 = V3 two-disk body, 2 = the pose body, 0 = uRadii
+uniform float4  uPoseA;        // the 2x2 pose matrix A, row major
+uniform float4  uPoseAInv;     // its inverse
+uniform float4  uPoseC;        // (cx, cy) reference centre, (bx, by) = k / R
+uniform float4  uPoseD;        // (spine, radius, scaleX, band)
+
+
+// The Ln norm. At n = 2 this is `length`, so the rounded rect below is bit-identical to a
+// circular-cornered one; at n = 4 the corner becomes the superellipse Apple actually uses.
+float lnNorm(float2 v, float n) {
+    if (n <= 2.001 && n >= 1.999) {
+        return length(v);
+    }
+    return pow(pow(v.x, n) + pow(v.y, n), 1.0 / n);
+}
+
+// The outward unit normal of sdRoundRect, in closed form.
+//
+// Only valid away from the medial axis, where the true gradient is discontinuous; the caller
+// checks that before using it. `gradRadius` is deliberately larger than the outline's radius,
+// which rotates the normal through the corner over a wider arc than the outline turns and
+// removes the direction kink where the corner meets the flat run. It does not move the outline.
+//
+// The closed-form gradient and the wider-radius trick are Kyant0/AndroidLiquidGlass's; the Ln
+// corner, the degenerate guards and the caller's medial-axis handling are ours. See NOTICE.
+float2 gradRoundRect(float2 p, float2 halfSize, float4 r, float power, float widen) {
+    float2 rr = (p.x > 0.0) ? r.yz : r.xw;
+    float radius = (p.y > 0.0) ? rr.y : rr.x;
+    radius = min(radius, min(halfSize.x, halfSize.y));
+    float gradRadius = min(radius * widen, min(halfSize.x, halfSize.y));
+    float2 q = abs(p) - halfSize + gradRadius;
+    float2 s = float2(p.x < 0.0 ? -1.0 : 1.0, p.y < 0.0 ? -1.0 : 1.0);
+    if (q.x > 0.0 && q.y > 0.0) {
+        float L = lnNorm(q, power);
+        if (L <= 1e-5) {
+            return s * float2(0.70710678, 0.70710678);
+        }
+        float2 w = float2(
+            pow(q.x / L, power - 1.0),
+            pow(q.y / L, power - 1.0));
+        float wl = length(w);
+        return (wl <= 1e-5) ? s * float2(0.70710678, 0.70710678) : s * (w / wl);
+    }
+    // Flat run: the nearest edge is whichever of the two is closer.
+    float ax = step(q.y, q.x);
+    return s * float2(ax, 1.0 - ax);
+}
+
+// Whether the closed-form normal applies: an analytic shape (no sampled field), a band that stops short
+// of the inradius (three quarters of it) so the medial axis is never reached, and no fusion. The same
+// decision in every shader; a shader that cannot describe its geometry this way must not call it.
+float analyticNormalEligible(float shapeKind, float band, float2 halfSize, float fuseWidth) {
+    float inradius = min(halfSize.x, halfSize.y);
+    return (shapeKind < 0.5 && band < inradius * 0.75 && fuseWidth <= 0.0) ? 1.0 : 0.0;
+}
+
+// The measured lens maps a corner's rim onto the ring inside it, so its normal has to be the true one
+// (radial from the corner's centre); the wider arc that smooths the legacy profile's direction kink would
+// bend the ring. Axis fade is 1 wherever this applies.
+float2 analyticNormal(float2 p, float2 halfSize, float4 r, float power, float profile) {
+    return gradRoundRect(p, halfSize, r, power, mix(1.5, 1.0, step(0.5, profile)));
+}
+
+
+
+float4 bodyQuery(float2 p, float4 uBody, float uBodyY) {
+    float clx = uBody.x;
+    float crx = uBody.y;
+    float rl  = uBody.z;
+    float rr  = uBody.w;
+    float h   = max(crx - clx, 1e-4);
+    float b   = clamp((rl - rr) / h, -0.999999, 0.999999);
+    float a   = sqrt(max(1.0 - b * b, 0.0));
+
+    float along = p.x - clx;
+    float signY = (p.y >= uBodyY) ? 1.0 : -1.0;
+    float perp  = abs(p.y - uBodyY);
+
+    float k = a * along - b * perp;
+    if (k < 0.0) {
+        float2 w = float2(along, perp);
+        float len = length(w);
+        float2 n = (len > 1e-5) ? (w / len) : float2(-1.0, 0.0);
+        return float4(len - rl, n.x, n.y * signY, 1.0 / max(rl, 1e-4));
+    }
+    if (k > a * h) {
+        float2 w = float2(along - h, perp);
+        float len = length(w);
+        float2 n = (len > 1e-5) ? (w / len) : float2(1.0, 0.0);
+        return float4(len - rr, n.x, n.y * signY, 1.0 / max(rr, 1e-4));
+    }
+    // The straight tangent run: its outward normal is (b, ±a), which is exactly the direction
+    // that makes one line touch both circles.
+    return float4(b * along + a * perp - rl, b, a * signY, 0.0);
+}
+
+/** The optical band of a body: 0.6 of its smaller end radius, the same ratio a bar uses. */
+float bodyBand(float4 uBody) {
+    return 0.6 * min(uBody.z, uBody.w);
+}
+
+/**
+ * How far the nearest boundary feature is an end arc rather than a straight tangent run, 1 to 0,
+ * blended over a short geometric distance so the transport profile does not step where the
+ * nearest feature changes identity. The blend coordinate is the same `k` the query branches on,
+ * so it is geometry rather than a screen-space heuristic.
+ */
+float bodyCorner(float2 p, float4 uBody, float uBodyY) {
+    float clx = uBody.x;
+    float h   = max(uBody.y - clx, 1e-4);
+    float b   = clamp((uBody.z - uBody.w) / h, -0.999999, 0.999999);
+    float a   = sqrt(max(1.0 - b * b, 0.0));
+    float k   = a * (p.x - clx) - b * abs(p.y - uBodyY);
+    float soft = max(0.25 * min(uBody.z, uBody.w), 1.0);
+    float left  = 1.0 - smoothstep(0.0, soft, k);
+    float right = smoothstep(a * h - soft, a * h, k);
+    return clamp(max(left, right), 0.0, 1.0);
+}
+
+
+
+// The stable inverse of section 6.2. Returns z; `valid` is 0 when the discriminant is negative,
+// which cannot happen on or inside the body and means "outside coverage", not NaN.
+float3 poseInverse(float2 x, float4 uPoseAInv, float4 uPoseC) {
+    float2 d = x - uPoseC.xy;
+    float2 y = float2(uPoseAInv.x * d.x + uPoseAInv.y * d.y,
+                      uPoseAInv.z * d.x + uPoseAInv.w * d.y);
+    float2 b = uPoseC.zw;
+    float h = dot(b, y);
+    float disc = 1.0 + 4.0 * h;
+    if (disc < 0.0) return float3(y, 0.0);
+    // 2 / (1 + sqrt(1 + 4h)): the root that stays continuous at h = 0 instead of cancelling.
+    float lambda = 2.0 / (1.0 + sqrt(disc));
+    return float3(lambda * y, 1.0);
+}
+
+/**
+ * `(coverageDistance, normalX, normalY, curvature)` for the pose body, matching the four-vector
+ * the old two-disk `bodyQuery` returned so the optical passes downstream are unchanged.
+ *
+ * coverageDistance is the first-order normal-corrected distance `d/|grad|`. It is NOT an exact
+ * deep Euclidean SDF and is deliberately named for what it is used for.
+ */
+float4 poseQuery(float2 x, float4 uPoseA, float4 uPoseAInv, float4 uPoseC, float4 uPoseD) {
+    float spine  = uPoseD.x;
+    float radius = uPoseD.y;
+    float scaleX = uPoseD.z;
+
+    float3 zi = poseInverse(x, uPoseAInv, uPoseC);
+    float2 z = zi.xy;
+    if (zi.z < 0.5) {
+        float len = max(length(z), 1e-4);
+        return float4(len, z.x / len, z.y / len, 0.0);
+    }
+
+    // The canonical capsule. Candidate B evaluates it directly in z, which keeps the piecewise
+    // material stretch out of boundary lighting; candidate A evaluates it in q and carries C in
+    // the Jacobian below. Both describe the same contour.
+    float2 e;
+    float halfSpine;
+    if (scaleX == 1.0) {
+        halfSpine = spine;
+        e = float2(z.x - clamp(z.x, -halfSpine, halfSpine), z.y);
+    } else {
+        float2 q = float2(z.x / max(scaleX, 1e-6), z.y);
+        halfSpine = spine / max(scaleX, 1e-6);
+        e = float2(q.x - clamp(q.x, -halfSpine, halfSpine), q.y);
+    }
+    float len = length(e);
+    float d = len - radius;
+    float2 n0 = (len > 1e-5) ? (e / len) : float2(0.0, 1.0);
+
+    // J = A * DF_k(z) * (C for candidate A);  DF_k(z) = s I + z b^T
+    float2 b = uPoseC.zw;
+    float s = 1.0 + dot(b, z);
+    float j0 = s + z.x * b.x;
+    float j1 = z.x * b.y;
+    float j2 = z.y * b.x;
+    float j3 = s + z.y * b.y;
+    if (scaleX != 1.0) { j0 *= scaleX; j2 *= scaleX; }
+    float m0 = uPoseA.x * j0 + uPoseA.y * j2;
+    float m1 = uPoseA.x * j1 + uPoseA.y * j3;
+    float m2 = uPoseA.z * j0 + uPoseA.w * j2;
+    float m3 = uPoseA.z * j1 + uPoseA.w * j3;
+    float det = m0 * m3 - m1 * m2;
+    float invDet = (abs(det) > 1e-9) ? (1.0 / det) : 0.0;
+    // grad = J^-T n0, written out rather than left to the reader's transpose.
+    float2 g = float2(invDet * (m3 * n0.x - m2 * n0.y),
+                      invDet * (-m1 * n0.x + m0 * n0.y));
+    float gl = length(g);
+    if (gl <= 1e-7) return float4(d, n0.x, n0.y, 0.0);
+
+    // Curvature, transported to first order by the tangential stretch: exact for an affine map,
+    // an approximation once the taper is on, which is why it is named transported.
+    float kappa = 0.0;
+    if (len > 1e-5 && radius > 1e-5) {
+        float2 t = float2(-n0.y, n0.x);
+        float2 st = float2(m0 * t.x + m1 * t.y, m2 * t.x + m3 * t.y);
+        kappa = (1.0 / radius) / max(length(st), 1e-5);
+    }
+    return float4(d / gl, g.x / gl, g.y / gl, kappa);
+}
+
+/** The optical band, precomputed on the CPU as the canonical band under the smallest stretch. */
+float poseBand(float4 uPoseD) { return uPoseD.w; }
+
+/**
+ * How far the nearest feature is an end cap rather than the straight run, 1 to 0, blended over a
+ * short geometric distance so the transport profile does not step where the nearest feature
+ * changes identity. Evaluated in z, where the joins are at +-spine whatever the pose is.
+ */
+float poseCorner(float2 x, float4 uPoseAInv, float4 uPoseC, float4 uPoseD) {
+    float3 zi = poseInverse(x, uPoseAInv, uPoseC);
+    float spine = uPoseD.x;
+    float scaleX = uPoseD.z;
+    float zx = (scaleX == 1.0) ? zi.x : (zi.x / max(scaleX, 1e-6));
+    float halfSpine = (scaleX == 1.0) ? spine : (spine / max(scaleX, 1e-6));
+    float soft = max(0.25 * uPoseD.y, 1.0);
+    return clamp(smoothstep(halfSpine - soft, halfSpine + soft, abs(zx)), 0.0, 1.0);
+}
+
+
+float sdRoundRect(float2 p, float2 halfSize, float4 r) {
+    float2 rr = (p.x > 0.0) ? r.yz : r.xw;
+    float radius = (p.y > 0.0) ? rr.y : rr.x;
+    radius = min(radius, min(halfSize.x, halfSize.y));
+    float2 q = abs(p) - halfSize + radius;
+    return min(max(q.x, q.y), 0.0) + lnNorm(max(q, float2(0.0)), uCornerPower) - radius;
+}
+
+float smin(float a, float b, float k) {
+    float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
+    return mix(b, a, h) - k * h * (1.0 - h);
+}
+
+float sdShape(float2 p, float2 halfSize) {
+    if (uBodyKind > 1.5) {
+        return poseQuery(p, uPoseA, uPoseAInv, uPoseC, uPoseD).x;
+    }
+    if (uBodyKind > 0.5) {
+        return bodyQuery(p, uBody, uBodyY).x;
+    }
+    if (uShapeKind < 0.5) {
+        float d = sdRoundRect(p, halfSize, uRadii);
+        if (uFuseShape.y > 0.0) {
+            d = smin(d, sdRoundRect(p - uFuse.xy, uFuse.zw, float4(uFuseShape.x)), uFuseShape.y);
+        }
+        return d;
+    }
+    float2 layerCoord = (p + halfSize + float2(uPad)) * uFieldScale;
+    float stored = float(field.eval(layerCoord).r);
+    return (stored - 0.5) * 2.0 * uFieldRange;
+}
+
+half4 main(float2 coord) {
+    // A packed input stores ink below the visible material. Storage is never visible output.
+    if (uInkStrip > 0.0 && coord.y >= uInkStrip) return half4(0.0);
+    float2 local = coord - float2(uPad);
+    float2 halfSize = uSize * 0.5;
+    float2 p = local - halfSize;
+    float d = sdShape(p, halfSize);
+    float coverage = 1.0 - smoothstep(-0.75, 0.75, d);
+    if (coverage <= 0.0) {
+        return half4(0.0);
+    }
+    // The endpoint layer is opaque wherever coverage is non-zero, so this is (m * C1, m): a
+    // premultiplied colour whose ordinary source-over completes the coverage equation.
+    if (uInkStrip > 0.0) {
+        float4 material = float4(endpoint.eval(coord));
+        float4 selected = float4(ink.eval(coord));
+        // Compose and mask before the single output write, avoiding a rounded C1 intermediate.
+        return half4((selected + (1.0 - selected.a) * material) * coverage);
+    }
+    half4 c = endpoint.eval(coord);
+    return c * half(coverage);
+}

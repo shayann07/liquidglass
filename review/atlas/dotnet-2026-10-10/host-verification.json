@@ -1,0 +1,8 @@
+{
+  "backend": "SkiaSharp Windows Forms SKControl (CPU)",
+  "captures": 4,
+  "input": "app-owned OnMouseDown/Move/Up replay, including capture release",
+  "dragPassed": true,
+  "resizePassed": true,
+  "limits": "Four phase captures; no GPU, iOS motion, presented FPS or arbitrary native-widget backdrop claim."
+}

@@ -18,21 +18,22 @@ package com.wexpa.liquidglass
  * largest exactly at a moving rim, where both glyph coverage and material are changing. That
  * cross term is the ghost.
  *
- * This shader is the last step of the construction. `C0` is already on the canvas, drawn
- * normally. `C1` has been built complete and opaque in one offscreen layer: the material pass
- * emitted `(B1, 1)` and the ink pass drew `(c1, a1)` over it, which is source-over's own
- * definition of `c1 + (1 - a1) B1`. Multiplying that layer by coverage yields `(m C1, m)`, and
- * an ordinary source-over of that onto `C0` computes the equation above exactly, once.
+ * `C0` is already on the canvas. Legacy input contains a complete opaque `C1`; Calm packs
+ * `(B1, 1)` and `(c1, a1)` into separate vertical strips and combines them here, avoiding the
+ * intermediate 8-bit rounding of `C1`. Both return `(m C1, m)` for ordinary source-over on `C0`.
+ * The packed strip offset is in native pixels; its storage half always returns transparent.
  *
  * It carries only the geometry it needs to recompute the same coverage the two passes used, so
  * no fourth transcription of the outline exists.
  */
 internal val GLASS_ENDPOINT_SHADER_SOURCE = """
-uniform shader endpoint;       // the complete opaque endpoint C1, padded like every other pass
+uniform shader endpoint;       // composed C1, or opaque B1
+uniform shader ink;            // separate premultiplied ink at matching coordinates when uInkStrip > 0
 uniform shader field;          // sampled distance field, used only when uShapeKind is 1
 
 uniform float2  uSize;
 uniform float   uPad;
+uniform float   uInkStrip;     // 0 = composed C1; positive = B1 above a separate premultiplied ink strip
 uniform float4  uRadii;
 uniform float4  uFuse;
 uniform float2  uFuseShape;
@@ -87,6 +88,8 @@ float sdShape(float2 p, float2 halfSize) {
 }
 
 half4 main(float2 coord) {
+    // A packed input stores ink below the visible material. Storage is never visible output.
+    if (uInkStrip > 0.0 && coord.y >= uInkStrip) return half4(0.0);
     float2 local = coord - float2(uPad);
     float2 halfSize = uSize * 0.5;
     float2 p = local - halfSize;
@@ -97,6 +100,12 @@ half4 main(float2 coord) {
     }
     // The endpoint layer is opaque wherever coverage is non-zero, so this is (m * C1, m): a
     // premultiplied colour whose ordinary source-over completes the coverage equation.
+    if (uInkStrip > 0.0) {
+        float4 material = float4(endpoint.eval(coord));
+        float4 selected = float4(ink.eval(coord));
+        // Compose and mask before the single output write, avoiding a rounded C1 intermediate.
+        return half4((selected + (1.0 - selected.a) * material) * coverage);
+    }
     half4 c = endpoint.eval(coord);
     return c * half(coverage);
 }

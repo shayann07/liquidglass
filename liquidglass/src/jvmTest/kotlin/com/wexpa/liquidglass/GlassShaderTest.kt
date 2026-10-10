@@ -37,7 +37,7 @@ class GlassShaderTest {
             "uSize", "uRadii", "uRefractBand", "uBackdrop", "uAberration", "uBase", "uBlur", "uIor", "uBevelPower", "uMirror",
             "uFresnel", "uHiChroma", "uLegibility", "uCornerPower", "uTouch", "uTouchAmt",
             "uMaterialize", "uFrost", "uContrast", "uDebugCoverage", "uShapeKind", "uFieldRange", "uFieldScale", "uRefractDepth", "uBevel",
-            "uLight", "uSpecular", "uSpecularPow", "uTint", "uInnerShadow", "uAdaptive",
+            "uLight", "uSpecular", "uSpecularPow", "uTint", "uTintMaskX", "uTintMaskY", "uInnerShadow", "uAdaptive",
             "uPad", "uScale", "uFlip", "uCounterLight", "uEdgeLight", "uBevelPeak", "uEdgeShadow", "uRimSoft", "uTintAbsorb",
             "uProfile", "uFormation", "uHeldLens", "uHeldMagnification", "uHeldGlow", "uRestMap", "uWideStrip", "uWideScale", "uFineShare", "uWideKernel", "uLift", "uLiftAdapt",
             "uFuse", "uFuseShape",

@@ -1,0 +1,71 @@
+{
+  "date": "2026-10-10",
+  "runtimeBaseline": "5a813935f9b9a4791a26cc5b546610941710ec99",
+  "scope": "Expanded native diagnostics only. Production library/shaders unchanged.",
+  "capture": {
+    "backend": "DIRECT3D",
+    "scale": 1.25,
+    "readbackEnabled": true,
+    "checksPassed": true,
+    "navigation": {
+      "left": 1515.0,
+      "top": 804.0,
+      "width": 350.0,
+      "height": 80.0
+    },
+    "input": "AWT events dispatched only to this application's Compose component",
+    "timing": "Each phase uses a fresh gesture replay because native readback is slow. CSV capture timestamps are render-start times. PNG encoding follows input. Not a continuous video, presented FPS or measured iOS timing."
+  },
+  "phases": 33,
+  "windowTargets": 8,
+  "desktopTests": {
+    "tests": "2",
+    "skipped": "0",
+    "failures": "0",
+    "errors": "0",
+    "time": "304.182"
+  },
+  "buildDuration": "5m11s",
+  "visualInspection": "All 33 phase crops and contact sheet inspected. Whole-bar boundary poses, held reversals and middle recovery present. No dark exterior inset caps; thin body rim/recovery mismatch remains.",
+  "limits": "Each phase is an independent replay. App drawable window, not physical phone or OS screen. Capture/test jobs overlapped. Readback and forced redraw timing are not presented FPS or measured iOS timing; first held forced redraw1815.9ms. No complete gesture/contour/optical parity claim.",
+  "sourceSha256": {
+    "desktop/src/jvmMain/kotlin/com/wexpa/liquidglass/sample/desktop/AtlasMotionCapture.kt": "15c7a701d9f05b78c499f13423edcfede5f003565e9e820970435237225cd74a",
+    "tools/plot_native_motion.py": "f8ea2f0edd42c43d0e309328e9237c1897fe8759425b5e3b038312699bb2eb0e"
+  },
+  "frameSha256": {
+    "00-rest.png": "50480ac611753657e661087acabeebdc17eff98889a7b5cc26d4861d053cfc87",
+    "01-tap-140ms.png": "81d647ec3a071cdfda08ebf18e75eec5156394f574df158346a1e79c52582634",
+    "01-tap-25ms.png": "ab1bb122c42f5270b6c06cac6015ac1fb3cc9614f3e158563cb6a88cd47365aa",
+    "01-tap-490ms.png": "b49c291de9aa257da04eca081f25f8eb6d583618cf1c7f5c7c2f3cfdee35113c",
+    "01-tap-70ms.png": "40bbd8977915b19e2911e3930e23d1101d554967acad32f2f79c2b391bef0ba4",
+    "02-held.png": "4c957103e30e8d7b056c7d77d0ae9cbf124fe905f4dcee10a8e916b00700ab88",
+    "03-travel-12.png": "1f2e772e404b240a3386e54be948c83e27ab1440a2fbbc31e4892da540e0a2b0",
+    "03-travel-4.png": "c8fbe79e399de263aabd55091df5058338f705fa294b0c832a59c5ccbe705f12",
+    "03-travel-8.png": "2f2d546bfc3c225b7c5567088d69ae3173f1deacfe1c6d1a0f558984879a7542",
+    "04-release-160ms.png": "27e31680f92ec8d8a69dcad0e6378d84b84cd53395303793e9510748399ef39d",
+    "04-release-25ms.png": "1c3c279d8c16bd0ab290f9d01fde4b1af10a2f3b5f56f379b8d7301b3071ca8f",
+    "04-release-70ms.png": "041567170ae5eef9b4517a6e1a96352e038b08c68c434ad8fde5f592bbadce9c",
+    "04-release-760ms.png": "50480ac611753657e661087acabeebdc17eff98889a7b5cc26d4861d053cfc87",
+    "05-extreme-top-left.png": "b4c51c95c6c72ae3a0357212a3452628035bc261182b4806a53a201aaa3a9ba1",
+    "06-extreme-bottom-right.png": "9a7c17ea6c089a9c4443704697e651a85a1c9eb08c4f6c66996b07569cb59a84",
+    "07-recovered.png": "7f0b3d28bc229ff7a2a406ffe7df98f9c63172a29ee00891f6cf4f5b2cf75b9a",
+    "08-fling-left-hold40ms.png": "0892b3a47bef5afb2766aacf01f53743b9f76d576db8e1804c2dfaa90dad0fea",
+    "08-fling-left-hold650ms.png": "5916ace4fe5ce292099a4f3afe1c544a82a198bd57fcc50709c1ec221fd45506",
+    "08-fling-right-hold40ms.png": "8afbe306cd1333eb36c36c2c7934df6a01c57a9588b10ec4ed1292a2c1480dd5",
+    "08-fling-right-hold650ms.png": "e67b8f36f286bd93425a4b54a5c9d3e4aa3b1cc9ea61d67661a4c5249881b4ef",
+    "09-fling-recovered.png": "50480ac611753657e661087acabeebdc17eff98889a7b5cc26d4861d053cfc87",
+    "10-window-bottom-left.png": "5c672f9ecd8b5d79f03db21c922fad286ba180a15f4f851ea5b999e913c0abf5",
+    "10-window-bottom-right.png": "aac3a0eece20d35f50a063a82075466a63f0566953339dc10ddf04b056092497",
+    "10-window-bottom.png": "47eac4fbe7d2e1427f1d97ecf1c170c257a865496b9b8067ea5b9d160e6c5dea",
+    "10-window-left.png": "56bbad0e74942a305def735fbeea3ece0e0e503d5fdd2df561d87bf4163ce5df",
+    "10-window-right.png": "0ac4d05577d5887b2925977202d0e076ee6f8ca7eb16c263c1cd051c3bb89a04",
+    "10-window-top-left.png": "c838830b52aa73f3ce893645d5eaab655b3d85bec45d0ff44b3ef9f708c98d5c",
+    "10-window-top-right.png": "5e723e975b3d2543df0e0d299812a7e6b372da9b9d9e1d3aa82a482a5c5c6cfc",
+    "10-window-top.png": "7ef1aee2f4a3efccbb8a2131b5b304b057605082cdee3cdb4fb8af2afe115f05",
+    "11-held-reversals-left.png": "3fa712be188d7e979b6b55957e78521d4e0ed1363184a51c7517cdd1ede3388b",
+    "11-held-reversals-right.png": "08629dc7718f8ad4a8b3b863e451228b807d67c931182d00c433cf5cde77d401",
+    "12-soft-middle-landing.png": "6a399ccc3355b15df8dd5a1f5808b3bc01df60b15c9c029118fcd5e90e862b33",
+    "13-middle-recovered.png": "833ba484e420e9b40a702cb28201e9f353e61f8612ab63e773b03d02a79dca6f",
+    "native-motion.png": "90ed4dedb3b8ed033ae075a76ebcc97d71ca6401912f7e630c16a82a59fe8272"
+  }
+}

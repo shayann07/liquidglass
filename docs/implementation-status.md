@@ -6,7 +6,27 @@ useful techniques assessed from the Fable and Antigravity implementations. Revie
 [Sam Asante's web implementation](https://github.com/samasante/liquid-glass) is also informing
 the investigation. Competitor appearance and passing internal tests do not establish iOS parity.
 
-## Current follow-up: r14
+## Current development: Atlas stabilization
+
+The current source adds `GlassScene`, `GlassStyle.clearLens`, `GlassInteraction.Calm` and
+`GlassTabBarStyle.Calm()`. Free magnifiers share one continuous backdrop/ink map. Navigation assigns
+off-axis squeeze to the anchored whole bar, while its selector deforms with along-bar travel and throw.
+Input is integrated by timestamp and the held height is checked against the original Phone reference.
+The bar separately matches ordinary-held growth (195.3px against 196±1px) and keeps full-screen pulls
+below the measured 205px extreme. Its duplicated held-brightness contribution has been removed.
+Extreme asymmetric growth, exact timing and rim colour still differ; these are not parity claims.
+
+Atlas Studio is the active sample, with native Windows screenshots and desktop gesture tests.
+The [current verification record](https://github.com/shayann07/liquidglass/blob/main/review/ATLAS-STABILIZATION.md)
+reports failures, corrected runs, original frames, authored timing and remaining gaps. Its Windows
+redraw figures are not Android performance. Vitals and the following physical captures are historical.
+
+For other stacks, [porting](porting.md) covers the dependency-free WebGL preview and the production
+CanvasKit shader kit. Its high-level painter draws clear lenses and rounded in-app surfaces, including
+the two-kernel material setup, without manual uniform binding. Full native framework adapters and
+automatic backdrop capture are not implemented.
+
+## Historical follow-up: r14
 
 R14 separates large-surface drag strength from the already accepted touch expansion. Small
 controls keep their prior response; larger cards and pills receive much subtler drag strain.
@@ -24,14 +44,15 @@ The following r13 material comparisons remain historical evidence, not r14 devic
 - Opt-in press/pull behavior for standalone glass and unchanged Legacy defaults.
 - Lifecycle, cancellation, second-pointer and long-uptime handling.
 
-For the development source, opt in using `GlassTabBar(..., style = GlassTabBarStyle.V3())`.
+For the current development source, opt in using `GlassTabBar(..., style = GlassTabBarStyle.Calm())`.
+`V3()` retains the earlier response for comparisons.
 The app supplies the backdrop through `LiquidGlassState`; see [Tab bars](tab-bar.md).
 Unreleased snapshot versions require building and publishing the matching library locally.
 They are not advertised as available on Maven Central.
 
-## Verification and open limits
+## Historical verification and open limits
 
-R13 is the final owner-requested delivery. It removes whole-control translation and tilt
+R13 was the last physical-device delivery in this sequence. It removes whole-control translation and tilt
 from generic Pullable glass. Material drawing deforms around a fixed centre; normal foreground
 and pointer coordinates stay anchored. Long bars stay level and round controls retain diagonal
 stretch. [Generic interaction](generic-interaction.md) explains the shared integration.
@@ -68,8 +89,11 @@ suite had seven coroutine timeouts; the unchanged gesture assertions passed both
 recheck and the fresh r9.1 suite. The failed run remains in the local evidence record.
 
 Full 1:1 parity is not yet established. The rim/source map is being refined; exact original
-pointer timing is unidentified. The strict one-code-value endpoint gate remains above its
-limit (1.4256). An internal tolerance of 1.5 must not be read as a strict pass.
+pointer timing is unidentified. In these historical device revisions, the strict one-code-value endpoint
+gate is above its limit (1.4256). An internal tolerance of 1.5 must not be read as a strict pass.
+The later separate-input Desktop Calm path measures 0.9569 on the same gate; it does not change
+Android's compositor or retrospectively upgrade these device results. See the
+[current research update](research/atlas-stabilization.md#endpoint-precision-and-native-clipping).
 
 In the FT8 pairs, r9.1 measured 15.60 ms median and 26.47 ms p95 HWUI completion latency,
 versus r8's 15.72/26.12 ms. This batch passes the +2 ms median and 1.10x p95 regression

@@ -1,0 +1,1161 @@
+{
+  "sourceSha256": "b1daa86ae7a6f9246fb56b19af9a82ec939ad2315c947954ee1e6869a8168006",
+  "measurementsSha256": "cf6df7cdc4d79c046a3ab8b86aba20c8d57d77d86edad4aa2d5510ef3f6494c5",
+  "sweepSha256": "13a861fef53f6d9319c594b2817ee35f684117f928b700c17bac849f279e331e",
+  "originalMinimum": {
+    "file": "frame-080.png",
+    "pts": 1514,
+    "seconds": 2.523333,
+    "width": 241.0,
+    "centre": 763.0
+  },
+  "originalRestCentre": 741.5,
+  "originalMaximumOffset": 22.0,
+  "comparisons": [
+    {
+      "gain": 0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "modelMinimum": {
+        "gain": 0.0,
+        "hold": 0.8,
+        "dragDuration": 0.1,
+        "distanceSlots": 2.0,
+        "time": 0.24375,
+        "cx": 678.8363,
+        "width": 283.60132,
+        "height": 180.74146,
+        "formation": 0.06697618
+      },
+      "samples": 29,
+      "errors": {
+        "width": {
+          "rms": 26.109556100659123,
+          "maxAbsolute": 45.95885999999996
+        },
+        "centreOffset": {
+          "rms": 10.405044388572575,
+          "maxAbsolute": 23.16369999999995
+        },
+        "radius": {
+          "rms": 16.296444427639305,
+          "maxAbsolute": 32.66245664694064
+        }
+      },
+      "aligned": [
+        {
+          "sourceFile": "frame-080.png",
+          "relativeTime": 0.0,
+          "original": {
+            "width": 241.0,
+            "centreOffset": 21.5,
+            "radius": 119.63470706071459
+          },
+          "model": {
+            "width": 283.60132,
+            "centreOffset": -1.6636999999999489,
+            "radius": 90.37073
+          }
+        },
+        {
+          "sourceFile": "frame-081.png",
+          "relativeTime": 0.016666999999999987,
+          "original": {
+            "width": 241.0,
+            "centreOffset": 20.5,
+            "radius": 119.59818956297374
+          },
+          "model": {
+            "width": 284.64407976518476,
+            "centreOffset": -1.1579516131788417,
+            "radius": 89.32909410475487
+          }
+        },
+        {
+          "sourceFile": "frame-082.png",
+          "relativeTime": 0.033333999999999975,
+          "original": {
+            "width": 242.0,
+            "centreOffset": 20.0,
+            "radius": 120.74844476757863
+          },
+          "model": {
+            "width": 287.03734126033805,
+            "centreOffset": -0.8048886395337991,
+            "radius": 88.3247463709302
+          }
+        },
+        {
+          "sourceFile": "frame-083.png",
+          "relativeTime": 0.04999999999999982,
+          "original": {
+            "width": 244.0,
+            "centreOffset": 19.0,
+            "radius": 120.03840164694066
+          },
+          "model": {
+            "width": 289.95885999999996,
+            "centreOffset": -0.5587000000000468,
+            "radius": 87.37594500000002
+          }
+        },
+        {
+          "sourceFile": "frame-084.png",
+          "relativeTime": 0.06666699999999981,
+          "original": {
+            "width": 247.0,
+            "centreOffset": 17.5,
+            "radius": 116.16466918201085
+          },
+          "model": {
+            "width": 292.7684805835369,
+            "centreOffset": -0.38729725967559914,
+            "radius": 86.49410834025335
+          }
+        },
+        {
+          "sourceFile": "frame-085.png",
+          "relativeTime": 0.0833339999999998,
+          "original": {
+            "width": 250.0,
+            "centreOffset": 16.0,
+            "radius": 113.34493417715258
+          },
+          "model": {
+            "width": 295.02949514284614,
+            "centreOffset": -0.26824605387447803,
+            "radius": 85.68545373291222
+          }
+        },
+        {
+          "sourceFile": "frame-086.png",
+          "relativeTime": 0.10000000000000009,
+          "original": {
+            "width": 253.0,
+            "centreOffset": 14.5,
+            "radius": 110.24429450888145
+          },
+          "model": {
+            "width": 296.50244,
+            "centreOffset": -0.18560000000002186,
+            "radius": 84.95227
+          }
+        },
+        {
+          "sourceFile": "frame-087.png",
+          "relativeTime": 0.11666700000000008,
+          "original": {
+            "width": 257.0,
+            "centreOffset": 12.5,
+            "radius": 107.0006403906065
+          },
+          "model": {
+            "width": 297.1168227924659,
+            "centreOffset": -0.12835910911434142,
+            "radius": 84.2937381420041
+          }
+        },
+        {
+          "sourceFile": "frame-088.png",
+          "relativeTime": 0.13333400000000006,
+          "original": {
+            "width": 261.0,
+            "centreOffset": 10.5,
+            "radius": 101.8287087446483
+          },
+          "model": {
+            "width": 296.93161660677856,
+            "centreOffset": -0.08859871359798382,
+            "radius": 83.70712798162077
+          }
+        },
+        {
+          "sourceFile": "frame-089.png",
+          "relativeTime": 0.1499999999999999,
+          "original": {
+            "width": 264.0,
+            "centreOffset": 9.0,
+            "radius": 99.74226820280789
+          },
+          "model": {
+            "width": 296.09216,
+            "centreOffset": -0.061100000000010486,
+            "radius": 83.188355
+          }
+        },
+        {
+          "sourceFile": "frame-090.png",
+          "relativeTime": 0.1666669999999999,
+          "original": {
+            "width": 267.0,
+            "centreOffset": 7.5,
+            "radius": 95.30042608821788
+          },
+          "model": {
+            "width": 294.7878096791691,
+            "centreOffset": -0.04219968992097215,
+            "radius": 82.73241137898759
+          }
+        },
+        {
+          "sourceFile": "frame-091.png",
+          "relativeTime": 0.18333399999999989,
+          "original": {
+            "width": 271.0,
+            "centreOffset": 6.5,
+            "radius": 93.08421795564952
+          },
+          "model": {
+            "width": 293.2184349165039,
+            "centreOffset": -0.029049572319299586,
+            "radius": 82.33397041608866
+          }
+        },
+        {
+          "sourceFile": "frame-092.png",
+          "relativeTime": 0.19999999999999973,
+          "original": {
+            "width": 274.0,
+            "centreOffset": 5.0,
+            "radius": 90.0592023964197
+          },
+          "model": {
+            "width": 291.56726,
+            "centreOffset": -0.01995999999996923,
+            "radius": 81.98755
+          }
+        },
+        {
+          "sourceFile": "frame-093.png",
+          "relativeTime": 0.21666700000000017,
+          "original": {
+            "width": 276.0,
+            "centreOffset": 4.0,
+            "radius": 87.44264465803928
+          },
+          "model": {
+            "width": 289.9843503379685,
+            "centreOffset": -0.013729900207849843,
+            "radius": 81.68770953756726
+          }
+        },
+        {
+          "sourceFile": "frame-094.png",
+          "relativeTime": 0.23333400000000015,
+          "original": {
+            "width": 278.0,
+            "centreOffset": 3.0,
+            "radius": 86.07157961953567
+          },
+          "model": {
+            "width": 288.5774486146698,
+            "centreOffset": -0.009459861711768765,
+            "radius": 81.42925047097675
+          }
+        },
+        {
+          "sourceFile": "frame-095.png",
+          "relativeTime": 0.25,
+          "original": {
+            "width": 281.0,
+            "centreOffset": 2.5,
+            "radius": 84.28636454213975
+          },
+          "model": {
+            "width": 287.41174,
+            "centreOffset": -0.006529999999997926,
+            "radius": 81.20735
+          }
+        },
+        {
+          "sourceFile": "frame-096.png",
+          "relativeTime": 0.266667,
+          "original": {
+            "width": 282.0,
+            "centreOffset": 2.0,
+            "radius": 82.89057187932316
+          },
+          "model": {
+            "width": 286.512436499784,
+            "centreOffset": -0.004459976959625921,
+            "radius": 81.01748187803004
+          }
+        },
+        {
+          "sourceFile": "frame-097.png",
+          "relativeTime": 0.283334,
+          "original": {
+            "width": 283.0,
+            "centreOffset": 1.5,
+            "radius": 81.839853966429
+          },
+          "model": {
+            "width": 285.8733800888014,
+            "centreOffset": -0.00304995247926984,
+            "radius": 80.8555691565305
+          }
+        },
+        {
+          "sourceFile": "frame-098.png",
+          "relativeTime": 0.2999999999999998,
+          "original": {
+            "width": 284.0,
+            "centreOffset": 1.0,
+            "radius": 80.66232798558529
+          },
+          "model": {
+            "width": 285.46558,
+            "centreOffset": -0.0021000000000412963,
+            "radius": 80.717925
+          }
+        },
+        {
+          "sourceFile": "frame-099.png",
+          "relativeTime": 0.3166669999999998,
+          "original": {
+            "width": 285.0,
+            "centreOffset": 0.5,
+            "radius": 80.63401424354134
+          },
+          "model": {
+            "width": 285.24584713155673,
+            "centreOffset": -0.0014599896320845538,
+            "radius": 80.60120770870132
+          }
+        },
+        {
+          "sourceFile": "frame-100.png",
+          "relativeTime": 0.3333339999999998,
+          "original": {
+            "width": 285.0,
+            "centreOffset": 0.5,
+            "radius": 80.43769219965976
+          },
+          "model": {
+            "width": 285.1658991981472,
+            "centreOffset": -0.0009999687994771615,
+            "radius": 80.50253150554408
+          }
+        },
+        {
+          "sourceFile": "frame-101.png",
+          "relativeTime": 0.3500000000000001,
+          "original": {
+            "width": 285.0,
+            "centreOffset": 0.5,
+            "radius": 80.33725141436945
+          },
+          "model": {
+            "width": 285.17798,
+            "centreOffset": -0.0004999999999881766,
+            "radius": 80.4193
+          }
+        },
+        {
+          "sourceFile": "frame-102.png",
+          "relativeTime": 0.3666670000000001,
+          "original": {
+            "width": 285.0,
+            "centreOffset": 0.5,
+            "radius": 80.24674561984175
+          },
+          "model": {
+            "width": 285.24023162118704,
+            "centreOffset": -0.0004999999999881766,
+            "radius": 80.34924366945064
+          }
+        },
+        {
+          "sourceFile": "frame-103.png",
+          "relativeTime": 0.38333400000000006,
+          "original": {
+            "width": 284.0,
+            "centreOffset": 0.0,
+            "radius": 80.24674561984175
+          },
+          "model": {
+            "width": 285.3192030044641,
+            "centreOffset": -0.0004999999999881766,
+            "radius": 80.29043295708732
+          }
+        },
+        {
+          "sourceFile": "frame-104.png",
+          "relativeTime": 0.3999999999999999,
+          "original": {
+            "width": 284.0,
+            "centreOffset": 0.0,
+            "radius": 80.24674561984175
+          },
+          "model": {
+            "width": 285.39075,
+            "centreOffset": -0.0004999999999881766,
+            "radius": 80.24115
+          }
+        },
+        {
+          "sourceFile": "frame-105.png",
+          "relativeTime": 0.4166669999999999,
+          "original": {
+            "width": 284.0,
+            "centreOffset": 0.0,
+            "radius": 80.76893301987761
+          },
+          "model": {
+            "width": 285.4402006952298,
+            "centreOffset": -0.0004999999999881766,
+            "radius": 80.19994924112243
+          }
+        },
+        {
+          "sourceFile": "frame-106.png",
+          "relativeTime": 0.4333339999999999,
+          "original": {
+            "width": 284.0,
+            "centreOffset": 0.0,
+            "radius": 80.33725141436945
+          },
+          "model": {
+            "width": 285.46082016127485,
+            "centreOffset": -0.0004999999999881766,
+            "radius": 80.16555869132188
+          }
+        },
+        {
+          "sourceFile": "frame-107.png",
+          "relativeTime": 0.44999999999999973,
+          "original": {
+            "width": 284.0,
+            "centreOffset": 0.0,
+            "radius": 80.32059729179137
+          },
+          "model": {
+            "width": 285.45093,
+            "centreOffset": -0.0004999999999881766,
+            "radius": 80.13687
+          }
+        },
+        {
+          "sourceFile": "frame-108.png",
+          "relativeTime": 0.46666700000000017,
+          "original": {
+            "width": 285.0,
+            "centreOffset": 0.5,
+            "radius": 80.42677572670426
+          },
+          "model": {
+            "width": 285.4080789631834,
+            "centreOffset": -0.0004999999999881766,
+            "radius": 80.1130346133538
+          }
+        }
+      ]
+    },
+    {
+      "gain": 2.25,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "modelMinimum": {
+        "gain": 2.25,
+        "hold": 0.8,
+        "dragDuration": 0.1,
+        "distanceSlots": 2.0,
+        "time": 0.17916666,
+        "cx": 673.82495,
+        "width": 245.48523,
+        "height": 237.90637,
+        "formation": 0.16797142
+      },
+      "samples": 29,
+      "errors": {
+        "width": {
+          "rms": 17.66238524423844,
+          "maxAbsolute": 35.29086931082486
+        },
+        "centreOffset": {
+          "rms": 11.530140425514702,
+          "maxAbsolute": 28.175050000000056
+        },
+        "radius": {
+          "rms": 12.855173378997439,
+          "maxAbsolute": 25.733517241309855
+        }
+      },
+      "aligned": [
+        {
+          "sourceFile": "frame-080.png",
+          "relativeTime": 0.0,
+          "original": {
+            "width": 241.0,
+            "centreOffset": 21.5,
+            "radius": 119.63470706071459
+          },
+          "model": {
+            "width": 245.48523,
+            "centreOffset": -6.675050000000056,
+            "radius": 118.953185
+          }
+        },
+        {
+          "sourceFile": "frame-081.png",
+          "relativeTime": 0.016666999999999987,
+          "original": {
+            "width": 241.0,
+            "centreOffset": 20.5,
+            "radius": 119.59818956297374
+          },
+          "model": {
+            "width": 247.60883835762937,
+            "centreOffset": -4.675668650189847,
+            "radius": 114.04569013773622
+          }
+        },
+        {
+          "sourceFile": "frame-082.png",
+          "relativeTime": 0.033333999999999975,
+          "original": {
+            "width": 242.0,
+            "centreOffset": 20.0,
+            "radius": 120.74844476757863
+          },
+          "model": {
+            "width": 252.97122070156573,
+            "centreOffset": -3.2692545551854684,
+            "radius": 107.58307322448569
+          }
+        },
+        {
+          "sourceFile": "frame-083.png",
+          "relativeTime": 0.04999999999999982,
+          "original": {
+            "width": 244.0,
+            "centreOffset": 19.0,
+            "radius": 120.03840164694066
+          },
+          "model": {
+            "width": 260.65124495975186,
+            "centreOffset": -2.281900504480766,
+            "radius": 100.70733907631059
+          }
+        },
+        {
+          "sourceFile": "frame-084.png",
+          "relativeTime": 0.06666699999999981,
+          "original": {
+            "width": 247.0,
+            "centreOffset": 17.5,
+            "radius": 116.16466918201085
+          },
+          "model": {
+            "width": 269.53117420725465,
+            "centreOffset": -1.5903191911507069,
+            "radius": 94.28045091956153
+          }
+        },
+        {
+          "sourceFile": "frame-085.png",
+          "relativeTime": 0.0833339999999998,
+          "original": {
+            "width": 250.0,
+            "centreOffset": 16.0,
+            "radius": 113.34493417715258
+          },
+          "model": {
+            "width": 278.4157343211795,
+            "centreOffset": -1.106784445020474,
+            "radius": 88.81236893036122
+          }
+        },
+        {
+          "sourceFile": "frame-086.png",
+          "relativeTime": 0.10000000000000009,
+          "original": {
+            "width": 253.0,
+            "centreOffset": 14.5,
+            "radius": 110.24429450888145
+          },
+          "model": {
+            "width": 286.2476757156092,
+            "centreOffset": -0.7691701719843046,
+            "radius": 84.5107772675716
+          }
+        },
+        {
+          "sourceFile": "frame-087.png",
+          "relativeTime": 0.11666700000000008,
+          "original": {
+            "width": 257.0,
+            "centreOffset": 12.5,
+            "radius": 107.0006403906065
+          },
+          "model": {
+            "width": 292.29086931082486,
+            "centreOffset": -0.533936109361829,
+            "radius": 81.378608749328
+          }
+        },
+        {
+          "sourceFile": "frame-088.png",
+          "relativeTime": 0.13333400000000006,
+          "original": {
+            "width": 261.0,
+            "centreOffset": 10.5,
+            "radius": 101.8287087446483
+          },
+          "model": {
+            "width": 296.2061570468913,
+            "centreOffset": -0.3699947569516151,
+            "radius": 79.30498895729431
+          }
+        },
+        {
+          "sourceFile": "frame-089.png",
+          "relativeTime": 0.1499999999999999,
+          "original": {
+            "width": 264.0,
+            "centreOffset": 9.0,
+            "radius": 99.74226820280789
+          },
+          "model": {
+            "width": 298.0253988350549,
+            "centreOffset": -0.2562001161585489,
+            "radius": 78.12494100693111
+          }
+        },
+        {
+          "sourceFile": "frame-090.png",
+          "relativeTime": 0.1666669999999999,
+          "original": {
+            "width": 267.0,
+            "centreOffset": 7.5,
+            "radius": 95.30042608821788
+          },
+          "model": {
+            "width": 298.0556441663107,
+            "centreOffset": -0.17729873279791844,
+            "radius": 77.65392709969136
+          }
+        },
+        {
+          "sourceFile": "frame-091.png",
+          "relativeTime": 0.18333399999999989,
+          "original": {
+            "width": 271.0,
+            "centreOffset": 6.5,
+            "radius": 93.08421795564952
+          },
+          "model": {
+            "width": 296.75762698416963,
+            "centreOffset": -0.12259824810164034,
+            "radius": 77.706675934317
+          }
+        },
+        {
+          "sourceFile": "frame-092.png",
+          "relativeTime": 0.19999999999999973,
+          "original": {
+            "width": 274.0,
+            "centreOffset": 5.0,
+            "radius": 90.0592023964197
+          },
+          "model": {
+            "width": 294.63513000000006,
+            "centreOffset": -0.08465999999998579,
+            "radius": 78.10763499999999
+          }
+        },
+        {
+          "sourceFile": "frame-093.png",
+          "relativeTime": 0.21666700000000017,
+          "original": {
+            "width": 276.0,
+            "centreOffset": 4.0,
+            "radius": 87.44264465803928
+          },
+          "model": {
+            "width": 292.1510714377463,
+            "centreOffset": -0.05839960063936678,
+            "radius": 78.69927735637178
+          }
+        },
+        {
+          "sourceFile": "frame-094.png",
+          "relativeTime": 0.23333400000000015,
+          "original": {
+            "width": 278.0,
+            "centreOffset": 3.0,
+            "radius": 86.07157961953567
+          },
+          "model": {
+            "width": 289.678376876491,
+            "centreOffset": -0.040299413919064116,
+            "radius": 79.3491453107765
+          }
+        },
+        {
+          "sourceFile": "frame-095.png",
+          "relativeTime": 0.25,
+          "original": {
+            "width": 281.0,
+            "centreOffset": 2.5,
+            "radius": 84.28636454213975
+          },
+          "model": {
+            "width": 287.47974121699394,
+            "centreOffset": -0.027800006239966472,
+            "radius": 79.95541466044746
+          }
+        },
+        {
+          "sourceFile": "frame-096.png",
+          "relativeTime": 0.266667,
+          "original": {
+            "width": 282.0,
+            "centreOffset": 2.0,
+            "radius": 82.89057187932316
+          },
+          "model": {
+            "width": 285.7096903569766,
+            "centreOffset": -0.01909986535976493,
+            "radius": 80.44988321067714
+          }
+        },
+        {
+          "sourceFile": "frame-097.png",
+          "relativeTime": 0.283334,
+          "original": {
+            "width": 283.0,
+            "centreOffset": 1.5,
+            "radius": 81.839853966429
+          },
+          "model": {
+            "width": 284.43062032409495,
+            "centreOffset": -0.013199809920591717,
+            "radius": 80.79687025319919
+          }
+        },
+        {
+          "sourceFile": "frame-098.png",
+          "relativeTime": 0.2999999999999998,
+          "original": {
+            "width": 284.0,
+            "centreOffset": 1.0,
+            "radius": 80.66232798558529
+          },
+          "model": {
+            "width": 283.6339,
+            "centreOffset": -0.0090000000000146,
+            "radius": 80.98918
+          }
+        },
+        {
+          "sourceFile": "frame-099.png",
+          "relativeTime": 0.3166669999999998,
+          "original": {
+            "width": 285.0,
+            "centreOffset": 0.5,
+            "radius": 80.63401424354134
+          },
+          "model": {
+            "width": 283.26183679436286,
+            "centreOffset": -0.0061599600639587115,
+            "radius": 81.04122968127949
+          }
+        },
+        {
+          "sourceFile": "frame-100.png",
+          "relativeTime": 0.3333339999999998,
+          "original": {
+            "width": 285.0,
+            "centreOffset": 0.5,
+            "radius": 80.43769219965976
+          },
+          "model": {
+            "width": 283.22766467909855,
+            "centreOffset": -0.00419992713655182,
+            "radius": 80.98116566937865
+          }
+        },
+        {
+          "sourceFile": "frame-101.png",
+          "relativeTime": 0.3500000000000001,
+          "original": {
+            "width": 285.0,
+            "centreOffset": 0.5,
+            "radius": 80.33725141436945
+          },
+          "model": {
+            "width": 283.43396036325936,
+            "centreOffset": -0.002999998752058714,
+            "radius": 80.84350479917056
+          }
+        },
+        {
+          "sourceFile": "frame-102.png",
+          "relativeTime": 0.3666670000000001,
+          "original": {
+            "width": 285.0,
+            "centreOffset": 0.5,
+            "radius": 80.24674561984175
+          },
+          "model": {
+            "width": 283.784677374646,
+            "centreOffset": -0.0019999851197146207,
+            "radius": 80.6627014190707
+          }
+        },
+        {
+          "sourceFile": "frame-103.png",
+          "relativeTime": 0.38333400000000006,
+          "original": {
+            "width": 284.0,
+            "centreOffset": 0.0,
+            "radius": 80.24674561984175
+          },
+          "model": {
+            "width": 284.19521647338917,
+            "centreOffset": -0.0010399873281512434,
+            "radius": 80.46906244916865
+          }
+        },
+        {
+          "sourceFile": "frame-104.png",
+          "relativeTime": 0.3999999999999999,
+          "original": {
+            "width": 284.0,
+            "centreOffset": 0.0,
+            "radius": 80.24674561984175
+          },
+          "model": {
+            "width": 284.5987502273742,
+            "centreOffset": -0.0009999999999763531,
+            "radius": 80.28622489804881
+          }
+        },
+        {
+          "sourceFile": "frame-105.png",
+          "relativeTime": 0.4166669999999999,
+          "original": {
+            "width": 284.0,
+            "centreOffset": 0.0,
+            "radius": 80.76893301987761
+          },
+          "model": {
+            "width": 284.9485055181683,
+            "centreOffset": -0.0009999999999763531,
+            "radius": 80.13006253036049
+          }
+        },
+        {
+          "sourceFile": "frame-106.png",
+          "relativeTime": 0.4333339999999999,
+          "original": {
+            "width": 284.0,
+            "centreOffset": 0.0,
+            "radius": 80.33725141436945
+          },
+          "model": {
+            "width": 284.9928,
+            "centreOffset": 0.0,
+            "radius": 80.0
+          }
+        },
+        {
+          "sourceFile": "frame-107.png",
+          "relativeTime": 0.44999999999999973,
+          "original": {
+            "width": 284.0,
+            "centreOffset": 0.0,
+            "radius": 80.32059729179137
+          },
+          "model": {
+            "width": 284.9928,
+            "centreOffset": 0.0,
+            "radius": 80.0
+          }
+        },
+        {
+          "sourceFile": "frame-108.png",
+          "relativeTime": 0.46666700000000017,
+          "original": {
+            "width": 285.0,
+            "centreOffset": 0.5,
+            "radius": 80.42677572670426
+          },
+          "model": {
+            "width": 284.9928,
+            "centreOffset": 0.0,
+            "radius": 80.0
+          }
+        }
+      ]
+    }
+  ],
+  "inputSensitivity": [
+    {
+      "gain": 0,
+      "hold": 0.06,
+      "dragDuration": 0.06,
+      "minimum": {
+        "gain": 0.0,
+        "hold": 0.06,
+        "dragDuration": 0.06,
+        "distanceSlots": 2.0,
+        "time": 0.25833333,
+        "cx": 678.40735,
+        "width": 275.64966,
+        "height": 175.9096,
+        "formation": 0.052103173
+      },
+      "rms": {
+        "width": 23.491593403907487,
+        "centreOffset": 10.501105081820095,
+        "radius": 17.218930721713715
+      },
+      "maxPostMinimumCentreOffset": -0.0004999999999881766
+    },
+    {
+      "gain": 0,
+      "hold": 0.06,
+      "dragDuration": 0.1,
+      "minimum": {
+        "gain": 0.0,
+        "hold": 0.06,
+        "dragDuration": 0.1,
+        "distanceSlots": 2.0,
+        "time": 0.24166666,
+        "cx": 678.75946,
+        "width": 282.83655,
+        "height": 180.19199,
+        "formation": 0.06932857
+      },
+      "rms": {
+        "width": 25.810920345983163,
+        "centreOffset": 10.421844087216416,
+        "radius": 16.36505258134621
+      },
+      "maxPostMinimumCentreOffset": -0.0004999999999881766
+    },
+    {
+      "gain": 0,
+      "hold": 0.06,
+      "dragDuration": 0.24,
+      "minimum": {
+        "gain": 0.0,
+        "hold": 0.06,
+        "dragDuration": 0.24,
+        "distanceSlots": 2.0,
+        "time": 1.36875,
+        "cx": 680.4995,
+        "width": 284.9928,
+        "height": 160.00006,
+        "formation": 5.125895e-10
+      },
+      "rms": {
+        "width": 21.73182625850057,
+        "centreOffset": 10.046352069541078,
+        "radius": 20.310838498442962
+      },
+      "maxPostMinimumCentreOffset": -0.0004999999999881766
+    },
+    {
+      "gain": 0,
+      "hold": 0.8,
+      "dragDuration": 0.06,
+      "minimum": {
+        "gain": 0.0,
+        "hold": 0.8,
+        "dragDuration": 0.06,
+        "distanceSlots": 2.0,
+        "time": 0.26041666,
+        "cx": 678.4989,
+        "width": 277.51758,
+        "height": 177.57935,
+        "formation": 0.052380398
+      },
+      "rms": {
+        "width": 24.19632597047224,
+        "centreOffset": 10.4808769263115,
+        "radius": 16.94119321887332
+      },
+      "maxPostMinimumCentreOffset": -0.0004999999999881766
+    },
+    {
+      "gain": 0,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "minimum": {
+        "gain": 0.0,
+        "hold": 0.8,
+        "dragDuration": 0.1,
+        "distanceSlots": 2.0,
+        "time": 0.24375,
+        "cx": 678.8363,
+        "width": 283.60132,
+        "height": 180.74146,
+        "formation": 0.06697618
+      },
+      "rms": {
+        "width": 26.109556100659123,
+        "centreOffset": 10.405044388572575,
+        "radius": 16.296444427639305
+      },
+      "maxPostMinimumCentreOffset": -0.0004999999999881766
+    },
+    {
+      "gain": 0,
+      "hold": 0.8,
+      "dragDuration": 0.24,
+      "minimum": {
+        "gain": 0.0,
+        "hold": 0.8,
+        "dragDuration": 0.24,
+        "distanceSlots": 2.0,
+        "time": 1.36875,
+        "cx": 680.4995,
+        "width": 284.9928,
+        "height": 160.00006,
+        "formation": 5.1161014e-10
+      },
+      "rms": {
+        "width": 21.73182625850057,
+        "centreOffset": 10.046352069541078,
+        "radius": 20.310838498442962
+      },
+      "maxPostMinimumCentreOffset": -0.0004999999999881766
+    },
+    {
+      "gain": 2.25,
+      "hold": 0.06,
+      "dragDuration": 0.06,
+      "minimum": {
+        "gain": 2.25,
+        "hold": 0.06,
+        "dragDuration": 0.06,
+        "distanceSlots": 2.0,
+        "time": 0.19791667,
+        "cx": 672.9409,
+        "width": 244.7157,
+        "height": 230.94598,
+        "formation": 0.122665845
+      },
+      "rms": {
+        "width": 16.474703999865554,
+        "centreOffset": 11.74311804611923,
+        "radius": 12.998163748154889
+      },
+      "maxPostMinimumCentreOffset": 0.0
+    },
+    {
+      "gain": 2.25,
+      "hold": 0.06,
+      "dragDuration": 0.1,
+      "minimum": {
+        "gain": 2.25,
+        "hold": 0.06,
+        "dragDuration": 0.1,
+        "distanceSlots": 2.0,
+        "time": 0.17916666,
+        "cx": 673.8251,
+        "width": 247.35889,
+        "height": 239.90155,
+        "formation": 0.16702166
+      },
+      "rms": {
+        "width": 18.127190631301815,
+        "centreOffset": 11.53012477455315,
+        "radius": 12.617016241639227
+      },
+      "maxPostMinimumCentreOffset": 0.0
+    },
+    {
+      "gain": 2.25,
+      "hold": 0.06,
+      "dragDuration": 0.24,
+      "minimum": {
+        "gain": 2.25,
+        "hold": 0.06,
+        "dragDuration": 0.24,
+        "distanceSlots": 2.0,
+        "time": 0.15208334,
+        "cx": 675.6274,
+        "width": 262.4525,
+        "height": 238.9018,
+        "formation": 0.24201924
+      },
+      "rms": {
+        "width": 22.053247731359665,
+        "centreOffset": 11.120882476441903,
+        "radius": 12.504485403297188
+      },
+      "maxPostMinimumCentreOffset": 0.0
+    },
+    {
+      "gain": 2.25,
+      "hold": 0.8,
+      "dragDuration": 0.06,
+      "minimum": {
+        "gain": 2.25,
+        "hold": 0.8,
+        "dragDuration": 0.06,
+        "distanceSlots": 2.0,
+        "time": 0.19375,
+        "cx": 672.24945,
+        "width": 238.33545,
+        "height": 225.52979,
+        "formation": 0.1372178
+      },
+      "rms": {
+        "width": 14.735043446933771,
+        "centreOffset": 11.90424862681141,
+        "radius": 13.380498708464595
+      },
+      "maxPostMinimumCentreOffset": 0.0
+    },
+    {
+      "gain": 2.25,
+      "hold": 0.8,
+      "dragDuration": 0.1,
+      "minimum": {
+        "gain": 2.25,
+        "hold": 0.8,
+        "dragDuration": 0.1,
+        "distanceSlots": 2.0,
+        "time": 0.17916666,
+        "cx": 673.82495,
+        "width": 245.48523,
+        "height": 237.90637,
+        "formation": 0.16797142
+      },
+      "rms": {
+        "width": 17.66238524423844,
+        "centreOffset": 11.530140425514702,
+        "radius": 12.855173378997439
+      },
+      "maxPostMinimumCentreOffset": 0.0
+    },
+    {
+      "gain": 2.25,
+      "hold": 0.8,
+      "dragDuration": 0.24,
+      "minimum": {
+        "gain": 2.25,
+        "hold": 0.8,
+        "dragDuration": 0.24,
+        "distanceSlots": 2.0,
+        "time": 0.15208334,
+        "cx": 675.62714,
+        "width": 262.7793,
+        "height": 239.22675,
+        "formation": 0.24194033
+      },
+      "rms": {
+        "width": 22.11085213902692,
+        "centreOffset": 11.120946536014365,
+        "radius": 12.481917267855685
+      },
+      "maxPostMinimumCentreOffset": 0.0
+    }
+  ],
+  "limits": "Diagnostic, not a pass gate or new fitted rate. Original optical cross-sections/partial-circle fits versus controller bounds/radius. Each trace aligned once at its width minimum, not at finger-up; no per-frame rematching or time scaling. Source window begins during landing. The input .8s hold/.1s two-slot drag is authored; source force and pointer duration are unknown. Centre origin removed independently using rest. Circle-fit radius depends on visible arc window. No optical image/complete contour parity established."
+}

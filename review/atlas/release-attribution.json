@@ -1,0 +1,102 @@
+{
+  "source": "research/datasets/ios27-phone/LOLL8185.MP4",
+  "sourceSha256": "dc001bc0bb205d39b23a5acbba53ae0b4628700ec47ce98c1231acb9bc231e31",
+  "sourceHashVerified": true,
+  "crop": [
+    0,
+    2250,
+    1170,
+    260
+  ],
+  "decode": "ffmpeg -copyts -ss <seconds just before target PTS> -i <source> -frames:v 1 -an -vf \"zscale=t=linear:npl=100,format=gbrpf32le,zscale=p=bt709:t=iec61966-2-1:m=bt709:r=full,format=rgb24,crop=1170:260:0:2250,showinfo\" -fps_mode passthrough <output.png>",
+  "seeksSeconds": [
+    32.4,
+    32.8,
+    33.0
+  ],
+  "frames": [
+    {
+      "label": "claimed-release",
+      "cfr": 1944,
+      "pts": 19441,
+      "timebase": "1/600",
+      "seconds": 32.401667,
+      "image": "release-attribution-1944.png",
+      "sha256": "fdeaece7c60e98b71578872e063d84f53657eaf530228d904b3c98f10994cf62",
+      "inheritedRow": {
+        "pts": 19441,
+        "bar_top": 2277.6728515625,
+        "bar_bottom": 2474.10009765625,
+        "bar_window": [
+          70,
+          378.0
+        ],
+        "lens_x": [
+          383,
+          591
+        ],
+        "lens_top": 2264.542724609375,
+        "lens_bottom": 2486.95263671875,
+        "proud_top": 13.130126953125,
+        "proud_bottom": 12.8525390625,
+        "raised_area": 2123,
+        "src": 1526,
+        "cfr": [
+          1944
+        ],
+        "time_ambiguous": false
+      }
+    },
+    {
+      "label": "assumed-rest-start",
+      "cfr": 1968,
+      "pts": 19681,
+      "timebase": "1/600",
+      "seconds": 32.801667,
+      "image": "release-attribution-1968.png",
+      "sha256": "bf48b3355b640ec1e8c03b845287697883be41441925cd0cc3b3c469191062cf",
+      "inheritedRow": {
+        "pts": 19681,
+        "bar_top": 2277.63525390625,
+        "bar_bottom": 2473.4970703125,
+        "bar_window": [
+          520,
+          659
+        ],
+        "raised_area": 0,
+        "src": 1549,
+        "cfr": [
+          1968
+        ],
+        "time_ambiguous": false
+      }
+    },
+    {
+      "label": "assumed-rest-end",
+      "cfr": 1980,
+      "pts": 19801,
+      "timebase": "1/600",
+      "seconds": 33.001667,
+      "image": "release-attribution-1980.png",
+      "sha256": "ef582b5430d97d1ea433f2c49de636427aa5379eef5c43c694ae61c5da048ef5",
+      "inheritedRow": {
+        "pts": 19801,
+        "bar_top": 2277.574951171875,
+        "bar_bottom": 2473.425048828125,
+        "bar_window": [
+          520,
+          659
+        ],
+        "raised_area": 0,
+        "src": 1560,
+        "cfr": [
+          1980
+        ],
+        "time_ambiguous": false
+      }
+    }
+  ],
+  "observation": "A large rim and refracted/magnified Calls icon remain visible at1968/1980 despite inherited raised_area=0. The selector also travels from Contacts toward Calls during the presumed release interval.",
+  "conclusion": "Reject this window as a calibrated isolated release-to-rest. Neither zero raised area nor a fitted314/367ms curve establishes finger-up or flat inset rest.",
+  "limits": "No finger event is visible. This audit rejects the inherited release/rest labels, not every possible release time. It does not fit a replacement spring. Display-converted geometry crops are not HDR photometry."
+}

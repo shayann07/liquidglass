@@ -182,6 +182,11 @@ fun GlassTabBar(
         var motion by remember { mutableStateOf<Job?>(null) }
         val scope = rememberCoroutineScope()
         val press = rememberGlassPressSource()
+        val barPress = rememberGlassPressSource()
+        val barDrawing = remember(style.deformItemsWithBar) {
+            if (style.deformItemsWithBar) GlassMaterialDrawingState() else null
+        }
+        var barDown by remember { mutableStateOf(Offset.Zero) }
         var v2Held by remember { mutableStateOf(false) }
         var dragging by remember { mutableStateOf(false) }
         var liveVelocity by remember { mutableFloatStateOf(0f) }
@@ -200,7 +205,8 @@ fun GlassTabBar(
             null
         }
         val poseHandle = if (spec != null && usePose) {
-            remember(spec) { GlassPoseHandle(GlassPoseController()) }
+            remember(spec) { GlassPoseHandle(GlassPoseController(
+                if (spec?.response == GlassResponse.Calm) GlassPoseSpec.Calm else GlassPoseSpec())) }
         } else {
             null
         }
@@ -390,6 +396,7 @@ fun GlassTabBar(
 
         /** One pointer entry point for both paths, each in its own declared frame. */
         fun pressAt(x: Float, y: Float) {
+            barPress.press(Offset(x, y), Offset(x, y) - barDown)
             when {
                 poseHandle != null -> {
                     poseHandle.barPointerX = x
@@ -411,6 +418,7 @@ fun GlassTabBar(
             poseHandle?.barPointerX = Float.NaN
             poseHandle?.barPointerY = Float.NaN
             press.release()
+            barPress.release()
         }
 
         // The gesture lives on an ancestor of both the lens and the items, not on a sibling
@@ -542,6 +550,7 @@ fun GlassTabBar(
                         // The item under the finger consumes the down, so this must not
                         // require an unconsumed one.
                         val down = awaitFirstDown(requireUnconsumed = false)
+                        barDown = down.position
                         val tracker = VelocityTracker()
                         tracker.addPosition(down.uptimeMillis, down.position)
 
@@ -790,19 +799,25 @@ fun GlassTabBar(
                         // the ordinary ink can survive underneath the selected ink
                         // (V3-MODEL section 8.2).
                         .then(if (anyHandle) Modifier.liquidGlassSource(barState) else Modifier)
-                        .liquidGlass(
+                        .liquidGlassCore(
                             state = state,
                             shape = barShape,
                             style = barStyle,
                             light = style.light,
-                            // The bar does not glow or bounce under the finger on the reference;
-                            // it grows and lifts, which is done above. The lens is the response.
-                            interaction = null,
+                            // Whole-surface feedback is independent of selector travel.
+                            interaction = if (motionEnabled) style.barInteraction else GlassInteraction.ReducedMotion,
+                            pressSource = barPress,
                             materialize = materialize,
                             // The lens is proud of the bar, and on the reference the bar's own
                             // outline does not simply end under it: it bows out to meet it, one
                             // liquid silhouette with no crease (measured model, section 2d).
                             fuse = barFuse,
+                            refractContent = false,
+                            through = null,
+                            lensFormation = 0f,
+                            body = null,
+                            endpointComposite = false,
+                            materialDrawing = barDrawing,
                         ),
                 )
                 Box(
@@ -812,7 +827,8 @@ fun GlassTabBar(
                         .graphicsLayer {
                             scaleX = barScale
                             scaleY = barScale
-                        },
+                        }
+                        .glassMaterialForeground(barDrawing),
                 ) {
                     ItemRow(
                         count = itemCount,
@@ -922,14 +938,15 @@ fun GlassTabBar(
                             pressSource = press,
                             refractContent = lensCarriesInk,
                             through = barState,
-                            // The bar's outline is not enlarged to hide the body: containment is
-                            // what keeps a tap inside it, and a hold is allowed out by its own
-                            // declared envelope (V3-MODEL section 12).
+                            // The bar keeps its own outline. The node's declared envelope
+                            // accommodates held growth and Calm's rounded moving taps.
                             fuse = null,
                             lensFormation = 0f,
                             body = handle?.body?.movedInto(nodeLeftPx.toFloat(), overflowTopPx.toFloat()),
                             poseBody = poseHandle?.render,
                             endpointComposite = lensCarriesInk,
+                            packedEndpoint = supportsGlassEndpointInputs && spec?.response == GlassResponse.Calm,
+                            tintWithinThrough = if (spec?.response == GlassResponse.Calm) barDrawing else null,
                         ),
                 ) {
                     if (lensCarriesInk) {
@@ -966,7 +983,9 @@ fun GlassTabBar(
                                     )
                                     scaleX = barScale
                                     scaleY = barScale
-                                },
+                                }
+                                .glassMaterialForeground(barDrawing,
+                                    Offset(nodeLeftPx.toFloat(), nodeTopPx.toFloat())),
                         ) {
                             ItemRow(
                                 count = itemCount,
@@ -1034,7 +1053,8 @@ fun GlassTabBar(
                                     .graphicsLayer {
                                         scaleX = barScale
                                         scaleY = barScale
-                                    },
+                                    }
+                                    .glassMaterialForeground(barDrawing),
                             ) {
                                 ItemRow(
                                     count = itemCount,
@@ -1212,7 +1232,7 @@ internal object GlassTabBarSemantics {
     val Formation = SemanticsPropertyKey<Float>("GlassTabBarFormation")
     val BodyWidth = SemanticsPropertyKey<Float>("GlassTabBarBodyWidth")
     val BodySkew = SemanticsPropertyKey<Float>("GlassTabBarBodySkew")
-    /** How far the body's contour is outside the resting bar, in px; 0 during an ordinary tap. */
+    /** How far the body's contour is outside the resting bar, in px; Calm taps may protrude. */
     val Protrusion = SemanticsPropertyKey<Float>("GlassTabBarProtrusion")
 
     /**
@@ -1262,14 +1282,14 @@ data class GlassTabBarStyle(
     /** The lens forms in about a tenth of a second: two frames at 30fps in the reference. */
     val form: AnimationSpec<Float> = spring(dampingRatio = 0.80f, stiffness = 1400f),
     /**
-     * And subsides over about four tenths.
+     * Authored slow recovery retained for compatibility with the historical selector.
      *
-     * Measured off the reference's own release (LOLL8185, the lens at rest on a tab, finger
-     * lifted at frame 1944): the lens stands 13 px proud of the bar and reaches the flat inset
-     * 30 frames later, 22 of them between nine tenths and one tenth of the travel, which is
-     * 367 ms. At stiffness 600 the library did it in 83 ms, so the lens blinked out instead of
-     * settling and the press read as never having happened. Stiffness 60 measures 383 ms on an
-     * S24+ by the same nine-to-one measure.
+     * The former attribution to a measured LOLL8185 release at CFR1944 is withdrawn:
+     * native-PTS crops still show a refracting lens over Calls in the assumed trailing-rest
+     * frames1968/1980. A vanishing raised-area signal there does not establish settled rest
+     * or finger-up timing. Neither the inherited314ms area duration nor its367ms fitted
+     * first-order equivalent identifies this spring. See the release-provenance audit in
+     * review/ATLAS-STABILIZATION.md. This documentation correction does not retune motion.
      */
     val subside: AnimationSpec<Float> = spring(dampingRatio = 1f, stiffness = 60f),
     /** Touch-down sends the selector to the finger's tab: stiff, so it is there before the drag. */
@@ -1324,8 +1344,31 @@ data class GlassTabBarStyle(
      * on; this is opt-in for exactly that reason.
      */
     val selector: GlassSelectorSpec? = null,
+    /** Whole-bar material deformation; ordinary labels retain their layout positions. */
+    val barInteraction: GlassInteraction? = null,
+    /** Let visible ordinary/selected ink share the bar's bounded drawing response.
+     * Layout, hit targets and selector travel remain independent. Enabled by [Calm]. */
+    val deformItemsWithBar: Boolean = false,
 ) {
     companion object {
+        /** Recommended navigation preset. Material responds gently; the selector deforms
+         * along travel only. Existing V3/Measured presets remain available for comparison. */
+        fun Calm(dark: Boolean = true): GlassTabBarStyle = V3(
+            dark = dark, spec = GlassSelectorSpec(response = GlassResponse.Calm),
+        ).copy(
+            // Original Phone ordinary hold: bar186 ->196px. Reuse the rounded 1.05 press
+            // from Measured(), shared with visible ink using Calm timing. Generic 3%/2dp
+            // feedback undershot it; weakening press is not a correction to drag strain.
+            heldScale = 1f,
+            deformItemsWithBar = true,
+            barInteraction = GlassInteraction.Calm.copy(
+                pressScale = 1.05f, pressGrowth = 0.dp,
+                pullShape = GlassPullShape.AreaPreserving,
+                // V3 already applies its measured heldLift to the bar's material. Adding
+                // the generic control lift again changed the44-level Phone plateau to54.
+                pressLift = 0f,
+            ),
+        )
         // Declaration order matters here: the constructor's defaults read RestingInset and
         // HeldLens, so Dark has to come after them or it is built while they are still null.
 

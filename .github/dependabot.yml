@@ -1,0 +1,50 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 2
+    groups:
+      actions:
+        patterns: ['*']
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 2
+    groups:
+      compose:
+        patterns: ['org.jetbrains.compose*', 'androidx.compose*']
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 1
+    groups:
+      documentation:
+        patterns: ['*']
+  - package-ecosystem: npm
+    directory: /ports/web
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 1
+    groups:
+      browser-tests:
+        patterns: ['*']
+  - package-ecosystem: npm
+    directory: /ports/skia
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 1
+    groups:
+      skia-runtime:
+        patterns: ['*']
+  - package-ecosystem: nuget
+    directory: /ports/dotnet
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 1
+    groups:
+      skia-native-runtime:
+        patterns: ['SkiaSharp*']

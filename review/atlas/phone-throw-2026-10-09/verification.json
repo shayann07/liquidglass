@@ -1,0 +1,69 @@
+{
+  "library": {
+    "tests": 350,
+    "passed": 323,
+    "skipped": 27,
+    "failures": 0,
+    "errors": 0,
+    "testcaseSeconds": 527.649
+  },
+  "desktop": {
+    "tests": 2,
+    "passed": 2,
+    "skipped": 0,
+    "failures": 0,
+    "errors": 0,
+    "testcaseSeconds": 91.076
+  },
+  "android": "assembleDebug passed",
+  "localBuild": "SUCCESSFUL in 10m21s; fresh full library and Atlas tests; existing completed queue reused",
+  "native": {
+    "backend": "DIRECT3D",
+    "scale": 1.25,
+    "readbackEnabled": true,
+    "checksPassed": true,
+    "navigation": {
+      "left": 1515.0,
+      "top": 804.0,
+      "width": 350.0,
+      "height": 80.0
+    },
+    "input": "AWT events dispatched only to this application's Compose component",
+    "timing": "Each phase uses a fresh gesture replay because native readback is slow. CSV capture timestamps are render-start times. PNG encoding follows input. Not a continuous video, presented FPS or measured iOS timing.",
+    "phaseSnapshots": 21,
+    "imagesInspected": true,
+    "inspection": "All phase images inspected as a contact sheet; held, early right and formed left inspected at native scale. Endpoints round vertically; held ink refracts; final rest recovers. Layout checks passed. Separate replays do not prove continuous motion.",
+    "renderRangeMs": [
+      19.9854,
+      740.0847
+    ],
+    "readbackRangeMs": [
+      2170.2679,
+      3107.7675
+    ]
+  },
+  "static": {
+    "metric": "native static-scene forced redraw; GPU submission, not presented FPS",
+    "backend": "DIRECT3D",
+    "width": 1920,
+    "height": 1051,
+    "samples": 120,
+    "warmup": 10,
+    "p50_ms": 19.5262,
+    "p95_ms": 23.1387,
+    "max_ms": 23.5329,
+    "imageInspected": true,
+    "inspection": "Continuous grid magnification in this static view; card and navigation layout intact. No full optical parity claim."
+  },
+  "sourceSha256": {
+    "liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/GlassPoseDynamics.kt": "6940c54c836000bfef5b66110219af04b594d1f72bb8a71bfef3cdf387865df3",
+    "liquidglass/src/jvmTest/kotlin/com/wexpa/liquidglass/GlassPhoneTapVolumeTest.kt": "ee941479f157a3895816937e3716011676f0e34f8b6cafd2cbf1ffcfc5ffb842",
+    "liquidglass/src/jvmTest/kotlin/com/wexpa/liquidglass/GlassPhoneThrowTest.kt": "55e6c91a7e69388fab7050c3a7cb20ad9c60ea8f90ac5d176f841ab4f7a5978a",
+    "desktop/src/jvmMain/kotlin/com/wexpa/liquidglass/sample/desktop/AtlasMotionCapture.kt": "36a1e110b829977ee5812c3b13d41586f9be1d6f1c8019e3859262f7343a68e3",
+    "tools/PhoneThrowProbe.java": "6c04f1138ecc6512bca7c93599bce7dd0d75ad7558a1930d8b62458d9a18d272",
+    "tools/build_phone_throw_review.py": "69abf9e361e610a9ed1ab881743a88220edc151fdc17d3dc0162204f521a7127"
+  },
+  "sourceAfterTests": "No runtime or diagnostic code changed after completed full verification and native capture.",
+  "hosted": "Pending this checkpoint push; prior7c09000 passed all seven required checks.",
+  "limits": "Spatial calibration, not recovered original input or a full contour. Centre overshoot unmatched. Native snapshots are independent replays; early tap redraw took740ms and readback perturbs timing. No presented FPS, device validation or full1:1 claim."
+}

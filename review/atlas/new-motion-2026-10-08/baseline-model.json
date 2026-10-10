@@ -1,0 +1,18 @@
+{
+  "commit": "f24634d97ed1a2e7d89eeef5563d19c24bdb9771",
+  "behavior": "820659d; later library change was release-provenance comment only",
+  "java": "Microsoft JDK21.0.12",
+  "kotlin": "2.4.10",
+  "compile": "private tools/workspace.ps1 library :liquidglass:compileKotlinJvm; successful32s; log .local/phone-tap-compile.log",
+  "sources": {
+    "liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/GlassPoseDynamics.kt": "9087f5fd5fddc1bda1fdc18965cd31019e08ff36ddeb71e7b47fa73e23198c66",
+    "liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/GlassPoseGeometry.kt": "8b348b32bc28700a9abba9362352a750e6b6657f3c39cec99b99118201c0ec38",
+    "liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/GlassSelectorDynamics.kt": "abbb4adf729a6af30eccc985bd815eaa6121e77fdfb7686952f707b5b0c288ab",
+    "tools/PhoneTapProbe.java": "650ddb92dfd23fc18593757d556cdf260c6d2ac70bfda19f47ccc1b6b425cc83"
+  },
+  "exports": {
+    "production-tap-baseline.csv": "d89037e69f8a6c74b19315370407872db23d44c20a22012fb503c9e0624acfde",
+    "production-touch-baseline.csv": "602d23c126359a9f4ed438524bbc0e0b432b6b05f872561ebd115525380c1a04"
+  },
+  "limits": "Research exporter directly calls freshly compiled production controller. Not a render/physical-device result. No production parameters altered."
+}

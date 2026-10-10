@@ -1,0 +1,107 @@
+{
+  "library": {
+    "tests": 356,
+    "skipped": 27,
+    "failures": 0,
+    "errors": 0,
+    "testcaseSeconds": 1101.046,
+    "passed": 329
+  },
+  "desktop": {
+    "tests": 2,
+    "skipped": 0,
+    "failures": 0,
+    "errors": 0,
+    "testcaseSeconds": 111.86,
+    "passed": 2
+  },
+  "android": "assembleDebug passed after Android-only array-overload repair",
+  "focused": {
+    "tests": 6,
+    "failed": 0
+  },
+  "portable": {
+    "skiaTests": 20,
+    "failed": 0,
+    "types": "passed"
+  },
+  "native": {
+    "backend": "DIRECT3D",
+    "scale": 1.25,
+    "readbackEnabled": true,
+    "checksPassed": true,
+    "navigation": {
+      "left": 1515.0,
+      "top": 804.0,
+      "width": 350.0,
+      "height": 80.0
+    },
+    "input": "AWT events dispatched only to this application's Compose component",
+    "timing": "Each phase uses a fresh gesture replay because native readback is slow. CSV capture timestamps are render-start times. PNG encoding follows input. Not a continuous video, presented FPS or measured iOS timing.",
+    "images": 21,
+    "imagesInspected": true,
+    "inspection": "Current independent-shape mask removes dark exterior caps in both endpoints and preserves pixel-identical resting image. Early/formed throws, recovery and corner phases inspected. A faint optical rim remains.",
+    "limits": "Independent phase replays, not presented FPS or source input timing. First held redraw1647.7ms; no performance acceptance claimed."
+  },
+  "regression": {
+    "left": {
+      "top": {
+        "roi": [
+          133,
+          74,
+          148,
+          78
+        ],
+        "beforeMeanAbsoluteRgbDifference": 30.877777777777776,
+        "afterMeanAbsoluteRgbDifference": 0.2833333333333333
+      },
+      "bottom": {
+        "roi": [
+          133,
+          162,
+          148,
+          166
+        ],
+        "beforeMeanAbsoluteRgbDifference": 29.65,
+        "afterMeanAbsoluteRgbDifference": 0.03333333333333333
+      }
+    },
+    "right": {
+      "top": {
+        "roi": [
+          363,
+          74,
+          378,
+          78
+        ],
+        "beforeMeanAbsoluteRgbDifference": 29.555555555555557,
+        "afterMeanAbsoluteRgbDifference": 1.3611111111111112
+      },
+      "bottom": {
+        "roi": [
+          363,
+          162,
+          378,
+          166
+        ],
+        "beforeMeanAbsoluteRgbDifference": 26.505555555555556,
+        "afterMeanAbsoluteRgbDifference": 9.03888888888889
+      }
+    },
+    "restPixelsExactlyUnchanged": true
+  },
+  "sourceSha256": {
+    "liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/GlassMaterialDrawing.kt": "a87f654711ab0b9a89fdb772519ecd8482f4e7b966cca0a9a1d0a282e7b42642",
+    "liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/GlassPoseDynamics.kt": "065817c89d10fa82e6c63143851203a9985913f32f948e5ea0769a1a308b65be",
+    "liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/GlassShaderSource.kt": "12ddb58674119cbfdba67bd230ce1b48d9b7522ba07319c4c1c96dbf8597d9a8",
+    "liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/GlassTabBar.kt": "2a08670d06fa48c392bb19611fac7e7f17476c14a7245ccb41816fc75e78bf28",
+    "liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/LiquidGlass.kt": "4de610cdfcba1f2f70c312f959f579860ddaff9eca2668fd84349bb636fecb8f",
+    "liquidglass/src/jvmMain/kotlin/com/wexpa/liquidglass/LiquidGlass.jvm.kt": "f036174a9620a9f93246887f6b481539222a78c92621b698544af3109d0a0d6f",
+    "liquidglass/src/androidMain/kotlin/com/wexpa/liquidglass/LiquidGlass.android.kt": "2c90fda2b0c66be9db20ecad10041fd8d762721a2635ea796c79c7cb25c35265",
+    "liquidglass/src/jvmTest/kotlin/com/wexpa/liquidglass/GlassInsetMaterialTest.kt": "420a28a0df6fda581a712e9845a33c7164cc34b7a0c7f394a29ef7edfb6a7789"
+  },
+  "rejected": "Original full-body inset tint rejected by owner; first packed-mask strip rejected after native left inset disappeared. Both retained in research.",
+  "verificationReuse": "Full JVM run:356cases,328passed/27skipped/1failed (stale uniform inventory). After updating the exact list to include actual bindings, bothGlassShaderTest cases reran and passed. Aggregate329passes/27skips with every class covered; no common/JVM runtime changed. Android-only binding fix required platform retry. Earlier motion326-pass result is historical.",
+  "scope": "Specific native dark-cap defect corrected. No full iOS parity, universal-stack support, owner acceptance or presented-frame performance claim.",
+  "hosted": "Pending verified checkpoint push"
+}

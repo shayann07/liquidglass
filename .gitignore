@@ -81,3 +81,12 @@ venv/
 # Private consolidated build environment and recovery material
 /.local/
 /batch_run.log
+
+# Web adapter development/test output
+node_modules/
+playwright-report/
+test-results/
+
+# Owner-supplied motion recordings are research inputs, not website assets.
+/docs/1.MP4
+/docs/2.MP4

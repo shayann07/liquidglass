@@ -1,0 +1,75 @@
+{
+  "library": {
+    "tests": 353,
+    "skipped": 27,
+    "failures": 0,
+    "errors": 0,
+    "testcaseSeconds": 516.92,
+    "passed": 326
+  },
+  "desktop": {
+    "tests": 2,
+    "skipped": 0,
+    "failures": 0,
+    "errors": 0,
+    "testcaseSeconds": 90.863,
+    "passed": 2
+  },
+  "android": "assembleDebug passed",
+  "native": {
+    "backend": "DIRECT3D",
+    "scale": 1.25,
+    "readbackEnabled": true,
+    "checksPassed": true,
+    "navigation": {
+      "left": 1515.0,
+      "top": 804.0,
+      "width": 350.0,
+      "height": 80.0
+    },
+    "input": "AWT events dispatched only to this application's Compose component",
+    "timing": "Each phase uses a fresh gesture replay because native readback is slow. CSV capture timestamps are render-start times. PNG encoding follows input. Not a continuous video, presented FPS or measured iOS timing.",
+    "phaseSnapshots": 21,
+    "imagesInspected": true,
+    "inspection": "Images inspected; they visibly contain the rejected dark-disc defect. Passing selection/layout checks did not cover material appearance.",
+    "visualAcceptance": "REJECTED by owner: dark disc caps outside bar. Earlier assistant visual approval withdrawn."
+  },
+  "static": {
+    "metric": "native static-scene forced redraw; GPU submission, not presented FPS",
+    "backend": "DIRECT3D",
+    "width": 1920,
+    "height": 1051,
+    "samples": 120,
+    "warmup": 10,
+    "p50_ms": 6.5928,
+    "p95_ms": 9.009,
+    "max_ms": 9.6088,
+    "imageInspected": true,
+    "inspection": "Static grid magnification looks continuous; card/nav layout intact. No full optical parity claim."
+  },
+  "focused": {
+    "first": 29,
+    "second": 25,
+    "failed": 0
+  },
+  "sourceSha256": {
+    "liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/GlassPoseDynamics.kt": "065817c89d10fa82e6c63143851203a9985913f32f948e5ea0769a1a308b65be",
+    "liquidglass/src/jvmTest/kotlin/com/wexpa/liquidglass/GlassPhoneLandingSequenceTest.kt": "93a6d9a77cc9eaa2aa11111d76160787c2f04a5976e41118c445cf3232fcc6f2",
+    "tools/compare_phone_edge_candidate.py": "7faaae74478db244095056e7e23352fc102a5031ac339cdd212c88f7d86817d9"
+  },
+  "limits": "Consecutive width/edge calibration with an independent direction, not recovered finger timing. Partial-cap recovery still early: rightmax12.59px/leftmax11.58px. Phase snapshots are independent replays, not continuous recording or presented FPS. No device available. Full1:1 not proven.",
+  "localBuild": "SUCCESSFUL10m14s; full library and Atlas fresh; Android assembled",
+  "sourceAfterTests": "Runtime unchanged after completed full/native verification.",
+  "visibleRightContour": {
+    "candidate": {
+      "rms": 2.3967088039869098,
+      "maxAbsolute": 5.690411173383723
+    },
+    "previous": {
+      "rms": 17.25647815388256,
+      "maxAbsolute": 31.89152891555125
+    }
+  },
+  "hosted": "Pending checkpoint push;4a2c50f allseven required checks passed.",
+  "status": "Geometry/checkpoint tests passed; native optical appearance rejected. Rendering correction in progress."
+}

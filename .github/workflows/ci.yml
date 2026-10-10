@@ -1,32 +1,139 @@
 name: CI
-
 on:
   push:
     branches: [main]
   pull_request:
-
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    # Fresh renderer verification took29m14s in run37674667084, before the new
+    # original-density foreground case. Leave execution/upload headroom; test
+    # timeouts and optical tolerances are unchanged.
+    timeout-minutes: 40
     steps:
-      - uses: actions/checkout@v7
-
-      - uses: actions/setup-java@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6
         with:
           distribution: temurin
           java-version: 21
-
-      - uses: gradle/actions/setup-gradle@v6
-
-      # Compiles the library for Android and the JVM, runs the shader and rendered-optics tests
-      # through Skia, and assembles the sample.
-      - name: Build and test
-        run: ./gradlew build --stacktrace
-
-      - name: Upload test reports
-        if: always()
-        uses: actions/upload-artifact@v7
+      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6
         with:
-          name: test-reports
-          path: '**/build/reports/tests/**'
+          # Save the local task cache for trusted PR updates too. GitHub scopes it to this PR;
+          # forked PRs remain read-only and cannot populate our build cache through this job.
+          cache-read-only: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
+      - name: Build library, Android sample and desktop; run production renderer tests
+        run: ./gradlew build --stacktrace
+      - name: Upload test reports and rendered evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: verification-reports
+          path: |
+            **/build/reports/tests/**
+            **/build/reports/atlas/**
           if-no-files-found: ignore
+          retention-days: 14
+  dependency-review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4
+        with:
+          fail-on-severity: high
+
+
+  web:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: ports/web
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ports/web/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm test
+      - run: npx playwright install --with-deps chromium
+      - name: Install production Skia preview for browser integration tests
+        run: npm ci --ignore-scripts --prefix ../skia
+      - run: npm run test:browser
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: web-renderer-proof
+          path: |
+            ports/web/playwright-report/
+            ports/web/test-results/
+          retention-days: 14
+
+  skia-port:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: ports/skia
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ports/skia/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm test
+      - run: npm run example
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: skia-renderer-proof
+          path: ports/skia/build/*.png
+          if-no-files-found: ignore
+          retention-days: 14
+
+  dotnet-port:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_GENERATE_ASPNET_CERTIFICATE: 'false'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+      - name: Install Linux font provider and example font
+        if: runner.os == 'Linux'
+        run: sudo apt-get update -qq && sudo apt-get install -y libfontconfig1 fonts-dejavu-core
+      - run: dotnet restore ports/dotnet/Checks/Checks.csproj --locked-mode
+      - run: dotnet build ports/dotnet/Checks/Checks.csproj --no-restore
+      - run: dotnet ports/dotnet/Checks/bin/Debug/net8.0/Checks.dll ports/dotnet/artifacts
+      - name: Build Windows Forms host
+        if: runner.os == 'Windows'
+        run: |
+          dotnet restore ports/dotnet/WinFormsDemo/WinFormsDemo.csproj --locked-mode
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet build ports/dotnet/WinFormsDemo/WinFormsDemo.csproj --no-restore
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: dotnet-renderer-proof-${{ matrix.os }}
+          path: ports/dotnet/artifacts/
+          if-no-files-found: ignore
+          retention-days: 14

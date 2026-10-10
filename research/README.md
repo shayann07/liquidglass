@@ -8,6 +8,12 @@ tests that gate it, and the device results — including the one gate that fails
 Compiled 2026-09-14. Nothing here is marketing: every number carries its provenance, every failure
 is reported as a failure, and no claim of parity with Apple is made anywhere in this repository.
 
+**Development supplement, 2026-10-04:** [Atlas stabilization](../review/ATLAS-STABILIZATION.md)
+records the opt-in continuous magnifier, Calm travel/whole-bar separation, endpoint precision and
+desktop evidence. Its new original-frame audit separates the bar's 186px rest, 196px ordinary hold
+and 204–205px extreme. The navigation-only 1.05 press fits the ordinary hold; extreme asymmetry
+remains open. Historical measurements below retain their original scope and provenance.
+
 ---
 
 ## Contents

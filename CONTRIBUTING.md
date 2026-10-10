@@ -1,48 +1,79 @@
 # Contributing
 
-Thank you. A few things about how this project works will save you time.
+Contributions should make the material easier to use, more predictable, or better supported by evidence.
+Discuss broad API or renderer changes in an issue before implementing an incompatible interface.
 
-## Build
+## Development
 
-Android SDK 37 and a JDK 17 or newer. `local.properties` with `sdk.dir`, or `ANDROID_HOME`.
+Use JDK 21 and Android SDK 37 (`ANDROID_HOME` or `local.properties`). The checked-in Gradle wrapper
+is the build entry point. On the owner's machine, follow [WORKSPACE.md](WORKSPACE.md) for the private
+Gradle/Maven directories. Do not commit caches, signing credentials, device identifiers or local paths.
 
-```bash
-./gradlew build                          # library for Android and JVM, tests, and the sample
-./gradlew :liquidglass:jvmTest           # the shader and optics tests, no device needed
-./gradlew :sample:installDebug           # the sample app onto a connected device
-./gradlew publishToMavenLocal            # consume a local build from another project
+```sh
+./gradlew :desktop:run
+./gradlew :liquidglass:jvmTest --rerun
+./gradlew :desktop:desktopTest :sample:assembleDebug
+python -m pip install -r requirements-docs.txt
+python .github/scripts/check_repo_links.py
+python -m mkdocs build --strict
 ```
 
-## The material is measured, not tuned
+The renderer suite uses real Skia pixels and can take several minutes. Atlas's desktop tests render
+complex scenes in software: their wall time is not native GPU performance. Use focused test filters
+while iterating, then run the complete suite before proposing an optical or interaction change.
+When both are requested, Gradle runs Atlas tests after the library's renderer suite to avoid competing
+CPU rendering workers. Running only `:desktop:desktopTest` does not force the library suite to run.
 
-Almost every constant in the shader has a provenance, recorded in
-[docs/research/parameters.md](docs/research/parameters.md) and
-[docs/research/reference-measurements.md](docs/research/reference-measurements.md). A change to
-the optics should come with a measurement: either a reading from a real iOS device or a rendered
-test in `liquidglass/src/jvmTest` that fails before the change and passes after it.
-`GlassRender` compiles the real shader through Skia and hands back pixels, so most optical
-claims can be asserted without a phone. Look at `GlassOpticsTest` for the pattern.
+For portable changes, run `npm ci --ignore-scripts` and `npm test` in the affected `ports/web` or
+`ports/skia` directory. `npm run example` in the Skia directory renders the high-level integration
+example. Production shader changes also require `GlassShaderBundleTest`: checked-in SkSL and reference
+pixels are declared Gradle inputs, so editing them invalidates cached verification.
+Browser tests live in `ports/web`; install both portable packages before `npm run test:browser` there,
+since the suite checks the small WebGL renderer and the production Skia painter separately.
 
-Two failure modes live in the host rather than the shader and look identical on screen. Read
-[docs/how-it-works.md](docs/how-it-works.md) before deciding a shader change is needed.
+## Evidence and compatibility
 
-## What we do not accept
+- Label constants **measured**, **inherited** or **authored**. Never turn a visual approximation into
+  a claimed Apple measurement. Untimed screenshots cannot establish finger velocity or spring timing.
+- Include a minimal reproduction and a rendered regression for optical defects. Use ramps, text,
+  grids and both light/dark backdrops; a pleasing screenshot on one background is insufficient.
+- For gestures, cover cancellation, a competing scroll, reversal, release, extreme screen-edge travel,
+  density changes and reduced motion. Separate layout movement, press expansion and material strain.
+- Preserve historical public presets unless a breaking change is explicitly proposed. New behaviour
+  should have a small, documented opt-in path before becoming a default.
+- Prefer modifiers for surfaces. A host such as `GlassScene` may own backdrop lifetime and connect
+  modifiers; it should not duplicate your app's layout, button semantics or navigation logic.
+- Keep new rendering models independent of Android activities or demo-specific coordinates. A port
+  must document its source-texture, colour, alpha and gesture contracts; see [porting](docs/porting.md).
 
-- Apple's assets. No SF Symbols, extracted textures, or shaders lifted from a system binary.
-  Apple's SDK agreement licenses those for Apple platforms only, and the whole point of this
-  library is that its shader is its own.
-- Unmeasured constants presented as measurements. If a number is a guess, say it is, the way the
-  `Ios27` preset does.
-- A component that is really a modifier. If it can be `Modifier.liquidGlass()` on a stock
-  composable, it should be.
+Use Kotlin's existing formatting and keep public KDoc, API docs and examples together. Avoid adding
+dependencies for utilities the standard library already provides. Keep runtime work allocation-aware;
+measure performance before claiming an improvement.
 
-## Documentation
+## Pull requests
 
-The docs in `docs/` are part of the change. A new parameter needs a line in
-[docs/api-reference.md](docs/api-reference.md) and, if it came from somewhere, an entry in
-`NOTICE`. Ideas taken from other implementations are credited there by project, with what was
-taken and where it landed.
+The selector regression writes `liquidglass/build/reports/atlas/selector-travel.csv`.
+To regenerate its scientific plot, install matplotlib in a local virtual environment and run
+`python tools/plot_selector_travel.py` (verified with matplotlib 3.11.2). This optional plotting
+dependency is not part of the library runtime or normal CI build.
+After `GlassRestTapReferenceTest`, `python tools/plot_selector_arrival.py` plots resting-tap
+travel and the separate arrival recovery using the same optional environment.
 
-## Releasing
+Explain the user-visible problem, resulting behaviour, evidence and limitations. Include relevant
+screenshots or traces under `review/`; only capture the app under test and remove private information.
+Use the PR template. Tests and docs must pass, conversations must be resolved and the required review
+must be obtained. Dependency bots propose changes; they do not approve or merge their own updates.
 
-Maintainers: see [docs/publishing.md](docs/publishing.md).
+## Documentation, licensing and provenance
+
+User documentation belongs in `docs/`, which builds the public site. Update README, the API reference
+and CHANGELOG for new public features. If the research record is edited, keep its generated site twin
+in sync. Check all links, including GitHub links to assets that must actually be tracked.
+
+Contributions are accepted under the project's Apache-2.0 license. Submit only code you have the right
+to contribute. Keep existing notices, attribute borrowed implementations in NOTICE, and document third-party
+asset terms. Do not add extracted Apple shaders, system assets or SF Symbols to the runtime. User-supplied
+reference images are evidence; they do not grant a license to redistribute Apple's UI as application assets.
+
+See [SECURITY.md](SECURITY.md) for private vulnerability reports and [publishing](docs/publishing.md)
+for maintainer-only releases. A source PR does not authorize a Maven release or a version tag.

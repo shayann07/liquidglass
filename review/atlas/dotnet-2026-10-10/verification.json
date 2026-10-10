@@ -1,0 +1,193 @@
+{
+  "runtime": "8.0.31",
+  "platform": "Microsoft Windows 10.0.26300",
+  "checks": [
+    {
+      "check": "three embedded production passes compile and match source",
+      "passed": true
+    },
+    {
+      "check": "profile0 versus independent JVM pixels",
+      "maxChannelError": 0,
+      "passed": true
+    },
+    {
+      "check": "profile1 versus independent JVM pixels",
+      "maxChannelError": 0,
+      "passed": true
+    },
+    {
+      "check": "profile2 versus independent JVM pixels",
+      "maxChannelError": 0,
+      "passed": true
+    },
+    {
+      "check": "profile3 versus independent JVM pixels",
+      "maxChannelError": 0,
+      "passed": true
+    },
+    {
+      "check": "invalid uniform, missing child and disposed effect rejected",
+      "passed": true
+    },
+    {
+      "check": "identity, zoom, monotonic source map, borrowed image and canvas state",
+      "passed": true
+    },
+    {
+      "check": "in-app material, cached redraw, source replacement, partial surface",
+      "passed": true
+    },
+    {
+      "check": "host backdrop recording, owned snapshot and atomic failed callback",
+      "passed": true
+    },
+    {
+      "check": "native example and visible text rendered",
+      "passed": true
+    }
+  ],
+  "date": "2026-10-10",
+  "rendererTarget": "net8.0",
+  "hostTarget": "net10.0-windows10.0.19041.0",
+  "skiaSharp": "4.153.1",
+  "sourceBaseline": "5a813935f9b9a4791a26cc5b546610941710ec99 with new native adapter",
+  "host": {
+    "backend": "SkiaSharp Windows Forms SKControl (CPU)",
+    "captures": 4,
+    "input": "app-owned OnMouseDown/Move/Up replay, including capture release",
+    "dragPassed": true,
+    "resizePassed": true,
+    "limits": "Four phase captures; no GPU, iOS motion, presented FPS or arbitrary native-widget backdrop claim."
+  },
+  "visualInspection": "Native CPU example and four Windows Forms canvas frames inspected. Continuous grid lens, dark card, drag relocation, reduced-transparency light card and resize visible.",
+  "sourceSha256": {
+    "ports/dotnet/Checks/Checks.csproj": "f1dce19dd2c2d65dcfeef5ed279907d6bbcf1bbe4bb39a3a861b3807b698dba7",
+    "ports/dotnet/Checks/packages.lock.json": "8a3252523bb8cee55d156cf4ee76400034f7faf8799357bb0ad8754307c01979",
+    "ports/dotnet/Checks/Program.cs": "5b790b0a45bcc6cedfcdd66f737cf260c99a1703be6d82b1711d35bf7d23ce8c",
+    "ports/dotnet/LiquidGlass.Skia/GlassEffects.cs": "9639b4a063340108eb3e4144e877485a2cc3918c3637f8786fd358702a5a57b7",
+    "ports/dotnet/LiquidGlass.Skia/GlassPainter.cs": "96f1d892e899801a9c821fa4a7dcdd3a720b708e80d33e5f75e828319441abf0",
+    "ports/dotnet/LiquidGlass.Skia/LiquidGlass.Skia.csproj": "8162bdba2263e4b2d9eb354375f8f1a6c2eeb861bf615e945499166e743f65cb",
+    "ports/dotnet/LiquidGlass.Skia/packages.lock.json": "bf87668920f872d3b3d622d7820cd3175642937a309986c8e3c0182509a82a01",
+    "ports/dotnet/WinFormsDemo/packages.lock.json": "2d0895890debeb505bb434f5bb01400fa175252dcf2bb035873327b214dded31",
+    "ports/dotnet/WinFormsDemo/Program.cs": "1cc301d70d5ac8ff1149a783cb28a05f24f64985a5f59c7562d5e3d02be4fdb1",
+    "ports/dotnet/WinFormsDemo/WinFormsDemo.csproj": "7bcf88222e62fbe4492c940872d1f8e9492fb0c14fc00d1b33d91e85f1113455"
+  },
+  "limits": "Windows local/hosted and Linux hosted CPU checks, with local Windows Forms input/capture. No GPU, presented FPS, iOS motion/optical parity or additional native host support claim. Navigation and arbitrary-widget capture remain separate work.",
+  "hosted": {
+    "revision": "49c217f9a8aadaf776e8affe4911fc858df08f9e",
+    "ciRun": 38034772892,
+    "platforms": {
+      "linux": {
+        "result": {
+          "runtime": "8.0.31",
+          "platform": "Ubuntu 24.04.5 LTS",
+          "checks": [
+            {
+              "check": "three embedded production passes compile and match source",
+              "passed": true
+            },
+            {
+              "check": "profile0 versus independent JVM pixels",
+              "maxChannelError": 0,
+              "passed": true
+            },
+            {
+              "check": "profile1 versus independent JVM pixels",
+              "maxChannelError": 0,
+              "passed": true
+            },
+            {
+              "check": "profile2 versus independent JVM pixels",
+              "maxChannelError": 0,
+              "passed": true
+            },
+            {
+              "check": "profile3 versus independent JVM pixels",
+              "maxChannelError": 0,
+              "passed": true
+            },
+            {
+              "check": "invalid uniform, missing child and disposed effect rejected",
+              "passed": true
+            },
+            {
+              "check": "identity, zoom, monotonic source map, borrowed image and canvas state",
+              "passed": true
+            },
+            {
+              "check": "in-app material, cached redraw, source replacement, partial surface",
+              "passed": true
+            },
+            {
+              "check": "host backdrop recording, owned snapshot and atomic failed callback",
+              "passed": true
+            },
+            {
+              "check": "native example and visible text rendered",
+              "passed": true
+            }
+          ]
+        },
+        "imageSha256": "4102440c7ef4424d2d5d2c25d37eb77b389d33d364c9aa21a645765564b99040"
+      },
+      "windows": {
+        "result": {
+          "runtime": "8.0.31",
+          "platform": "Microsoft Windows 10.0.26100",
+          "checks": [
+            {
+              "check": "three embedded production passes compile and match source",
+              "passed": true
+            },
+            {
+              "check": "profile0 versus independent JVM pixels",
+              "maxChannelError": 0,
+              "passed": true
+            },
+            {
+              "check": "profile1 versus independent JVM pixels",
+              "maxChannelError": 0,
+              "passed": true
+            },
+            {
+              "check": "profile2 versus independent JVM pixels",
+              "maxChannelError": 0,
+              "passed": true
+            },
+            {
+              "check": "profile3 versus independent JVM pixels",
+              "maxChannelError": 0,
+              "passed": true
+            },
+            {
+              "check": "invalid uniform, missing child and disposed effect rejected",
+              "passed": true
+            },
+            {
+              "check": "identity, zoom, monotonic source map, borrowed image and canvas state",
+              "passed": true
+            },
+            {
+              "check": "in-app material, cached redraw, source replacement, partial surface",
+              "passed": true
+            },
+            {
+              "check": "host backdrop recording, owned snapshot and atomic failed callback",
+              "passed": true
+            },
+            {
+              "check": "native example and visible text rendered",
+              "passed": true
+            }
+          ]
+        },
+        "imageSha256": "cd874a0fe0bd8e3e89b6a3c551dce8d558a707484de0224fa0a12ba1f2c9e859"
+      }
+    },
+    "visualInspection": "Both native CI images inspected. Linux now includes visible labels; predecessor9545506 Linux image explicitly rejected for missing text.",
+    "requiredChecks": 10,
+    "strictBranchChecks": true,
+    "limits": "CPU renderer checks; Windows Forms builds in CI and its local control capture is separate. No Linux desktop-host, GPU or iOS parity claim."
+  }
+}

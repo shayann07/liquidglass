@@ -5,27 +5,29 @@ import kotlin.test.Test
 import kotlin.test.assertTrue
 
 /**
- * The held silhouette against the two things the reference ledger actually supports.
+ * Historical expressive-controller checks informed by the original reference ledger.
  *
  * `research/analysis/v3/ios-parity/reference/REFERENCE-LEDGER.json` declares +-3 to 5 px on ends
  * and heights from a single annotator and a single pass, and its capsule fits leave 8 to 11 px of
  * residual, so nothing here asserts a contour. Two quantities survive that uncertainty:
  *
- *  * **Protrusion.** 6717 reads 24 px above and 24 px below a 171 px bar, and 6719 reads 24 px
- *    above the same bar height. That is a maximum over a 400-column run, which is the most robust
- *    statistic the annotation produces. Calm held height is therefore 1.28 bar heights.
+ *  * **Protrusion.** The ledger's earlier 1.28 height ratio used the inset selector as its bar.
+ *    That interpretation was rejected by the subsequent original-frame audit. The current
+ *    1.20 target is checked directly against Phone T01 by [GlassCalmGrowthReferenceTest].
+ *    This synthetic fixture preserves the historical broad protrusion/tolerance check.
  *  * **Width, only as a bracket.** The brief reads 6721 at about 1.73 slots; the ledger's
  *    circular-cap fit of 6717 gives a half-spine of 187.3 and a radius of 97.5 on a 941 px
  *    five-tab bar, about 2.03 slots if that spine is the full one. The bracket [1.5, 2.3] slots
  *    is wide because those two numbers come from different methods on different frames.
  *
- * The third test is not from the reference at all. It is the separation the references imply:
+ * These tests instantiate the historical preset, not the recommended `GlassPoseSpec.Calm`.
+ * The third test is not a timing or finger-input measurement. It is the separation the references imply:
  * calm held protrudes (6717, 6721) and hard-pulled held flattens (6735), so an ordinary traverse
  * has to land on the protruding side of that line rather than being squeezed flat by it.
  */
 class GlassPoseReferenceSilhouetteTest {
 
-    /** 6717's bar proportions at Vitals' density: 171 px tall, five tabs. */
+    /** Historical synthetic five-tab fixture at 3px/dp; not a native iPhone geometry replica. */
     private fun bar() = GlassSelectorBar(
         width = 1006f, height = 162f, inset = 18f, count = 5, cornerRadius = 81f,
         baseHalfWidth = 96f, baseHalfHeight = 69f, allowedHalfHeight = 69f,

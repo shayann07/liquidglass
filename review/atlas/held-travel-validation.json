@@ -1,0 +1,791 @@
+{
+  "method": "Fixed windows, strongest absolute adjacent-pixel RGB gradient. First-pixel separation; no inclusive+1. Median and full probe range preserved.",
+  "traceSha256": "e5832fcfdbec177a66da5b47b3d2598b7c8283e8372299ac9ebd82860173279e",
+  "sourceModel": "820659d frozen production held-travel trace; constants not tuned to these audit results",
+  "limits": "Additional stills, not a timed trajectory. Search over the existing authored speed sweep verifies paired shape reachability only. The frames were historically inspected but did not calibrate the820659d correction. No contour, finger speed, release class or optical identity inferred. IMG6728 side glyph contamination leaves width unresolved.",
+  "states": {
+    "6727": {
+      "sha256": "4e2b94f1182aac7c14100808e5e9f80a613df9c151096ebcf66ba89ac1cec1b3",
+      "windows": {
+        "xs": [
+          260,
+          270,
+          280,
+          290,
+          300,
+          310
+        ],
+        "top": [
+          0,
+          15
+        ],
+        "bottom": [
+          182,
+          193
+        ],
+        "left": [
+          128,
+          145
+        ],
+        "right": [
+          433,
+          450
+        ]
+      },
+      "width": 309.0,
+      "height": 188.0,
+      "widthRange": [
+        307,
+        309
+      ],
+      "heightRange": [
+        188,
+        188
+      ],
+      "widthAccepted": true,
+      "heightAccepted": true,
+      "horizontal": [
+        {
+          "channel": 0,
+          "y": 90,
+          "left": 136,
+          "right": 443,
+          "width": 307
+        },
+        {
+          "channel": 0,
+          "y": 94,
+          "left": 134,
+          "right": 443,
+          "width": 309
+        },
+        {
+          "channel": 0,
+          "y": 98,
+          "left": 134,
+          "right": 443,
+          "width": 309
+        },
+        {
+          "channel": 0,
+          "y": 102,
+          "left": 134,
+          "right": 443,
+          "width": 309
+        },
+        {
+          "channel": 1,
+          "y": 90,
+          "left": 136,
+          "right": 443,
+          "width": 307
+        },
+        {
+          "channel": 1,
+          "y": 94,
+          "left": 134,
+          "right": 443,
+          "width": 309
+        },
+        {
+          "channel": 1,
+          "y": 98,
+          "left": 134,
+          "right": 443,
+          "width": 309
+        },
+        {
+          "channel": 1,
+          "y": 102,
+          "left": 134,
+          "right": 443,
+          "width": 309
+        },
+        {
+          "channel": 2,
+          "y": 90,
+          "left": 136,
+          "right": 443,
+          "width": 307
+        },
+        {
+          "channel": 2,
+          "y": 94,
+          "left": 134,
+          "right": 443,
+          "width": 309
+        },
+        {
+          "channel": 2,
+          "y": 98,
+          "left": 134,
+          "right": 443,
+          "width": 309
+        },
+        {
+          "channel": 2,
+          "y": 102,
+          "left": 134,
+          "right": 443,
+          "width": 309
+        }
+      ],
+      "vertical": [
+        {
+          "channel": 0,
+          "x": 260,
+          "top": 2,
+          "bottom": 190,
+          "height": 188
+        },
+        {
+          "channel": 0,
+          "x": 270,
+          "top": 2,
+          "bottom": 190,
+          "height": 188
+        },
+        {
+          "channel": 0,
+          "x": 280,
+          "top": 2,
+          "bottom": 190,
+          "height": 188
+        },
+        {
+          "channel": 0,
+          "x": 290,
+          "top": 2,
+          "bottom": 190,
+          "height": 188
+        },
+        {
+          "channel": 0,
+          "x": 300,
+          "top": 2,
+          "bottom": 190,
+          "height": 188
+        },
+        {
+          "channel": 0,
+          "x": 310,
+          "top": 2,
+          "bottom": 190,
+          "height": 188
+        },
+        {
+          "channel": 1,
+          "x": 260,
+          "top": 2,
+          "bottom": 190,
+          "height": 188
+        },
+        {
+          "channel": 1,
+          "x": 270,
+          "top": 2,
+          "bottom": 190,
+          "height": 188
+        },
+        {
+          "channel": 1,
+          "x": 280,
+          "top": 2,
+          "bottom": 190,
+          "height": 188
+        },
+        {
+          "channel": 1,
+          "x": 290,
+          "top": 2,
+          "bottom": 190,
+          "height": 188
+        },
+        {
+          "channel": 1,
+          "x": 300,
+          "top": 2,
+          "bottom": 190,
+          "height": 188
+        },
+        {
+          "channel": 1,
+          "x": 310,
+          "top": 2,
+          "bottom": 190,
+          "height": 188
+        },
+        {
+          "channel": 2,
+          "x": 260,
+          "top": 2,
+          "bottom": 190,
+          "height": 188
+        },
+        {
+          "channel": 2,
+          "x": 270,
+          "top": 2,
+          "bottom": 190,
+          "height": 188
+        },
+        {
+          "channel": 2,
+          "x": 280,
+          "top": 2,
+          "bottom": 190,
+          "height": 188
+        },
+        {
+          "channel": 2,
+          "x": 290,
+          "top": 2,
+          "bottom": 190,
+          "height": 188
+        },
+        {
+          "channel": 2,
+          "x": 300,
+          "top": 2,
+          "bottom": 190,
+          "height": 188
+        },
+        {
+          "channel": 2,
+          "x": 310,
+          "top": 2,
+          "bottom": 190,
+          "height": 188
+        }
+      ],
+      "closestAuthoredSample": {
+        "duration": 0.3,
+        "time": 0.42291668,
+        "width": 309.0656,
+        "height": 184.12546,
+        "phase": 0.9956267
+      },
+      "withinExistingSixPixelGate": true
+    },
+    "6728": {
+      "sha256": "f1b5ad358caa60e9cacd0b7e3d86cf909cd3a27d36a202711acb3b8092efc2db",
+      "windows": {
+        "xs": [
+          200,
+          210,
+          220,
+          230,
+          240,
+          250
+        ],
+        "top": [
+          10,
+          25
+        ],
+        "bottom": [
+          168,
+          185
+        ],
+        "left": [
+          82,
+          101
+        ],
+        "right": [
+          380,
+          399
+        ]
+      },
+      "width": 306.0,
+      "height": 161.5,
+      "widthRange": [
+        294,
+        308
+      ],
+      "heightRange": [
+        159,
+        163
+      ],
+      "widthAccepted": false,
+      "heightAccepted": true,
+      "horizontal": [
+        {
+          "channel": 0,
+          "y": 90,
+          "left": 91,
+          "right": 385,
+          "width": 294
+        },
+        {
+          "channel": 0,
+          "y": 94,
+          "left": 90,
+          "right": 397,
+          "width": 307
+        },
+        {
+          "channel": 0,
+          "y": 98,
+          "left": 90,
+          "right": 398,
+          "width": 308
+        },
+        {
+          "channel": 0,
+          "y": 102,
+          "left": 90,
+          "right": 395,
+          "width": 305
+        },
+        {
+          "channel": 1,
+          "y": 90,
+          "left": 91,
+          "right": 385,
+          "width": 294
+        },
+        {
+          "channel": 1,
+          "y": 94,
+          "left": 90,
+          "right": 397,
+          "width": 307
+        },
+        {
+          "channel": 1,
+          "y": 98,
+          "left": 90,
+          "right": 398,
+          "width": 308
+        },
+        {
+          "channel": 1,
+          "y": 102,
+          "left": 90,
+          "right": 395,
+          "width": 305
+        },
+        {
+          "channel": 2,
+          "y": 90,
+          "left": 91,
+          "right": 385,
+          "width": 294
+        },
+        {
+          "channel": 2,
+          "y": 94,
+          "left": 90,
+          "right": 397,
+          "width": 307
+        },
+        {
+          "channel": 2,
+          "y": 98,
+          "left": 90,
+          "right": 398,
+          "width": 308
+        },
+        {
+          "channel": 2,
+          "y": 102,
+          "left": 90,
+          "right": 395,
+          "width": 305
+        }
+      ],
+      "vertical": [
+        {
+          "channel": 0,
+          "x": 200,
+          "top": 16,
+          "bottom": 177,
+          "height": 161
+        },
+        {
+          "channel": 0,
+          "x": 210,
+          "top": 15,
+          "bottom": 177,
+          "height": 162
+        },
+        {
+          "channel": 0,
+          "x": 220,
+          "top": 15,
+          "bottom": 177,
+          "height": 162
+        },
+        {
+          "channel": 0,
+          "x": 230,
+          "top": 15,
+          "bottom": 178,
+          "height": 163
+        },
+        {
+          "channel": 0,
+          "x": 240,
+          "top": 17,
+          "bottom": 178,
+          "height": 161
+        },
+        {
+          "channel": 0,
+          "x": 250,
+          "top": 17,
+          "bottom": 176,
+          "height": 159
+        },
+        {
+          "channel": 1,
+          "x": 200,
+          "top": 16,
+          "bottom": 177,
+          "height": 161
+        },
+        {
+          "channel": 1,
+          "x": 210,
+          "top": 15,
+          "bottom": 177,
+          "height": 162
+        },
+        {
+          "channel": 1,
+          "x": 220,
+          "top": 15,
+          "bottom": 177,
+          "height": 162
+        },
+        {
+          "channel": 1,
+          "x": 230,
+          "top": 15,
+          "bottom": 178,
+          "height": 163
+        },
+        {
+          "channel": 1,
+          "x": 240,
+          "top": 17,
+          "bottom": 178,
+          "height": 161
+        },
+        {
+          "channel": 1,
+          "x": 250,
+          "top": 17,
+          "bottom": 176,
+          "height": 159
+        },
+        {
+          "channel": 2,
+          "x": 200,
+          "top": 16,
+          "bottom": 177,
+          "height": 161
+        },
+        {
+          "channel": 2,
+          "x": 210,
+          "top": 15,
+          "bottom": 177,
+          "height": 162
+        },
+        {
+          "channel": 2,
+          "x": 220,
+          "top": 15,
+          "bottom": 177,
+          "height": 162
+        },
+        {
+          "channel": 2,
+          "x": 230,
+          "top": 15,
+          "bottom": 178,
+          "height": 163
+        },
+        {
+          "channel": 2,
+          "x": 240,
+          "top": 17,
+          "bottom": 178,
+          "height": 161
+        },
+        {
+          "channel": 2,
+          "x": 250,
+          "top": 17,
+          "bottom": 176,
+          "height": 159
+        }
+      ],
+      "closestAuthoredSample": null,
+      "withinExistingSixPixelGate": null
+    },
+    "6729": {
+      "sha256": "0db25e3eaa8230f87020f1c168cf243a38a9f281440226953d12909800253f33",
+      "windows": {
+        "xs": [
+          195,
+          205,
+          215,
+          225,
+          235,
+          245
+        ],
+        "top": [
+          14,
+          30
+        ],
+        "bottom": [
+          167,
+          182
+        ],
+        "left": [
+          78,
+          95
+        ],
+        "right": [
+          363,
+          380
+        ]
+      },
+      "width": 290.0,
+      "height": 154.0,
+      "widthRange": [
+        289,
+        292
+      ],
+      "heightRange": [
+        152,
+        154
+      ],
+      "widthAccepted": true,
+      "heightAccepted": true,
+      "horizontal": [
+        {
+          "channel": 0,
+          "y": 90,
+          "left": 84,
+          "right": 374,
+          "width": 290
+        },
+        {
+          "channel": 0,
+          "y": 94,
+          "left": 84,
+          "right": 376,
+          "width": 292
+        },
+        {
+          "channel": 0,
+          "y": 98,
+          "left": 84,
+          "right": 374,
+          "width": 290
+        },
+        {
+          "channel": 0,
+          "y": 102,
+          "left": 84,
+          "right": 376,
+          "width": 292
+        },
+        {
+          "channel": 1,
+          "y": 90,
+          "left": 84,
+          "right": 374,
+          "width": 290
+        },
+        {
+          "channel": 1,
+          "y": 94,
+          "left": 84,
+          "right": 376,
+          "width": 292
+        },
+        {
+          "channel": 1,
+          "y": 98,
+          "left": 84,
+          "right": 374,
+          "width": 290
+        },
+        {
+          "channel": 1,
+          "y": 102,
+          "left": 84,
+          "right": 373,
+          "width": 289
+        },
+        {
+          "channel": 2,
+          "y": 90,
+          "left": 84,
+          "right": 374,
+          "width": 290
+        },
+        {
+          "channel": 2,
+          "y": 94,
+          "left": 84,
+          "right": 376,
+          "width": 292
+        },
+        {
+          "channel": 2,
+          "y": 98,
+          "left": 84,
+          "right": 374,
+          "width": 290
+        },
+        {
+          "channel": 2,
+          "y": 102,
+          "left": 84,
+          "right": 373,
+          "width": 289
+        }
+      ],
+      "vertical": [
+        {
+          "channel": 0,
+          "x": 195,
+          "top": 20,
+          "bottom": 173,
+          "height": 153
+        },
+        {
+          "channel": 0,
+          "x": 205,
+          "top": 19,
+          "bottom": 173,
+          "height": 154
+        },
+        {
+          "channel": 0,
+          "x": 215,
+          "top": 19,
+          "bottom": 173,
+          "height": 154
+        },
+        {
+          "channel": 0,
+          "x": 225,
+          "top": 19,
+          "bottom": 171,
+          "height": 152
+        },
+        {
+          "channel": 0,
+          "x": 235,
+          "top": 19,
+          "bottom": 173,
+          "height": 154
+        },
+        {
+          "channel": 0,
+          "x": 245,
+          "top": 19,
+          "bottom": 173,
+          "height": 154
+        },
+        {
+          "channel": 1,
+          "x": 195,
+          "top": 20,
+          "bottom": 173,
+          "height": 153
+        },
+        {
+          "channel": 1,
+          "x": 205,
+          "top": 19,
+          "bottom": 173,
+          "height": 154
+        },
+        {
+          "channel": 1,
+          "x": 215,
+          "top": 19,
+          "bottom": 173,
+          "height": 154
+        },
+        {
+          "channel": 1,
+          "x": 225,
+          "top": 19,
+          "bottom": 171,
+          "height": 152
+        },
+        {
+          "channel": 1,
+          "x": 235,
+          "top": 19,
+          "bottom": 173,
+          "height": 154
+        },
+        {
+          "channel": 1,
+          "x": 245,
+          "top": 19,
+          "bottom": 173,
+          "height": 154
+        },
+        {
+          "channel": 2,
+          "x": 195,
+          "top": 20,
+          "bottom": 173,
+          "height": 153
+        },
+        {
+          "channel": 2,
+          "x": 205,
+          "top": 19,
+          "bottom": 173,
+          "height": 154
+        },
+        {
+          "channel": 2,
+          "x": 215,
+          "top": 19,
+          "bottom": 173,
+          "height": 154
+        },
+        {
+          "channel": 2,
+          "x": 225,
+          "top": 19,
+          "bottom": 173,
+          "height": 154
+        },
+        {
+          "channel": 2,
+          "x": 235,
+          "top": 19,
+          "bottom": 173,
+          "height": 154
+        },
+        {
+          "channel": 2,
+          "x": 245,
+          "top": 19,
+          "bottom": 173,
+          "height": 154
+        }
+      ],
+      "closestAuthoredSample": {
+        "duration": 0.06,
+        "time": 0.06875,
+        "width": 289.87177,
+        "height": 153.49652,
+        "phase": 0.42285168
+      },
+      "withinExistingSixPixelGate": true
+    }
+  }
+}

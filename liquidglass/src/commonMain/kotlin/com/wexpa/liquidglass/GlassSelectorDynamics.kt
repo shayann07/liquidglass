@@ -42,8 +42,8 @@ data class GlassSelectorSpec(
     val maxSkew: Float = 0.18f,
     /**
      * Shared recovery rate. Authored 10/s: about 336ms for a zero-speed 90%-to-10% spring
-     * decay, consistent in scale with E7's 314ms raised-area observation (a different metric).
-     * The earlier 18/s seed blinked the lens away; neither rate is recovered Apple physics.
+     * decay. E7's former314ms attribution was withdrawn: frames labelled rest still refract.
+     * The earlier18/s seed blinked the lens away; neither rate is recovered Apple physics.
      */
     val releaseOmega: Float = 10f,
     /** How fast a hold acquired away from the body reels its attachment offset in. */
@@ -72,6 +72,8 @@ data class GlassSelectorSpec(
      * parity brief supersedes the hard silhouette ceiling those numbers express.
      */
     val poseMotion: Boolean = true,
+    /** Calm separates selector travel from the bar's own press/drag deformation. */
+    val response: GlassResponse = GlassResponse.Expressive,
 )
 
 /** Which of the controller's states owns the body right now. */

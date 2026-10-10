@@ -21,6 +21,11 @@ edit_uri: edit/main/docs/
 # rather than shipping one.
 strict: true
 
+# Keep incoming original recordings local; publish only inspected evidence crops.
+exclude_docs: |
+  /1.MP4
+  /2.MP4
+
 theme:
   name: material
   language: en
@@ -100,6 +105,8 @@ nav:
       - Shapes: shapes.md
       - Interaction: interaction.md
       - Generic interaction: generic-interaction.md
+      - Atlas Studio: atlas-studio.md
+      - Other UI stacks: porting.md
       - Adaptation: adaptation.md
       - Tab bar: tab-bar.md
       - Accessibility: accessibility.md
@@ -109,6 +116,7 @@ nav:
       - API reference: api-reference.md
   - The research:
       - Overview: research/README.md
+      - Atlas stabilization: research/atlas-stabilization.md
       - The full record: research/the-record.md
       - The measured model: research/measured-model.md
       - The calibration study: research/ios27-calibration-study.md

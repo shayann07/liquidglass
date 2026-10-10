@@ -1,0 +1,2057 @@
+{
+  "calm-gestures": [
+    {
+      "name": "GlassTabBarCalmGestureTest[jvm]",
+      "tests": "14",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "time": "226.448"
+    }
+  ],
+  "desktop": [
+    {
+      "name": "AtlasDesktopTest[desktop]",
+      "tests": "2",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "time": "165.488"
+    }
+  ],
+  "full-library-before-fixture-correction": {
+    "tests": 313,
+    "passed": 285,
+    "skipped": 27,
+    "failed": 1,
+    "failure": "Calm fling inherited legacy capsule-grasp expectation; corrected to finger-intent contract already used by V3. No production change was required."
+  },
+  "android-sample": "assembleDebug passed; physical device verification not performed",
+  "web-core": {
+    "tests": 4,
+    "passed": 4,
+    "browser": "passed hosted CI run 37131042764, including context restoration and keyboard input"
+  },
+  "ci-build-e880065": {
+    "run": 37128280319,
+    "duration": "22m23s",
+    "scope": "complete Gradle build, library and desktop tests, Android sample",
+    "status": "passed"
+  },
+  "motion-port-followup": {
+    "shaderBundle": "passed",
+    "profileMaxChannelErrors": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "regrab": "passed",
+    "calmSelector": "3 passed",
+    "canvasKit": "3 passed",
+    "barRender": "passed 125.866s",
+    "fullRerun": "CI 37131042764: 316 library tests, 288 passed, 27 skipped, bar-render test timed out"
+  },
+  "ci-build-d6e8c60": {
+    "run": 37131042764,
+    "failed": 1,
+    "tests": 316,
+    "skia": "passed",
+    "codeql": "passed",
+    "passed": 288,
+    "failure": "GlassCalmBarRenderTest exceeded three-minute software-rendering budget",
+    "web": "passed",
+    "skipped": 27,
+    "docs": "passed"
+  },
+  "clock-height-correction": {
+    "cadenceHz": [
+      30,
+      60,
+      90,
+      120
+    ],
+    "sourceRenderScale": 0.25,
+    "fullCi": "passed run 37148115654",
+    "barRenderSeconds": 124.103,
+    "height": 223.19995,
+    "failed": 0,
+    "referenceHeightTolerance": 4,
+    "suites": [
+      {
+        "failures": 0,
+        "name": "GlassCalmBarRenderTest[jvm]",
+        "tests": 1,
+        "seconds": 124.103
+      },
+      {
+        "failures": 0,
+        "name": "GlassCalmGrowthReferenceTest[jvm]",
+        "tests": 2,
+        "seconds": 0.009
+      },
+      {
+        "failures": 0,
+        "name": "GlassCalmSelectorTest[jvm]",
+        "tests": 5,
+        "seconds": 0.183
+      },
+      {
+        "failures": 0,
+        "name": "GlassPoseRegrabTest[jvm]",
+        "tests": 1,
+        "seconds": 0.017
+      },
+      {
+        "failures": 0,
+        "name": "GlassSelectorLifetimeTest[jvm]",
+        "tests": 27,
+        "seconds": 0.141
+      },
+      {
+        "failures": 0,
+        "name": "GlassTabBarCalmGestureTest[jvm]",
+        "tests": 14,
+        "seconds": 241.93
+      }
+    ],
+    "referenceWidth": 350,
+    "geometryTolerancePx": 1.5,
+    "referenceHeight": 225,
+    "referenceWidthTolerance": 10,
+    "tests": 50,
+    "passed": 50,
+    "width": 345.19006,
+    "formationTolerance": 0.015
+  },
+  "skia-painter": {
+    "tests": 4,
+    "example": "npm run example passed",
+    "passed": 4,
+    "scope": "Node CanvasKit 0.42.0 software rendering; shader ABI, independent profile fixtures, page coordinates, centre gain, source replacement, borrowed lifetime and transform restoration",
+    "browserGpu": "Hosted Chromium WebGL render passed in CI 37151905671 (not a physical GPU benchmark)"
+  },
+  "ci-build-a7a929f": {
+    "commit": "a7a929f46f8c466f0bf27af3955863e26cb068df",
+    "skia": "passed",
+    "codeql": "passed",
+    "docs": "passed",
+    "failed": 0,
+    "dependencyReview": "passed",
+    "duration": "12m50s",
+    "run": 37148115654,
+    "passed": 292,
+    "web": "passed",
+    "skipped": 27,
+    "tests": 319
+  },
+  "native-type-followup": {
+    "samples": 120,
+    "warmup": 10,
+    "metric": "static redraw/GPU submission, not presented frames",
+    "p95ms": 13.7176,
+    "launch": "passed",
+    "p50ms": 10.0931,
+    "maxMs": 19.6931,
+    "height": 1051,
+    "backend": "DIRECT3D",
+    "width": 1920
+  },
+  "ci-build-6d23039": {
+    "run": 37149121490,
+    "passed": 292,
+    "tests": 319,
+    "commit": "6d23039f9e403f4ca5229a4c61917536e40245cc",
+    "failed": 0,
+    "requiredChecks": "all seven passed",
+    "duration": "16m45s",
+    "skipped": 27
+  },
+  "arrival-refinement": {
+    "minimum": 238.08142,
+    "compressionPercent": 5.52,
+    "tests": 38,
+    "previousMinimum": 252.0058,
+    "rest": 252,
+    "fullCi": "passed combined revision 13e62fd in run 37151905671; earlier run 37151225447 superseded/cancelled",
+    "peak": 450.63354,
+    "passed": 38,
+    "previousPeak": 457.64148,
+    "initial": "Calm failed the original shape-recovery gate: no compression below rest",
+    "interpretation": "Authored response guided by ordered stills, not measured Apple timing"
+  },
+  "skia-browser": {
+    "run": 37151905671,
+    "screenshot": "skia-browser-ci.png",
+    "scope": "Production CanvasKit WebGL surface; keyboard and pointer movement, reset, backdrop replacement and exact rendered restoration after context loss",
+    "browserTests": 3,
+    "commit": "13e62fdd8eb7741c1cfeac0e7264ef6fd780ba84",
+    "job": 111287607495,
+    "status": "passed"
+  },
+  "ci-build-13e62fd": {
+    "run": 37151905671,
+    "commit": "13e62fdd8eb7741c1cfeac0e7264ef6fd780ba84",
+    "tests": 320,
+    "passed": 293,
+    "skipped": 27,
+    "failed": 0,
+    "desktopTests": 2,
+    "duration": "12m57s",
+    "requiredChecks": "all seven passed"
+  },
+  "portable-calm": {
+    "numericalTests": 10,
+    "skiaTests": 5,
+    "failed": 0,
+    "cadenceHz": [
+      30,
+      60,
+      90,
+      120,
+      144
+    ],
+    "scope": "Timestamped whole-surface feedback; bounded pull, cancellation, resize, reduced motion, outline containment and production-renderer recovery",
+    "browser": "four hosted browser tests passed at 4ba6112, CI 37154026144; exact material recovery, pointer/cancel/keyboard and live reduced motion verified",
+    "provenance": "Authored Calm geometry/stiffness choices; no claim of measured Apple timing",
+    "initialBrowserFailure": "1f8f611: reduced-motion screenshot comparison included keyboard focus-ring decoration. Isolated material pixels while preserving real focus and exact comparison; rerun passed.",
+    "fullCi": "passed all seven required checks at 4ba6112, CI 37154026144"
+  },
+  "ci-build-4ba6112": {
+    "run": 37154026144,
+    "commit": "4ba6112b8a1a9545cb2abbf1357b798025c5e2c8",
+    "tests": 320,
+    "passed": 293,
+    "skipped": 27,
+    "failed": 0,
+    "desktopTests": 2,
+    "duration": "12m45s",
+    "requiredChecks": "all seven passed",
+    "browserTests": 4,
+    "skiaTests": 5,
+    "portableMathTests": 10
+  },
+  "ci-build-15cd8bf": {
+    "run": 37154921387,
+    "commit": "15cd8bfd66083bf4df24652109d2d309bd038051",
+    "tests": 320,
+    "passed": 293,
+    "skipped": 27,
+    "failed": 0,
+    "desktopTests": 2,
+    "duration": "26m28s",
+    "requiredChecks": "all seven passed",
+    "cache": "Updated task cache saved; no cache-hit speedup yet verified"
+  },
+  "end-anchor-travel": {
+    "initialFailure": "Raw pointer speed excited stationary selector outside the end anchor",
+    "beforeWidthErrorPx": 72.46686,
+    "beforeHeightErrorPx": 7.3027954,
+    "afterWidthErrorPx": 0,
+    "afterHeightErrorPx": 0,
+    "focusedTests": 39,
+    "focusedPassed": 39,
+    "componentTests": 2,
+    "componentPassed": 2,
+    "barRenderSeconds": 52.458,
+    "flingSeconds": 5.716,
+    "fullCi": "passed all seven required checks at e1672f8, CI 37165200963",
+    "scope": "Both end anchors, far outward/reverse/diagonal movement, return to range, distance response, reference height/arrival and real Compose in-flight frames"
+  },
+  "ci-build-e1672f8": {
+    "run": 37165200963,
+    "commit": "e1672f8ddc2998b01afd8fe46e32294a5aecbb93",
+    "tests": 321,
+    "passed": 294,
+    "skipped": 27,
+    "failed": 0,
+    "desktopTests": 2,
+    "duration": "26m37s",
+    "requiredChecks": "all seven passed"
+  },
+  "separate-endpoint": {
+    "focusedTests": 25,
+    "focusedPassed": 25,
+    "androidSampleBuild": "passed",
+    "legacyErrorLevels": 1.4256,
+    "separateInputErrorLevels": 0.9569,
+    "limitLevels": 1,
+    "fixtures": 18,
+    "visiblePixels": 199788,
+    "fractionalPixels": 11124,
+    "canvasKitErrorLevels": 0.9668,
+    "canvasKitFractionalPixels": 1376,
+    "canvasKitTests": 6,
+    "canvasKitPassed": 6,
+    "nativeBackend": "DIRECT3D",
+    "rejectedCandidate": "Shader-only strip offset lost selected Lines ink outside the native window",
+    "correction": "Separate runtime-filter inputs; declare the ink offset in the filter graph",
+    "scope": "Desktop Calm navigation; portable separate-input shader. Android and legacy retain composed C1.",
+    "fullCi": "all seven checks passed at fdae281, CI 37168022770"
+  },
+  "whole-bar-reference-bound": {
+    "source": "IMG_6756.MP4",
+    "restPts": "20819/600",
+    "heldPts": "21019/600",
+    "extremePts": "29863/600",
+    "crop": [
+      0,
+      2092,
+      1170,
+      440
+    ],
+    "columns": [
+      400,
+      450,
+      500,
+      550
+    ],
+    "thresholds": [
+      5,
+      10,
+      15
+    ],
+    "restHeightPx": 186,
+    "heldHeightPx": 196,
+    "genericCalmPressHeightPx": 191.58,
+    "calmBarPressHeightPx": 195.3,
+    "extremeHeightPx": [
+      204,
+      205
+    ],
+    "genericPortableMaximumHeightPx": 194.2524,
+    "portableBarMaximumHeightPx": 198.0169,
+    "kotlinBarMaximumHeightPx": 198.01695,
+    "portableDirections": 72,
+    "portableMathTests": 12,
+    "scope": "Navigation ordinary press fits 196+/-1px with1.05 material-only growth. Extreme bound passes but asymmetric growth and6..7px additional height remain unmatched; finger gain and timing unidentified.",
+    "foregroundAudit": {
+      "file": "reference-bar-foreground.json",
+      "thresholds": [
+        160,
+        200,
+        230
+      ],
+      "roi": [
+        400,
+        190,
+        160,
+        115
+      ],
+      "ordinaryToExtremeIconCenterY": -11.5,
+      "scope": "Visible glyph bounds only; layout translation versus refraction/content scaling unidentified. Fixed ordinary labels preserved."
+    }
+  },
+  "bar-pressure-correction": {
+    "failFirst": "ordinary-held reference expected196+/-1px, actual191.58px",
+    "barPressScale": 1.05,
+    "labelScale": 1.0,
+    "dragCoefficients": "unchanged",
+    "focusedTests": 22,
+    "failed": 0,
+    "renderedBarSeconds": 335.295,
+    "portableMathTests": 12,
+    "fullSuite": "325 library tests:298 passed,27 skipped,0 failed locally. Combined19m20s run failed because Atlas exceeded its6-minute test timeout; unchanged isolated rerun passed in3m28s."
+  },
+  "ci-build-0e5b432": {
+    "run": 37189818625,
+    "commit": "0e5b432f1223d9f19721fac4b9f8c1591c167ba6",
+    "tests": 325,
+    "passed": 298,
+    "skipped": 27,
+    "failed": 0,
+    "desktopTests": 2,
+    "buildDuration": "24m44s",
+    "requiredChecks": "all seven passed",
+    "browserTests": 4,
+    "skiaTests": 6,
+    "portableMathTests": 12
+  },
+  "bar-brightness-correction": {
+    "failFirstPlateau": 54,
+    "referencePlateau": 44,
+    "tolerance": 1,
+    "correctedPlateau": 44,
+    "decodedReferencePatch": {
+      "x": 330,
+      "y": 250,
+      "width": 40,
+      "height": 35,
+      "restRGB": [
+        32,
+        32,
+        32
+      ],
+      "heldRGB": [
+        43,
+        43,
+        43
+      ]
+    },
+    "focusedTests": 6,
+    "failed": 0,
+    "scope": "Material plateau without local touch illumination. Bar's additional generic pressLift is zero; original heldLift and all motion remain unchanged.",
+    "desktop": "Both tests passed in3m28s alone; unchanged assertions and six-minute interaction timeout.",
+    "nativeCapture": "brightness-native.png,1920x1051 DIRECT3D; idle scene only, no held input",
+    "nativeTiming": {
+      "p50_ms": 18.9665,
+      "p95_ms": 21.9185,
+      "max_ms": 27.1876,
+      "samples": 120,
+      "warmup": 10,
+      "scope": "Static forced redraw submission; slower than prior capture, no controlled performance or FPS claim"
+    },
+    "fullSuite": "Hosted CI37191244540 passed all seven checks:326 library tests,299 passed,27 skipped;2 desktop tests; build15m22s. Local serial run lost its process with no completion record and is not counted as a pass."
+  },
+  "portable-surfaces": {
+    "api": "createGlassPainter.drawSurface(canvas,bounds,options)",
+    "kotlinFactoryFixtures": 18,
+    "kotlinGuards": "PortableMaterialSpec and ShaderBundle passed",
+    "skiaTests": 10,
+    "failed": 0,
+    "wideKernel": {
+      "sigmaPx": 10,
+      "signalPeriodPx": 64,
+      "measuredGain": 0.6137,
+      "gaussianGain": 0.6176,
+      "tolerance": 0.04
+    },
+    "cache": "one quarter-resolution tone image; native canvas aliases reuse it; setSource/reset invalidates it",
+    "image": "portable-surfaces.png",
+    "scope": "Software CanvasKit parameters and render; hosted Chromium WebGL integration passed. No native framework wrapper, physical GPU performance or whole-Compose equivalence claimed.",
+    "browser": {
+      "run": 37211059768,
+      "commit": "a4ed995c744707ee9e72b0a367214bc2bbe164ae",
+      "tests": 4,
+      "passed": 4,
+      "captures": [
+        "portable-surface-browser.png",
+        "portable-surface-held.png"
+      ],
+      "scope": "Hosted Chromium WebGL; material, pointer/keyboard, cancellation/reduced motion, source replacement and context recovery. Before small-source correction."
+    }
+  },
+  "ci-build-fdae281": {
+    "run": 37168022770,
+    "commit": "fdae2814186ef091fb6fd98f65c0ea32a2bf7416",
+    "tests": 323,
+    "passed": 296,
+    "skipped": 27,
+    "failed": 0,
+    "desktopTests": 2,
+    "buildDuration": "18m13s",
+    "localDuration": "22m54s",
+    "requiredChecks": "all seven passed",
+    "browserTests": 4,
+    "skiaTests": 6,
+    "portableMathTests": 10
+  },
+  "portable-tone-edges": {
+    "failFirst": {
+      "sourceSize": [
+        1,
+        1
+      ],
+      "sourceRGBA": [
+        64,
+        128,
+        192,
+        255
+      ],
+      "sigma": 2.5,
+      "actualRGBA": [
+        4,
+        8,
+        11,
+        15
+      ]
+    },
+    "correction": "Clamp the opaque source before Gaussian filtering; avoid bounded drawImage coverage at quarter resolution",
+    "sizes": [
+      [
+        1,
+        1
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        17,
+        19
+      ],
+      [
+        41,
+        37
+      ],
+      [
+        241,
+        181
+      ]
+    ],
+    "sigmas": [
+      2.5,
+      10,
+      30
+    ],
+    "locations": "four corners and centre",
+    "toleranceLevels": 1,
+    "skiaTests": 12,
+    "passed": 12,
+    "wideKernelGain": 0.6119,
+    "gaussianPrediction": 0.6176,
+    "gainTolerance": 0.04,
+    "hosted": "Passed five browser tests and twelve Skia tests at f179971, CI37212692991",
+    "publicAPI": "Light/dark surface images agree within one level between full-size and one-pixel constant sources"
+  },
+  "portable-binding-cache": {
+    "baselineCommit": "a4ed995c744707ee9e72b0a367214bc2bbe164ae",
+    "raw": "portable-bindings-timing.json",
+    "baselineBatchMedianMs": 105.047,
+    "currentBatchMedianMs": 13.0996,
+    "bindingsPerBatch": 2000,
+    "measuredBatches": 7,
+    "warmupBatches": 1,
+    "alternatingOrder": true,
+    "scope": "CPU bindings and native shader creation only, not rendering or FPS",
+    "skiaTests": 12,
+    "passed": 12,
+    "layoutMutationGuard": "passed",
+    "hosted": "All seven required checks passed at f179971"
+  },
+  "ci-build-a4ed995": {
+    "run": 37211059768,
+    "commit": "a4ed995c744707ee9e72b0a367214bc2bbe164ae",
+    "tests": 327,
+    "passed": 300,
+    "skipped": 27,
+    "failed": 0,
+    "desktopTests": 2,
+    "buildDuration": "23m41s",
+    "libraryReportedDuration": "22m22.83s",
+    "desktopReportedDuration": "2m8.20s",
+    "requiredChecks": "all seven passed",
+    "browserTests": 4,
+    "skiaTests": 10,
+    "portableMathTests": 12,
+    "desktopExecution": "FROM-CACHE (reported two passing tests; not a new execution)"
+  },
+  "ci-build-f179971": {
+    "run": 37212692991,
+    "commit": "f179971ef7d65c67ce596bc972d7f3a2c06148be",
+    "buildDuration": "52s",
+    "requiredChecks": "all seven passed",
+    "browserTests": 5,
+    "skiaTests": 12,
+    "portableMathTests": 12,
+    "failed": 0,
+    "libraryAndDesktop": "FROM-CACHE; unchanged test inputs, 327 library tests (300 passed,27 skipped),2 desktop tests. Original full library run recorded at a4ed995; no fresh native/physical run claimed."
+  },
+  "tap-midpoint-87e17a4": {
+    "reference": "reference-tap-midpoint.json",
+    "phase": 0.49106774,
+    "baseline": {
+      "width": 336.4109,
+      "height": 162.96457,
+      "result": "height gate failed"
+    },
+    "heightOnly": {
+      "width": 344.80505,
+      "height": 171.35977,
+      "result": "width gate failed"
+    },
+    "corrected": {
+      "width": 329.73853,
+      "height": 171.35977,
+      "result": "both gates passed"
+    },
+    "gates": {
+      "width": 330,
+      "widthTolerance": 12,
+      "height": 172,
+      "heightTolerance": 4
+    },
+    "focusedPassed": 15,
+    "scope": "Spatial phase of untimed source, not Apple spring/timing identification"
+  },
+  "ci-build-87e17a4": {
+    "commit": "87e17a406f41b2ab1159666ecc5423a61ebd41f4",
+    "run": 37234834817,
+    "requiredChecks": "all seven passed",
+    "buildJobDuration": "17m37s",
+    "library": {
+      "total": 328,
+      "passed": 301,
+      "skipped": 27,
+      "failed": 0,
+      "reportedDuration": "13m19.44s",
+      "execution": "fresh"
+    },
+    "desktop": {
+      "passed": 2,
+      "failed": 0,
+      "reportedDuration": "2m24.98s",
+      "execution": "fresh"
+    },
+    "skiaTests": 12,
+    "portableMathTests": 12,
+    "browserTests": 5,
+    "local": {
+      "result": "BUILD SUCCESSFUL",
+      "duration": "20m35s",
+      "library": {
+        "total": 328,
+        "passed": 301,
+        "skipped": 27,
+        "failed": 0
+      },
+      "desktopPassed": 2,
+      "androidSample": "assembled"
+    },
+    "native": {
+      "image": "checkpoint-87e17a4-native.png",
+      "timing": "checkpoint-87e17a4-timing.json",
+      "scope": "Resting native app buffer and static redraw submission; not presented FPS or native gesture performance"
+    }
+  },
+  "whole-bar-t04-sequence": {
+    "source": "reference-bar-sequence.json",
+    "frames": 47,
+    "thresholdFrameProbes": 141,
+    "allEdgesHaveStrictMajority": true,
+    "heightRangePx": [
+      186,
+      206
+    ],
+    "visibleCentreShiftAtLargestSample": -11,
+    "scope": "One continuous original episode; finger trajectory and optical-versus-layout mechanism remain unidentified. Current model remains unmatched."
+  },
+  "whole-bar-124ae17": {
+    "commit": "124ae178e0635b4191257205833ecd5662db9c78",
+    "before": {
+      "width": 872.9831,
+      "height": 198.01695,
+      "result": "height gate failed"
+    },
+    "after": {
+      "width": 835.49426,
+      "height": 204.69823,
+      "result": "selected conservative bounds passed"
+    },
+    "gates": {
+      "width": 834,
+      "widthTolerance": 4,
+      "height": 205,
+      "heightTolerance": 1.1
+    },
+    "scope": "Width from clear late T04 PTS31074/600, height ceiling from earlier selected frame; not an exact paired-frame fit. Late reference is833x206; centre asymmetry remains unmatched.",
+    "local": {
+      "result": "BUILD SUCCESSFUL",
+      "duration": "20m10s",
+      "library": {
+        "total": 330,
+        "passed": 303,
+        "skipped": 27,
+        "failed": 0,
+        "reportedSeconds": 998.8
+      },
+      "desktop": {
+        "passed": 2,
+        "failed": 0,
+        "reportedSeconds": 209.057
+      },
+      "androidSample": "assembled"
+    },
+    "hosted": {
+      "run": 37237373943,
+      "requiredChecks": "all seven passed",
+      "buildDuration": "28m56s",
+      "library": {
+        "total": 330,
+        "passed": 303,
+        "skipped": 27,
+        "failed": 0,
+        "duration": "22m26.26s",
+        "execution": "fresh"
+      },
+      "desktop": {
+        "passed": 2,
+        "failed": 0,
+        "duration": "4m50.99s",
+        "execution": "fresh"
+      },
+      "portableMathTests": 13,
+      "skiaTests": 12,
+      "browserTests": 5
+    },
+    "native": {
+      "image": "checkpoint-124ae17-native.png",
+      "timing": "checkpoint-124ae17-native-timing.json",
+      "visualInspection": "completed",
+      "scope": "Resting app buffer; static redraw submission after tests finished. Not presented FPS or native gesture latency."
+    },
+    "softwareImages": [
+      "checkpoint-124ae17-held.png",
+      "checkpoint-124ae17-top.png",
+      "checkpoint-124ae17-corner.png",
+      "checkpoint-124ae17-extreme.png"
+    ]
+  },
+  "portable-painter-defaults": {
+    "scope": "API packaging only; Compose source and production shader exports unchanged",
+    "before": "Default call throws TypeError for missing material shader",
+    "after": "Default call and explicit-source call render identical full RGBA buffers for a lens and a rounded surface",
+    "localSkiaTests": 13,
+    "failed": 0,
+    "rootPackageExport": "exercised",
+    "generatedBundleBytes": 101857,
+    "bundleGuard": "npm test checks generated defaults against production SkSL exports",
+    "hosted": {
+      "commit": "7906d9d02cdd14418862f7f5e3ddb7d840c5515e",
+      "run": 37300220285,
+      "CI": "passed",
+      "skiaTests": 13,
+      "portableMathTests": 13,
+      "browserTests": 5,
+      "buildDuration": "31s",
+      "libraryAndDesktop": "FROM-CACHE; unchanged Compose implementation verified at124ae17",
+      "codeql": "passed",
+      "requiredChecks": "all seven passed"
+    },
+    "example": "portable-defaults.png",
+    "sourceAuthority": "Existing JVM GlassShaderBundleTest links exported SkSL to production Kotlin strings"
+  },
+  "whole-bar-asymmetric-candidate": {
+    "reference": {
+      "image": "reference-bar-extreme.png",
+      "sha256": "2cdf14f9d2058de1e99caeda52d9cdca3eb8f45739e40c1f6df6ffe161a2048b",
+      "PTS": "29863/600",
+      "top": [
+        171,
+        172
+      ],
+      "bottom": 375,
+      "restCentre": 283.5,
+      "selectedDisplacementBound": 10.5
+    },
+    "before": {
+      "top": 181.15088,
+      "bottom": 385.84912,
+      "result": "new edge gate failed"
+    },
+    "after": {
+      "top": 170.73486,
+      "bottom": 375.4331,
+      "centre": 273.08398,
+      "width": 835.49426,
+      "height": 204.69823,
+      "result": "selected edge bounds passed"
+    },
+    "authoredBiasShortSideFraction": 0.056,
+    "focusedKotlinTests": 20,
+    "portableMathTests": 13,
+    "skiaTests": 13,
+    "ordinaryInkPixelBounds": "unchanged in actual Compose held/upward renders",
+    "fullVerification": "local/native/hosted complete",
+    "scope": "Visible material edges only. Layout and normal labels fixed; finger gain/timing, other directions and original foreground warp are not identified.",
+    "commit": "06c91141806a11b4f0d79a2858053415f4714ded",
+    "local": {
+      "result": "BUILD SUCCESSFUL",
+      "duration": "10m31s",
+      "library": {
+        "total": 332,
+        "passed": 305,
+        "skipped": 27,
+        "failed": 0,
+        "errors": 0,
+        "reportedSeconds": 520.151
+      },
+      "desktop": {
+        "passed": 2,
+        "failed": 0,
+        "reportedSeconds": 100.684
+      },
+      "androidSample": "assembled",
+      "execution": "fresh"
+    },
+    "native": {
+      "image": "checkpoint-06c9114-native.png",
+      "timing": "checkpoint-06c9114-native-timing.json",
+      "visualInspection": "completed",
+      "scope": "Resting app-owned buffer; static redraw submission, not presented FPS or native gesture latency"
+    },
+    "hosted": {
+      "run": 37674667084,
+      "requiredChecks": "all seven passed",
+      "buildDuration": "29m14s",
+      "gradleDuration": "28m41s",
+      "library": {
+        "total": 332,
+        "passed": 305,
+        "skipped": 27,
+        "failed": 0,
+        "duration": "22m22.22s",
+        "execution": "fresh"
+      },
+      "desktop": {
+        "passed": 2,
+        "failed": 0,
+        "duration": "4m50.07s",
+        "execution": "fresh"
+      },
+      "portableMathTests": 13,
+      "skiaTests": 13,
+      "browserTests": 5
+    }
+  },
+  "whole-bar-foreground-sequence": {
+    "source": "reference-foreground-sequence.json",
+    "frames": 47,
+    "probes": 141,
+    "accepted": 45,
+    "rejected": 96,
+    "acceptedFrames": 15,
+    "centreError": {
+      "medianAbs": 0.20430107526880192,
+      "maxAbs": 0.9569892473118387
+    },
+    "heightError": {
+      "medianAbs": 0.29032258064516725,
+      "maxAbs": 1.2903225806451672
+    },
+    "anchoredCentreError": {
+      "medianAbs": 12.5,
+      "maxAbs": 13.5
+    },
+    "productionChanged": false,
+    "scope": "Independent bar height/centre predicts visible glyph Y/height. Fixed visible ink is not an iOS observation; layout/hit targets remain anchored. X drift, selected-ink registration and mechanism unresolved."
+  },
+  "navigation-foreground-candidate": {
+    "before": {
+      "ordinaryInkShift": 0,
+      "expected": -3.8333333,
+      "tolerance": 0.8,
+      "result": "failed"
+    },
+    "firstCandidate": "low-density 32px glyph threshold box gave35px under strain; dimension verification moved to original density instead of fitting to pixel rounding",
+    "after": {
+      "restHeight": 69,
+      "heldHeight": 72,
+      "extremeHeight": 76,
+      "heldToExtremeY": -12,
+      "dimensionTolerancePx": 1.5,
+      "release": "exact raster recovery"
+    },
+    "focusedTests": 25,
+    "failed": 0,
+    "inputRegistration": "ordinary and shifted-selector node input images within1channel level over press, vertical pull and diagonal shear",
+    "fullVerification": "local, native and all seven required hosted checks passed",
+    "scope": "Navigation drawing-only transform, shared bounded material state; no layout/hit target transform or generic card text change. No complete iOS optics/timing claim.",
+    "commit": "302e5e1e3c7a411c3ad17a41d1ada06b30dacbf4",
+    "local": {
+      "result": "BUILD SUCCESSFUL",
+      "duration": "10m21s",
+      "library": {
+        "total": 334,
+        "passed": 307,
+        "skipped": 27,
+        "failed": 0,
+        "errors": 0,
+        "reportedSeconds": 520.394
+      },
+      "desktop": {
+        "passed": 2,
+        "failed": 0,
+        "reportedSeconds": 97.037
+      },
+      "androidSample": "assembled",
+      "execution": "fresh"
+    },
+    "native": {
+      "image": "checkpoint-302e5e1-native.png",
+      "timing": "checkpoint-302e5e1-native-timing.json",
+      "visualInspection": "completed",
+      "scope": "Resting native app-owned buffer; static redraw submission only"
+    },
+    "hosted": {
+      "run": 37678836069,
+      "build": "passed; fresh execution; job30m45s, Gradle30m14s",
+      "web": "first attempt cancelled during Ubuntu mirror downloads; retry of web job alone passed in48s",
+      "otherRequiredChecks": "passed"
+    }
+  },
+  "tap-arrival-recoil": {
+    "status": "full local, native and all seven required hosted checks passed",
+    "reference": "reference-tap-arrival.json",
+    "trace": "tap-arrival-trace.csv",
+    "figure": "tap-arrival-comparison.png",
+    "original": {
+      "compressed": [
+        227.5,
+        174
+      ],
+      "settled": [
+        235,
+        164
+      ],
+      "widthRatio": 0.9680851063829787,
+      "heightRatio": 1.0609756097560976
+    },
+    "negativeControl": {
+      "width": 222.87769,
+      "height": 163.19904,
+      "heightRatio": 1.0073937,
+      "result": "failed final paired-state height gate with tapRecoilArea=false"
+    },
+    "after": {
+      "width": 222.55109,
+      "height": 170.40918,
+      "widthRatio": 0.9676691,
+      "heightRatio": 1.0519066,
+      "minimumWidth": 218.63428,
+      "minimumWidthRatio": 0.95063853
+    },
+    "bounds": {
+      "pairedRatioTolerance": 0.02,
+      "selectedMinimumWidthRatio": 0.9480851063829787
+    },
+    "authored": {
+      "mechanism": "projected capsule area exchange during resting-tap spine compression only",
+      "pressureRatePerSecond": 104
+    },
+    "rejected": [
+      "pressure-scaled resting spine altered midpoint",
+      "ordinary45/s pressure lagged recoil",
+      "initial paired-extremum assertion exceeded what untimed stills establish"
+    ],
+    "focused": {
+      "broaderPassed": 57,
+      "followupArrivalClassPassed": 3,
+      "overlap": 2,
+      "failed": 0,
+      "cadenceHz": [
+        30,
+        60,
+        90,
+        120
+      ],
+      "distances": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "reducedMotion": "unchanged dimensions"
+    },
+    "unchangedMidpoint": [
+      329.73853,
+      171.35977
+    ],
+    "scope": "Calibration to paired untimed stills, not independent validation or recovered timing. Figure is computed geometry, not rendered capture. Historical, held/throw and generic glass unchanged.",
+    "commit": "8d9917a54f27372db0bd12399f5b9e97d9989df3",
+    "local": {
+      "duration": "10m 20s",
+      "library": {
+        "tests": 336,
+        "skipped": 27,
+        "failures": 0,
+        "errors": 0,
+        "passed": 309,
+        "reportedSeconds": 519.189
+      },
+      "desktop": {
+        "tests": 2,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "passed": 2,
+        "reportedSeconds": 98.647
+      },
+      "androidSample": "assembled",
+      "execution": "fresh"
+    },
+    "native": {
+      "image": "checkpoint-8d9917a-native.png",
+      "timing": {
+        "metric": "native static-scene forced redraw; GPU submission, not presented FPS",
+        "backend": "DIRECT3D",
+        "width": 1920,
+        "height": 1051,
+        "samples": 120,
+        "warmup": 10,
+        "p50_ms": 11.2165,
+        "p95_ms": 19.8045,
+        "max_ms": 23.3515
+      },
+      "visualInspection": "completed",
+      "scope": "Native resting app-owned buffer; static redraw submission, not input latency or presented FPS"
+    },
+    "beforeTrace": "tap-arrival-before-trace.csv",
+    "hosted": {
+      "run": 37683713350,
+      "result": "passed",
+      "requiredChecks": 7,
+      "jobDuration": "22m19s",
+      "gradleDuration": "21m42s",
+      "library": {
+        "total": 336,
+        "passed": 309,
+        "skipped": 27,
+        "failed": 0,
+        "duration": "17m23.81s",
+        "execution": "fresh"
+      },
+      "desktop": {
+        "passed": 2,
+        "failed": 0,
+        "duration": "2m55.19s",
+        "execution": "fresh"
+      },
+      "web": "passed",
+      "skia": "passed"
+    }
+  },
+  "portable-scene": {
+    "status": "terminal, types, docs and hosted browser passed; all seven required checks passed",
+    "tests": {
+      "skia": 20,
+      "portableMath": 13,
+      "typeConsumers": "strict root/subpath imports and negative API cases passed",
+      "isolatedPackage": "real Skia rendering without sibling checkout; source ownership and notices verified",
+      "skiaDurationMs": 14566.1453
+    },
+    "image": "skia-scene-example.png",
+    "imageScope": "640x360 software Skia terminal fixture, inspected; not native or iOS comparison",
+    "coordinates": "logical units with explicit pixelRatio; exact resting pixels versus painter at1x/2x",
+    "behavior": [
+      "stable layout and independent layers",
+      "exact release and reduced-motion recovery",
+      "resize cancellation",
+      "appearance updates",
+      "host canvas restoration on failure",
+      "borrowed source ownership",
+      "source replacement and optional backdrop drawing"
+    ],
+    "scope": "CanvasKit host integration only; no automatic capture, native bindings for other frameworks or selector controller",
+    "typescriptDevVersion": "7.0.2",
+    "runtimePublished": false,
+    "commit": "014b16e7cb45e132b73ab82d29d2f44b9ca9b905",
+    "hosted": {
+      "run": 37732791140,
+      "requiredChecks": 7,
+      "skiaPassed": 20,
+      "skiaDurationMs": 12431.82693,
+      "typeConsumers": "passed",
+      "portableMathPassed": 13,
+      "browserPassed": 5,
+      "browserSeconds": 26.0,
+      "jvmAndDesktop": "unchanged, restored from verified cache; fresh execution at8d9917a"
+    },
+    "browserImages": [
+      "skia-scene-browser-held.png",
+      "skia-scene-browser-restored.png"
+    ],
+    "browserInspection": "completed"
+  },
+  "showcase-skip-audit": {
+    "count": 27,
+    "source": "completed336-case JVM XML reports at8d9917a",
+    "reason": "All27 cases assume -Pliquidglass.showcase=<dir>; optional showcase exports",
+    "result": "recorded as skipped, not passed"
+  },
+  "held-travel-paired-shape": {
+    "date": "2026-10-08",
+    "baselineCommit": "c17b9aa1e745e5234d1f6308b9ffcdfa81d89fab",
+    "sourceSha256": "9087f5fd5fddc1bda1fdc18965cd31019e08ff36ddeb71e7b47fa73e23198c66",
+    "status": "Full local, inspected native and all seven required hosted checks passed",
+    "original": {
+      "intermediate": [
+        326,
+        174
+      ],
+      "strong": [
+        313.5,
+        142
+      ],
+      "barHeight": 186,
+      "files": [
+        "reference-held-intermediate.json",
+        "reference-held-travel.json"
+      ],
+      "tolerance": "Authored 6px per axis, optical rim/ink uncertainty; not statistical confidence"
+    },
+    "candidate": {
+      "strong": {
+        "duration": 0.06,
+        "time": 0.110416666,
+        "width": 314.03442,
+        "height": 144.18707,
+        "phase": 0.7870772
+      },
+      "intermediate": {
+        "duration": 0.3,
+        "time": 0.37708333,
+        "width": 326.02838,
+        "height": 173.93384,
+        "phase": 0.97994
+      },
+      "minimumHeight": 143.56003,
+      "chosenHeightFloor": 136,
+      "ordinaryHold": "481 samples unchanged within .001px",
+      "restingTap": "481 samples unchanged within .001px after separate tap allocation",
+      "midpoint": [
+        329.73853,
+        171.35977
+      ],
+      "arrival": [
+        222.55109,
+        170.40918
+      ]
+    },
+    "rejected": [
+      {
+        "candidate": "prior Calm",
+        "paired": [
+          313.65985,
+          215.46494
+        ]
+      },
+      {
+        "candidate": "gain .22, contraction .40, ordinary pressure rate",
+        "paired": [
+          314.02,
+          165.13
+        ]
+      },
+      {
+        "candidate": "gain .25, contraction .47, contraction rate60",
+        "paired": [
+          303.91,
+          143.76
+        ]
+      },
+      {
+        "candidate": "gain .28, linear speed/spine",
+        "intermediate": [
+          301.785,
+          172.468
+        ]
+      },
+      {
+        "candidate": "shared spine safety limit",
+        "result": "held gain clipped independent tap: expected351.89368 actual351.20834"
+      }
+    ],
+    "local": {
+      "library": {
+        "tests": 339,
+        "skipped": 27,
+        "failures": 0,
+        "errors": 0,
+        "passed": 312,
+        "reportedSeconds": 851.847
+      },
+      "desktop": {
+        "tests": 2,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "passed": 2,
+        "reportedSeconds": 163.227
+      },
+      "androidSample": "assembled",
+      "execution": "fresh",
+      "buildSummary": "BUILD SUCCESSFUL in 17m 16s"
+    },
+    "trace": "held-travel-trace.csv",
+    "beforeTrace": "held-travel-before-trace.csv",
+    "figure": "held-travel-comparison.png",
+    "limits": "Computed joint shape reachability across authored 60-1500ms four-slot inputs, not one matched trajectory or recovered Apple timing. Both stills are calibration, not independent validation. No device available.",
+    "native": {
+      "image": "held-travel-native.png",
+      "timing": {
+        "metric": "native static-scene forced redraw; GPU submission, not presented FPS",
+        "backend": "DIRECT3D",
+        "width": 1920,
+        "height": 1051,
+        "samples": 120,
+        "warmup": 10,
+        "p50_ms": 8.1551,
+        "p95_ms": 13.4829,
+        "max_ms": 54.0905
+      },
+      "scope": "Resting app-owned desktop buffer; static redraw submission, not transient motion or input latency",
+      "inspection": "completed"
+    },
+    "commit": "820659de4f93acce96d59c60f00422cea2bed4ad",
+    "hosted": {
+      "run": 37770922905,
+      "requiredChecks": 7,
+      "result": "passed",
+      "library": {
+        "total": 339,
+        "passed": 312,
+        "skipped": 27,
+        "failed": 0,
+        "duration": "23m43.86s",
+        "execution": "fresh"
+      },
+      "desktop": {
+        "passed": 2,
+        "failed": 0,
+        "duration": "4m51.41s",
+        "execution": "fresh"
+      },
+      "jobDuration": "30m52s",
+      "gradleDuration": "30m18s"
+    }
+  },
+  "native-motion-playback": {
+    "status": "input/layout/local and hosted checks passed at078357d; historical timing is provisional after diagnostic re-entrancy discovery",
+    "libraryCommit": "820659de4f93acce96d59c60f00422cea2bed4ad",
+    "images": 16,
+    "inspection": "completed",
+    "directory": "review/atlas/native-motion-2026-10-08",
+    "contactSheet": "native-motion-phases.png",
+    "metadata": {
+      "backend": "DIRECT3D",
+      "scale": 1.25,
+      "navigation": {
+        "left": 1515.0,
+        "top": 804.0,
+        "width": 350.0,
+        "height": 80.0
+      },
+      "input": "AWT events dispatched only to this application's Compose component",
+      "timing": "Each phase uses a fresh gesture replay because native readback is slow. CSV capture timestamps are render-start times. PNG encoding follows input. Not a continuous video, presented FPS or measured iOS timing."
+    },
+    "local": {
+      "nativeRun": "1m3s",
+      "desktopTests": 2,
+      "desktopFailed": 0,
+      "desktopReportedSeconds": 181.033,
+      "android": "assembled",
+      "build": "3m37s",
+      "library": "unchanged; verified at820659d, not rerun"
+    },
+    "firstSceneSwitchRenderMs": 122.8055,
+    "otherRenderMs": [
+      8.4296,
+      31.876
+    ],
+    "readbackMs": [
+      1353.1182,
+      1518.5333
+    ],
+    "checks": [
+      "tap selects Lines",
+      "held drag selects Sky",
+      "extreme drag selects terminal tab",
+      "navigation layout fixed within.01px"
+    ],
+    "rejectedMethod": "Repeated snapshots within one gesture paused input ~1.4s. Deferred encoding alone did not fix slow native readback; each final phase replays independently.",
+    "limits": "Historical images are native phase snapshots. A later no-readback run exposed unsafe Compose dispatcher re-entrancy; do not infer a renderer defect from the122.8ms submission. Superseded measurement method is preserved, not erased. Neither run establishes presented FPS, input latency or original iOS timing.",
+    "hosted": {
+      "commit": "078357da12f76d94429e12ca799263c7c8949f64",
+      "run": 37812243775,
+      "requiredChecks": "all seven passed",
+      "library": "FROM-CACHE; unchanged verified820659d",
+      "desktop": {
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0,
+        "execution": "fresh",
+        "duration": "5m7.41s"
+      },
+      "jobDuration": "6m55s",
+      "gradleDuration": "5m59s"
+    }
+  },
+  "native-diagnostic-dispatcher": {
+    "status": "local native snapshot/control/static and all seven required hosted checks passed at0e5c1d6",
+    "scope": "desktop diagnostics only; library source unchanged from820659d",
+    "directory": "review/atlas/native-motion-swing-2026-10-08",
+    "failure": "Compose FlushCoroutineDispatcher re-entered playback during forced redraw, raised ConcurrentModificationException/CoroutinesInternalError and delivered invalid pointer transitions; held selection assertion failed",
+    "correction": "Run static and motion diagnostics on Dispatchers.Swing. Guard capture and DOWN/DRAG/UP sequencing, record checksPassed, close bitmaps even if metadata/encoding fails. Direct desktop coroutines-swing1.11.0 matches existing transitive runtime.",
+    "rejected": {
+      "phases": 13,
+      "invalidTransitionLines": [
+        135,
+        137
+      ],
+      "releasedAtEnd": true,
+      "firstSceneSwitchRenderMs": 888.2324,
+      "renderRangeMs": [
+        11.3664,
+        888.2324
+      ],
+      "readbackRangeMs": [
+        0.0,
+        0.0
+      ]
+    },
+    "snapshots": {
+      "phases": 16,
+      "invalidTransitionLines": [],
+      "releasedAtEnd": true,
+      "firstSceneSwitchRenderMs": 757.5149,
+      "renderRangeMs": [
+        9.5018,
+        757.5149
+      ],
+      "readbackRangeMs": [
+        2546.8525,
+        3664.709
+      ],
+      "duration": "1m32s",
+      "inspected": true
+    },
+    "noReadback": {
+      "phases": 16,
+      "invalidTransitionLines": [],
+      "releasedAtEnd": true,
+      "firstSceneSwitchRenderMs": 59.8941,
+      "renderRangeMs": [
+        8.3413,
+        82.2719
+      ],
+      "readbackRangeMs": [
+        0.0,
+        0.0
+      ],
+      "duration": "39s"
+    },
+    "static": {
+      "metric": "native static-scene forced redraw; GPU submission, not presented FPS",
+      "backend": "DIRECT3D",
+      "width": 1920,
+      "height": 1051,
+      "samples": 120,
+      "warmup": 10,
+      "p50_ms": 15.781,
+      "p95_ms": 18.9464,
+      "max_ms": 23.9217,
+      "duration": "15s",
+      "inspected": true
+    },
+    "interpretation": "Snapshot work strongly perturbs timing. Even corrected submissions vary; requested phase delays are not visible frame times. No controlled speedup, presented FPS, native input latency or established renderer bottleneck claimed.",
+    "next": "Keep diagnostics separate from motion tuning. Compare the production selector silhouette against independent original reference phases; profile rendering without readback only if a reproducible symptom warrants it.",
+    "hosted": {
+      "commit": "0e5c1d6ca8b7355b533397b6cbfb2cf9d57b43a3",
+      "run": 37822979856,
+      "requiredChecks": "all seven passed",
+      "library": {
+        "passed": 312,
+        "skipped": 27,
+        "failed": 0,
+        "execution": "fresh",
+        "duration": "13m31.84s"
+      },
+      "desktop": {
+        "passed": 2,
+        "skipped": 0,
+        "failed": 0,
+        "execution": "fresh",
+        "duration": "2m15.39s"
+      },
+      "buildJob": "18m24s",
+      "gradle": "17m49s"
+    }
+  },
+  "held-additional-shapes": {
+    "status": "two paired spatial states pass existing6px gate; IMG6728 width unresolved; no tuning",
+    "modelCommit": "820659de4f93acce96d59c60f00422cea2bed4ad",
+    "data": "review/atlas/held-travel-validation.json",
+    "tool": "tools/measure_held_validation.py",
+    "imagesInspected": true,
+    "scope": "additional original stills scored against the existing production trace; no library rerun required",
+    "limits": "Not a full contour, original input/timing or release-state validation. Accepted pairs come from different authored sweep samples, not a single recovered gesture."
+  },
+  "release-attribution-audit": {
+    "status": "inherited isolated-release calibration rejected by original pixels",
+    "data": "review/atlas/release-attribution.json",
+    "inspection": "three exact-PTS bar crops inspected",
+    "sourceComment": "GlassTabBarStyle.subside: authored historical baseline, no numerical change",
+    "limitation": "No observed finger-up timestamp or replacement release rate; full parity remains open"
+  },
+  "labelled-phone-motion-baseline": {
+    "status": "new source counterexamples and failing baseline saved; no production tuning",
+    "modelCommit": "f24634d97ed1a2e7d89eeef5563d19c24bdb9771",
+    "packet": "review/atlas/new-motion-2026-10-08/README.md",
+    "log": "research/analysis/MOTION-2026-10-08.md",
+    "nativeFrames": [
+      1751,
+      1993
+    ],
+    "touchSamples": 14430,
+    "plainRetargetSamples": 2886,
+    "currentLimits": "Independent contour/timing fit remains open. Short tap329x204 versus186bar, long396x159. Cross-section vs bounds diagnostic only; press duration not recovered.",
+    "compile": "passed32s",
+    "hosted": {
+      "commit": "f24634d97ed1a2e7d89eeef5563d19c24bdb9771",
+      "run": 37830422383,
+      "requiredChecks": "all seven passed",
+      "library": "FROM-CACHE verified0e5c1d6",
+      "desktop": "FROM-CACHE verified0e5c1d6",
+      "build": "1m31s",
+      "gradle": "58s"
+    }
+  },
+  "coupled-phone-tap": {
+    "status": "Local and native passed; all seven required hosted checks passed at7c09000",
+    "packet": "review/atlas/phone-tap-volume-2026-10-09/README.md",
+    "library": {
+      "tests": 344,
+      "passed": 317,
+      "skipped": 27,
+      "failures": 0,
+      "errors": 0,
+      "testcaseSeconds": 619.53
+    },
+    "desktop": {
+      "tests": 2,
+      "passed": 2,
+      "failures": 0,
+      "errors": 0,
+      "testcaseSeconds": 102.125
+    },
+    "native": "16 phase images, checks passed, images inspected",
+    "static": {
+      "metric": "native static-scene forced redraw; GPU submission, not presented FPS",
+      "backend": "DIRECT3D",
+      "width": 1920,
+      "height": 1051,
+      "samples": 120,
+      "warmup": 10,
+      "p50_ms": 13.386,
+      "p95_ms": 23.336,
+      "max_ms": 29.5398,
+      "imageInspected": true
+    },
+    "limits": "Spatial calibration, not recovered original input/contours. Early long sample remains12.80px too wide. Native snapshots are separate replays; redraw submission is not presented FPS. Android assembled but no physical device tested. Full1:1 unproven.",
+    "hosted": {
+      "commit": "7c090004421f785a84cb31a6ef1c724d1277d595",
+      "run": 37884601566,
+      "requiredChecks": 7,
+      "result": "passed",
+      "buildDuration": "30m28s"
+    }
+  },
+  "phone-endpoint-landing": {
+    "status": "Full local, inspected native and all seven required hosted checks passed atd3b8b25",
+    "packet": "review/atlas/phone-throw-2026-10-09/README.md",
+    "library": {
+      "tests": 350,
+      "passed": 323,
+      "skipped": 27,
+      "failures": 0,
+      "errors": 0,
+      "testcaseSeconds": 527.649
+    },
+    "desktop": {
+      "tests": 2,
+      "passed": 2,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0,
+      "testcaseSeconds": 91.076
+    },
+    "android": "assembleDebug passed",
+    "localBuild": "SUCCESSFUL in 10m21s; fresh full library and Atlas tests; existing completed queue reused",
+    "native": {
+      "backend": "DIRECT3D",
+      "scale": 1.25,
+      "readbackEnabled": true,
+      "checksPassed": true,
+      "navigation": {
+        "left": 1515.0,
+        "top": 804.0,
+        "width": 350.0,
+        "height": 80.0
+      },
+      "input": "AWT events dispatched only to this application's Compose component",
+      "timing": "Each phase uses a fresh gesture replay because native readback is slow. CSV capture timestamps are render-start times. PNG encoding follows input. Not a continuous video, presented FPS or measured iOS timing.",
+      "phaseSnapshots": 21,
+      "imagesInspected": true,
+      "inspection": "All phase images inspected as a contact sheet; held, early right and formed left inspected at native scale. Endpoints round vertically; held ink refracts; final rest recovers. Layout checks passed. Separate replays do not prove continuous motion.",
+      "renderRangeMs": [
+        19.9854,
+        740.0847
+      ],
+      "readbackRangeMs": [
+        2170.2679,
+        3107.7675
+      ]
+    },
+    "static": {
+      "metric": "native static-scene forced redraw; GPU submission, not presented FPS",
+      "backend": "DIRECT3D",
+      "width": 1920,
+      "height": 1051,
+      "samples": 120,
+      "warmup": 10,
+      "p50_ms": 19.5262,
+      "p95_ms": 23.1387,
+      "max_ms": 23.5329,
+      "imageInspected": true,
+      "inspection": "Continuous grid magnification in this static view; card and navigation layout intact. No full optical parity claim."
+    },
+    "sourceSha256": {
+      "liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/GlassPoseDynamics.kt": "6940c54c836000bfef5b66110219af04b594d1f72bb8a71bfef3cdf387865df3",
+      "liquidglass/src/jvmTest/kotlin/com/wexpa/liquidglass/GlassPhoneTapVolumeTest.kt": "ee941479f157a3895816937e3716011676f0e34f8b6cafd2cbf1ffcfc5ffb842",
+      "liquidglass/src/jvmTest/kotlin/com/wexpa/liquidglass/GlassPhoneThrowTest.kt": "55e6c91a7e69388fab7050c3a7cb20ad9c60ea8f90ac5d176f841ab4f7a5978a",
+      "desktop/src/jvmMain/kotlin/com/wexpa/liquidglass/sample/desktop/AtlasMotionCapture.kt": "36a1e110b829977ee5812c3b13d41586f9be1d6f1c8019e3859262f7343a68e3",
+      "tools/PhoneThrowProbe.java": "6c04f1138ecc6512bca7c93599bce7dd0d75ad7558a1930d8b62458d9a18d272",
+      "tools/build_phone_throw_review.py": "69abf9e361e610a9ed1ab881743a88220edc151fdc17d3dc0162204f521a7127"
+    },
+    "sourceAfterTests": "No runtime or diagnostic code changed after completed full verification and native capture.",
+    "hosted": {
+      "commit": "d3b8b25cd02827c459edd7d7657b754be306beb3",
+      "run": 37940076776,
+      "requiredChecks": 7,
+      "result": "passed",
+      "buildDuration": "14m47s",
+      "gradleDuration": "14m22s",
+      "library": "fresh",
+      "desktop": "fresh"
+    },
+    "limits": "Spatial calibration, not recovered original input or a full contour. Centre overshoot unmatched. Native snapshots are independent replays; early tap redraw took740ms and readback perturbs timing. No presented FPS, device validation or full1:1 claim."
+  },
+  "consecutive-endpoint-recovery": {
+    "runtimeCommit": "d3b8b25cd02827c459edd7d7657b754be306beb3",
+    "productionChanged": false,
+    "productionTests": "Reused completed323pass/27skip,2Atlaspass,Androidassembly; no rerun for analysis-only work.",
+    "right": {
+      "nativeSamples": 31,
+      "acceptedCrossSections": 31,
+      "acceptedCapFits": 31,
+      "acceptedBarProbes": 31,
+      "allOverlaysInspected": true
+    },
+    "left": {
+      "decodedFrames": 94,
+      "lateSamples": 29,
+      "acceptedCrossSections": 23,
+      "acceptedCapFits": 29,
+      "acceptedBarProbes": 0,
+      "excludedCrossSections": [
+        "frame-066.png",
+        "frame-067.png",
+        "frame-068.png",
+        "frame-069.png",
+        "frame-070.png",
+        "frame-071.png"
+      ],
+      "allOverlaysInspected": true,
+      "publication": "Raw crops and overlays excluded: private text in the background. Only numeric probes/metadata published."
+    },
+    "endpoints": {
+      "Right endpoint": {
+        "samples": 29,
+        "first": 2.523333,
+        "last": 2.99,
+        "leadingEdgeRange": [
+          882.5,
+          884.5
+        ],
+        "trailingEdgeRange": [
+          599.5,
+          642.5
+        ],
+        "minimumWidth": 241.0,
+        "finalWidth": 285.0
+      },
+      "Left endpoint": {
+        "samples": 23,
+        "first": 4.573333,
+        "last": 4.94,
+        "leadingEdgeRange": [
+          74.5,
+          76.5
+        ],
+        "trailingEdgeRange": [
+          315.5,
+          359.5
+        ],
+        "minimumWidth": 239.0,
+        "finalWidth": 284.0
+      }
+    },
+    "reproduction": "Generalized annotation-aware tool reproduced right numeric widths/centres/cap radii exactly; all original image hashes checked. Comparison reads frozen production CSV.",
+    "sourceSha256": {
+      "tools/measure_phone_landing_sequence.py": "35ddd0e1ab7abcbc8946375b86ca4ec891664a00a7c043259d1c8f68af71298a",
+      "tools/compare_phone_landing_sequence.py": "8d1d5103f1399ab73cfa09b470716b2c3b91ee8c1af1a2d3198c0e2c3cf837fc"
+    },
+    "limits": "Measurement diagnostics, not full contour/optical parity. Input timestamps unknown. Left late window may not establish exact rest; edge plot is relative to its final sample. Partial-cap curvature depends on arc window. No production change based on these observations yet."
+  },
+  "shape-aware-endpoint": {
+    "packet": "review/atlas/phone-edge-2026-10-09/README.md",
+    "library": {
+      "tests": 353,
+      "skipped": 27,
+      "failures": 0,
+      "errors": 0,
+      "testcaseSeconds": 516.92,
+      "passed": 326
+    },
+    "desktop": {
+      "tests": 2,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0,
+      "testcaseSeconds": 90.863,
+      "passed": 2
+    },
+    "android": "assembleDebug passed",
+    "native": {
+      "backend": "DIRECT3D",
+      "scale": 1.25,
+      "readbackEnabled": true,
+      "checksPassed": true,
+      "navigation": {
+        "left": 1515.0,
+        "top": 804.0,
+        "width": 350.0,
+        "height": 80.0
+      },
+      "input": "AWT events dispatched only to this application's Compose component",
+      "timing": "Each phase uses a fresh gesture replay because native readback is slow. CSV capture timestamps are render-start times. PNG encoding follows input. Not a continuous video, presented FPS or measured iOS timing.",
+      "phaseSnapshots": 21,
+      "imagesInspected": true,
+      "inspection": "Images inspected; they visibly contain the rejected dark-disc defect. Passing selection/layout checks did not cover material appearance.",
+      "visualAcceptance": "REJECTED by owner: dark disc caps outside bar. Earlier assistant visual approval withdrawn."
+    },
+    "static": {
+      "metric": "native static-scene forced redraw; GPU submission, not presented FPS",
+      "backend": "DIRECT3D",
+      "width": 1920,
+      "height": 1051,
+      "samples": 120,
+      "warmup": 10,
+      "p50_ms": 6.5928,
+      "p95_ms": 9.009,
+      "max_ms": 9.6088,
+      "imageInspected": true,
+      "inspection": "Static grid magnification looks continuous; card/nav layout intact. No full optical parity claim."
+    },
+    "focused": {
+      "first": 29,
+      "second": 25,
+      "failed": 0
+    },
+    "sourceSha256": {
+      "liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/GlassPoseDynamics.kt": "065817c89d10fa82e6c63143851203a9985913f32f948e5ea0769a1a308b65be",
+      "liquidglass/src/jvmTest/kotlin/com/wexpa/liquidglass/GlassPhoneLandingSequenceTest.kt": "93a6d9a77cc9eaa2aa11111d76160787c2f04a5976e41118c445cf3232fcc6f2",
+      "tools/compare_phone_edge_candidate.py": "7faaae74478db244095056e7e23352fc102a5031ac339cdd212c88f7d86817d9"
+    },
+    "limits": "Consecutive width/edge calibration with an independent direction, not recovered finger timing. Partial-cap recovery still early: rightmax12.59px/leftmax11.58px. Phase snapshots are independent replays, not continuous recording or presented FPS. No device available. Full1:1 not proven.",
+    "localBuild": "SUCCESSFUL10m14s; full library and Atlas fresh; Android assembled",
+    "sourceAfterTests": "Runtime unchanged after completed full/native verification.",
+    "visibleRightContour": {
+      "candidate": {
+        "rms": 2.3967088039869098,
+        "maxAbsolute": 5.690411173383723
+      },
+      "previous": {
+        "rms": 17.25647815388256,
+        "maxAbsolute": 31.89152891555125
+      }
+    },
+    "hosted": "Pending checkpoint push;4a2c50f allseven required checks passed.",
+    "status": "Geometry/checkpoint tests passed; native optical appearance rejected. Rendering correction in progress."
+  },
+  "inset-substrate-correction": {
+    "packet": "review/atlas/inset-material-2026-10-10/README.md",
+    "library": {
+      "tests": 356,
+      "skipped": 27,
+      "failures": 0,
+      "errors": 0,
+      "testcaseSeconds": 1101.046,
+      "passed": 329
+    },
+    "desktop": {
+      "tests": 2,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0,
+      "testcaseSeconds": 111.86,
+      "passed": 2
+    },
+    "android": "assembleDebug passed after Android-only array-overload repair",
+    "focused": {
+      "tests": 6,
+      "failed": 0
+    },
+    "portable": {
+      "skiaTests": 20,
+      "failed": 0,
+      "types": "passed"
+    },
+    "native": {
+      "backend": "DIRECT3D",
+      "scale": 1.25,
+      "readbackEnabled": true,
+      "checksPassed": true,
+      "navigation": {
+        "left": 1515.0,
+        "top": 804.0,
+        "width": 350.0,
+        "height": 80.0
+      },
+      "input": "AWT events dispatched only to this application's Compose component",
+      "timing": "Each phase uses a fresh gesture replay because native readback is slow. CSV capture timestamps are render-start times. PNG encoding follows input. Not a continuous video, presented FPS or measured iOS timing.",
+      "images": 21,
+      "imagesInspected": true,
+      "inspection": "Current independent-shape mask removes dark exterior caps in both endpoints and preserves pixel-identical resting image. Early/formed throws, recovery and corner phases inspected. A faint optical rim remains.",
+      "limits": "Independent phase replays, not presented FPS or source input timing. First held redraw1647.7ms; no performance acceptance claimed."
+    },
+    "regression": {
+      "left": {
+        "top": {
+          "roi": [
+            133,
+            74,
+            148,
+            78
+          ],
+          "beforeMeanAbsoluteRgbDifference": 30.877777777777776,
+          "afterMeanAbsoluteRgbDifference": 0.2833333333333333
+        },
+        "bottom": {
+          "roi": [
+            133,
+            162,
+            148,
+            166
+          ],
+          "beforeMeanAbsoluteRgbDifference": 29.65,
+          "afterMeanAbsoluteRgbDifference": 0.03333333333333333
+        }
+      },
+      "right": {
+        "top": {
+          "roi": [
+            363,
+            74,
+            378,
+            78
+          ],
+          "beforeMeanAbsoluteRgbDifference": 29.555555555555557,
+          "afterMeanAbsoluteRgbDifference": 1.3611111111111112
+        },
+        "bottom": {
+          "roi": [
+            363,
+            162,
+            378,
+            166
+          ],
+          "beforeMeanAbsoluteRgbDifference": 26.505555555555556,
+          "afterMeanAbsoluteRgbDifference": 9.03888888888889
+        }
+      },
+      "restPixelsExactlyUnchanged": true
+    },
+    "sourceSha256": {
+      "liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/GlassMaterialDrawing.kt": "a87f654711ab0b9a89fdb772519ecd8482f4e7b966cca0a9a1d0a282e7b42642",
+      "liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/GlassPoseDynamics.kt": "065817c89d10fa82e6c63143851203a9985913f32f948e5ea0769a1a308b65be",
+      "liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/GlassShaderSource.kt": "12ddb58674119cbfdba67bd230ce1b48d9b7522ba07319c4c1c96dbf8597d9a8",
+      "liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/GlassTabBar.kt": "2a08670d06fa48c392bb19611fac7e7f17476c14a7245ccb41816fc75e78bf28",
+      "liquidglass/src/commonMain/kotlin/com/wexpa/liquidglass/LiquidGlass.kt": "4de610cdfcba1f2f70c312f959f579860ddaff9eca2668fd84349bb636fecb8f",
+      "liquidglass/src/jvmMain/kotlin/com/wexpa/liquidglass/LiquidGlass.jvm.kt": "f036174a9620a9f93246887f6b481539222a78c92621b698544af3109d0a0d6f",
+      "liquidglass/src/androidMain/kotlin/com/wexpa/liquidglass/LiquidGlass.android.kt": "2c90fda2b0c66be9db20ecad10041fd8d762721a2635ea796c79c7cb25c35265",
+      "liquidglass/src/jvmTest/kotlin/com/wexpa/liquidglass/GlassInsetMaterialTest.kt": "420a28a0df6fda581a712e9845a33c7164cc34b7a0c7f394a29ef7edfb6a7789"
+    },
+    "rejected": "Original full-body inset tint rejected by owner; first packed-mask strip rejected after native left inset disappeared. Both retained in research.",
+    "verificationReuse": "Full JVM run:356cases,328passed/27skipped/1failed (stale uniform inventory). After updating the exact list to include actual bindings, bothGlassShaderTest cases reran and passed. Aggregate329passes/27skips with every class covered; no common/JVM runtime changed. Android-only binding fix required platform retry. Earlier motion326-pass result is historical.",
+    "scope": "Specific native dark-cap defect corrected. No full iOS parity, universal-stack support, owner acceptance or presented-frame performance claim.",
+    "hosted": "5a81393: all seven required checks passed; CI38022565354, CodeQL38022565353, Docs38022565423."
+  },
+  "native-all-gestures-2026-10-10": {
+    "date": "2026-10-10",
+    "runtimeBaseline": "5a813935f9b9a4791a26cc5b546610941710ec99",
+    "scope": "Expanded native diagnostics only. Production library/shaders unchanged.",
+    "capture": {
+      "backend": "DIRECT3D",
+      "scale": 1.25,
+      "readbackEnabled": true,
+      "checksPassed": true,
+      "navigation": {
+        "left": 1515.0,
+        "top": 804.0,
+        "width": 350.0,
+        "height": 80.0
+      },
+      "input": "AWT events dispatched only to this application's Compose component",
+      "timing": "Each phase uses a fresh gesture replay because native readback is slow. CSV capture timestamps are render-start times. PNG encoding follows input. Not a continuous video, presented FPS or measured iOS timing."
+    },
+    "phases": 33,
+    "windowTargets": 8,
+    "desktopTests": {
+      "tests": "2",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "time": "304.182"
+    },
+    "buildDuration": "5m11s",
+    "visualInspection": "All 33 phase crops and contact sheet inspected. Whole-bar boundary poses, held reversals and middle recovery present. No dark exterior inset caps; thin body rim/recovery mismatch remains.",
+    "limits": "Each phase is an independent replay. App drawable window, not physical phone or OS screen. Capture/test jobs overlapped. Readback and forced redraw timing are not presented FPS or measured iOS timing; first held forced redraw1815.9ms. No complete gesture/contour/optical parity claim.",
+    "sourceSha256": {
+      "desktop/src/jvmMain/kotlin/com/wexpa/liquidglass/sample/desktop/AtlasMotionCapture.kt": "15c7a701d9f05b78c499f13423edcfede5f003565e9e820970435237225cd74a",
+      "tools/plot_native_motion.py": "f8ea2f0edd42c43d0e309328e9237c1897fe8759425b5e3b038312699bb2eb0e"
+    },
+    "frameSha256": {
+      "00-rest.png": "50480ac611753657e661087acabeebdc17eff98889a7b5cc26d4861d053cfc87",
+      "01-tap-140ms.png": "81d647ec3a071cdfda08ebf18e75eec5156394f574df158346a1e79c52582634",
+      "01-tap-25ms.png": "ab1bb122c42f5270b6c06cac6015ac1fb3cc9614f3e158563cb6a88cd47365aa",
+      "01-tap-490ms.png": "b49c291de9aa257da04eca081f25f8eb6d583618cf1c7f5c7c2f3cfdee35113c",
+      "01-tap-70ms.png": "40bbd8977915b19e2911e3930e23d1101d554967acad32f2f79c2b391bef0ba4",
+      "02-held.png": "4c957103e30e8d7b056c7d77d0ae9cbf124fe905f4dcee10a8e916b00700ab88",
+      "03-travel-12.png": "1f2e772e404b240a3386e54be948c83e27ab1440a2fbbc31e4892da540e0a2b0",
+      "03-travel-4.png": "c8fbe79e399de263aabd55091df5058338f705fa294b0c832a59c5ccbe705f12",
+      "03-travel-8.png": "2f2d546bfc3c225b7c5567088d69ae3173f1deacfe1c6d1a0f558984879a7542",
+      "04-release-160ms.png": "27e31680f92ec8d8a69dcad0e6378d84b84cd53395303793e9510748399ef39d",
+      "04-release-25ms.png": "1c3c279d8c16bd0ab290f9d01fde4b1af10a2f3b5f56f379b8d7301b3071ca8f",
+      "04-release-70ms.png": "041567170ae5eef9b4517a6e1a96352e038b08c68c434ad8fde5f592bbadce9c",
+      "04-release-760ms.png": "50480ac611753657e661087acabeebdc17eff98889a7b5cc26d4861d053cfc87",
+      "05-extreme-top-left.png": "b4c51c95c6c72ae3a0357212a3452628035bc261182b4806a53a201aaa3a9ba1",
+      "06-extreme-bottom-right.png": "9a7c17ea6c089a9c4443704697e651a85a1c9eb08c4f6c66996b07569cb59a84",
+      "07-recovered.png": "7f0b3d28bc229ff7a2a406ffe7df98f9c63172a29ee00891f6cf4f5b2cf75b9a",
+      "08-fling-left-hold40ms.png": "0892b3a47bef5afb2766aacf01f53743b9f76d576db8e1804c2dfaa90dad0fea",
+      "08-fling-left-hold650ms.png": "5916ace4fe5ce292099a4f3afe1c544a82a198bd57fcc50709c1ec221fd45506",
+      "08-fling-right-hold40ms.png": "8afbe306cd1333eb36c36c2c7934df6a01c57a9588b10ec4ed1292a2c1480dd5",
+      "08-fling-right-hold650ms.png": "e67b8f36f286bd93425a4b54a5c9d3e4aa3b1cc9ea61d67661a4c5249881b4ef",
+      "09-fling-recovered.png": "50480ac611753657e661087acabeebdc17eff98889a7b5cc26d4861d053cfc87",
+      "10-window-bottom-left.png": "5c672f9ecd8b5d79f03db21c922fad286ba180a15f4f851ea5b999e913c0abf5",
+      "10-window-bottom-right.png": "aac3a0eece20d35f50a063a82075466a63f0566953339dc10ddf04b056092497",
+      "10-window-bottom.png": "47eac4fbe7d2e1427f1d97ecf1c170c257a865496b9b8067ea5b9d160e6c5dea",
+      "10-window-left.png": "56bbad0e74942a305def735fbeea3ece0e0e503d5fdd2df561d87bf4163ce5df",
+      "10-window-right.png": "0ac4d05577d5887b2925977202d0e076ee6f8ca7eb16c263c1cd051c3bb89a04",
+      "10-window-top-left.png": "c838830b52aa73f3ce893645d5eaab655b3d85bec45d0ff44b3ef9f708c98d5c",
+      "10-window-top-right.png": "5e723e975b3d2543df0e0d299812a7e6b372da9b9d9e1d3aa82a482a5c5c6cfc",
+      "10-window-top.png": "7ef1aee2f4a3efccbb8a2131b5b304b057605082cdee3cdb4fb8af2afe115f05",
+      "11-held-reversals-left.png": "3fa712be188d7e979b6b55957e78521d4e0ed1363184a51c7517cdd1ede3388b",
+      "11-held-reversals-right.png": "08629dc7718f8ad4a8b3b863e451228b807d67c931182d00c433cf5cde77d401",
+      "12-soft-middle-landing.png": "6a399ccc3355b15df8dd5a1f5808b3bc01df60b15c9c029118fcd5e90e862b33",
+      "13-middle-recovered.png": "833ba484e420e9b40a702cb28201e9f353e61f8612ab63e773b03d02a79dca6f",
+      "native-motion.png": "90ed4dedb3b8ed033ae075a76ebcc97d71ca6401912f7e630c16a82a59fe8272"
+    }
+  },
+  "dotnet-native-2026-10-10": {
+    "runtime": "8.0.31",
+    "platform": "Microsoft Windows 10.0.26300",
+    "checks": [
+      {
+        "check": "three embedded production passes compile and match source",
+        "passed": true
+      },
+      {
+        "check": "profile0 versus independent JVM pixels",
+        "maxChannelError": 0,
+        "passed": true
+      },
+      {
+        "check": "profile1 versus independent JVM pixels",
+        "maxChannelError": 0,
+        "passed": true
+      },
+      {
+        "check": "profile2 versus independent JVM pixels",
+        "maxChannelError": 0,
+        "passed": true
+      },
+      {
+        "check": "profile3 versus independent JVM pixels",
+        "maxChannelError": 0,
+        "passed": true
+      },
+      {
+        "check": "invalid uniform, missing child and disposed effect rejected",
+        "passed": true
+      },
+      {
+        "check": "identity, zoom, monotonic source map, borrowed image and canvas state",
+        "passed": true
+      },
+      {
+        "check": "in-app material, cached redraw, source replacement, partial surface",
+        "passed": true
+      },
+      {
+        "check": "host backdrop recording, owned snapshot and atomic failed callback",
+        "passed": true
+      },
+      {
+        "check": "native example and visible text rendered",
+        "passed": true
+      }
+    ],
+    "date": "2026-10-10",
+    "rendererTarget": "net8.0",
+    "hostTarget": "net10.0-windows10.0.19041.0",
+    "skiaSharp": "4.153.1",
+    "sourceBaseline": "5a813935f9b9a4791a26cc5b546610941710ec99 with new native adapter",
+    "host": {
+      "backend": "SkiaSharp Windows Forms SKControl (CPU)",
+      "captures": 4,
+      "input": "app-owned OnMouseDown/Move/Up replay, including capture release",
+      "dragPassed": true,
+      "resizePassed": true,
+      "limits": "Four phase captures; no GPU, iOS motion, presented FPS or arbitrary native-widget backdrop claim."
+    },
+    "visualInspection": "Native CPU example and four Windows Forms canvas frames inspected. Continuous grid lens, dark card, drag relocation, reduced-transparency light card and resize visible.",
+    "sourceSha256": {
+      "ports/dotnet/Checks/Checks.csproj": "f1dce19dd2c2d65dcfeef5ed279907d6bbcf1bbe4bb39a3a861b3807b698dba7",
+      "ports/dotnet/Checks/packages.lock.json": "8a3252523bb8cee55d156cf4ee76400034f7faf8799357bb0ad8754307c01979",
+      "ports/dotnet/Checks/Program.cs": "5b790b0a45bcc6cedfcdd66f737cf260c99a1703be6d82b1711d35bf7d23ce8c",
+      "ports/dotnet/LiquidGlass.Skia/GlassEffects.cs": "9639b4a063340108eb3e4144e877485a2cc3918c3637f8786fd358702a5a57b7",
+      "ports/dotnet/LiquidGlass.Skia/GlassPainter.cs": "96f1d892e899801a9c821fa4a7dcdd3a720b708e80d33e5f75e828319441abf0",
+      "ports/dotnet/LiquidGlass.Skia/LiquidGlass.Skia.csproj": "8162bdba2263e4b2d9eb354375f8f1a6c2eeb861bf615e945499166e743f65cb",
+      "ports/dotnet/LiquidGlass.Skia/packages.lock.json": "bf87668920f872d3b3d622d7820cd3175642937a309986c8e3c0182509a82a01",
+      "ports/dotnet/WinFormsDemo/packages.lock.json": "2d0895890debeb505bb434f5bb01400fa175252dcf2bb035873327b214dded31",
+      "ports/dotnet/WinFormsDemo/Program.cs": "1cc301d70d5ac8ff1149a783cb28a05f24f64985a5f59c7562d5e3d02be4fdb1",
+      "ports/dotnet/WinFormsDemo/WinFormsDemo.csproj": "7bcf88222e62fbe4492c940872d1f8e9492fb0c14fc00d1b33d91e85f1113455"
+    },
+    "limits": "Windows local/hosted and Linux hosted CPU checks, with local Windows Forms input/capture. No GPU, presented FPS, iOS motion/optical parity or additional native host support claim. Navigation and arbitrary-widget capture remain separate work.",
+    "hosted": {
+      "revision": "49c217f9a8aadaf776e8affe4911fc858df08f9e",
+      "ciRun": 38034772892,
+      "platforms": {
+        "linux": {
+          "result": {
+            "runtime": "8.0.31",
+            "platform": "Ubuntu 24.04.5 LTS",
+            "checks": [
+              {
+                "check": "three embedded production passes compile and match source",
+                "passed": true
+              },
+              {
+                "check": "profile0 versus independent JVM pixels",
+                "maxChannelError": 0,
+                "passed": true
+              },
+              {
+                "check": "profile1 versus independent JVM pixels",
+                "maxChannelError": 0,
+                "passed": true
+              },
+              {
+                "check": "profile2 versus independent JVM pixels",
+                "maxChannelError": 0,
+                "passed": true
+              },
+              {
+                "check": "profile3 versus independent JVM pixels",
+                "maxChannelError": 0,
+                "passed": true
+              },
+              {
+                "check": "invalid uniform, missing child and disposed effect rejected",
+                "passed": true
+              },
+              {
+                "check": "identity, zoom, monotonic source map, borrowed image and canvas state",
+                "passed": true
+              },
+              {
+                "check": "in-app material, cached redraw, source replacement, partial surface",
+                "passed": true
+              },
+              {
+                "check": "host backdrop recording, owned snapshot and atomic failed callback",
+                "passed": true
+              },
+              {
+                "check": "native example and visible text rendered",
+                "passed": true
+              }
+            ]
+          },
+          "imageSha256": "4102440c7ef4424d2d5d2c25d37eb77b389d33d364c9aa21a645765564b99040"
+        },
+        "windows": {
+          "result": {
+            "runtime": "8.0.31",
+            "platform": "Microsoft Windows 10.0.26100",
+            "checks": [
+              {
+                "check": "three embedded production passes compile and match source",
+                "passed": true
+              },
+              {
+                "check": "profile0 versus independent JVM pixels",
+                "maxChannelError": 0,
+                "passed": true
+              },
+              {
+                "check": "profile1 versus independent JVM pixels",
+                "maxChannelError": 0,
+                "passed": true
+              },
+              {
+                "check": "profile2 versus independent JVM pixels",
+                "maxChannelError": 0,
+                "passed": true
+              },
+              {
+                "check": "profile3 versus independent JVM pixels",
+                "maxChannelError": 0,
+                "passed": true
+              },
+              {
+                "check": "invalid uniform, missing child and disposed effect rejected",
+                "passed": true
+              },
+              {
+                "check": "identity, zoom, monotonic source map, borrowed image and canvas state",
+                "passed": true
+              },
+              {
+                "check": "in-app material, cached redraw, source replacement, partial surface",
+                "passed": true
+              },
+              {
+                "check": "host backdrop recording, owned snapshot and atomic failed callback",
+                "passed": true
+              },
+              {
+                "check": "native example and visible text rendered",
+                "passed": true
+              }
+            ]
+          },
+          "imageSha256": "cd874a0fe0bd8e3e89b6a3c551dce8d558a707484de0224fa0a12ba1f2c9e859"
+        }
+      },
+      "visualInspection": "Both native CI images inspected. Linux now includes visible labels; predecessor9545506 Linux image explicitly rejected for missing text.",
+      "requiredChecks": 10,
+      "strictBranchChecks": true,
+      "limits": "CPU renderer checks; Windows Forms builds in CI and its local control capture is separate. No Linux desktop-host, GPU or iOS parity claim."
+    }
+  },
+  "ci-build-5a81393": {
+    "run": 38022565354,
+    "status": "passed",
+    "buildDuration": "31m4s",
+    "gradleDuration": "30m29s",
+    "scope": "Seven required checks passed; fresh library and Atlas tests."
+  },
+  "ci-build-9545506": {
+    "run": 38034328289,
+    "buildStatus": "passed",
+    "workflowStatus": "failed (NOTICE drift only)",
+    "buildDuration": "3m46s",
+    "gradleDuration": "3m15s",
+    "library": "FROM-CACHE",
+    "desktop": "fresh",
+    "native": "Windows/Linux numeric checks passed; Linux example labels missing on image inspection, corrected separately."
+  },
+  "ci-build-49c217f": {
+    "run": 38034772892,
+    "status": "passed",
+    "native": "Both platforms10checks, all four profiles maxchannelerror0, visible-text gate passed. Windows host compiled; both CI images inspected."
+  }
+}

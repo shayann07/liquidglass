@@ -16,8 +16,8 @@ import kotlin.test.assertTrue
  * below. Encoded RGB and linear-light RGB are not interchangeable and nothing here converts
  * between them. Ink is premultiplied; the material's endpoint is opaque.
  *
- * There are **three** 8-bit quantisation points between the inputs and what a viewer sees, and
- * they are the same three the production path has (`LiquidGlass.kt`: `glassLayer`, `contentLayer`
+ * Legacy has **three** 8-bit quantisation points between the inputs and what a viewer sees, and
+ * they are the same three its production path has (`LiquidGlass.kt`: `glassLayer`, `contentLayer`
  * and `endpointLayer` are all `GraphicsLayer`s, and the aperture runs as a `renderEffect` *on*
  * the already-quantised endpoint layer):
  *
@@ -33,8 +33,13 @@ import kotlin.test.assertTrue
  *    the endpoint the aperture genuinely consumed.
  *  - **end-to-end error** - the drawn result against the exact equation on the passes' unrounded
  *    outputs. This carries every rounding as well, and is **recorded** at its measured maximum.
- *    The V3 section 15.1 end-to-end gate is one level; it is **not met**, and the measured
- *    maximum is carried as a PARTIAL in the final-polish handoff rather than dressed as a pass.
+ *    The V3 section 15.1 end-to-end gate is one level; legacy does **not** meet it.
+ *
+ * Calm packs B1 and ink separately, so the aperture composes and masks before the output write.
+ * It is checked against the SAME double-precision equation and the strict one-level limit.
+ * Composition of the old C1 remains a diagnostic control; Calm does not consume that image.
+ * These gates begin at the material/ink outputs. They do not measure optical accuracy, colour
+ * management, or rounding from a subsequent real display framebuffer write.
  *
  * The oracle is never the renderer's own final answer; `B1` and the ink are the passes' declared
  * outputs, and everything after them is computed here in double precision.
@@ -131,6 +136,7 @@ class GlassEndpointGateTest {
         ink: (Int, Int) -> Int,
         body: GlassBody?,
         into: Score,
+        packedEndpoint: Boolean = false,
     ) {
         val result = GlassEndpointRender.render(
             width = width,
@@ -146,6 +152,7 @@ class GlassEndpointGateTest {
             bevel = 2f,
             counterLight = 1f,
             body = body,
+            packedEndpoint = packedEndpoint,
             backdrop = backdrop,
             ink1 = ink,
         )
@@ -176,13 +183,23 @@ class GlassEndpointGateTest {
                 // expression rounded - and would report an error larger than the chain's.
                 val actualC1 = channel(result.endpoint[i], c).toDouble()
                 into.composition = max(into.composition, abs(actualC1 - exactC1))
-                into.aperture = max(into.aperture, abs(drawn - (m * actualC1 + (1.0 - m) * c0)))
+                val consumedC1 = if (packedEndpoint) exactC1 else actualC1
+                into.aperture = max(into.aperture, abs(drawn - (m * consumedC1 + (1.0 - m) * c0)))
             }
         }
     }
 
     @Test
     fun theEndToEndChainCarriesNoArithmeticErrorBeyondItsDeclaredQuantisation() {
+        checkEndpointChain(packedEndpoint = false)
+    }
+
+    @Test
+    fun packedInkAndMaterialMeetTheOneLevelEndToEndGate() {
+        checkEndpointChain(packedEndpoint = true)
+    }
+
+    private fun checkEndpointChain(packedEndpoint: Boolean) {
         val bodies = listOf(
             null,
             GlassBody(cx = width / 2f - 42f, cy = height / 2f, length = 70f, radius = 34f, skew = 9f),
@@ -207,14 +224,14 @@ class GlassEndpointGateTest {
             for ((inkName, ink) in inks) {
                 for ((bi, body) in bodies.withIndex()) {
                     val s = Score()
-                    score(page, ink, body, s)
+                    score(page, ink, body, s, packedEndpoint)
                     worstComposition = max(worstComposition, s.composition)
                     worstAperture = max(worstAperture, s.aperture)
                     worstEndToEnd = max(worstEndToEnd, s.endToEnd)
                     partial += s.partialPixels
                     samples += s.samples
                     lines.add(
-                        "ENDPOINT-GATE page=$pageName ink=$inkName body=$bi " +
+                        "ENDPOINT-GATE packed=$packedEndpoint page=$pageName ink=$inkName body=$bi " +
                             "composition=${"%.4f".format(s.composition)} " +
                             "aperture=${"%.4f".format(s.aperture)} " +
                             "endToEnd=${"%.4f".format(s.endToEnd)} " +
@@ -225,7 +242,7 @@ class GlassEndpointGateTest {
         }
         lines.forEach(::println)
         println(
-            "ENDPOINT-GATE SUMMARY composition=${"%.4f".format(worstComposition)} " +
+            "ENDPOINT-GATE SUMMARY packed=$packedEndpoint compositionControl=${"%.4f".format(worstComposition)} " +
                 "aperture=${"%.4f".format(worstAperture)} " +
                 "endToEnd=${"%.4f".format(worstEndToEnd)} partial=$partial samples=$samples",
         )
@@ -242,13 +259,10 @@ class GlassEndpointGateTest {
             "the drawn result is off `m C1 + (1 - m) C0` by $worstAperture levels on the very " +
                 "endpoint the aperture consumed, past the one level V3 section 15.1 allows",
         )
-        // The whole chain, with the three declared roundings. This is REPORTED at its measured
-        // maximum; the one-level end-to-end gate is not met and is not pretended to be. See the
-        // final-polish handoff, where it is carried as a PARTIAL with this number.
+        val limit = if (packedEndpoint) 1.0 else QUANTISATION_BUDGET
         assertTrue(
-            worstEndToEnd <= QUANTISATION_BUDGET,
-            "the chain is off by $worstEndToEnd levels, past the $QUANTISATION_BUDGET that three " +
-                "8-bit intermediates can explain: that is a real composition defect, not rounding",
+            worstEndToEnd <= limit,
+            "packed=$packedEndpoint is off by $worstEndToEnd levels, past its $limit limit",
         )
     }
 

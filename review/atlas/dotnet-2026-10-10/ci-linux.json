@@ -1,0 +1,50 @@
+{
+  "runtime": "8.0.31",
+  "platform": "Ubuntu 24.04.5 LTS",
+  "checks": [
+    {
+      "check": "three embedded production passes compile and match source",
+      "passed": true
+    },
+    {
+      "check": "profile0 versus independent JVM pixels",
+      "maxChannelError": 0,
+      "passed": true
+    },
+    {
+      "check": "profile1 versus independent JVM pixels",
+      "maxChannelError": 0,
+      "passed": true
+    },
+    {
+      "check": "profile2 versus independent JVM pixels",
+      "maxChannelError": 0,
+      "passed": true
+    },
+    {
+      "check": "profile3 versus independent JVM pixels",
+      "maxChannelError": 0,
+      "passed": true
+    },
+    {
+      "check": "invalid uniform, missing child and disposed effect rejected",
+      "passed": true
+    },
+    {
+      "check": "identity, zoom, monotonic source map, borrowed image and canvas state",
+      "passed": true
+    },
+    {
+      "check": "in-app material, cached redraw, source replacement, partial surface",
+      "passed": true
+    },
+    {
+      "check": "host backdrop recording, owned snapshot and atomic failed callback",
+      "passed": true
+    },
+    {
+      "check": "native example and visible text rendered",
+      "passed": true
+    }
+  ]
+}

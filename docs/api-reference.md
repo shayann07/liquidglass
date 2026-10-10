@@ -179,16 +179,30 @@ morphs between, exposed so a host can start from them.
 
 #### `selector` — the deforming body
 
-Null keeps the capsule selector this component shipped with, and every preset above is on that
-path. Non-null replaces it with the convex hull of two unequal disks, whose length, mean radius and
-end asymmetry evolve separately; the selector's outline, normal, optical band and coverage all come
-from that body, so the aperture really changes rather than a finished picture being stretched.
-Nothing rasterised is scaled to fake the deformation.
+Null keeps the original capsule selector. `V3()` and `Calm()` supply a non-null selector spec and
+use its default pose controller: the outline, normal, optical band and coverage follow the same
+deforming body. The historical two-disk controller remains available with `poseMotion = false`
+for comparison. Most fields in `GlassSelectorSpec` tune that historical controller; the pose path
+uses its internal preset, selected by `response`. They are not per-screen knobs for `Calm()`.
 
-Containment is by construction: both generating disks are projected into an inscribed polygon of
-the bar, which puts their whole convex hull inside it. An ordinary tap therefore deforms *within*
-the bar however fast it travels, and only a hold that outlives the threshold is granted the larger
-envelope — touch-down alone does not start the held lens.
+The historical two-disk controller projects both disks into an inscribed polygon of the bar.
+The opt-in `Calm()` pose controller couples projected area and spine length for taps and moving
+endpoint landings. During a moving endpoint release, its leading edge recovers toward the
+resting endpoint while its centre follows from the changing width. This keeps translation and
+shape connected without moving layout or hit targets. A released selector compresses as it
+decelerates near an end tab; middle-tab and stationary releases retain their previous response.
+Setting `motionEnabled = false` during
+recovery clears stored deformation on the next advance. Short moving taps can grow above and
+below the resting bar, as in the owner's labelled Phone recording. This does not make that tap
+a held gesture. Ordinary hold growth,
+selector travel and the bar's anchored drag strain remain separate. Applications using `Calm()`
+do not need to implement this deformation or tune it per item. See the
+[motion evidence and limitations](research/atlas-stabilization.md#new-labelled-motion-recordings).
+
+Calm's resting inset tint is limited to the underlying bar's shape, even while the recovering
+body extends above or below it. Refraction, rim lighting and body coverage stay independent.
+The mask follows the bar's drawing transform without changing its layout or hit targets;
+applications do not supply a separate clipping shape.
 
 `GlassTabBarStyle.V3(dark, tintAmount, spec, edgeFold)` is the measured preset with this selector,
 the exact ink compositor and the straight-run fold turned on together.
@@ -518,10 +532,21 @@ data class GlassInteraction(
     val pressScale: Float = 1.04f,
     val illumination: Float = 1f,
     val gel: Boolean = true,
+    val pressGrowth: Dp = 0.dp,
+    val pressLift: Float = 0f,
+    val pull: Boolean = false,
+    val pullFollow: Float = 0.78f,
+    val pullElongation: Float = 0.45f,
+    val pullWidthRatio: Float = 1.1f,
+    val pullLimit: Float = Float.POSITIVE_INFINITY,
+    val response: GlassResponse = GlassResponse.Expressive,
+    val pullShape: GlassPullShape = GlassPullShape.Adaptive,
 ) {
     companion object {
         val Default = GlassInteraction()
-        val ReducedMotion = GlassInteraction(pressScale = 1f, illumination = 0.5f, gel = false)
+        val Calm: GlassInteraction // recommended control/card preset
+        val Pullable: GlassInteraction // historical expressive response
+        val ReducedMotion: GlassInteraction // no elastic geometry
     }
 }
 ```
@@ -534,7 +559,7 @@ bounce, no gel, glow at half — the feedback survives, the elasticity does not.
 ```kotlin
 @Stable
 class GlassPressSource {
-    fun press(localPosition: Offset)
+    fun press(localPosition: Offset, pullOffset: Offset = Offset.Zero)
     fun release()
 }
 
@@ -668,7 +693,8 @@ and this is what it was tuned against.
 and hit targets remain anchored; long bars do not rotate or shear. `pullFollow` controls input
 compliance, `pullLimit` bounds it, and `pullElongation`/`pullWidthRatio` control the strain.
 `Default` preserves Legacy behavior. `ReducedMotion` removes elastic response. External
-`GlassPressSource` supplies press illumination, not generic drag displacement.
+`GlassPressSource` supplies local press coordinates and optional cumulative drag displacement through
+`press(localPosition, pullOffset)`. The modifier applies the same resistance and springs as self-owned input.
 See [generic interaction](generic-interaction.md) for integration, ownership and navigation details.
 
 ### Size-adaptive drag (r14)
@@ -677,3 +703,54 @@ Pullable preserves touch feedback and controls up to 80dp. Its drag-only surface
 smoothly transitions by 160dp to one-fifth gain and a 2dp total extension cap. Both dimensions
 use unpressed layout size in dp; density does not change the response. This is automatic in
 `liquidGlass`, not a separate card implementation. See [generic interaction](generic-interaction.md).
+
+## Scene, continuous lens and calm response (development)
+
+These APIs require the current source snapshot; they are not in the published `0.1.0` artifact.
+
+```kotlin
+@Composable
+fun GlassScene(
+    background: Color,
+    backdrop: @Composable BoxScope.() -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable GlassSceneScope.() -> Unit,
+)
+
+class GlassSceneScope : BoxScope {
+    val state: LiquidGlassState
+    fun Modifier.glass(
+        shape: Shape = RoundedCornerShape(20.dp),
+        style: GlassStyle = GlassStyle.Regular,
+        interaction: GlassInteraction? = GlassInteraction.Calm,
+        materialize: Float = 1f,
+    ): Modifier
+}
+```
+
+The host owns one state and backdrop recording. Size the host explicitly. Put page content in `backdrop`
+and controls in `content`; do not nest the glass inside its own source. The exposed `state` supports
+advanced tab-bar/container integration. `glass` does not make a button clickable or add a semantic role.
+
+| API | Contract |
+| --- | --- |
+| `GlassStyle.clearLens(magnification: Float = 1.25f)` | Finite centre magnification 1–2.5; invalid values throw. Continuous map, zero blur and dispersion by default. |
+| `GlassProfile.Lens` | Same smooth elliptical source map for material and refracted foreground; append-only enum addition. |
+| `GlassInteraction.Calm` | Critical geometric springs; up to 3% press scale and 2dp growth per edge; gradual resisted drag with large-surface attenuation. |
+| `GlassResponse` | `Expressive` preserves historical timing; `Calm` selects slower critical press/pull springs. |
+| `GlassInteraction.response` | Timing parameter, default `Expressive`; existing positional source calls retain their meaning. |
+| `GlassInteraction.pullShape` | Appended parameter, default `GlassPullShape.Adaptive`. `AreaPreserving` couples bounded stretch/narrowing and a material-only directional bias for navigation, without the card size policy; press and layout stay separate. See [generic interaction](generic-interaction.md). |
+| `GlassTabBarStyle.Calm(dark: Boolean = true)` | V3 optical roles with calm selector travel, no off-axis selector squeeze, and bounded bar drawing feedback shared with ordinary/selected ink. Its reference-backed 5% press is separate from the restrained drag response. |
+| `GlassSelectorSpec.response` | Chooses the pose response family; default `Expressive` preserves V3. Other legacy fields still belong to the old horizontal controller. |
+| `GlassTabBarStyle.barInteraction` | Optional whole-bar feedback, default null; `Calm()` enables it and keeps label layout fixed. |
+| `GlassTabBarStyle.deformItemsWithBar` | Appended option, false for older presets and true in `Calm()`. Shares the material's resolved drawing transform with both ink variants; layout, hit targets and selector travel remain independent. Generic card foreground is unchanged. |
+| `GlassPressSource.press(localPosition, pullOffset = Offset.Zero)` | Local pixels; optional displacement since down for a gesture owned by the host. Rejects non-finite coordinates. Call `release()` on up **and cancellation**. |
+
+`Lens` reuses `heldMagnification` internally as `1 - 1 / magnification`; prefer the factory to setting
+that implementation parameter. It bypasses the held profile's stepped edge map and ignores dispersion.
+It is an elliptical magnifier field: rectangular corners outside the inscribed ellipse remain identity.
+The historical `Held` family intentionally retains its navigation optics.
+
+These additions preserve existing presets at source level. Kotlin data-class constructor changes are
+not a guarantee of binary compatibility for already compiled consumers; rebuild consumers against the
+new snapshot. Keep your system accessibility preference wired to `ReducedMotion`/`motionEnabled`.

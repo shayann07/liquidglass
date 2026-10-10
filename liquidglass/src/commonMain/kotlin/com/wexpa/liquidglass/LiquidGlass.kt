@@ -4,6 +4,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -21,6 +22,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
@@ -293,6 +295,11 @@ internal fun Modifier.liquidGlassCore(
      */
     poseBody: GlassPoseRender? = null,
     endpointComposite: Boolean,
+    packedEndpoint: Boolean = false,
+    /** Optional shared drawing state for navigation's ordinary/selected ink. */
+    materialDrawing: GlassMaterialDrawingState? = null,
+    /** Navigation inset tint is confined to this underlying material's actual shape. */
+    tintWithinThrough: GlassMaterialDrawingState? = null,
 ): Modifier = composed {
     val glassLayer = rememberGraphicsLayer()
     val endpointLayer = rememberGraphicsLayer()
@@ -329,6 +336,7 @@ internal fun Modifier.liquidGlassCore(
     val density = LocalDensity.current
     val direction = LocalLayoutDirection.current
     val measured = Size(layoutSize.width.toFloat(), layoutSize.height.toFloat())
+    val footprint=rememberGlassFootprint(shape,measured,density,direction,materialDrawing!=null)
     // The field is rasterised at the same origin the layer is recorded at: one pad, computed by
     // one function, so the shader's uPad addresses the field where it was drawn (a field built
     // with ceil(padPx) while the layer used ceil(pad * rs) / rs put the two on different origins:
@@ -373,7 +381,9 @@ internal fun Modifier.liquidGlassCore(
     val pressDown = glassPressIsDown(interaction, press)
     val pressAmount by animateFloatAsState(
         targetValue = if (pressDown) 1f else 0f,
-        animationSpec = if (pressDown) { if (growthPx > 0f) GlassMotion.BalloonDown else GlassMotion.PressDown } else GlassMotion.PressUp,
+        animationSpec = if (interaction?.response == GlassResponse.Calm) {
+            if (pressDown) GlassMotion.CalmDown else GlassMotion.CalmUp
+        } else if (pressDown) { if (growthPx > 0f) GlassMotion.BalloonDown else GlassMotion.PressDown } else GlassMotion.PressUp,
         label = "glass_press_scale",
     )
     val animatedPressX = 1f + (balloonX - 1f) * pressAmount
@@ -386,7 +396,7 @@ internal fun Modifier.liquidGlassCore(
     // it is down and released through the recording's under-damped spring; the deformation is
     // one function of the animated travel, so the shape and the position ring together the way
     // the free search button does (reference-6756 S01 n440-476).
-    val pullEnabled = interaction?.pull == true && pressSource == null
+    val pullEnabled = interaction?.pull == true
     val pullCentreLimit = minOf(measured.width * balloonX, measured.height * balloonY) *
         (interaction?.pullLimit ?: Float.POSITIVE_INFINITY)
     val pullLength = kotlin.math.sqrt(press.pullX * press.pullX + press.pullY * press.pullY)
@@ -397,12 +407,16 @@ internal fun Modifier.liquidGlassCore(
     // making tracking depend on the pointer packet rate and damping release momentum away.
     val pullX by animateFloatAsState(
         targetValue = if (pullDown) press.pullX * compliance else 0f,
-        animationSpec = if (pullDown) GlassMotion.PullFollow else GlassMotion.PullRelease,
+        animationSpec = if (interaction?.response == GlassResponse.Calm) {
+            if (pullDown) GlassMotion.CalmFollow else GlassMotion.CalmUp
+        } else if (pullDown) GlassMotion.PullFollow else GlassMotion.PullRelease,
         label = "glass_pull_x",
     )
     val pullY by animateFloatAsState(
         targetValue = if (pullDown) press.pullY * compliance else 0f,
-        animationSpec = if (pullDown) GlassMotion.PullFollow else GlassMotion.PullRelease,
+        animationSpec = if (interaction?.response == GlassResponse.Calm) {
+            if (pullDown) GlassMotion.CalmFollow else GlassMotion.CalmUp
+        } else if (pullDown) GlassMotion.PullFollow else GlassMotion.PullRelease,
         label = "glass_pull_y",
     )
     val pullDeformation = if (pullEnabled && interaction != null) {
@@ -410,24 +424,8 @@ internal fun Modifier.liquidGlassCore(
         val px = pullX
         val py = pullY
         val radius = shape.glassRadii(measured, direction, density).minOrNull() ?: 0f
-        val extent = glassPullExtent(measured.width, measured.height, radius,
-            pressScaleX, pressScaleY, px, py)
-        val acrossExtent = glassPullExtent(measured.width, measured.height, radius,
-            pressScaleX, pressScaleY, -py, px)
-        val rawPull = glassPullDeformation(
-            pullX = px,
-            pullY = py,
-            extentPx = extent,
-            elongation = interaction.pullElongation,
-            widthRatio = interaction.pullWidthRatio,
-            follow = interaction.pullFollow,
-            acrossExtentPx = acrossExtent,
-        )
-        // Drag strain scales with surface size; press expansion and illumination do not.
-        val deformation = glassAnchoredMaterialPull(
-            glassSurfacePull(rawPull, measured.width, measured.height, density.density, extent),
-            measured.width, measured.height,
-        )
+        val deformation = glassMaterialPull(measured.width, measured.height, radius,
+            density.density, pressScaleX, pressScaleY, px, py, pullCentreLimit, interaction)
         if (panelPosition.x.isFinite() && panelPosition.y.isFinite()) glassPullInViewport(
             deformation, measured.width, measured.height, radius, pressScaleX, pressScaleY,
             panelPosition.x + measured.width / 2f, panelPosition.y + measured.height / 2f,
@@ -435,6 +433,13 @@ internal fun Modifier.liquidGlassCore(
         ) else deformation
     } else {
         GlassPullDeformation.None
+    }
+
+    // Publish the already animated, viewport-bounded result once. Both ink variants read
+    // it during drawing, so they do not run separate springs or transform pointer targets.
+    SideEffect {
+        materialDrawing?.drawing = GlassMaterialDrawing(pullDeformation, pressScaleX, pressScaleY,
+            Offset(measured.width / 2f, measured.height / 2f), footprint)
     }
 
     this
@@ -481,6 +486,10 @@ internal fun Modifier.liquidGlassCore(
                 val pad = style.recordPad(radii, size, fuse, this, state.renderScale, bandPx)
                 val useEndpoint = endpointComposite && refractContent && LiquidGlassSupport.hasShaders
                 val sizeFactor = elementSizeFactor(size, this)
+                val tintDrawing=tintWithinThrough?.drawing
+                val tintOrigin=through?.let { panelOffsetInSource(it.sourceCoordinates,coordinates) }
+                val tintField=tintDrawing?.footprint?.takeIf { poseBody!=null && tintOrigin!=null }
+                val tintMap=if(tintField!=null) tintDrawing!!.footprintMap(tintOrigin!!) else null
                 val contactShadow = glassShadow(sizeFactor)
                 val contactShadowAlpha = contactShadow.alpha * style.contactShadow.coerceIn(0f, 1f)
                 val bounds = sampleBounds(pad, delta, size, state.sourceSize)
@@ -549,7 +558,9 @@ internal fun Modifier.liquidGlassCore(
                         shapeKind = if (pathField != null) 1f else 0f,
                         fieldRange = pathField?.range ?: 1f,
                         fieldScale = pathField?.scale ?: 1f,
-                        field = pathField?.bitmap,
+                        field = tintField ?: pathField?.bitmap,
+                        tintMaskX = tintMap?.first ?: EMPTY_FUSE,
+                        tintMaskY = tintMap?.second ?: EMPTY_FUSE,
                         mirror = style.mirror,
                         fresnel = style.fresnel,
                         highlightChroma = style.highlightChroma,
@@ -715,14 +726,30 @@ internal fun Modifier.liquidGlassCore(
                     }
                     if (useEndpoint) {
                         val inkEffect = effects.content(fullUniforms)
-                        val apertureEffect = effects.endpoint(fullUniforms)
+                        val inkStrip = if (packedEndpoint) fullPadded.height.toFloat() else 0f
+                        val apertureEffect = effects.endpoint(fullUniforms.copy(inkStrip = inkStrip))
                         if (inkEffect != null && apertureEffect != null) {
                             contentLayer.renderEffect = inkEffect
-                            // C1, complete and opaque: the material this selector shows, then the
-                            // selected ink over it once. Source-over is exactly c1 + (1-a1) B1.
-                            endpointLayer.record(size = fullPadded) {
-                                scale(1f / rs, 1f / rs, pivot = Offset.Zero) { drawLayer(glassLayer) }
-                                drawLayer(contentLayer)
+                            // Calm keeps native-resolution B1 and ink in separate strips. The
+                            // aperture composes them in float before the single output write.
+                            // Legacy retains its original rounded C1 layer and pixels.
+                            val endpointSize = if (packedEndpoint) {
+                                IntSize(fullPadded.width, fullPadded.height * 2)
+                            } else fullPadded
+                            endpointLayer.record(size = endpointSize) {
+                                if (!packedEndpoint) {
+                                    scale(1f / rs, 1f / rs, pivot = Offset.Zero) { drawLayer(glassLayer) }
+                                    drawLayer(contentLayer)
+                                } else {
+                                    clipRect(0f, 0f, fullPadded.width.toFloat(), inkStrip) {
+                                        scale(1f / rs, 1f / rs, pivot = Offset.Zero) { drawLayer(glassLayer) }
+                                    }
+                                    translate(top = inkStrip) {
+                                        clipRect(0f, 0f, fullPadded.width.toFloat(), inkStrip) {
+                                            drawLayer(contentLayer)
+                                        }
+                                    }
+                                }
                             }
                             // Times aperture coverage: (m C1, m), replaced over C0 in one draw.
                             endpointLayer.renderEffect = apertureEffect
@@ -888,6 +915,7 @@ internal val GlassProfile.uniform: Float
         GlassProfile.Legacy -> 0f
         GlassProfile.Measured -> 1f
         GlassProfile.Held -> 2f
+        GlassProfile.Lens -> 3f
     }
 
 /** What the current platform can do, so callers can choose a design that survives the gap. */
@@ -898,6 +926,9 @@ expect object LiquidGlassSupport {
     /** True when at least the backdrop can be blurred. */
     val hasBackdropBlur: Boolean
 }
+
+/** The host can bind separately transformed material and ink inputs to one aperture effect. */
+internal expect val supportsGlassEndpointInputs: Boolean
 
 /**
  * Corner radii in px, in the order the shader expects: TL, TR, BR, BL.
@@ -953,6 +984,9 @@ internal fun GlassUniforms.scaledBy(s: Float): GlassUniforms =
             width = width * s,
             height = height * s,
             pad = pad * s,
+            inkStrip = inkStrip * s,
+            tintMaskX = floatArrayOf(tintMaskX[0]/s,tintMaskX[1]/s,tintMaskX[2],tintMaskX[3]),
+            tintMaskY = floatArrayOf(tintMaskY[0]/s,tintMaskY[1]/s,tintMaskY[2],tintMaskY[3]),
             radii = FloatArray(radii.size) { radii[it] * s },
             refractBand = refractBand * s,
             refractDepth = refractDepth * s,
@@ -1030,6 +1064,11 @@ internal data class GlassUniforms(
     val poseD: FloatArray = EMPTY_POSE_D,
     /** 1 when this pass emits a complete endpoint instead of its coverage-premultiplied share. */
     val endpointAlpha: Float = 0f,
+    /** Positive only for packed endpoints: native-pixel offset of the separate ink strip. */
+    val inkStrip: Float = 0f,
+    /** Optional inverse affine rows into an alpha footprint bound as field for pose bodies. */
+    val tintMaskX: FloatArray = EMPTY_FUSE,
+    val tintMaskY: FloatArray = EMPTY_FUSE,
     /** Straight-run fold strength on the measured profile ([GlassStyle.edgeFold]). */
     val edgeFold: Float = 0f,
     /** Per-channel split for semantic ink; 0 takes one sharp sample. */
@@ -1130,7 +1169,9 @@ internal data class GlassUniforms(
             body.contentEquals(other.body) && bodyY == other.bodyY && bodyKind == other.bodyKind &&
             poseA.contentEquals(other.poseA) && poseAInv.contentEquals(other.poseAInv) &&
             poseC.contentEquals(other.poseC) && poseD.contentEquals(other.poseD) &&
-            endpointAlpha == other.endpointAlpha && edgeFold == other.edgeFold &&
+            endpointAlpha == other.endpointAlpha && inkStrip == other.inkStrip &&
+            tintMaskX.contentEquals(other.tintMaskX) && tintMaskY.contentEquals(other.tintMaskY) &&
+            edgeFold == other.edgeFold &&
             inkSplit == other.inkSplit && heldInk == other.heldInk &&
             wideKernel == other.wideKernel && fineShare == other.fineShare &&
             fuse.contentEquals(other.fuse) && fuseRadius == other.fuseRadius &&
@@ -1383,14 +1424,18 @@ internal fun elementSizeFactor(size: Size, density: Density): Float {
     return ((minEdgeDp - 56f) / (320f - 56f)).coerceIn(0f, 1f)
 }
 
-/** Transform only material output. Ordinary foreground is deliberately drawn outside this scope. */
-private inline fun DrawScope.withGlassMaterialPull(
-    pull: GlassPullDeformation, pressX: Float, pressY: Float, block: DrawScope.() -> Unit,
+/** Shared drawing operation. Generic foreground stays outside; navigation opts its ink in. */
+internal inline fun DrawScope.withGlassMaterialPull(
+    pull: GlassPullDeformation, pressX: Float, pressY: Float,
+    pivot: Offset = center, block: DrawScope.() -> Unit,
 ) {
     withTransform({
-        rotate(pull.angleDegrees, center)
-        scale(pull.along, pull.across, center)
-        rotate(-pull.angleDegrees, center)
-        scale(pressX, pressY, center)
+        if (pull.translationX != 0f || pull.translationY != 0f) {
+            translate(pull.translationX, pull.translationY)
+        }
+        rotate(pull.angleDegrees, pivot)
+        scale(pull.along, pull.across, pivot)
+        rotate(-pull.angleDegrees, pivot)
+        scale(pressX, pressY, pivot)
     }, block)
 }

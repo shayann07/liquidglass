@@ -22,6 +22,20 @@ import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
+/** Response families. Calm is authored and opt-in; Expressive preserves existing timing. */
+enum class GlassResponse { Expressive, Calm }
+
+/** Material-only drag geometry, independent of press expansion and animation timing. */
+enum class GlassPullShape {
+    /** Size-aware control/card feedback; large surfaces keep the existing 2dp extension cap. */
+    Adaptive,
+    /** Coupled stretch/narrowing for a navigation surface. At most 4.8% axis stretch before
+     * viewport limiting, plus at most5.6% of the short side as a material-only directional bias.
+     * These authored bounds fit selected Phone edges; finger gain is not identified.
+     * Layout and ordinary labels stay fixed. Generic cards should keep Adaptive. */
+    AreaPreserving,
+}
+
 /** Where the finger is on a panel and how far the press has come up, for the shader. */
 @Immutable
 internal data class GlassPress(
@@ -64,7 +78,7 @@ data class GlassInteraction(
     val pressGrowth: Dp = 0.dp,
     val pressLift: Float = 0f,
     /**
-     * Press-and-pull: the material stretches around its fixed layout centre. [pullFollow]
+     * Press-and-pull: the material deforms independently of its fixed layout. [pullFollow]
      * controls input resistance, not translation of the control. It lengthens by [pullElongation] of the pull's
      * length (relative to its own extent) and thins across it [pullWidthRatio] times as fast,
      * and springs back under-damped on release (`GlassMotion.PullRelease`). The input gains
@@ -78,11 +92,26 @@ data class GlassInteraction(
     val pullElongation: Float = 0.45f,
     /** How much faster the width thins than the length grows (1.1). */
     val pullWidthRatio: Float = 1.1f,
-    /** Input resistance budget in pressed short-side lengths; the rendered centre remains anchored. */
+    /** Input resistance budget in pressed short-side lengths; layout remains anchored. */
     val pullLimit: Float = Float.POSITIVE_INFINITY,
+    /** Timing of geometric feedback; illumination remains a separate acknowledgement. */
+    val response: GlassResponse = GlassResponse.Expressive,
+    /** Adaptive uses [pullElongation]/[pullWidthRatio] and the size policy. AreaPreserving uses
+     * a bounded log-strain response instead; [pullFollow]/[pullLimit] still govern input resistance.
+     * Choose the navigation preset normally; generic cards should keep Adaptive. */
+    val pullShape: GlassPullShape = GlassPullShape.Adaptive,
 ) {
     companion object {
         val Default = GlassInteraction()
+        /** Recommended restrained feedback: at most 2dp press growth per edge, 3% press
+         * scale and gradual resisted drag. Large surfaces retain the 2dp extension cap.
+         * These input/timing choices are authored, not measured Apple finger trajectories. */
+        val Calm = GlassInteraction(
+            pressScale = 1.03f, pressGrowth = 2.dp, illumination = 0.35f,
+            pressLift = 0.04f, pull = true, pullFollow = 0.2f,
+            pullElongation = 0.03f, pullWidthRatio = 1f, pullLimit = 0.5f,
+            response = GlassResponse.Calm,
+        )
         /** Touch expansion is independent of drag. The modifier preserves small controls and
          * smoothly reduces drag strain on larger surfaces; see docs/generic-interaction.md. */
         val Pullable = GlassInteraction(
@@ -103,6 +132,9 @@ data class GlassInteraction(
 
 /** Springs and timings for the press, kept together so the three channels cannot drift apart. */
 internal object GlassMotion {
+    val CalmDown = spring<Float>(dampingRatio = 1f, stiffness = 220f)
+    val CalmUp = spring<Float>(dampingRatio = 1f, stiffness = 260f)
+    val CalmFollow = spring<Float>(dampingRatio = 1f, stiffness = 350f)
     /**
      * The Legacy press is unchanged. The opt-in balloon is fitted to native-PTS S01 extent:
      * 0.62 damping, 644 stiffness, RMS 0.83 px. Independent K01 width gives 0.63 / 595 and
@@ -163,11 +195,15 @@ internal object GlassMotion {
 @Stable
 class GlassPressSource internal constructor() {
     internal var localPosition by mutableStateOf(Offset.Zero)
+    internal var pullOffset by mutableStateOf(Offset.Zero)
     internal var isPressed by mutableStateOf(false)
 
     /** Call on every pointer move as well as on down, so the glow tracks rather than jumps. */
-    fun press(localPosition: Offset) {
+    fun press(localPosition: Offset, pullOffset: Offset = Offset.Zero) {
+        require(localPosition.x.isFinite() && localPosition.y.isFinite() &&
+            pullOffset.x.isFinite() && pullOffset.y.isFinite()) { "Press coordinates must be finite" }
         this.localPosition = localPosition
+        this.pullOffset = pullOffset
         isPressed = true
     }
 
@@ -203,7 +239,8 @@ internal fun rememberGlassPress(
             animationSpec = if (source.isPressed) GlassMotion.GlowIn else GlassMotion.GlowOut,
             label = "glass_press_amount_external",
         )
-        return GlassPress(source.localPosition.x, source.localPosition.y, amount, pulling = source.isPressed) to Modifier
+        return GlassPress(source.localPosition.x, source.localPosition.y, amount,
+            source.pullOffset.x, source.pullOffset.y, pulling = source.isPressed) to Modifier
     }
 
     var point by remember { mutableStateOf(Offset.Zero) }

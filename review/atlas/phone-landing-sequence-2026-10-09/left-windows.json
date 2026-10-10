@@ -1,0 +1,21 @@
+{
+  "firstFrame": 66,
+  "lastFrame": 94,
+  "ys": [110, 115, 120],
+  "left": [65, 91],
+  "right": [290, 385],
+  "capX": [275, 400],
+  "capY": [59, 195, 3],
+  "excludedRows": [[122, 183]],
+  "capSide": 1,
+  "panelLeft": 35,
+  "capInitial": [210, 125, 100],
+  "capBounds": [[100, 100, 60], [320, 150, 160]],
+  "barXs": [390, 400, 410],
+  "manualRejections": {
+    "frame-068.png": ["Visual inspection: left probe follows ambiguous overlapping outer-bar/selector boundary"],
+    "frame-069.png": ["Visual inspection: left probe follows ambiguous overlapping outer-bar/selector boundary"],
+    "frame-070.png": ["Visual inspection: left probe follows ambiguous overlapping outer-bar/selector boundary"],
+    "frame-071.png": ["Visual inspection: left probe follows ambiguous overlapping outer-bar/selector boundary"]
+  }
+}
