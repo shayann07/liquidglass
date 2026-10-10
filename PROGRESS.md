@@ -24,16 +24,18 @@ caps on both backgrounds. A thin glass rim remains during recovery.
   1647.7ms remains a diagnostic outlier, not an accepted performance result.
 - No local verification process remains running. Sessions27266/50471 are terminal. Do not repeat
   these completed suites. Exact reports and source hashes are in the material packet/ledger.
-- Endpoint/material correction is pushed as **5a81393**, with all seven required hosted checks
-  passing. Fresh hosted build31m4s / Gradle30m29s; no old run remains live.
+- Endpoint/material correction **5a81393** passed its full hosted verification. Native integration
+  **9545506** and font/notice correction **49c217f** are pushed. All ten required checks pass on
+  **49c217f**, including all three CodeQL languages. CI build38s /
+  Gradle17s, unchanged library and Atlas tests FROM-CACHE; source reports retained separately.
 - [Expanded native replay](review/atlas/all-gestures-2026-10-10/README.md):33 phases cover all eight
   app-window boundaries, held reversals and middle landing/recovery; selection/layout checks and
   both Atlas tests pass. All images inspected. Concurrent capture/tests prohibit performance claims.
 - [Native .NET integration](review/atlas/dotnet-2026-10-10/README.md):painter, owned/borrowed backdrop
   paths and runnable Windows Forms host. Ten native check groups pass; four JVM profiles match
-  exactly. Host builds and app-owned drag/resize captures pass. Windows/Linux numeric CI passed on
-  9545506; Linux artifact review caught blank labels. Font-provider setup and a visible-text gate
-  address that separately; follow-up hosted verification pending. CanvasKit NOTICE drift also repaired.
+  exactly. Host builds and app-owned drag/resize captures pass. Both Windows/Linux CI pass on49c217f;
+  both artifacts inspected. Linux's initially blank labels are fixed by a font provider and
+  guarded by a visible-text check. CanvasKit NOTICE drift is repaired and its check passes.
 - Canonical checkout: `D:/Work/AndroidStudioProjects/SideProjects/kmp/liquidglass`.
 - Branch: `codex/atlas-stabilization`; [draft PR #6](https://github.com/shayann07/liquidglass/pull/6).
 - Commit/push/final merge authorized; no releases, tags or blanket PR6 review bypass.

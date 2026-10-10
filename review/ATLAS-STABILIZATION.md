@@ -1351,6 +1351,8 @@ The [native .NET packet](atlas/dotnet-2026-10-10/README.md) demonstrates product
 with a source-only painter and real Windows Forms host. Four JVM profile fixtures match exactly;
 ten native check groups and the app-owned drag/resize replay pass. The painter shares a backdrop
 across lenses/cards and can own a host-drawing snapshot. Windows/Linux renderer CI, Windows host
-compilation, C# CodeQL and NuGet dependency updates are added. Those new hosted checks await this
-checkpoint's push. Other native hosts, .NET selector dynamics and arbitrary-widget capture remain
+compilation, C# CodeQL and NuGet dependency updates are added. The new native jobs and C# scan pass
+on49c217f. Linux artifact review caught blank labels missed by the first numeric checks; fontconfig
+setup and an actual-text-pixels gate now pass, and the corrected CI images are inspected. These
+three new checks join the original seven required checks. Other native hosts, .NET selector dynamics and arbitrary-widget capture remain
 open; Compose plus these bindings is not declared universal-stack completion.

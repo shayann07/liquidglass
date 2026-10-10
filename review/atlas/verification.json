@@ -1914,7 +1914,123 @@
       "ports/dotnet/WinFormsDemo/Program.cs": "1cc301d70d5ac8ff1149a783cb28a05f24f64985a5f59c7562d5e3d02be4fdb1",
       "ports/dotnet/WinFormsDemo/WinFormsDemo.csproj": "7bcf88222e62fbe4492c940872d1f8e9492fb0c14fc00d1b33d91e85f1113455"
     },
-    "limits": "Local Windows CPU evidence only; CI Windows/Linux pending. No GPU, presented FPS, iOS motion/optical parity or additional native host support claim. Navigation and arbitrary native-widget capture remain separate work."
+    "limits": "Windows local/hosted and Linux hosted CPU checks, with local Windows Forms input/capture. No GPU, presented FPS, iOS motion/optical parity or additional native host support claim. Navigation and arbitrary-widget capture remain separate work.",
+    "hosted": {
+      "revision": "49c217f9a8aadaf776e8affe4911fc858df08f9e",
+      "ciRun": 38034772892,
+      "platforms": {
+        "linux": {
+          "result": {
+            "runtime": "8.0.31",
+            "platform": "Ubuntu 24.04.5 LTS",
+            "checks": [
+              {
+                "check": "three embedded production passes compile and match source",
+                "passed": true
+              },
+              {
+                "check": "profile0 versus independent JVM pixels",
+                "maxChannelError": 0,
+                "passed": true
+              },
+              {
+                "check": "profile1 versus independent JVM pixels",
+                "maxChannelError": 0,
+                "passed": true
+              },
+              {
+                "check": "profile2 versus independent JVM pixels",
+                "maxChannelError": 0,
+                "passed": true
+              },
+              {
+                "check": "profile3 versus independent JVM pixels",
+                "maxChannelError": 0,
+                "passed": true
+              },
+              {
+                "check": "invalid uniform, missing child and disposed effect rejected",
+                "passed": true
+              },
+              {
+                "check": "identity, zoom, monotonic source map, borrowed image and canvas state",
+                "passed": true
+              },
+              {
+                "check": "in-app material, cached redraw, source replacement, partial surface",
+                "passed": true
+              },
+              {
+                "check": "host backdrop recording, owned snapshot and atomic failed callback",
+                "passed": true
+              },
+              {
+                "check": "native example and visible text rendered",
+                "passed": true
+              }
+            ]
+          },
+          "imageSha256": "4102440c7ef4424d2d5d2c25d37eb77b389d33d364c9aa21a645765564b99040"
+        },
+        "windows": {
+          "result": {
+            "runtime": "8.0.31",
+            "platform": "Microsoft Windows 10.0.26100",
+            "checks": [
+              {
+                "check": "three embedded production passes compile and match source",
+                "passed": true
+              },
+              {
+                "check": "profile0 versus independent JVM pixels",
+                "maxChannelError": 0,
+                "passed": true
+              },
+              {
+                "check": "profile1 versus independent JVM pixels",
+                "maxChannelError": 0,
+                "passed": true
+              },
+              {
+                "check": "profile2 versus independent JVM pixels",
+                "maxChannelError": 0,
+                "passed": true
+              },
+              {
+                "check": "profile3 versus independent JVM pixels",
+                "maxChannelError": 0,
+                "passed": true
+              },
+              {
+                "check": "invalid uniform, missing child and disposed effect rejected",
+                "passed": true
+              },
+              {
+                "check": "identity, zoom, monotonic source map, borrowed image and canvas state",
+                "passed": true
+              },
+              {
+                "check": "in-app material, cached redraw, source replacement, partial surface",
+                "passed": true
+              },
+              {
+                "check": "host backdrop recording, owned snapshot and atomic failed callback",
+                "passed": true
+              },
+              {
+                "check": "native example and visible text rendered",
+                "passed": true
+              }
+            ]
+          },
+          "imageSha256": "cd874a0fe0bd8e3e89b6a3c551dce8d558a707484de0224fa0a12ba1f2c9e859"
+        }
+      },
+      "visualInspection": "Both native CI images inspected. Linux now includes visible labels; predecessor9545506 Linux image explicitly rejected for missing text.",
+      "requiredChecks": 10,
+      "strictBranchChecks": true,
+      "limits": "CPU renderer checks; Windows Forms builds in CI and its local control capture is separate. No Linux desktop-host, GPU or iOS parity claim."
+    }
   },
   "ci-build-5a81393": {
     "run": 38022565354,
@@ -1922,5 +2038,20 @@
     "buildDuration": "31m4s",
     "gradleDuration": "30m29s",
     "scope": "Seven required checks passed; fresh library and Atlas tests."
+  },
+  "ci-build-9545506": {
+    "run": 38034328289,
+    "buildStatus": "passed",
+    "workflowStatus": "failed (NOTICE drift only)",
+    "buildDuration": "3m46s",
+    "gradleDuration": "3m15s",
+    "library": "FROM-CACHE",
+    "desktop": "fresh",
+    "native": "Windows/Linux numeric checks passed; Linux example labels missing on image inspection, corrected separately."
+  },
+  "ci-build-49c217f": {
+    "run": 38034772892,
+    "status": "passed",
+    "native": "Both platforms10checks, all four profiles maxchannelerror0, visible-text gate passed. Windows host compiled; both CI images inspected."
   }
 }

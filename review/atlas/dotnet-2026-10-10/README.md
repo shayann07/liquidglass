@@ -38,11 +38,21 @@ Windows/Linux numeric checks and Windows host compilation passed CI on9545506, w
 profiles on both platforms. Inspecting the Linux image then caught blank labels: dependency-free
 Skia lacked its system font provider. That image is rejected as a complete example. The checks now
 require text to alter rendered pixels, and Linux uses fontconfig-enabled assets with explicit fonts.
-Windows passes the updated text gate; corrected Linux hosted execution is pending. Separately,
+Both platforms pass the updated gate on **49c217f**, and both CI images have been inspected. Separately,
 CanvasKit's NOTICE-copy check caught missing attribution and passes after synchronization.
 No package, release or tag was published.
 
-This is Windows **CPU** evidence, not a GPU benchmark, continuous recording, Apple comparison or
+| Rejected Linux example: labels missing | Corrected Linux example: text verified |
+| --- | --- |
+| ![Rejected Linux image](rejected-linux-no-fonts.png) | ![Corrected Linux image](ci-linux.png) |
+
+[Hosted results](hosted.json) preserve each platform's report and image hash. The Windows host also
+compiles on the hosted runner. Its interactive input evidence remains the separate local native
+capture above. The two native jobs and C# CodeQL are required checks on `main`, alongside the
+original seven checks; strict branch freshness and review policy remain unchanged.
+
+These are Windows/Linux **CPU** renderer checks and a Windows native host, not a GPU benchmark,
+continuous recording, Apple comparison or
 validation of additional native frameworks. The host records its own Skia page; arbitrary native
 widgets are not automatically captured. A .NET navigation controller, high-level refracted foreground,
 other native hosts and the full any-stack goal remain open. See [the porting contract](../../../docs/porting.md).
