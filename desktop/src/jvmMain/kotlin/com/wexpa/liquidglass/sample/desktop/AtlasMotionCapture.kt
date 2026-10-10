@@ -115,7 +115,7 @@ internal suspend fun captureAtlasMotion(window: Container, probe: AtlasMotionPro
     suspend fun prepare(scene: Int) {
         if (pressed) send(MouseEvent.MOUSE_RELEASED, lastPoint, false)
         delay(700)
-        val point = if (scene == 0) left else right
+        val point = when (scene) { 0 -> left; 1 -> (left + right) * .5f; else -> right }
         send(MouseEvent.MOUSE_PRESSED, point, true)
         delay(50)
         send(MouseEvent.MOUSE_RELEASED, point, false)
@@ -188,6 +188,69 @@ internal suspend fun captureAtlasMotion(window: Container, probe: AtlasMotionPro
             check(probe.scene == if(reverse)0 else 2) { "Fling lost selection intent: ${probe.scene}" }
         }
         delay(1000);capture("09-fling-recovered")
+        // The owner requested pulls to every SCREEN edge/corner. Preserve the older
+        // far-outside stress cases above, but do not substitute them for these actual
+        // drawable-window bounds. No global screen input or pointer movement is used.
+        val windowWidth = layer.width * scale
+        val windowHeight = layer.height * scale
+        val edgeTargets = listOf(
+            "top" to Offset(windowWidth * .5f, 1f),
+            "bottom" to Offset(windowWidth * .5f, windowHeight - 1f),
+            "left" to Offset(1f, windowHeight * .5f),
+            "right" to Offset(windowWidth - 1f, windowHeight * .5f),
+            "top-left" to Offset(1f, 1f),
+            "top-right" to Offset(windowWidth - 1f, 1f),
+            "bottom-left" to Offset(1f, windowHeight - 1f),
+            "bottom-right" to Offset(windowWidth - 1f, windowHeight - 1f),
+        )
+        for ((label, target) in edgeTargets) {
+            prepare(0)
+            send(MouseEvent.MOUSE_PRESSED, left, true)
+            delay(650)
+            for (step in 1..20) {
+                delay(16)
+                send(MouseEvent.MOUSE_DRAGGED, left + (target - left) * (step / 20f), true)
+            }
+            delay(250)
+            capture("10-window-$label")
+            send(MouseEvent.MOUSE_RELEASED, target, false)
+            delay(700)
+            val expected = if (target.x > bounds.center.x) 2 else 0
+            check(probe.scene == expected) { "Window-$label pull lost selection: ${probe.scene}" }
+        }
+        // Each photographed end state replays several continuous held reversals first.
+        // No snapshot/readback occurs between those moves or releases the held pointer.
+        for (finishLeft in listOf(false, true)) {
+            prepare(0)
+            send(MouseEvent.MOUSE_PRESSED, left, true)
+            delay(650)
+            var point = left
+            val destinations = listOf(right, left, right) + if (finishLeft) listOf(left) else emptyList()
+            for (target in destinations) {
+                val from = point
+                for (step in 1..18) {
+                    delay(16)
+                    point = from + (target - from) * (step / 18f)
+                    send(MouseEvent.MOUSE_DRAGGED, point, true)
+                }
+            }
+            capture("11-held-reversals-${if (finishLeft) "left" else "right"}")
+            send(MouseEvent.MOUSE_RELEASED, point, false)
+            delay(700)
+            check(probe.scene == if (finishLeft) 0 else 2) { "Held reversal lost selection" }
+        }
+        prepare(0)
+        val middle = (left + right) * .5f
+        send(MouseEvent.MOUSE_PRESSED, left, true)
+        delay(650)
+        for (step in 1..36) {
+            delay(24)
+            send(MouseEvent.MOUSE_DRAGGED, left + (middle - left) * (step / 36f), true)
+        }
+        send(MouseEvent.MOUSE_RELEASED, middle, false)
+        delay(180); capture("12-soft-middle-landing")
+        check(probe.scene == 1) { "Soft throw skipped the intermediate tab: ${probe.scene}" }
+        delay(1000); capture("13-middle-recovered")
         checksPassed = true
     } finally {
         try {

@@ -49,6 +49,11 @@ Vitals is outside the current work scope; its commands above remain for maintain
 material/ink/aperture shaders and a CanvasKit adapter. Both have terminal tests and CI;
 neither silently captures content from another UI stack.
 
+`ports/dotnet` adds a native SkiaSharp painter with executable fixture checks and a Windows Forms
+host. See its README for the .NET 8 renderer / .NET 10 desktop prerequisites. On this Windows
+checkout `tools/dotnet-port.ps1` uses an existing private SDK and isolated NuGet cache; it does not
+install an SDK. Supply one on PATH on other machines. Host pixels/input remain explicit.
+
 ### Native motion diagnostics
 
 Atlas can replay navigation input through its own AWT component and save app-owned phase snapshots:
@@ -62,7 +67,10 @@ python tools/plot_native_motion.py $motionOutput --output .local/atlas-motion.pn
 Use a wide desktop window and the default Sky scene. This opt-in diagnostic verifies tap/held-drag
 selection, full-corner pulls and fixed layout bounds. It never moves the OS cursor or reads other
 windows. It also replays early and formed endpoint flings in both directions, then captures recovery.
-The complete sequence produces 21 phase snapshots. Each phase replays its gesture independently because native screenshot readback can be
+The complete sequence produces 33 phase snapshots, including actual drawable-window edges and all
+four corners, sustained held reversals, and a soft intermediate-tab landing. The older far-outside
+diagonal stress cases remain separate. These coordinates cover the app window, not OS-owned areas
+or a physical phone screen. Each phase replays its gesture independently because native screenshot readback can be
 slow. CSV timestamps describe actual input and render-start times; PNG encoding follows input.
 Use `-Patlas.motionReadback=false` with a **different output directory** to replay the same
 assertions without screenshots. This records CSV/metadata only; do not run the image plotter on it.

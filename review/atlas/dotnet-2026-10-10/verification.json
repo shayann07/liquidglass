@@ -1,0 +1,77 @@
+{
+  "runtime": "8.0.31",
+  "platform": "Microsoft Windows 10.0.26300",
+  "checks": [
+    {
+      "check": "three embedded production passes compile and match source",
+      "passed": true
+    },
+    {
+      "check": "profile0 versus independent JVM pixels",
+      "maxChannelError": 0,
+      "passed": true
+    },
+    {
+      "check": "profile1 versus independent JVM pixels",
+      "maxChannelError": 0,
+      "passed": true
+    },
+    {
+      "check": "profile2 versus independent JVM pixels",
+      "maxChannelError": 0,
+      "passed": true
+    },
+    {
+      "check": "profile3 versus independent JVM pixels",
+      "maxChannelError": 0,
+      "passed": true
+    },
+    {
+      "check": "invalid uniform, missing child and disposed effect rejected",
+      "passed": true
+    },
+    {
+      "check": "identity, zoom, monotonic source map, borrowed image and canvas state",
+      "passed": true
+    },
+    {
+      "check": "in-app material, cached redraw, source replacement, partial surface",
+      "passed": true
+    },
+    {
+      "check": "host backdrop recording, owned snapshot and atomic failed callback",
+      "passed": true
+    },
+    {
+      "check": "native example rendered",
+      "passed": true
+    }
+  ],
+  "date": "2026-10-10",
+  "rendererTarget": "net8.0",
+  "hostTarget": "net10.0-windows10.0.19041.0",
+  "skiaSharp": "4.153.1",
+  "sourceBaseline": "5a813935f9b9a4791a26cc5b546610941710ec99 with new native adapter",
+  "host": {
+    "backend": "SkiaSharp Windows Forms SKControl (CPU)",
+    "captures": 4,
+    "input": "app-owned OnMouseDown/Move/Up replay, including capture release",
+    "dragPassed": true,
+    "resizePassed": true,
+    "limits": "Four phase captures; no GPU, iOS motion, presented FPS or arbitrary native-widget backdrop claim."
+  },
+  "visualInspection": "Native CPU example and four Windows Forms canvas frames inspected. Continuous grid lens, dark card, drag relocation, reduced-transparency light card and resize visible.",
+  "sourceSha256": {
+    "ports/dotnet/Checks/Checks.csproj": "524bb58d07504e7b2abe8f8fd438ca047b2f13071852c352497e351992ba9fae",
+    "ports/dotnet/Checks/packages.lock.json": "5119490863104c6f428028eebd57e7c7655f835790b751d20d9b7e92cbbc7466",
+    "ports/dotnet/Checks/Program.cs": "4491222188362109cd58f83858a3d2061ca1c78885e99dcb9c7083897da46956",
+    "ports/dotnet/LiquidGlass.Skia/GlassEffects.cs": "9639b4a063340108eb3e4144e877485a2cc3918c3637f8786fd358702a5a57b7",
+    "ports/dotnet/LiquidGlass.Skia/GlassPainter.cs": "96f1d892e899801a9c821fa4a7dcdd3a720b708e80d33e5f75e828319441abf0",
+    "ports/dotnet/LiquidGlass.Skia/LiquidGlass.Skia.csproj": "8162bdba2263e4b2d9eb354375f8f1a6c2eeb861bf615e945499166e743f65cb",
+    "ports/dotnet/LiquidGlass.Skia/packages.lock.json": "bf87668920f872d3b3d622d7820cd3175642937a309986c8e3c0182509a82a01",
+    "ports/dotnet/WinFormsDemo/packages.lock.json": "2d0895890debeb505bb434f5bb01400fa175252dcf2bb035873327b214dded31",
+    "ports/dotnet/WinFormsDemo/Program.cs": "1cc301d70d5ac8ff1149a783cb28a05f24f64985a5f59c7562d5e3d02be4fdb1",
+    "ports/dotnet/WinFormsDemo/WinFormsDemo.csproj": "7bcf88222e62fbe4492c940872d1f8e9492fb0c14fc00d1b33d91e85f1113455"
+  },
+  "limits": "Local Windows CPU evidence only; CI Windows/Linux pending. No GPU, presented FPS, iOS motion/optical parity or additional native host support claim. Navigation and arbitrary native-widget capture remain separate work."
+}

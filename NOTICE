@@ -79,3 +79,10 @@ The optional ports/skia adapter depends on CanvasKit (Google Skia), BSD-3-Clause
 CanvasKit is installed separately from npm; preserve its LICENSE and bundled
 third-party notices when distributing its JavaScript/WASM runtime. The generated
 SkSL bundle is this project's production source and retains the attributions above.
+
+The optional ports/dotnet adapter depends on SkiaSharp (Microsoft/Xamarin), MIT.
+The Windows Forms example also uses SkiaSharp Views and its OpenTK dependencies.
+These dependencies are restored separately from NuGet. Preserve their LICENSE and
+THIRD-PARTY-NOTICES files, including Google Skia's BSD license and native third-party
+notices, when redistributing binaries. The adapter itself is Apache-2.0 and embeds
+the same production SkSL source; no Apple runtime or assets are included.

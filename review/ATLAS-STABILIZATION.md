@@ -1338,3 +1338,19 @@ packed-mask attempt failed native GPU cropping and remains rejected. Full verifi
 329library passes/27optional skips,2Atlas passes and Android assembly after targeted uniform-list
 and Android-overload repairs.20portable Skia tests/types pass. No physical device or full1:1,
 owner acceptance, presented-frame rate or every-stack integration claim is made.
+
+## Native boundary replay and .NET host — 10 October 2026
+
+The [33-phase Atlas replay](atlas/all-gestures-2026-10-10/README.md) adds every drawable-window edge
+and corner, sustained held reversals and middle-tab landing/recovery. Both Atlas tests and native
+selection/layout checks pass. All app-owned images were inspected. Window boundaries are distinct
+from a physical phone screen; snapshots and concurrent test/capture timings do not prove continuous
+iOS motion, the complete reference envelope or presented-frame performance.
+
+The [native .NET packet](atlas/dotnet-2026-10-10/README.md) demonstrates production SkSL on SkiaSharp
+with a source-only painter and real Windows Forms host. Four JVM profile fixtures match exactly;
+ten native check groups and the app-owned drag/resize replay pass. The painter shares a backdrop
+across lenses/cards and can own a host-drawing snapshot. Windows/Linux renderer CI, Windows host
+compilation, C# CodeQL and NuGet dependency updates are added. Those new hosted checks await this
+checkpoint's push. Other native hosts, .NET selector dynamics and arbitrary-widget capture remain
+open; Compose plus these bindings is not declared universal-stack completion.

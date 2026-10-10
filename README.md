@@ -122,6 +122,7 @@ covers the shared compositor contract, GPU input bounds, memory cost and Android
 | Desktop JVM | Skia renderer; native Windows capture verified in the review record |
 | Compose iOS / native SwiftUI | No packaged renderer yet |
 | Web / JS frameworks | [Dependency-free lens preview](ports/web/README.md), or the [production Skia shader adapter](ports/skia/README.md); supply the backdrop explicitly |
+| .NET / SkiaSharp | [Native painter and runnable Windows Forms example](ports/dotnet/README.md); Windows CPU rendering verified, host backdrop explicit |
 | Other Skia hosts | Generated material, content and aperture shaders; native bindings still need host integration and tests |
 | Other frameworks | See the [porting contract](docs/porting.md); native adapters remain work in progress |
 
@@ -143,6 +144,13 @@ Clamped tone sampling preserves opaque backdrops even at tiny sizes and screen e
 For motion, `createCalmInteraction` supplies framework-independent press/pull, cancellation, viewport
 containment and reduced motion. Feed timestamps and cumulative displacement; the scene applies the
 matrix, or your custom renderer can consume it. [Portable feedback API](docs/porting.md#portable-calm-feedback).
+
+For native .NET, `GlassPainter` draws those production shaders directly on an `SKCanvas`. A shared
+source image serves multiple lenses/cards; `RecordBackdrop` can own a host-drawing snapshot.
+The [Windows Forms example](ports/dotnet/WinFormsDemo/Program.cs) includes mouse/keyboard lens controls,
+resize and transparency/contrast options. Four JVM profile fixtures match exactly on the verified
+Windows CPU backend. This adapter does not yet provide the navigation controller or capture arbitrary
+native widgets. [Setup, lifecycle and remaining platform gaps](ports/dotnet/README.md).
 
 Published stable version, with the original API:
 

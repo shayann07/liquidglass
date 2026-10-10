@@ -100,3 +100,37 @@ jobs:
           path: ports/skia/build/*.png
           if-no-files-found: ignore
           retention-days: 14
+
+  dotnet-port:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_GENERATE_ASPNET_CERTIFICATE: 'false'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+      - run: dotnet restore ports/dotnet/Checks/Checks.csproj --locked-mode
+      - run: dotnet build ports/dotnet/Checks/Checks.csproj --no-restore
+      - run: dotnet ports/dotnet/Checks/bin/Debug/net8.0/Checks.dll ports/dotnet/artifacts
+      - name: Build Windows Forms host
+        if: runner.os == 'Windows'
+        run: |
+          dotnet restore ports/dotnet/WinFormsDemo/WinFormsDemo.csproj --locked-mode
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet build ports/dotnet/WinFormsDemo/WinFormsDemo.csproj --no-restore
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: dotnet-renderer-proof-${{ matrix.os }}
+          path: ports/dotnet/artifacts/
+          if-no-files-found: ignore
+          retention-days: 14

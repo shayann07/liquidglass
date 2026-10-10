@@ -12,8 +12,9 @@ Separate the material, motion and host integration instead of duplicating a samp
 | Android Views | Place a ComposeView over a Compose-recorded backdrop, or supply an independent renderer | Bridge work required for a View-owned backdrop; no transparent capture of arbitrary Views |
 | React, Vue, Svelte, Angular, vanilla HTML | ES module with a supplied canvas/image/video texture | Continuous lens preview in `ports/web`; not the full measured material |
 | CanvasKit / another Skia RuntimeEffect host | Generated production material, content and aperture shaders in `ports/skia` | CanvasKit software rendering verified against JVM pixels; host capture/input remain explicit |
+| .NET / SkiaSharp | `GlassPainter` on an `SKCanvas`, plus a runnable Windows Forms host | Native Windows CPU fixture/lifecycle/input checks passed; Windows/Linux renderer jobs in CI; additional native hosts unverified |
 | Electron, Tauri, browser WebViews | Same web module, where WebGL and origin-clean textures are available | Host lifecycle/permissions must be tested |
-| SwiftUI, Flutter, React Native, Qt, Unity, native desktop | Implement the renderer contract below or embed a supported surface | No native adapter shipped yet; not a claim of drop-in support |
+| SwiftUI, Flutter, React Native, Qt, Unity, other native hosts | Implement the renderer contract below or embed a supported surface | No dedicated native adapter shipped for these hosts; not a claim of drop-in support |
 
 The [web preview source](https://github.com/shayann07/liquidglass/tree/main/ports/web) has no runtime
 package dependency. Copy the modules with their Apache-2.0 notices, or vendor them at a pinned revision.
@@ -56,12 +57,23 @@ belong to the integration. No arbitrary-view capture or drop-in support for unte
 
 ## The small contract
 
+For native .NET, the [SkiaSharp adapter](https://github.com/shayann07/liquidglass/tree/main/ports/dotnet)
+embeds the production shaders at build time. `GlassPainter.SetSource(SKImage)` borrows a shared
+backdrop; `DrawLens` and `DrawSurface` draw directly on the host canvas. `RecordBackdrop` can own a
+snapshot of a host-supplied drawing callback, excluding glass overlays. Its Windows Forms example
+demonstrates actual control painting, dragging, keyboard movement, resize and preference controls.
+The renderer targets .NET 8; the desktop example needs .NET 10 and Windows. Native Windows CPU
+pixels match the four independent JVM profile fixtures exactly. The adapter has Windows/Linux
+renderer CI and Windows host compilation; additional native hosts/GPU execution are not verified.
+It does not yet port selector motion, capture arbitrary native widgets or wire separate foreground
+passes at the high level. See its README for build commands, resource ownership and native assets.
+
 For a CanvasKit host, start with `createGlassScene` from the local `liquidglass-skia-preview` package.
 It combines one borrowed source image, multiple lenses/cards, calm interaction and drawing transforms.
 This removes per-widget matrix setup and uses logical coordinates with an explicit `pixelRatio`.
 The host still supplies input, labels, accessible controls, frame scheduling and a matching source/canvas.
-The root scene, painter and interaction exports have TypeScript declarations; native bindings for
-other languages are still separate work. See the
+The root scene, painter and interaction exports have TypeScript declarations; additional native
+bindings and a .NET motion controller remain separate work. See the
 [scene example and lifecycle](https://github.com/shayann07/liquidglass/blob/main/ports/skia/README.md#start-with-one-scene).
 
 ```js

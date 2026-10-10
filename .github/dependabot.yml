@@ -40,3 +40,11 @@ updates:
     groups:
       skia-runtime:
         patterns: ['*']
+  - package-ecosystem: nuget
+    directory: /ports/dotnet
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 1
+    groups:
+      skia-native-runtime:
+        patterns: ['SkiaSharp*']

@@ -1,6 +1,6 @@
 # LiquidGlass / Atlas progress and recovery
 
-Updated 2026-10-09. **Goal active: full 1:1 iOS parity is not established.**
+Updated 2026-10-10. **Goal active: full 1:1 iOS parity is not established.**
 Read this first after an interruption. Detailed history lives in the
 [review](review/ATLAS-STABILIZATION.md) and [verification ledger](review/atlas/verification.json).
 
@@ -24,8 +24,14 @@ caps on both backgrounds. A thin glass rim remains during recovery.
   1647.7ms remains a diagnostic outlier, not an accepted performance result.
 - No local verification process remains running. Sessions27266/50471 are terminal. Do not repeat
   these completed suites. Exact reports and source hashes are in the material packet/ledger.
-- Preparing commit/push of the verified work. Current preceding HEAD/origin **4a2c50f** passed all
-  seven required hosted checks. Use the local checkpoint for the subsequent revision/run.
+- Endpoint/material correction is pushed as **5a81393**, with all seven required hosted checks
+  passing. Fresh hosted build31m4s / Gradle30m29s; no old run remains live.
+- [Expanded native replay](review/atlas/all-gestures-2026-10-10/README.md):33 phases cover all eight
+  app-window boundaries, held reversals and middle landing/recovery; selection/layout checks and
+  both Atlas tests pass. All images inspected. Concurrent capture/tests prohibit performance claims.
+- [Native .NET integration](review/atlas/dotnet-2026-10-10/README.md):painter, owned/borrowed backdrop
+  paths and runnable Windows Forms host. Ten native check groups pass; four JVM profiles match
+  exactly. Host builds and app-owned drag/resize captures pass. Windows/Linux CI added, pending push.
 - Canonical checkout: `D:/Work/AndroidStudioProjects/SideProjects/kmp/liquidglass`.
 - Branch: `codex/atlas-stabilization`; [draft PR #6](https://github.com/shayann07/liquidglass/pull/6).
 - Commit/push/final merge authorized; no releases, tags or blanket PR6 review bypass.
@@ -83,11 +89,11 @@ the historical spring's source comment is corrected, without changing its value.
 | ID | Requested outcome | Verified work / remaining gap |
 | --- | --- | --- |
 | M1 | Distance-dependent tap, hold and throw | Consecutive endpoint width/edge recovery improved and dark exterior tint corrected. Full contour/optical timing across all supplied gestures remains open. |
-| M2 | Whole-bar squeeze, subtle corner extremes | Shared bounded material/ink transform; fixed layout/hit targets; original vertical asymmetry audited. Horizontal ink drift and exact optical mechanism remain. |
+| M2 | Whole-bar squeeze, subtle corner extremes | Shared bounded transform and all eight native window-boundary snapshots; fixed layout/hit targets. Exact iOS envelope/optical behavior across directions remains incomplete. |
 | M3 | Calm generic controls | Existing card limits, accessibility and gesture ownership verified. Preserve them through further changes. |
 | O1 | Continuous glass without a split rim | Standalone continuous lens and endpoint regressions passed. Full Apple optics and Android endpoint precision remain unproven. |
 | A1 | Atlas UI and credible performance | Redesigned studio, native phase captures and stable input checks. Presented-frame performance, owner acceptance and later physical-device verification remain. |
-| P1 | Easy integration across UI stacks | Compose scene and typed CanvasKit scene share a backdrop with multiple surfaces. More native bindings and automatic host backdrop capture remain absent. |
+| P1 | Easy integration across UI stacks | Compose/CanvasKit scenes plus native .NET painter and runnable WinForms host. More native hosts, .NET motion and arbitrary-widget capture remain incomplete. |
 | D1 | Open-source documentation | README, usage, research and evidence maintained; keep statements tied to the actual verified commit. |
 | C1 | Free CI, licensing and protection | Apache-2.0/NOTICE, CodeQL, Dependabot and seven protected checks configured. Final review/merge remains after implementation acceptance. |
 
