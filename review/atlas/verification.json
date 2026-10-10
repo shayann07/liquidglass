@@ -1884,7 +1884,7 @@
         "passed": true
       },
       {
-        "check": "native example rendered",
+        "check": "native example and visible text rendered",
         "passed": true
       }
     ],
@@ -1903,9 +1903,9 @@
     },
     "visualInspection": "Native CPU example and four Windows Forms canvas frames inspected. Continuous grid lens, dark card, drag relocation, reduced-transparency light card and resize visible.",
     "sourceSha256": {
-      "ports/dotnet/Checks/Checks.csproj": "524bb58d07504e7b2abe8f8fd438ca047b2f13071852c352497e351992ba9fae",
-      "ports/dotnet/Checks/packages.lock.json": "5119490863104c6f428028eebd57e7c7655f835790b751d20d9b7e92cbbc7466",
-      "ports/dotnet/Checks/Program.cs": "4491222188362109cd58f83858a3d2061ca1c78885e99dcb9c7083897da46956",
+      "ports/dotnet/Checks/Checks.csproj": "f1dce19dd2c2d65dcfeef5ed279907d6bbcf1bbe4bb39a3a861b3807b698dba7",
+      "ports/dotnet/Checks/packages.lock.json": "8a3252523bb8cee55d156cf4ee76400034f7faf8799357bb0ad8754307c01979",
+      "ports/dotnet/Checks/Program.cs": "5b790b0a45bcc6cedfcdd66f737cf260c99a1703be6d82b1711d35bf7d23ce8c",
       "ports/dotnet/LiquidGlass.Skia/GlassEffects.cs": "9639b4a063340108eb3e4144e877485a2cc3918c3637f8786fd358702a5a57b7",
       "ports/dotnet/LiquidGlass.Skia/GlassPainter.cs": "96f1d892e899801a9c821fa4a7dcdd3a720b708e80d33e5f75e828319441abf0",
       "ports/dotnet/LiquidGlass.Skia/LiquidGlass.Skia.csproj": "8162bdba2263e4b2d9eb354375f8f1a6c2eeb861bf615e945499166e743f65cb",

@@ -34,8 +34,13 @@ The renderer executable passed **10 check groups** on Windows / .NET 8.0.31 / Sk
 
 [Renderer verification](verification.json) includes exact source hashes and every check group.
 [Host verification](host-verification.json) identifies the native control and input method.
-Windows/Linux checks and Windows host compilation are added to CI; their initial hosted execution is
-pending for this checkpoint. No package, release or tag was published.
+Windows/Linux numeric checks and Windows host compilation passed CI on9545506, with four zero-error
+profiles on both platforms. Inspecting the Linux image then caught blank labels: dependency-free
+Skia lacked its system font provider. That image is rejected as a complete example. The checks now
+require text to alter rendered pixels, and Linux uses fontconfig-enabled assets with explicit fonts.
+Windows passes the updated text gate; corrected Linux hosted execution is pending. Separately,
+CanvasKit's NOTICE-copy check caught missing attribution and passes after synchronization.
+No package, release or tag was published.
 
 This is Windows **CPU** evidence, not a GPU benchmark, continuous recording, Apple comparison or
 validation of additional native frameworks. The host records its own Skia page; arbitrary native

@@ -6,7 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../LiquidGlass.Skia/LiquidGlass.Skia.csproj" />
-    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.153.1" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="4.153.1" />
     <None Include="../../skia/fixtures/*.rgba" Link="fixtures/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../skia/shaders/*.sksl" Link="shaders/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

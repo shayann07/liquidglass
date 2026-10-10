@@ -24,7 +24,8 @@ dotnet ports/dotnet/Checks/bin/Debug/net8.0/Checks.dll ports/dotnet/artifacts
 The executable writes `verification.json` and example PNGs, and exits nonzero on failure. It compares
 all four material profiles against independent JVM RGBA fixtures, compiles all three production
 passes, and checks source mapping, ownership, cache invalidation and failed host recording.
-Linux native assets are included in the checks project. Windows/Linux jobs run these checks in CI;
+Linux native assets are included in the checks project. Install `libfontconfig1` and a font such as
+`fonts-dejavu-core` on Ubuntu to render the example's labels. Windows/Linux jobs run these checks in CI;
 consult their result for the revision being used.
 
 On Windows, run the interactive example:
@@ -47,8 +48,9 @@ Build with that wrapper, then execute the DLL with the system `dotnet` when its 
 
 Reference `LiquidGlass.Skia/LiquidGlass.Skia.csproj` from your project. Keep `ports/skia/shaders`
 alongside it: the build embeds those production exports. The built DLL does not fetch shader files
-at runtime. For a Linux host, add the matching `SkiaSharp.NativeAssets.Linux.NoDependencies` package;
-other platforms need their matching native SkiaSharp assets.
+at runtime. For a Linux host, add the matching `SkiaSharp.NativeAssets.Linux` package and install
+fontconfig/fonts. The dependency-free variant has no system font provider; a host using it must
+supply its own font files when drawing text. Other platforms need their matching native assets.
 
 ```csharp
 using LiquidGlass.Skia;

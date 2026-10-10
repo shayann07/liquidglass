@@ -135,12 +135,16 @@ using (var painter = new GlassPainter())
     painter.DrawLens(surface.Canvas, SKRect.Create(375, 45, 180, 180), 1.4f);
     painter.DrawSurface(surface.Canvas, SKRect.Create(32, 225, 300, 95), 24, new(Dark: true, TintAmount: 50));
     using var paint = new SKPaint { Color = new SKColor(220, 240, 242), IsAntialias = true };
+    var withoutText = Pixels(surface, 640, 360);
     using var font = new SKFont(SKTypeface.Default, 20);
     surface.Canvas.DrawText("LiquidGlass · native .NET", 48, 263, SKTextAlign.Left, font, paint);
     using var small = new SKFont(SKTypeface.Default, 13);
     surface.Canvas.DrawText("Shared source. Production SkSL.", 48, 289, SKTextAlign.Left, small, paint);
+    var withText = Pixels(surface, 640, 360);
+    var changedTextChannels = withoutText.Zip(withText, (a, b) => a != b ? 1 : 0).Sum();
+    Check(changedTextChannels > 100, "Native example labels are blank; install a font provider and fonts");
     Save(surface, "atlas-native-dotnet.png");
 }
-results.Add(new { check = "native example rendered", passed = true });
+results.Add(new { check = "native example and visible text rendered", passed = true });
 File.WriteAllText(Path.Combine(output, "verification.json"), JsonSerializer.Serialize(new { runtime = Environment.Version.ToString(), platform = RuntimeInformation.OSDescription, checks = results }, new JsonSerializerOptions { WriteIndented = true }));
 Console.WriteLine(JsonSerializer.Serialize(results, new JsonSerializerOptions { WriteIndented = true }));

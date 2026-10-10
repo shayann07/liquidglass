@@ -31,7 +31,9 @@ caps on both backgrounds. A thin glass rim remains during recovery.
   both Atlas tests pass. All images inspected. Concurrent capture/tests prohibit performance claims.
 - [Native .NET integration](review/atlas/dotnet-2026-10-10/README.md):painter, owned/borrowed backdrop
   paths and runnable Windows Forms host. Ten native check groups pass; four JVM profiles match
-  exactly. Host builds and app-owned drag/resize captures pass. Windows/Linux CI added, pending push.
+  exactly. Host builds and app-owned drag/resize captures pass. Windows/Linux numeric CI passed on
+  9545506; Linux artifact review caught blank labels. Font-provider setup and a visible-text gate
+  address that separately; follow-up hosted verification pending. CanvasKit NOTICE drift also repaired.
 - Canonical checkout: `D:/Work/AndroidStudioProjects/SideProjects/kmp/liquidglass`.
 - Branch: `codex/atlas-stabilization`; [draft PR #6](https://github.com/shayann07/liquidglass/pull/6).
 - Commit/push/final merge authorized; no releases, tags or blanket PR6 review bypass.
@@ -95,7 +97,7 @@ the historical spring's source comment is corrected, without changing its value.
 | A1 | Atlas UI and credible performance | Redesigned studio, native phase captures and stable input checks. Presented-frame performance, owner acceptance and later physical-device verification remain. |
 | P1 | Easy integration across UI stacks | Compose/CanvasKit scenes plus native .NET painter and runnable WinForms host. More native hosts, .NET motion and arbitrary-widget capture remain incomplete. |
 | D1 | Open-source documentation | README, usage, research and evidence maintained; keep statements tied to the actual verified commit. |
-| C1 | Free CI, licensing and protection | Apache-2.0/NOTICE, CodeQL, Dependabot and seven protected checks configured. Final review/merge remains after implementation acceptance. |
+| C1 | Free CI, licensing and protection | Apache-2.0/NOTICE, CodeQL, Dependabot and ten protected checks configured, including both .NET platforms and C#. Final review/merge remains after implementation acceptance. |
 
 ## Resume in this order
 
