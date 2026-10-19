@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Checks the Unity package without Unity: GlassMaterial.cs against the shared material fixture, and
+       the generated HLSL compiled by FXC (ps_5_0, the profile Unity's D3D11 path uses) and rendered on
+       D3D11's WARP software device. Windows only. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../com.shayxo.liquidglass/Runtime/GlassMaterial.cs" Link="GlassMaterial.cs" />
+    <Compile Include="../com.shayxo.liquidglass/Runtime/GlassUniforms.g.cs" Link="GlassUniforms.g.cs" />
+    <PackageReference Include="Vortice.Direct3D11" Version="3.8.3" />
+    <PackageReference Include="Vortice.D3DCompiler" Version="3.8.3" />
+  </ItemGroup>
+</Project>

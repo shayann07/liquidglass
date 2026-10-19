@@ -1,0 +1,16 @@
+{
+  "name": "com.shayxo.liquidglass",
+  "version": "0.3.0-dev",
+  "displayName": "LiquidGlass",
+  "description": "Liquid Glass for Unity, measured against iOS: the liquidglass production material as a shader for the Built-in pipeline (GrabPass) and URP (opaque texture), with a GlassSurface component for quads and UI. iOS is not a target.",
+  "unity": "2022.3",
+  "license": "Apache-2.0",
+  "keywords": ["liquid glass", "glass", "glassmorphism", "refraction", "shader", "ui"],
+  "author": { "name": "shayann07", "url": "https://github.com/shayann07" },
+  "documentationUrl": "https://liquidglass.shayxo.dev/unity/",
+  "changelogUrl": "https://github.com/shayann07/liquidglass/blob/main/CHANGELOG.md",
+  "licensesUrl": "https://github.com/shayann07/liquidglass/blob/main/LICENSE",
+  "dependencies": {
+    "com.unity.ugui": "1.0.0"
+  }
+}

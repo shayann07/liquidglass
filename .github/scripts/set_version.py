@@ -6,7 +6,10 @@
 One number covers every artifact: gradle.properties VERSION_NAME is read by the Gradle builds (the
 library, Material 3, BOM and plugin), the NuGet packages (ports/dotnet/Package.props) and the npm job
 (which stamps it at publish time). The .NET lock files record it too, for the demos' project
-references, so they are rewritten here rather than by a restore.
+references, so they are rewritten here rather than by a restore. The Flutter package (pub.dev
+`liquiglass`) writes it in ports/flutter/pubspec.yaml with -SNAPSHOT spelt -dev, as Dart does, and heads
+its CHANGELOG with it (a -dev heading is renamed, a released one gets a new heading above it); the
+Unity package's package.json takes the same spelling.
 """
 import pathlib
 import re
@@ -58,6 +61,13 @@ def main() -> int:
     if line and line.group(1) == old_pub:
         write(pubspec, body[:line.start(1)] + new_pub + body[line.end(1):])
         changed.append(pubspec)
+    upm = ROOT / "ports" / "unity" / "com.shayxo.liquidglass" / "package.json"
+    if upm.exists():
+        body = read(upm)
+        line = re.search(r'"version": "([^"]+)"', body)
+        if line and line.group(1) == old_pub:
+            write(upm, body[:line.start(1)] + new_pub + body[line.end(1):])
+            changed.append(upm)
     log = ROOT / "ports" / "flutter" / "CHANGELOG.md"
     body = read(log)
     heading = re.search(r"(?m)^## (\S+)[ \t]*$", body)
