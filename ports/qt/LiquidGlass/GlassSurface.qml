@@ -30,9 +30,10 @@ Item {
     property bool followsMovement: false
     /** Children are drawn on top of the glass. */
     default property alias content: contentItem.data
-    /** The shader's status (ShaderEffect.Compiled, .Error) and its log, for diagnostics. */
-    readonly property alias status: effect.status
-    readonly property alias log: effect.log
+    /** The shader's status (ShaderEffect.Compiled 0, Uncompiled 1, Error 2) and its log, for diagnostics.
+        An int, so hosts that cannot convert the enum (PySide) can read it. */
+    readonly property int shaderStatus: effect.status
+    readonly property string shaderLog: effect.log
 
     // Two device pixels around the glass for the outer contour, as in every port.
     readonly property real dpr: Screen.devicePixelRatio > 0 ? Screen.devicePixelRatio : 1

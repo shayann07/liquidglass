@@ -65,12 +65,19 @@ def main() -> int:
         if not ok:
             failures.append(what)
 
-    def step(n=[0]):
+    def step():
+        try:
+            advance()
+        except Exception as e:  # a harness error fails now, not at the watchdog
+            print(f"FAIL {type(e).__name__}: {e}", file=sys.stderr)
+            app.exit(3)
+
+    def advance(n=[0]):
         n[0] += 1
         if n[0] == 1:  # first frames rendered: shader status (Compiled 0, Uncompiled 1, Error 2)
             for name, glass in (("card", card), ("bar", bar)):
-                status = glass.property("status")
-                check(int(status) == 0, f"{name} shader compiled (status {int(status)}) {glass.property('log') or ''}".strip())
+                status = glass.property("shaderStatus")
+                check(status == 0, f"{name} shader compiled (status {status}) {glass.property('shaderLog') or ''}".strip())
             shots["glass"] = window.grabWindow()
             card.setProperty("visible", False)
             bar.setProperty("visible", False)
