@@ -24,6 +24,10 @@ Item {
     /** 0 to 1, the accessibility settings. */
     property real reducedTransparency: 0
     property real increasedContrast: 0
+    /** Re-map the glass onto the backdrop every frame, for glass or a backdrop that moves without
+        changing its geometry properties (inside an animated parent, say). A backdrop that scrolls its
+        own content, like a ListView, needs none of this: the glass stays where it is over it. */
+    property bool followsMovement: false
     /** Children are drawn on top of the glass. */
     default property alias content: contentItem.data
     /** The shader's status (ShaderEffect.Compiled, .Error) and its log, for diagnostics. */
@@ -76,14 +80,23 @@ Item {
         anchors.fill: parent
     }
 
-    // The glass follows the backdrop as either moves (a scrolled page, an animated card).
     FrameAnimation {
-        running: root.visible && root.backdrop !== null
+        running: root.followsMovement && root.visible && root.backdrop !== null
         onTriggered: root.updateSourceRect()
     }
+    onXChanged: updateSourceRect()
+    onYChanged: updateSourceRect()
+    Connections {
+        target: root.backdrop
+        ignoreUnknownSignals: true
+        function onXChanged() { root.updateSourceRect() }
+        function onYChanged() { root.updateSourceRect() }
+        function onWidthChanged() { root.updateSourceRect() }
+        function onHeightChanged() { root.updateSourceRect() }
+    }
 
-    onWidthChanged: Qt.callLater(updateUniforms)
-    onHeightChanged: Qt.callLater(updateUniforms)
+    onWidthChanged: { Qt.callLater(updateUniforms); updateSourceRect() }
+    onHeightChanged: { Qt.callLater(updateUniforms); updateSourceRect() }
     onRadiusChanged: Qt.callLater(updateUniforms)
     onDarkChanged: Qt.callLater(updateUniforms)
     onTintAmountChanged: Qt.callLater(updateUniforms)

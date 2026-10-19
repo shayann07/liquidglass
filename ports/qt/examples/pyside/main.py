@@ -106,6 +106,11 @@ def main() -> int:
             return
         QTimer.singleShot(400, step)
 
+    def watchdog():
+        print("FAIL the example did not finish within 180 s", file=sys.stderr)
+        app.exit(2)
+
+    QTimer.singleShot(180_000, watchdog)
     QTimer.singleShot(800, step)
     return app.exec()
 

@@ -292,8 +292,10 @@ jobs:
         env:
           QT_QPA_PLATFORM: xcb
           QSG_RHI_BACKEND: opengl
+          QSG_RENDER_LOOP: basic
           LIBGL_ALWAYS_SOFTWARE: '1'
           QSG_INFO: '1'
+        timeout-minutes: 8
         run: xvfb-run -a -s "-screen 0 1280x1024x24" python examples/pyside/main.py --grab build/qt
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
