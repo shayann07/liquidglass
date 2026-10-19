@@ -13,6 +13,8 @@ from pathlib import Path
 from PySide6.QtCore import QObject, QTimer, QUrl
 from PySide6.QtGui import QGuiApplication, QImage
 from PySide6.QtQml import QQmlApplicationEngine
+from PySide6.QtQuick import QQuickWindow
+import shiboken6
 
 HERE = Path(__file__).resolve().parent
 MODULES = HERE.parent.parent  # ports/qt, which holds the LiquidGlass module
@@ -53,7 +55,9 @@ def main() -> int:
     if out is None:
         return app.exec()
 
-    window = engine.rootObjects()[0]
+    # PySide wraps the QML Window as a QWindow; re-wrap it to reach QQuickWindow.grabWindow.
+    root = engine.rootObjects()[0]
+    window = shiboken6.wrapInstance(shiboken6.getCppPointer(root)[0], QQuickWindow)
     # By objectName: PySide cannot convert a QML-defined type returned through a property.
     card, bar, view = (window.findChild(QObject, name) for name in ("card", "bar", "list"))
     out.mkdir(parents=True, exist_ok=True)
@@ -74,10 +78,7 @@ def main() -> int:
 
     def advance(n=[0]):
         n[0] += 1
-        if n[0] == 1:  # first frames rendered: shader status (Compiled 0, Uncompiled 1, Error 2)
-            for name, glass in (("card", card), ("bar", bar)):
-                status = glass.property("shaderStatus")
-                check(status == 0, f"{name} shader compiled (status {status}) {glass.property('shaderLog') or ''}".strip())
+        if n[0] == 1:  # first frames rendered
             shots["glass"] = window.grabWindow()
             card.setProperty("visible", False)
             bar.setProperty("visible", False)
@@ -88,6 +89,10 @@ def main() -> int:
             view.setProperty("contentY", view.property("contentY") + 150)  # scroll: the glass must follow
         elif n[0] == 3:
             shots["scrolled"] = window.grabWindow()
+            # Shader status, after several frames (compilation is lazy): Compiled 0, Uncompiled 1, Error 2.
+            for name, glass in (("card", card), ("bar", bar)):
+                status = glass.property("shaderStatus")
+                check(status == 0, f"{name} shader compiled (status {status}) {glass.property('shaderLog') or ''}".strip())
             dpr = shots["glass"].devicePixelRatio()
             px = lambda v: int(round(v * dpr))
             regions = {
