@@ -40,6 +40,7 @@ Window {
         id: card
         objectName: "card"
         backdrop: list
+        backdropColor: window.color   // the list's empty top margin shows the window
         x: 20; y: 56; width: parent.width - 40; height: 116
         radius: 28
         light: Qt.point(0, -1)
@@ -54,6 +55,7 @@ Window {
         id: bar
         objectName: "bar"
         backdrop: list
+        backdropColor: window.color
         x: 20; y: parent.height - 72 - 28; width: parent.width - 40; height: 72
         radius: 36
         dark: true

@@ -9,6 +9,9 @@ Item {
 
     /** The item the glass refracts: the page, a ListView, an Image. Keep the glass outside it. */
     property Item backdrop
+    /** What the glass sees where the backdrop is transparent (a ListView's empty margins, say): the
+        window's colour, usually. The material needs an opaque backdrop. */
+    property color backdropColor: "white"
     /** Corner radius, logical pixels. */
     property real radius: 20
     /** The dark material. */
@@ -49,10 +52,12 @@ Item {
 
     function updateUniforms() {
         if (width <= 0 || height <= 0) return
-        effect.setUniforms(Material.uniforms({
+        const values = Material.uniforms({
             radius: radius, dark: dark, tintAmount: tintAmount, light: [light.x, light.y], tint: tint,
             materialize: materialize, reducedTransparency: reducedTransparency, increasedContrast: increasedContrast,
-        }, width * dpr, height * dpr, dpr))
+        }, width * dpr, height * dpr, dpr)
+        values.uBase = [backdropColor.r, backdropColor.g, backdropColor.b]
+        effect.setUniforms(values)
     }
 
     ShaderEffectSource {
@@ -106,6 +111,7 @@ Item {
     onMaterializeChanged: Qt.callLater(updateUniforms)
     onReducedTransparencyChanged: Qt.callLater(updateUniforms)
     onIncreasedContrastChanged: Qt.callLater(updateUniforms)
+    onBackdropColorChanged: Qt.callLater(updateUniforms)
     onDprChanged: Qt.callLater(updateUniforms)
     onBackdropChanged: updateSourceRect()
     Component.onCompleted: { updateUniforms(); updateSourceRect() }

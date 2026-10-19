@@ -1,0 +1,3 @@
+# Compiled by qsb in CI (on Linux); see README.md
+*.qsb
+build/
