@@ -258,6 +258,53 @@ jobs:
           flutter pub publish --dry-run
           cd example && flutter pub get && flutter analyze
 
+  qt:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: ports/qt
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Generated shaders and GlassEffect.qml match the SkSL; the material equals the CanvasKit port's
+        run: node tool/generate_shader.mjs --check && node --test test/material.test.mjs
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: '3.12'
+      - name: Install PySide6, Xvfb and Mesa (software OpenGL)
+        run: |
+          python -m pip install --quiet PySide6==6.11.2
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb libgl1-mesa-dri libegl1 libxkbcommon-x11-0 libxcb-cursor0 libxcb-icccm4 \
+            libxcb-keysyms1 libxcb-image0 libxcb-render-util0 libxcb-xinerama0 libxcb-shape0 fonts-dejavu-core
+      # qsb runs here, on Linux, and nowhere else: on Windows it opens a message box even for --help.
+      - name: Compile the shaders with qsb (GLSL, HLSL, MSL)
+        run: |
+          cd LiquidGlass/shaders
+          for s in liquidglass.vert liquidglass.frag; do
+            pyside6-qsb --glsl "300 es,330" --hlsl 50 --msl 12 -o "$s.qsb" "$s" || exit 1
+          done
+          ls -l *.qsb
+      - name: Render the example offscreen under Xvfb and check the glass's pixels
+        env:
+          QT_QPA_PLATFORM: xcb
+          QSG_RHI_BACKEND: opengl
+          LIBGL_ALWAYS_SOFTWARE: '1'
+          QSG_INFO: '1'
+        run: xvfb-run -a -s "-screen 0 1280x1024x24" python examples/pyside/main.py --grab build/qt
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always()
+        with:
+          name: qt-proof
+          path: |
+            ports/qt/build/qt/*.png
+            ports/qt/LiquidGlass/shaders/*.qsb
+          if-no-files-found: ignore
+          retention-days: 14
+
   maui:
     runs-on: windows-2025 # builds the Android and Windows targets; the Android SDK and a JDK are preinstalled
     timeout-minutes: 40
