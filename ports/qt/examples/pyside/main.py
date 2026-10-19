@@ -10,7 +10,7 @@ did not compile, or if the glass does not change the pixels under it the way gla
 import sys
 from pathlib import Path
 
-from PySide6.QtCore import QTimer, QUrl
+from PySide6.QtCore import QObject, QTimer, QUrl
 from PySide6.QtGui import QGuiApplication, QImage
 from PySide6.QtQml import QQmlApplicationEngine
 
@@ -54,7 +54,8 @@ def main() -> int:
         return app.exec()
 
     window = engine.rootObjects()[0]
-    card, bar, view = window.property("card"), window.property("bar"), window.property("list")
+    # By objectName: PySide cannot convert a QML-defined type returned through a property.
+    card, bar, view = (window.findChild(QObject, name) for name in ("card", "bar", "list"))
     out.mkdir(parents=True, exist_ok=True)
     failures = []
     shots = {}

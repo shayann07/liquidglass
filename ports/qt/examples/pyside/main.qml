@@ -10,15 +10,12 @@ Window {
     color: "#f6f3f8"
     title: "LiquidGlass for Qt Quick"
 
-    property alias list: list
-    property alias card: card
-    property alias bar: bar
-
     readonly property var swatches: ["#e35d6a", "#4c8df6", "#3cc47c", "#f2b33d", "#9b6cf6"]
 
     // The backdrop: an ordinary ListView. The glass sits beside it in the window, over it.
     ListView {
         id: list
+        objectName: "list"
         anchors.fill: parent
         topMargin: 190
         bottomMargin: 140
@@ -41,6 +38,7 @@ Window {
 
     GlassSurface {
         id: card
+        objectName: "card"
         backdrop: list
         x: 20; y: 56; width: parent.width - 40; height: 116
         radius: 28
@@ -54,6 +52,7 @@ Window {
 
     GlassSurface {
         id: bar
+        objectName: "bar"
         backdrop: list
         x: 20; y: parent.height - 72 - 28; width: parent.width - 40; height: 72
         radius: 36
