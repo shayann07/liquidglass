@@ -95,14 +95,27 @@ exactly. This is not a physical device capture.
 
 ### What it costs, and what it costs you
 
-The transform runs on the calling thread, and its cost grows with the padded pixel area. A large
-field can take tens of milliseconds even on a desktop CPU; this is not a device frame-time
-measurement. If you animate a path shape's size continuously it rebuilds every frame. Animate the
-contents, use a closed-form shape, or measure whether a one-off rebuild fits your frame budget.
+The transform's cost grows with the padded pixel area: a large field can take tens of milliseconds
+even on a desktop CPU (44-49 ms at 1080 × 720 px in the JVM probe; not a device frame-time
+measurement). Where it runs depends on what changed:
+
+- **The first field, and a change of shape, padding, band, density or layout direction** are built
+  during composition, before the frame that needs them. The previous field would be the wrong
+  outline or sit at the wrong origin, so no frame is drawn with it, nor with no field at all.
+- **A change of size alone** (a resize or a size animation) is built on a background dispatcher
+  (`Dispatchers.Default`). Until it is ready the panel keeps drawing its previous field, which has
+  the same origin but the old size, so the rim can lag the new edge for the frames the build takes.
+  Resizes requested during a build collapse to the latest size, and a build still pending when the
+  panel leaves composition is dropped. On the web (Wasm) the background dispatcher is the browser's
+  single thread, so the build leaves composition but still runs on the main thread.
+
+So a continuously animated path size no longer rebuilds inside every frame, but its rim follows the
+size a few frames behind. Animate the contents, use a closed-form shape, or measure whether that lag
+is acceptable for your animation.
 
 Shader-incapable backends skip field construction; supported backends reuse a bounded
-shared transform workspace. They reduce allocation without making the computation asynchronous.
-See [performance](performance.md#compose-cache-and-field-behaviour) for the measurements
+shared transform workspace (a concurrent build uses its own temporary arrays). See
+[performance](performance.md#compose-cache-and-field-behaviour) for the measurements
 and retained-memory tradeoff.
 
 Two encoding choices are worth knowing about, because they bound the quality:

@@ -26,6 +26,15 @@ Android frame-rate improvement or make animated path geometry inexpensive.
 
 [Method, raw numbers and reproducible benchmark](https://github.com/shayann07/liquidglass/blob/main/review/atlas/compose-cache-field-2026-10-20/README.md).
 
+**Size-only changes build off composition (#81, 24 October).** The first field, and any change of
+shape, padding, band, density or direction, still builds synchronously so no frame draws the wrong
+outline or none. A resize builds on `Dispatchers.Default` and keeps the previous field until the new
+one is published; resizes during a build are conflated to the latest. The build itself is unchanged
+and bit-identical (`FieldAllocationBenchmarkTest`, 1080 × 720 px: 44.7 ms before, 48.8 ms after in
+one noisy run on a 4-core cloud container, both inside the run-to-run spread); what moves is where
+it runs. On Wasm `Dispatchers.Default` is the main thread, so there it only leaves composition.
+[Method and tests](https://github.com/shayann07/liquidglass/blob/main/review/atlas/pathfield-off-composition-2026-10-24/README.md).
+
 ## Atlas wide and narrow windows — 18 October 2026
 
 Static-scene redraw submission (120 samples after 10 warmups; not presented FPS), three scenes per
@@ -108,8 +117,9 @@ that happen to coincide with the performance ones.
 **Shrink the padding indirectly.** Padding is `refractionDepth × 1.4 + max(blurRadius,
 backdropBlur)`, so dropping `refractionDepth` shrinks every recorded layer.
 
-**Do not animate a path shape's size.** The distance field rebuilds on the calling thread when
-shape or size changes. See [Shapes](shapes.md).
+**Do not animate a path shape's size.** A size change rebuilds the distance field in the
+background (the rim lags the edge until it is ready); a shape change rebuilds it during
+composition. See [Shapes](shapes.md#what-it-costs-and-what-it-costs-you).
 
 **Backdrop-driven inversion is not running.** It read the backdrop back into a bitmap ten times
 a second; since 18 October it is internal and `LiquidGlassTheme` does not use it, so there is
