@@ -11,6 +11,7 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.math.roundToInt
 import kotlin.test.*
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.Runnable
 
 /**
@@ -24,7 +25,11 @@ class GlassPathFieldOffCompositionTest {
     private class HeldDispatcher : CoroutineDispatcher() {
         val queue = ArrayDeque<Runnable>()
         var dispatched = 0
-        override fun dispatch(context: CoroutineContext, block: Runnable) { dispatched++; synchronized(queue) { queue.addLast(block) } }
+        /** The job of the most recently queued build, to check that leaving composition cancels it. */
+        var lastJob: Job? = null
+        override fun dispatch(context: CoroutineContext, block: Runnable) {
+            dispatched++; lastJob = context[Job]; synchronized(queue) { queue.addLast(block) }
+        }
         fun runAll() { while (true) { (synchronized(queue) { queue.removeFirstOrNull() } ?: return).run() } }
         val pending get() = synchronized(queue) { queue.size }
     }
@@ -200,6 +205,7 @@ class GlassPathFieldOffCompositionTest {
             assertEquals(1, held.pending)
             runOnIdle { shown = false }
             waitForIdle()
+            assertFalse(assertNotNull(held.lastJob).isActive, "leaving composition must cancel the queued build")
             held.runAll()
             waitForIdle()
         }
