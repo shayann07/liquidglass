@@ -1,0 +1,12 @@
+run 1 [none] loader=40 ms  first frame=never rendered (60 s) ms  transferred=4469 kB
+    658820f72b4617efb380.wasm      3284 kB  start     18 ms    441 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start     19 ms    121 ms  gzip
+    atlas.js                         97 kB  start     19 ms     20 ms  gzip
+run 1 [fast4g] loader=80 ms  first frame=never rendered (60 s) ms  transferred=4469 kB
+    658820f72b4617efb380.wasm      3284 kB  start     56 ms   4141 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start     57 ms   1889 ms  gzip
+    atlas.js                         97 kB  start     57 ms    172 ms  gzip
+run 1 [slow4g] loader=283 ms  first frame=never rendered (60 s) ms  transferred=4469 kB
+    658820f72b4617efb380.wasm      3284 kB  start    166 ms  23036 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start    166 ms  11643 ms  gzip
+    atlas.js                         97 kB  start    167 ms   1517 ms  gzip
