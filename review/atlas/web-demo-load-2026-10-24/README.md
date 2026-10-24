@@ -31,6 +31,11 @@ changed there (see [Not done](#not-done-and-why)).
   - `context`: Skia's runtime had loaded and made its first WebGL context, so the whole download is in.
   - `ready`: the loader was dismissed after settled frames.
 
+  Since the measurements below were taken, `context` is recorded after `getContext` returns a WebGL
+  context rather than when it is called (CodeRabbit review on PR #91). The tables used the earlier
+  version for both builds alike, so the before/after comparison is unaffected; absolute `context` times
+  may move by the context's creation time.
+
   It also gained the start time of each request, `MEASURE_UNTIL`, `MEASURE_TIMEOUT_S`, and
   `MEASURE_CHANNEL=bundled` for a machine without Chrome.
   [`tools/web_demo_states.mjs`](../../../tools/web_demo_states.mjs) forces the five loader states and

@@ -90,8 +90,9 @@ for (let run = 1; run <= Number(runsArg); run++) {
         // Skia's runtime finishes loading after main() starts; its first WebGL context marks that.
         const getContext = HTMLCanvasElement.prototype.getContext
         HTMLCanvasElement.prototype.getContext = function (type) {
-            if (/webgl/.test(type) && marks.context === undefined) marks.context = performance.now()
-            return getContext.apply(this, arguments)
+            const context = getContext.apply(this, arguments)
+            if (context && /webgl/.test(type) && marks.context === undefined) marks.context = performance.now()
+            return context
         }
         let last = null
         const tick = now => { if (last !== null && marks.ready === undefined) marks.gaps.push(Math.round(now - last)); last = now; requestAnimationFrame(tick) }
