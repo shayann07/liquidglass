@@ -14,7 +14,7 @@ research remains available; this page identifies which later changes supersede i
   run of `tools/benchmarks/pathfield`).
 - A resize of a custom-path panel builds its field off composition and keeps the previous field until
   the new one is ready; the first field and any shape or padding change still build synchronously, so
-  no frame shows the wrong outline. Bit-identical fields; six new tests hold the build and check every
+  no frame shows the wrong outline. Bit-identical fields; seven new tests hold the build and check every
   composed frame. A bounded-resolution build (#81) is still open:
   [evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/pathfield-off-composition-2026-10-24/README.md).
 

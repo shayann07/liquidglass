@@ -151,10 +151,15 @@ private class PathFieldRequest(
 /** The field currently drawn, and the request it was built for. */
 private class PublishedPathField(val request: PathFieldRequest, val field: GlassPathField?)
 
-/** Null for an empty size or an outline the shader evaluates analytically. */
+/**
+ * Null for an empty size or an outline the shader evaluates analytically. A copy, because a shape may
+ * reuse one mutable [Path] for every size, and a background build must not read it while the next
+ * composition rewrites it.
+ */
 private fun Shape.pathFor(size: Size, layoutDirection: LayoutDirection, density: Density): Path? {
     if (size.width <= 0f || size.height <= 0f) return null
-    return (createOutline(size, layoutDirection, density) as? Outline.Generic)?.path
+    val path = (createOutline(size, layoutDirection, density) as? Outline.Generic)?.path ?: return null
+    return Path().apply { fillType = path.fillType; addPath(path) }
 }
 
 /** Builds an independently owned field while borrowing bounded scratch storage if available. */

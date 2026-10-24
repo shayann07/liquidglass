@@ -157,6 +157,35 @@ class GlassPathFieldOffCompositionTest {
         }
     }
 
+    /** A shape that rewrites one Path for every size must not change a build that is already queued. */
+    @Test fun queuedBuildKeepsItsOwnOutlineWhenTheShapeReusesItsPath() = withHeldDispatcher { held ->
+        runComposeUiTest {
+            val reused = Path()
+            val shape = object : Shape {
+                override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
+                    reused.reset()
+                    reused.moveTo(0f, 0f); reused.lineTo(size.width / 2, 12f)
+                    reused.lineTo(size.width, 0f); reused.lineTo(size.width, size.height)
+                    reused.lineTo(0f, size.height); reused.close()
+                    return Outline.Generic(reused)
+                }
+            }
+            var size by mutableStateOf(Size(100f, 60f))
+            var result: GlassPathField? = null
+            setContent {
+                val field = rememberGlassPathField(shape, size, 24f, 16f, density, LayoutDirection.Ltr, enabled = true)
+                SideEffect { result = field }
+            }
+            waitForIdle()
+            runOnIdle { size = Size(140f, 80f) }; waitForIdle()
+            // The 140 x 80 build is queued; the shape now rewrites its one Path for another size.
+            shape.createOutline(Size(60f, 30f), LayoutDirection.Ltr, density)
+            held.runAll()
+            waitUntil(timeoutMillis = 5_000) { result?.layerWidth == 140 + 48 }
+            assertMatchesFreshBuild(notch, Size(140f, 80f), 24f, result)
+        }
+    }
+
     /** A build still pending when the panel leaves composition is dropped without publishing. */
     @Test fun pendingBuildIsDroppedWhenThePanelLeaves() = withHeldDispatcher { held ->
         runComposeUiTest {

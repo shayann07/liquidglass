@@ -18,7 +18,9 @@ same function and its output is bit-identical.
 | size alone, with a field already drawn | `Dispatchers.Default` | the previous field, same origin, old size, until the new one is published |
 
 - The outline is still made on the composition thread (a shape's own code never runs in the
-  background); only the rasterisation and distance transform move.
+  background); only the rasterisation and distance transform move. The path is copied there, because
+  a shape may reuse one mutable `Path` for every size and rewrite it while a build is queued
+  (CodeRabbit review on PR #90).
 - Sizes requested while a build runs are conflated: the running build finishes and is published, then
   the latest size is built; sizes in between are never built.
 - A build still pending when the panel leaves composition, or when its outline changes, is cancelled
@@ -33,7 +35,7 @@ same function and its output is bit-identical.
 ## Tests
 
 [`GlassPathFieldOffCompositionTest`](../../../liquidglass/src/jvmTest/kotlin/com/wexpa/liquidglass/GlassPathFieldOffCompositionTest.kt)
-replaces the build dispatcher with one that queues work until the test releases it, records what every
+(7 tests) replaces the build dispatcher with one that queues work until the test releases it, records what every
 composition returns, and compares each published field texel by texel with an uncached build:
 
 - `firstCompositionReturnsTheFieldSynchronously`: the first composition returns the finished field; no
@@ -47,6 +49,9 @@ composition returns, and compares each published field texel by texel with an un
   first and the last), and the last matches a fresh build.
 - `shapeAndPadChangesBuildSynchronously`: a new shape and a new pad dispatch nothing and match fresh
   builds immediately.
+- `queuedBuildKeepsItsOwnOutlineWhenTheShapeReusesItsPath`: a shape that rewrites one `Path` for every
+  size, rewritten while the 140 × 80 build is queued; the published field still matches a fresh 140 × 80
+  build. Red without the copy, green with it.
 - `pendingBuildIsDroppedWhenThePanelLeaves`: releasing a queued build after the panel left does not
   throw or publish.
 
@@ -78,8 +83,8 @@ for a size-only change none of this time is spent in composition any more.
 ## Verification
 
 - Focused: the benchmark above plus `GlassPathField*Test`, `GlassPadContractTest`,
-  `GlassFieldPadConsumerTest`: 28 tests, 0 failures.
-- Full renderer suite (`./gradlew :liquidglass:jvmTest --rerun`): 436 tests, 409 passed, 27 opt-in skips, 0 failures, 0 errors (22 min 22 s, one Gradle worker).
+  `GlassFieldPadConsumerTest`: 29 tests, 0 failures (after the path copy).
+- Full renderer suite (`./gradlew :liquidglass:jvmTest --rerun`): 437 tests, 410 passed, 27 opt-in skips, 0 failures, 0 errors (22 min 16 s, one Gradle worker; 436/409 before the path copy and its test).
 - Kotlin ABI (`./gradlew :liquidglass:checkKotlinAbi`): not run here: the task configures the Android target and this container has no Android SDK. CI runs `build checkKotlinAbi` on the PR. `:liquidglass:compileKotlinWasmJs` passes locally. Every new declaration is
   `internal` or `private`.
 

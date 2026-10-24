@@ -33,8 +33,8 @@ The owner paused here (usage limit). Resume with these, in order:
 Size-only changes to a custom-path panel build the field on `Dispatchers.Default`; the previous field
 stays until the new one is published, resizes during a build are conflated, a pending build is dropped
 when the panel leaves. First field, empty-to-real size, and shape/pad/band/density/direction changes
-stay synchronous. New `GlassPathFieldOffCompositionTest` (6, held dispatcher); benchmark pixels
-identical; full suite 436 total, 409 passed, 27 skips, 0 failures. ABI/Android not run locally (no
+stay synchronous. New `GlassPathFieldOffCompositionTest` (7, held dispatcher; the path is copied for queued builds); benchmark pixels
+identical; full suite 437 total, 410 passed, 27 skips, 0 failures. ABI/Android not run locally (no
 SDK): CI covers them. Remaining in #81: bounded-resolution build, device timing of the rim lag.
 Record: review/atlas/pathfield-off-composition-2026-10-24/README.md.
 
