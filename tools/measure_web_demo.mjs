@@ -101,7 +101,7 @@ for (let run = 1; run <= Number(runsArg); run++) {
     const timeout = Number(process.env.MEASURE_TIMEOUT_S ?? 90) * 1000
     const t0 = Date.now()
     await page.goto(url, { waitUntil: 'commit' })
-    let loader = null, firstFrame = null
+    let loader = null, firstFrame = null, screenshotFailures = 0
     while (Date.now() - t0 < timeout) {
         const state = await page.evaluate(() => {
             const loader = document.getElementById('loader')
@@ -109,20 +109,19 @@ for (let run = 1; run <= Number(runsArg); run++) {
                 loader: !!loader && loader.dataset.state !== 'ready' && loader.getBoundingClientRect().height > 0,
                 canvas: !!document.querySelector('canvas') || [...document.querySelectorAll('*')].some(e => e.shadowRoot?.querySelector('canvas')),
                 failed: document.getElementById('loader')?.dataset.state === 'failed',
-                ready: document.getElementById('loader')?.dataset.state === 'ready',
             }
         }).catch(() => ({}))
         if (state.loader && loader === null) loader = Date.now() - t0
         if (state.failed) { errors.push('loader reported failure'); break }
-        if (state.ready) { firstFrame = Date.now() - t0; break }
         // MEASURE_UNTIL=started|context stops at that mark: for a machine whose frames are not representative
         // (software GL), where only the download and instantiation can be compared.
         const until = process.env.MEASURE_UNTIL
         if (until && await page.evaluate(m => window.__lgLoad?.[m] !== undefined, until).catch(() => false)) break
         if (state.canvas) {
             // A frame counts once enough of the window differs from the dark page background.
-            const shot = await page.screenshot({ type: 'jpeg', quality: 50, timeout: 5000 }).catch(() => null)
-            if (!shot) continue
+            // A page busy compiling shaders can miss the screenshot deadline: count it, wait, and try again.
+            const shot = await page.screenshot({ type: 'jpeg', quality: 50, timeout: 5000 }).catch(() => { screenshotFailures++; return null })
+            if (!shot) { await page.waitForTimeout(100); continue }
             const bright = await page.evaluate(async b64 => {
                 const img = new Image(); img.src = 'data:image/jpeg;base64,' + b64; await img.decode()
                 const c = new OffscreenCanvas(160, 100); const g = c.getContext('2d'); g.drawImage(img, 0, 0, 160, 100)
@@ -148,6 +147,7 @@ for (let run = 1; run <= Number(runsArg); run++) {
     console.log(`run ${run} [${throttle}] loader=${loader ?? '-'} ms  first frame=${firstFrame ?? `never rendered (${timeout / 1000} s)`} ms  transferred=${total} kB`)
     if (marks) console.log(`    page clock: first paint=${ms(marks.fcp)} ms  started=${ms(marks.started)} ms  context=${ms(marks.context)} ms  ready=${ms(marks.ready)} ms  frames before ready=${gaps.length}  longest gaps=${[...gaps].sort((a, b) => b - a).slice(0, 5).join(', ')} ms`)
     for (const f of files) console.log(`    ${f.file.padEnd(28)} ${String(f.kB).padStart(6)} kB  start ${String(f.at).padStart(6)} ms ${String(f.ms).padStart(6)} ms  ${f.enc}`)
+    if (screenshotFailures) errors.push(`${screenshotFailures} screenshot(s) timed out while the page was busy`)
     for (const e of errors) console.log(`    ${e.slice(0, 300)}`)
     await browser.close()
 }
