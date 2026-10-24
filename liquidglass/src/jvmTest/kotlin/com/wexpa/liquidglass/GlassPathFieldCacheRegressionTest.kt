@@ -134,6 +134,8 @@ class GlassPathFieldCacheRegressionTest {
         assertMatchesRecordedBuild(Size(100f, 60f), 24f)
         val changedPad = result
         runOnIdle { size = Size(100.6f, 60.6f) }; waitForIdle()
+        // A size-only change is built off composition (#81); the previous field stays until then.
+        waitUntil(timeoutMillis = 5_000) { result !== changedPad }
         assertNotSame(changedPad, result)
         assertMatchesRecordedBuild(Size(101f, 61f), 24f)
     }

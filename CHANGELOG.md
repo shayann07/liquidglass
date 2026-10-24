@@ -6,6 +6,13 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Custom-path fields: a change of size alone is now built off composition, on
+  `Dispatchers.Default`, and the panel keeps its previous field until the new one is ready; resizes
+  during a build are conflated to the latest and a pending build is dropped when the panel leaves. The
+  first field, a field replacing an empty one, and any change of shape, padding, band, density or
+  direction still build during composition, so no frame draws the wrong outline or none. Fields stay
+  bit-identical; the build's own cost is unchanged. On Wasm the background dispatcher is the main
+  thread (#81). [Evidence](review/atlas/pathfield-off-composition-2026-10-24/README.md).
 - Material 3: `Slider` and `RangeSlider` fills follow the thumbs right to left; the track was drawn
   unmirrored, so in RTL layouts the fill grew from the left edge, away from the thumb (#89).
   [Evidence](review/atlas/material3-slider-rtl-2026-10-24/README.md).

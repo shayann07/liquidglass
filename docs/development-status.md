@@ -11,7 +11,12 @@ research remains available; this page identifies which later changes supersede i
   range fill sits between the mirrored thumbs (#89). Desktop renders before and after:
   [evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/material3-slider-rtl-2026-10-24/README.md).
 - Custom-path field builds are about 15% faster on the desktop JVM, with bit-identical fields (paired
-  run of `tools/benchmarks/pathfield`); the bounded-resolution / off-composition build in #81 is still open.
+  run of `tools/benchmarks/pathfield`).
+- A resize of a custom-path panel builds its field off composition and keeps the previous field until
+  the new one is ready; the first field and any shape or padding change still build synchronously, so
+  no frame shows the wrong outline. Bit-identical fields; seven new tests hold the build and check every
+  composed frame. A bounded-resolution build (#81) is still open:
+  [evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/pathfield-off-composition-2026-10-24/README.md).
 
 ## Web demo first load (20 October, #78)
 
@@ -43,8 +48,9 @@ Issues #80 and #82 are addressed by active nested-theme view lifetime and matchi
 cache/build geometry: whole-pixel size and exact recording-grid padding, including fractional
 origins at reduced render scales. The first part of #81 adds shader-capability gating and transform-buffer
 reuse capped at 256k retained pixels (~4.25 MiB). Larger fields use temporary storage.
-Bounded-resolution/asynchronous field preparation remains open under #81. Measurements are desktop
-allocation evidence, not physical-device frame-time evidence; synchronous field cost remains.
+Size-only rebuilds now run off composition (24 October); bounded-resolution preparation remains open
+under #81. Measurements are desktop allocation evidence, not physical-device frame-time evidence; the
+first build and shape changes remain synchronous.
 See [verification and limits](https://github.com/shayann07/liquidglass/blob/main/review/atlas/compose-cache-field-2026-10-20/README.md).
 
 ## 1.0 (20 October)

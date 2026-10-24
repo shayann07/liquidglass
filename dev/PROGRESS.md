@@ -6,6 +6,12 @@ Read this first after an interruption. Detailed history lives in the
 
 ## Current state
 
+**24 October #81 off-composition field (cloud session, PR, not merged):** size-only rebuilds of
+custom-path fields run on `Dispatchers.Default` with the previous field kept until published; the
+first field and outline/origin changes stay synchronous. 7 new tests; `FieldAllocationBenchmarkTest`
+pixels identical; full suite 437/410 passed/27 skips/0 failures. No device run, no ABI run locally
+(no Android SDK). [Record](../review/atlas/pathfield-off-composition-2026-10-24/README.md).
+
 **24 October #73 rim fringe score (measurement only):** new scorer
 `tools/measure_rim_fringe.py` (private twin `.local/sxs/fringe.py`) counts off-ink chromatic pixels in the bar per
 frame, iOS (HDR10 decoded) against the replay of the same inferred input, with page/badge hues excluded, a
