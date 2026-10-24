@@ -273,7 +273,7 @@ jobs:
           node-version: 22
       - name: Generated shaders and GlassEffect.qml match the SkSL; the material equals the CanvasKit port's
         run: node tool/generate_shader.mjs --check && node --test test/material.test.mjs
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           python-version: '3.12'
       - name: Install PySide6, Xvfb and Mesa (software OpenGL)
