@@ -120,8 +120,11 @@ for (let run = 1; run <= Number(runsArg); run++) {
         if (state.canvas) {
             // A frame counts once enough of the window differs from the dark page background.
             // A page busy compiling shaders can miss the screenshot deadline: count it, wait, and try again.
-            const shot = await page.screenshot({ type: 'jpeg', quality: 50, timeout: 5000 }).catch(() => { screenshotFailures++; return null })
-            if (!shot) { await page.waitForTimeout(100); continue }
+            // Any other screenshot error is recorded and ends the run.
+            let failure = null
+            const shot = await page.screenshot({ type: 'jpeg', quality: 50, timeout: 5000 }).catch(e => { failure = e; return null })
+            if (failure?.name === 'TimeoutError') { screenshotFailures++; await page.waitForTimeout(100); continue }
+            if (failure) { errors.push(`screenshot failed: ${failure.message?.split('\n')[0] ?? failure}`); break }
             const bright = await page.evaluate(async b64 => {
                 const img = new Image(); img.src = 'data:image/jpeg;base64,' + b64; await img.decode()
                 const c = new OffscreenCanvas(160, 100); const g = c.getContext('2d'); g.drawImage(img, 0, 0, 160, 100)
