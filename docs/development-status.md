@@ -20,6 +20,11 @@ research remains available; this page identifies which later changes supersede i
   loader now shows within 0.05-0.2 s; the time to a usable app is unchanged. Missing WebAssembly GC,
   failed downloads and lost WebGL contexts are reported on the page. Chromium only:
   [measurements](https://github.com/shayann07/liquidglass/blob/main/review/atlas/web-demo-load-2026-10-20/README.md).
+- 24 October: both `.wasm` downloads start with the page (preloaded where WebAssembly GC exists), so Skia
+  is ready 0.34-0.35 s sooner on emulated 4G (4.60 → 4.26 s fast 4G, 23.6 → 23.3 s slow 4G; unchanged
+  unthrottled). Shader compilation is untouched and was not measurable on the software-GL machine used;
+  brotli (22% smaller) awaits a hosting decision.
+  [Measurements](https://github.com/shayann07/liquidglass/blob/main/review/atlas/web-demo-load-2026-10-24/README.md).
 
 ## First tap after install (20 October, #71)
 

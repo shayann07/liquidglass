@@ -6,6 +6,11 @@ Read this first after an interruption. Detailed history lives in the
 
 ## Current state
 
+**24 October #78 web demo preload (cloud session, PR, not merged):** `.wasm` downloads start with the
+page where Wasm GC exists; Skia ready 0.34-0.35 s sooner on emulated 4G, same unthrottled; transfer and
+failure states unchanged. Shader compile not measurable here (software GL); brotli is the owner's call.
+[Record](../review/atlas/web-demo-load-2026-10-24/README.md).
+
 **24 October #73 rim fringe score (measurement only):** new scorer
 `tools/measure_rim_fringe.py` (private twin `.local/sxs/fringe.py`) counts off-ink chromatic pixels in the bar per
 frame, iOS (HDR10 decoded) against the replay of the same inferred input, with page/badge hues excluded, a

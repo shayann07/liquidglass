@@ -1,0 +1,186 @@
+=== before none
+run 1 [none] loader=35 ms  first frame=never rendered (60 s) ms  transferred=4468 kB
+    page clock: started=512 ms  context=550 ms  ready=- ms  frames before ready=27  longest gaps=7950, 800, 67, 33, 17 ms
+    (page)                            2 kB  start      0 ms      9 ms  gzip
+    atlas.js                         97 kB  start     18 ms     18 ms  gzip
+    658820f72b4617efb380.wasm      3284 kB  start    115 ms    311 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start    120 ms    359 ms  gzip
+run 2 [none] loader=27 ms  first frame=never rendered (60 s) ms  transferred=4468 kB
+    page clock: started=514 ms  context=553 ms  ready=- ms  frames before ready=26  longest gaps=833, 67, 33, 17, 17 ms
+    (page)                            2 kB  start      0 ms      3 ms  gzip
+    atlas.js                         97 kB  start     11 ms     13 ms  gzip
+    658820f72b4617efb380.wasm      3284 kB  start    100 ms    310 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start    105 ms    375 ms  gzip
+run 3 [none] loader=28 ms  first frame=never rendered (60 s) ms  transferred=4468 kB
+    page clock: started=525 ms  context=562 ms  ready=- ms  frames before ready=26  longest gaps=800, 50, 33, 33, 17 ms
+    (page)                            2 kB  start      0 ms      4 ms  gzip
+    atlas.js                         97 kB  start     12 ms     15 ms  gzip
+    658820f72b4617efb380.wasm      3284 kB  start    106 ms    317 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start    111 ms    375 ms  gzip
+run 4 [none] loader=35 ms  first frame=never rendered (60 s) ms  transferred=4468 kB
+    page clock: started=589 ms  context=626 ms  ready=- ms  frames before ready=29  longest gaps=8133, 900, 67, 50, 33 ms
+    (page)                            2 kB  start      0 ms      6 ms  gzip
+    atlas.js                         97 kB  start     17 ms     16 ms  gzip
+    658820f72b4617efb380.wasm      3284 kB  start    123 ms    346 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start    128 ms    420 ms  gzip
+run 5 [none] loader=26 ms  first frame=never rendered (60 s) ms  transferred=4468 kB
+    page clock: started=575 ms  context=630 ms  ready=- ms  frames before ready=25  longest gaps=8383, 817, 100, 67, 17 ms
+    (page)                            2 kB  start      0 ms      3 ms  gzip
+    atlas.js                         97 kB  start     11 ms     15 ms  gzip
+    658820f72b4617efb380.wasm      3284 kB  start    111 ms    337 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start    116 ms    407 ms  gzip
+=== after none
+run 1 [none] loader=129 ms  first frame=never rendered (60 s) ms  transferred=4469 kB
+    page clock: started=255 ms  context=519 ms  ready=- ms  frames before ready=23  longest gaps=8166, 800, 50, 50, 17 ms
+    (page)                            3 kB  start      0 ms      9 ms  gzip
+    658820f72b4617efb380.wasm      3284 kB  start     16 ms    415 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start     17 ms    113 ms  gzip
+    atlas.js                         97 kB  start     21 ms    108 ms  gzip
+run 2 [none] loader=130 ms  first frame=never rendered (60 s) ms  transferred=4469 kB
+    page clock: started=320 ms  context=597 ms  ready=- ms  frames before ready=24  longest gaps=8116, 850, 100, 50, 17 ms
+    (page)                            3 kB  start      0 ms      6 ms  gzip
+    658820f72b4617efb380.wasm      3284 kB  start     12 ms    467 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start     12 ms    126 ms  gzip
+    atlas.js                         97 kB  start     17 ms    125 ms  gzip
+run 3 [none] loader=53 ms  first frame=never rendered (60 s) ms  transferred=4469 kB
+    page clock: started=188 ms  context=529 ms  ready=- ms  frames before ready=24  longest gaps=7983, 883, 50, 33, 17 ms
+    (page)                            3 kB  start      0 ms      5 ms  gzip
+    658820f72b4617efb380.wasm      3284 kB  start      8 ms    438 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start      9 ms    143 ms  gzip
+    atlas.js                         97 kB  start     13 ms     28 ms  gzip
+run 4 [none] loader=135 ms  first frame=never rendered (60 s) ms  transferred=4469 kB
+    page clock: started=194 ms  context=536 ms  ready=- ms  frames before ready=26  longest gaps=8116, 850, 67, 33, 17 ms
+    (page)                            3 kB  start      0 ms      3 ms  gzip
+    658820f72b4617efb380.wasm      3284 kB  start      7 ms    441 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start      7 ms    144 ms  gzip
+    atlas.js                         97 kB  start     11 ms     26 ms  gzip
+run 5 [none] loader=117 ms  first frame=never rendered (60 s) ms  transferred=4469 kB
+    page clock: started=261 ms  context=564 ms  ready=- ms  frames before ready=25  longest gaps=7966, 1000, 67, 33, 17 ms
+    (page)                            3 kB  start      0 ms      3 ms  gzip
+    658820f72b4617efb380.wasm      3284 kB  start      8 ms    454 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start      9 ms    112 ms  gzip
+    atlas.js                         97 kB  start     17 ms    110 ms  gzip
+=== before fast4g
+run 1 [fast4g] loader=76 ms  first frame=never rendered (60 s) ms  transferred=4468 kB
+    page clock: started=2658 ms  context=4637 ms  ready=- ms  frames before ready=269  longest gaps=8066, 917, 67, 17, 17 ms
+    (page)                            2 kB  start      0 ms     47 ms  gzip
+    atlas.js                         97 kB  start     55 ms    134 ms  gzip
+    658820f72b4617efb380.wasm      3284 kB  start    270 ms   4277 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start    276 ms   2348 ms  gzip
+run 2 [fast4g] loader=67 ms  first frame=never rendered (60 s) ms  transferred=4468 kB
+    page clock: started=2610 ms  context=4603 ms  ready=- ms  frames before ready=268  longest gaps=7783, 833, 67, 17, 17 ms
+    (page)                            2 kB  start      0 ms     46 ms  gzip
+    atlas.js                         97 kB  start     53 ms    131 ms  gzip
+    658820f72b4617efb380.wasm      3284 kB  start    258 ms   4259 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start    263 ms   2317 ms  gzip
+run 3 [fast4g] loader=75 ms  first frame=never rendered (60 s) ms  transferred=4468 kB
+    page clock: started=2629 ms  context=4617 ms  ready=- ms  frames before ready=266  longest gaps=7666, 850, 67, 33, 17 ms
+    (page)                            2 kB  start      0 ms     51 ms  gzip
+    atlas.js                         97 kB  start     58 ms    134 ms  gzip
+    658820f72b4617efb380.wasm      3284 kB  start    268 ms   4257 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start    273 ms   2322 ms  gzip
+run 4 [fast4g] loader=68 ms  first frame=never rendered (60 s) ms  transferred=4468 kB
+    page clock: started=2634 ms  context=4600 ms  ready=- ms  frames before ready=268  longest gaps=8116, 750, 67, 17, 17 ms
+    (page)                            2 kB  start      0 ms     46 ms  gzip
+    atlas.js                         97 kB  start     54 ms    134 ms  gzip
+    658820f72b4617efb380.wasm      3284 kB  start    259 ms   4257 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start    266 ms   2335 ms  gzip
+run 5 [fast4g] loader=68 ms  first frame=never rendered (60 s) ms  transferred=4468 kB
+    page clock: started=2624 ms  context=4592 ms  ready=- ms  frames before ready=268  longest gaps=7816, 800, 50, 17, 17 ms
+    (page)                            2 kB  start      0 ms     48 ms  gzip
+    atlas.js                         97 kB  start     53 ms    131 ms  gzip
+    658820f72b4617efb380.wasm      3284 kB  start    251 ms   4253 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start    257 ms   2339 ms  gzip
+=== after fast4g
+run 1 [fast4g] loader=69 ms  first frame=never rendered (60 s) ms  transferred=4469 kB
+    page clock: started=1964 ms  context=4270 ms  ready=- ms  frames before ready=248  longest gaps=7766, 867, 50, 17, 17 ms
+    (page)                            3 kB  start      0 ms     47 ms  gzip
+    658820f72b4617efb380.wasm      3284 kB  start     49 ms   4129 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start     49 ms   1886 ms  gzip
+    atlas.js                         97 kB  start     53 ms    170 ms  gzip
+run 2 [fast4g] loader=162 ms  first frame=never rendered (60 s) ms  transferred=4469 kB
+    page clock: started=2019 ms  context=4361 ms  ready=- ms  frames before ready=250  longest gaps=8000, 900, 67, 33, 17 ms
+    (page)                            3 kB  start      0 ms     46 ms  gzip
+    658820f72b4617efb380.wasm      3284 kB  start     50 ms   4192 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start     50 ms   1938 ms  gzip
+    atlas.js                         97 kB  start     56 ms    297 ms  gzip
+run 3 [fast4g] loader=70 ms  first frame=never rendered (60 s) ms  transferred=4469 kB
+    page clock: started=2070 ms  context=4317 ms  ready=- ms  frames before ready=249  longest gaps=7833, 917, 67, 33, 17 ms
+    (page)                            3 kB  start      0 ms     47 ms  gzip
+    658820f72b4617efb380.wasm      3284 kB  start     49 ms   4181 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start     49 ms   1990 ms  gzip
+    atlas.js                         97 kB  start     58 ms    285 ms  gzip
+run 4 [fast4g] loader=425 ms  first frame=never rendered (60 s) ms  transferred=4469 kB
+    page clock: started=2066 ms  context=4312 ms  ready=- ms  frames before ready=250  longest gaps=7683, 783, 67, 17, 17 ms
+    (page)                            3 kB  start      0 ms     46 ms  gzip
+    658820f72b4617efb380.wasm      3284 kB  start     50 ms   4174 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start     51 ms   1984 ms  gzip
+    atlas.js                         97 kB  start     59 ms    278 ms  gzip
+run 5 [fast4g] loader=148 ms  first frame=never rendered (60 s) ms  transferred=4469 kB
+    page clock: started=1999 ms  context=4316 ms  ready=- ms  frames before ready=249  longest gaps=8033, 1017, 67, 17, 17 ms
+    (page)                            3 kB  start      0 ms     47 ms  gzip
+    658820f72b4617efb380.wasm      3284 kB  start     51 ms   4169 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start     51 ms   1917 ms  gzip
+    atlas.js                         97 kB  start     57 ms    276 ms  gzip
+=== before slow4g
+run 1 [slow4g] loader=181 ms  first frame=never rendered (60 s) ms  transferred=4468 kB
+    page clock: started=12378 ms  context=23617 ms  ready=- ms  frames before ready=1402  longest gaps=8033, 933, 50, 33, 17 ms
+    (page)                            2 kB  start      0 ms    162 ms  gzip
+    atlas.js                         97 kB  start    165 ms    648 ms  gzip
+    658820f72b4617efb380.wasm      3284 kB  start    882 ms  22649 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start    887 ms  11461 ms  gzip
+run 2 [slow4g] loader=191 ms  first frame=never rendered (60 s) ms  transferred=4468 kB
+    page clock: started=12401 ms  context=23635 ms  ready=- ms  frames before ready=1402  longest gaps=7716, 850, 50, 33, 17 ms
+    (page)                            2 kB  start      0 ms    163 ms  gzip
+    atlas.js                         97 kB  start    170 ms    653 ms  gzip
+    658820f72b4617efb380.wasm      3284 kB  start    891 ms  22649 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start    897 ms  11476 ms  gzip
+run 3 [slow4g] loader=182 ms  first frame=never rendered (60 s) ms  transferred=4468 kB
+    page clock: started=12453 ms  context=23670 ms  ready=- ms  frames before ready=1404  longest gaps=8050, 800, 83, 17, 17 ms
+    (page)                            2 kB  start      0 ms    163 ms  gzip
+    atlas.js                         97 kB  start    165 ms    650 ms  gzip
+    658820f72b4617efb380.wasm      3284 kB  start    904 ms  22681 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start    910 ms  11515 ms  gzip
+run 4 [slow4g] loader=184 ms  first frame=never rendered (60 s) ms  transferred=4468 kB
+    page clock: started=12400 ms  context=23643 ms  ready=- ms  frames before ready=1401  longest gaps=8300, 917, 83, 33, 17 ms
+    (page)                            2 kB  start      0 ms    163 ms  gzip
+    atlas.js                         97 kB  start    167 ms    648 ms  gzip
+    658820f72b4617efb380.wasm      3284 kB  start    918 ms  22630 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start    923 ms  11449 ms  gzip
+run 5 [slow4g] loader=179 ms  first frame=never rendered (60 s) ms  transferred=4468 kB
+    page clock: started=12372 ms  context=23618 ms  ready=- ms  frames before ready=1401  longest gaps=7766, 867, 50, 17, 17 ms
+    (page)                            2 kB  start      0 ms    164 ms  gzip
+    atlas.js                         97 kB  start    166 ms    649 ms  gzip
+    658820f72b4617efb380.wasm      3284 kB  start    886 ms  22639 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start    892 ms  11452 ms  gzip
+=== after slow4g
+run 1 [slow4g] loader=292 ms  first frame=never rendered (60 s) ms  transferred=4469 kB
+    page clock: started=11821 ms  context=23327 ms  ready=- ms  frames before ready=1378  longest gaps=7733, 883, 67, 67, 33 ms
+    (page)                            3 kB  start      0 ms    168 ms  gzip
+    658820f72b4617efb380.wasm      3284 kB  start    169 ms  23030 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start    170 ms  11623 ms  gzip
+    atlas.js                         97 kB  start    173 ms   1524 ms  gzip
+run 2 [slow4g] loader=184 ms  first frame=never rendered (60 s) ms  transferred=4469 kB
+    page clock: started=11846 ms  context=23281 ms  ready=- ms  frames before ready=1381  longest gaps=7666, 850, 67, 17, 17 ms
+    (page)                            3 kB  start      0 ms    164 ms  gzip
+    658820f72b4617efb380.wasm      3284 kB  start    164 ms  23030 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start    165 ms  11653 ms  gzip
+    atlas.js                         97 kB  start    168 ms   1540 ms  gzip
+run 3 [slow4g] loader=271 ms  first frame=never rendered (60 s) ms  transferred=4469 kB
+    page clock: started=11845 ms  context=23308 ms  ready=- ms  frames before ready=1379  longest gaps=7650, 883, 67, 33, 33 ms
+    (page)                            3 kB  start      0 ms    163 ms  gzip
+    658820f72b4617efb380.wasm      3284 kB  start    164 ms  23031 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start    164 ms  11647 ms  gzip
+    atlas.js                         97 kB  start    165 ms   1527 ms  gzip
+run 4 [slow4g] loader=188 ms  first frame=never rendered (60 s) ms  transferred=4469 kB
+    page clock: started=11838 ms  context=23285 ms  ready=- ms  frames before ready=1381  longest gaps=7700, 767, 50, 33, 17 ms
+    (page)                            3 kB  start      0 ms    164 ms  gzip
+    658820f72b4617efb380.wasm      3284 kB  start    164 ms  23032 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start    165 ms  11647 ms  gzip
+    atlas.js                         97 kB  start    166 ms   1535 ms  gzip
+run 5 [slow4g] loader=180 ms  first frame=never rendered (60 s) ms  transferred=4469 kB
+    page clock: started=11858 ms  context=23287 ms  ready=- ms  frames before ready=1380  longest gaps=7733, 850, 67, 33, 33 ms
+    (page)                            3 kB  start      0 ms    164 ms  gzip
+    658820f72b4617efb380.wasm      3284 kB  start    164 ms  23031 ms  gzip
+    24e4ed2fe1b5c7daddce.wasm      1085 kB  start    165 ms  11653 ms  gzip
+    atlas.js                         97 kB  start    167 ms   1549 ms  gzip

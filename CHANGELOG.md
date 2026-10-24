@@ -6,6 +6,12 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Web demo: both WebAssembly downloads (Skia's runtime and the app) start with the page instead of
+  after `atlas.js` has loaded and run, only in browsers with WebAssembly GC. Skia is ready 0.34-0.35 s
+  sooner on emulated 4G and the same unthrottled (Chromium, software GL, medians of 5 cold runs);
+  the transfer and the failure states are unchanged. `tools/measure_web_demo.mjs` records page-clock
+  marks; `tools/web_demo_states.mjs` forces the loader states (#78).
+  [Evidence](review/atlas/web-demo-load-2026-10-24/README.md).
 - Material 3: `Slider` and `RangeSlider` fills follow the thumbs right to left; the track was drawn
   unmirrored, so in RTL layouts the fill grew from the left edge, away from the thumb (#89).
   [Evidence](review/atlas/material3-slider-rtl-2026-10-24/README.md).

@@ -3,12 +3,19 @@
 // records per request the transferred bytes and timing, every console error and uncaught page error, and
 // when the page first shows something other than its background: the loader (if the page has one) and
 // the first frame Compose painted (a screenshot with app pixels in it). A run that paints nothing within
-// 90 s is reported as "never rendered".
+// 90 s (MEASURE_TIMEOUT_S) is reported as "never rendered". On a page with the loader it also records, on
+// the page's own clock (ms since navigation): the first contentful paint (the loader), `started`, when main() ran (the Wasm downloaded and
+// instantiated: the loader says "Preparing the glass"), and `ready`, when the loader was dismissed after
+// settled frames (the time to a usable app), plus the longest gap between animation frames before that.
+// `context` is when Skia's runtime had loaded and the first WebGL context was made (the whole download is
+// in by then). MEASURE_UNTIL=started|context ends a run at that mark.
 // throttle: none (default), fast4g (9 Mbit/s down, 40 ms), slow4g (1.6 Mbit/s down, 150 ms).
 // A directory (e.g. apps/web/build/dist/wasmJs/productionExecutable) is served on localhost the way
 // GitHub Pages serves the demo: gzip for text and wasm, `Cache-Control: max-age=600`. Append the page's
 // hash after the path: `apps/web/build/dist/wasmJs/productionExecutable#material3`.
-// Playwright comes from ports/web (npm ci there). The installed Chrome is used: `channel: 'chrome'`.
+// Playwright comes from ports/web (npm ci there), else from a global `playwright` install. The installed
+// Chrome is used (`channel: 'chrome'`); MEASURE_CHANNEL=bundled uses Playwright's own Chromium instead
+// (a machine without Chrome, such as a cloud container: software GL, so shader timings differ).
 //   node tools/measure_web_demo.mjs https://liquidglass.shayxo.dev/demo/#material3 3 fast4g
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
@@ -18,7 +25,9 @@ import http from 'node:http'
 import zlib from 'node:zlib'
 
 const require = createRequire(path.join(path.dirname(fileURLToPath(import.meta.url)), '../ports/web/package.json'))
-const { chromium } = require('@playwright/test')
+let chromium
+try { ({ chromium } = require('@playwright/test')) } catch { ({ chromium } = createRequire(import.meta.url)('playwright')) }
+const channel = process.env.MEASURE_CHANNEL === 'bundled' ? undefined : (process.env.MEASURE_CHANNEL ?? 'chrome')
 
 const [target, runsArg = '3', throttle = 'none'] = process.argv.slice(2)
 let url = target
@@ -52,7 +61,7 @@ if (!/^https?:/.test(target)) {
 
 for (let run = 1; run <= Number(runsArg); run++) {
     // A new browser per run: within one browser the GPU process keeps compiled shaders across contexts.
-    const browser = await chromium.launch({ channel: 'chrome', headless: true })
+    const browser = await chromium.launch({ channel, headless: true })
     const context = await browser.newContext({ viewport: { width: 1280, height: 800 } })
     const page = await context.newPage()
     const cdp = await context.newCDPSession(page)
@@ -68,10 +77,32 @@ for (let run = 1; run <= Number(runsArg); run++) {
     page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errors.push(`${m.type()}: ${m.text()}`) })
     page.on('pageerror', e => errors.push(`pageerror: ${e.message}`))
 
+    // Page-clock marks: the main thread can be busy for seconds compiling shaders, so polling from here
+    // (and screenshots) can lag the moment itself.
+    await page.addInitScript(() => {
+        const marks = window.__lgLoad = { gaps: [] }
+        new MutationObserver(() => {
+            const loader = document.getElementById('loader'); if (!loader) return
+            if (marks.started === undefined && /Preparing/.test(document.getElementById('loader-title')?.textContent ?? '')) marks.started = performance.now()
+            const state = loader.dataset.state
+            if ((state === 'ready' || state === 'failed') && marks[state] === undefined) marks[state] = performance.now()
+        }).observe(document, { subtree: true, childList: true, attributes: true, characterData: true })
+        // Skia's runtime finishes loading after main() starts; its first WebGL context marks that.
+        const getContext = HTMLCanvasElement.prototype.getContext
+        HTMLCanvasElement.prototype.getContext = function (type) {
+            const context = getContext.apply(this, arguments)
+            if (context && /webgl/.test(type) && marks.context === undefined) marks.context = performance.now()
+            return context
+        }
+        let last = null
+        const tick = now => { if (last !== null && marks.ready === undefined) marks.gaps.push(Math.round(now - last)); last = now; requestAnimationFrame(tick) }
+        requestAnimationFrame(tick)
+    })
+    const timeout = Number(process.env.MEASURE_TIMEOUT_S ?? 90) * 1000
     const t0 = Date.now()
     await page.goto(url, { waitUntil: 'commit' })
-    let loader = null, firstFrame = null
-    while (Date.now() - t0 < 90_000) {
+    let loader = null, firstFrame = null, screenshotFailures = 0
+    while (Date.now() - t0 < timeout) {
         const state = await page.evaluate(() => {
             const loader = document.getElementById('loader')
             return {
@@ -82,9 +113,15 @@ for (let run = 1; run <= Number(runsArg); run++) {
         }).catch(() => ({}))
         if (state.loader && loader === null) loader = Date.now() - t0
         if (state.failed) { errors.push('loader reported failure'); break }
+        // MEASURE_UNTIL=started|context stops at that mark: for a machine whose frames are not representative
+        // (software GL), where only the download and instantiation can be compared.
+        const until = process.env.MEASURE_UNTIL
+        if (until && await page.evaluate(m => window.__lgLoad?.[m] !== undefined, until).catch(() => false)) break
         if (state.canvas) {
             // A frame counts once enough of the window differs from the dark page background.
-            const shot = await page.screenshot({ type: 'jpeg', quality: 50 })
+            // A page busy compiling shaders can miss the screenshot deadline: count it, wait, and try again.
+            const shot = await page.screenshot({ type: 'jpeg', quality: 50, timeout: 5000 }).catch(() => { screenshotFailures++; return null })
+            if (!shot) { await page.waitForTimeout(100); continue }
             const bright = await page.evaluate(async b64 => {
                 const img = new Image(); img.src = 'data:image/jpeg;base64,' + b64; await img.decode()
                 const c = new OffscreenCanvas(160, 100); const g = c.getContext('2d'); g.drawImage(img, 0, 0, 160, 100)
@@ -96,13 +133,21 @@ for (let run = 1; run <= Number(runsArg); run++) {
         }
         await page.waitForTimeout(100)
     }
+    const first = Math.min(...[...requests.values()].map(r => r.start))
     const files = [...requests.values()].filter(r => r.end && r.url.startsWith('http')).map(r => ({
         file: r.url.split('/').pop().split('#')[0] || '(page)', kB: Math.round((r.transferred ?? 0) / 1024),
+        at: Math.round((r.start - first) * 1000),
         ms: Math.round((r.end - r.start) * 1000), enc: r.encoding ?? '-',
     }))
     const total = files.reduce((s, f) => s + f.kB, 0)
-    console.log(`run ${run} [${throttle}] loader=${loader ?? '-'} ms  first frame=${firstFrame ?? 'never rendered (90 s)'} ms  transferred=${total} kB`)
-    for (const f of files) console.log(`    ${f.file.padEnd(28)} ${String(f.kB).padStart(6)} kB ${String(f.ms).padStart(6)} ms  ${f.enc}`)
+    const marks = await page.evaluate(() => ({ ...window.__lgLoad,
+        fcp: performance.getEntriesByName('first-contentful-paint')[0]?.startTime })).catch(() => null)
+    const ms = v => v === undefined || v === null ? '-' : Math.round(v)
+    const gaps = marks?.gaps ?? []
+    console.log(`run ${run} [${throttle}] loader=${loader ?? '-'} ms  first frame=${firstFrame ?? `never rendered (${timeout / 1000} s)`} ms  transferred=${total} kB`)
+    if (marks) console.log(`    page clock: first paint=${ms(marks.fcp)} ms  started=${ms(marks.started)} ms  context=${ms(marks.context)} ms  ready=${ms(marks.ready)} ms  frames before ready=${gaps.length}  longest gaps=${[...gaps].sort((a, b) => b - a).slice(0, 5).join(', ')} ms`)
+    for (const f of files) console.log(`    ${f.file.padEnd(28)} ${String(f.kB).padStart(6)} kB  start ${String(f.at).padStart(6)} ms ${String(f.ms).padStart(6)} ms  ${f.enc}`)
+    if (screenshotFailures) errors.push(`${screenshotFailures} screenshot(s) timed out while the page was busy`)
     for (const e of errors) console.log(`    ${e.slice(0, 300)}`)
     await browser.close()
 }

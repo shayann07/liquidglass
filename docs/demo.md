@@ -30,5 +30,9 @@ compiles the glass shaders for your GPU: a few seconds on a laptop's integrated 
 browser afterwards. A loader shows while both happen. A browser without WebAssembly garbage collection,
 a failed download or a lost graphics context is reported on the page instead of leaving it black. The
 two demos above load lazily, as each approaches the viewport (`loading="lazy"`, a hint the browser
-may start early).
-[Measurements](https://github.com/shayann07/liquidglass/blob/main/review/atlas/web-demo-load-2026-10-20/README.md).
+may start early). Both WebAssembly files start downloading with the page rather than after its script
+has loaded: on an emulated 4G connection Skia's runtime was loaded and drawing (its first WebGL context)
+about 0.3 s sooner. The time until the app is usable was not measured. Browsers that cannot run the
+demo download nothing.
+Measurements: [loader and failures](https://github.com/shayann07/liquidglass/blob/main/review/atlas/web-demo-load-2026-10-20/README.md),
+[preloading](https://github.com/shayann07/liquidglass/blob/main/review/atlas/web-demo-load-2026-10-24/README.md).

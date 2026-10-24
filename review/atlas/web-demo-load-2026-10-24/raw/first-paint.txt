@@ -1,0 +1,24 @@
+=== before none
+    page clock: first paint=28 ms  started=532 ms  context=566 ms
+    page clock: first paint=28 ms  started=513 ms  context=547 ms
+    page clock: first paint=32 ms  started=538 ms  context=573 ms
+=== after none
+    page clock: first paint=40 ms  started=178 ms  context=568 ms
+    page clock: first paint=28 ms  started=198 ms  context=550 ms
+    page clock: first paint=28 ms  started=253 ms  context=533 ms
+=== before fast4g
+    page clock: first paint=68 ms  started=2641 ms  context=4625 ms
+    page clock: first paint=64 ms  started=2613 ms  context=4596 ms
+    page clock: first paint=64 ms  started=2631 ms  context=4603 ms
+=== after fast4g
+    page clock: first paint=68 ms  started=2003 ms  context=4316 ms
+    page clock: first paint=64 ms  started=2012 ms  context=4291 ms
+    page clock: first paint=68 ms  started=2035 ms  context=4313 ms
+=== before slow4g
+    page clock: first paint=180 ms  started=11991 ms  context=23525 ms
+    page clock: first paint=184 ms  started=12439 ms  context=23690 ms
+    page clock: first paint=180 ms  started=12371 ms  context=23611 ms
+=== after slow4g
+    page clock: first paint=180 ms  started=11838 ms  context=23279 ms
+    page clock: first paint=176 ms  started=11854 ms  context=23297 ms
+    page clock: first paint=180 ms  started=11838 ms  context=23301 ms

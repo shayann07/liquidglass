@@ -5,6 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Atlas Studio · LiquidGlass</title>
     <link rel="icon" href="data:,">
+    <script>
+        // The demo needs WebAssembly GC: the smallest module that declares a GC struct type (as
+        // wasm-feature-detect checks it). The loader below reads this too.
+        var wasmGc = typeof WebAssembly === 'object' &&
+            WebAssembly.validate(new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0, 1, 5, 1, 95, 1, 120, 0]));
+        // Starts both WebAssembly downloads (Skia's runtime and the app) with the page, not after atlas.js has
+        // loaded and run, and only where they can run (#78). The build fills in the hashed file names
+        // (apps/web/build.gradle.kts); `crossorigin` matches the loader's same-origin fetch, so the browser
+        // reuses these responses instead of downloading the files again.
+        if (wasmGc) (/* wasm-preload */[]).forEach(function (file) {
+            var link = document.createElement('link');
+            link.rel = 'preload'; link.as = 'fetch'; link.crossOrigin = 'anonymous'; link.href = file;
+            document.head.appendChild(link);
+        });
+    </script>
     <style>
         html, body { margin: 0; height: 100%; overflow: hidden; background: #05070d; }
         /* Compose owns this element and replaces its children; the loader stays outside it. */
@@ -56,10 +71,7 @@
         }
         // True until the app is ready or has failed: errors after that are not the loader's to report.
         function starting() { return loader.dataset.state !== 'ready' && loader.dataset.state !== 'failed'; }
-        // The smallest module that declares a GC struct type (as wasm-feature-detect checks it).
-        var gc = typeof WebAssembly === 'object' &&
-            WebAssembly.validate(new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0, 1, 5, 1, 95, 1, 120, 0]));
-        if (!gc) {
+        if (!wasmGc) {
             fail('This browser cannot run the demo.',
                 'It needs WebAssembly garbage collection: current Chrome, Edge or Firefox, or Safari 18.2 or later.');
             return;

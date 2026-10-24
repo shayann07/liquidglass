@@ -1,0 +1,33 @@
+=== after2 none
+run 1 [none] loader=126 ms  transferred=4469 kB
+    page clock: first paint=32 ms  started=175 ms  context=511 ms
+run 2 [none] loader=45 ms  transferred=4469 kB
+    page clock: first paint=32 ms  started=171 ms  context=482 ms
+run 3 [none] loader=32 ms  transferred=4469 kB
+    page clock: first paint=28 ms  started=183 ms  context=498 ms
+run 4 [none] loader=46 ms  transferred=4469 kB
+    page clock: first paint=36 ms  started=231 ms  context=523 ms
+run 5 [none] loader=52 ms  transferred=4469 kB
+    page clock: first paint=36 ms  started=200 ms  context=577 ms
+=== after2 fast4g
+run 1 [fast4g] loader=165 ms  transferred=4469 kB
+    page clock: first paint=64 ms  started=1956 ms  context=4256 ms
+run 2 [fast4g] loader=71 ms  transferred=4469 kB
+    page clock: first paint=68 ms  started=1963 ms  context=4264 ms
+run 3 [fast4g] loader=69 ms  transferred=4469 kB
+    page clock: first paint=68 ms  started=1970 ms  context=4284 ms
+run 4 [fast4g] loader=153 ms  transferred=4469 kB
+    page clock: first paint=76 ms  started=1927 ms  context=4262 ms
+run 5 [fast4g] loader=81 ms  transferred=4469 kB
+    page clock: first paint=68 ms  started=1892 ms  context=4260 ms
+=== after2 slow4g
+run 1 [slow4g] loader=191 ms  transferred=4469 kB
+    page clock: first paint=184 ms  started=11835 ms  context=23293 ms
+run 2 [slow4g] loader=263 ms  transferred=4469 kB
+    page clock: first paint=180 ms  started=11855 ms  context=23290 ms
+run 3 [slow4g] loader=269 ms  transferred=4469 kB
+    page clock: first paint=176 ms  started=11839 ms  context=23283 ms
+run 4 [slow4g] loader=178 ms  transferred=4469 kB
+    page clock: first paint=176 ms  started=11839 ms  context=23279 ms
+run 5 [slow4g] loader=192 ms  transferred=4469 kB
+    page clock: first paint=192 ms  started=11838 ms  context=23280 ms

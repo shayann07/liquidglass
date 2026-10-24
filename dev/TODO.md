@@ -64,6 +64,11 @@ description fix alone.
   (0.05-0.2 s), hidden after settled frames; Compose mounts in #app (it replaced the body's children);
   no-Wasm-GC, failed-download/uncaught-error and lost-WebGL-context states on the page; docs iframes lazy.
   Time to a usable app unchanged (download + shaders). review/atlas/web-demo-load-2026-10-20.
+  24 Oct (PR, cloud session): `.wasm` preloaded from the head where Wasm GC validates (names written by
+  apps/web/build.gradle.kts); Skia ready 4.60 → 4.26 s fast 4G, 23.6 → 23.3 s slow 4G, same unthrottled
+  (software-GL Chromium, 5 cold runs); states unchanged (tools/web_demo_states.mjs). Remaining: shader
+  warm-up / scene deferral need a GPU machine to measure; brotli/CDN is the owner's decision (3.53 vs
+  4.53 MB). review/atlas/web-demo-load-2026-10-24.
   Still open: cut the transfer (4.46 MB; brotli or a smaller skiko build), first-visit shader compile
   (~2 s per opening frame), the never-renders root cause (not reproduced), and Firefox/Safari/phone checks.
 - [x] **#79 Material 3 polish (itsaqeeldev, 20 Oct).** Slider/RangeSlider tracks now run under the
