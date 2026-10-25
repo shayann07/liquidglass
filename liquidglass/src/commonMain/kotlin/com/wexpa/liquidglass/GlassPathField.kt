@@ -1,7 +1,12 @@
 package com.wexpa.liquidglass
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
@@ -16,7 +21,11 @@ import androidx.compose.ui.unit.LayoutDirection
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.withContext
 
 /**
  * A signed distance field for a shape the shader cannot describe analytically.
@@ -61,6 +70,13 @@ private const val FIELD_SCALE = 2
  *
  * [size] is rounded to layout pixels. [pad] must be the value returned by [recordPad], already
  * quantized to the recording grid; keep it unchanged to match the shader's sampling origin.
+ *
+ * The first field, any field replacing an empty one, and any field whose outline, pad, band,
+ * density or direction changed, is built during composition, so no frame ever shows a field for
+ * another shape or origin, or none. A change of
+ * size alone (the resizing, animating case) is built on [glassPathFieldDispatcher] instead and the
+ * previous field, already drawn at the same origin, stays in use until the new one is published;
+ * builds requested while one is running are conflated to the latest size.
  */
 @Composable
 internal fun rememberGlassPathField(
@@ -79,16 +95,71 @@ internal fun rememberGlassPathField(
     // recordPad already snaps to the render-scale grid. A second rounding would move the
     // rasterized outline away from the shader's uPad origin at fractional render scales.
     val fieldPad = pad
-    val w = (fieldSize.width + fieldPad * 2f).roundToInt()
-    val h = (fieldSize.height + fieldPad * 2f).roundToInt()
     // The outline depends on density and direction as well as size: an asymmetric path mirrors
-    // under RTL, so both belong in the key.
-    return remember(shape, fieldSize, fieldPad, band, density, layoutDirection) {
-        if (w <= 0 || h <= 0 || fieldSize.width <= 0f || fieldSize.height <= 0f) return@remember null
-        val outline = shape.createOutline(fieldSize, layoutDirection, density)
-        val path = (outline as? Outline.Generic)?.path ?: return@remember null
-        buildPathField(path, w, h, fieldPad, band)
+    // under RTL, so both belong in the key. The outline itself is made here, on the composition
+    // thread, so a shape's own code never runs on a background thread.
+    // Everything except the size: a change here cannot reuse the previous field, so it builds now.
+    val generation = remember(shape, fieldPad, band, density, layoutDirection) { Any() }
+    val request = remember(generation, fieldSize) {
+        PathFieldRequest(generation, fieldSize, fieldPad, band, shape.pathFor(fieldSize, layoutDirection, density))
     }
+    val published = remember(generation) { mutableStateOf(PublishedPathField(request, request.build())) }
+    val latest = rememberUpdatedState(request)
+    LaunchedEffect(generation) {
+        snapshotFlow { latest.value }.conflate().collect { next ->
+            // Composition builds synchronously both a newer generation (this effect is about to be
+            // cancelled) and any request while there is no field to keep; neither is built twice.
+            val current = published.value
+            if (next.generation !== generation || current.field == null || next === current.request) return@collect
+            val field = withContext(glassPathFieldDispatcher) { next.build() }
+            published.value = PublishedPathField(next, field)
+        }
+    }
+    val shown = published.value
+    if (shown.field == null && shown.request !== request) {
+        // Nothing drawable to keep (an empty first size, before layout): build before the frame.
+        val now = remember(request) { PublishedPathField(request, request.build()) }
+        SideEffect { published.value = now }
+        return now.field
+    }
+    return shown.field
+}
+
+/**
+ * Where size-only rebuilds run. [Dispatchers.Default] is a worker pool on Android and the JVM;
+ * on Wasm it is the browser's one thread, where the build still leaves composition and the frame.
+ * Settable only so tests can hold a build and look at what composition returns meanwhile.
+ */
+internal var glassPathFieldDispatcher: CoroutineDispatcher = Dispatchers.Default
+
+/** One field's inputs, with the outline already made. [generation] changes with everything but size. */
+private class PathFieldRequest(
+    val generation: Any,
+    val size: Size,
+    val pad: Float,
+    val band: Float,
+    val path: Path?,
+) {
+    fun build(): GlassPathField? {
+        val w = (size.width + pad * 2f).roundToInt()
+        val h = (size.height + pad * 2f).roundToInt()
+        if (w <= 0 || h <= 0 || size.width <= 0f || size.height <= 0f || path == null) return null
+        return buildPathField(path, w, h, pad, band)
+    }
+}
+
+/** The field currently drawn, and the request it was built for. */
+private class PublishedPathField(val request: PathFieldRequest, val field: GlassPathField?)
+
+/**
+ * Null for an empty size or an outline the shader evaluates analytically. A copy, because a shape may
+ * reuse one mutable [Path] for every size, and a background build must not read it while the next
+ * composition rewrites it.
+ */
+private fun Shape.pathFor(size: Size, layoutDirection: LayoutDirection, density: Density): Path? {
+    if (size.width <= 0f || size.height <= 0f) return null
+    val path = (createOutline(size, layoutDirection, density) as? Outline.Generic)?.path ?: return null
+    return Path().apply { fillType = path.fillType; addPath(path) }
 }
 
 /** Builds an independently owned field while borrowing bounded scratch storage if available. */

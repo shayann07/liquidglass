@@ -6,10 +6,16 @@ Read this first after an interruption. Detailed history lives in the
 
 ## Current state
 
-**24 October #78 web demo preload (cloud session, PR, not merged):** `.wasm` downloads start with the
+**24 October #78 web demo preload (cloud session, merged 26 Oct):** `.wasm` downloads start with the
 page where Wasm GC exists; Skia ready 0.34-0.35 s sooner on emulated 4G, same unthrottled; transfer and
 failure states unchanged. Shader compile not measurable here (software GL); brotli is the owner's call.
 [Record](../review/atlas/web-demo-load-2026-10-24/README.md).
+
+**24 October #81 off-composition field (cloud session, merged 26 Oct):** size-only rebuilds of
+custom-path fields run on `Dispatchers.Default` with the previous field kept until published; the
+first field and outline/origin changes stay synchronous. 7 new tests; `FieldAllocationBenchmarkTest`
+pixels identical; full suite 437/410 passed/27 skips/0 failures. No device run, no ABI run locally
+(no Android SDK). [Record](../review/atlas/pathfield-off-composition-2026-10-24/README.md).
 
 **24 October #73 rim fringe score (measurement only):** new scorer
 `tools/measure_rim_fringe.py` (private twin `.local/sxs/fringe.py`) counts off-ink chromatic pixels in the bar per

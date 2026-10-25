@@ -38,6 +38,16 @@ The five loader states behave as before. Next, on a machine with a GPU: run
 shader warm-up only if it moves `ready`. Brotli/CDN needs the owner. Record:
 review/atlas/web-demo-load-2026-10-24/README.md.
 
+## #81 off-composition field build (24 October, cloud session, PR)
+
+Size-only changes to a custom-path panel build the field on `Dispatchers.Default`; the previous field
+stays until the new one is published, resizes during a build are conflated, a pending build is dropped
+when the panel leaves. First field, empty-to-real size, and shape/pad/band/density/direction changes
+stay synchronous. New `GlassPathFieldOffCompositionTest` (7, held dispatcher; the path is copied for queued builds); benchmark pixels
+identical; full suite 437 total, 410 passed, 27 skips, 0 failures. ABI/Android not run locally (no
+SDK): CI covers them. Remaining in #81: bounded-resolution build, device timing of the rim lag.
+Record: review/atlas/pathfield-off-composition-2026-10-24/README.md.
+
 ## 24 October: open PRs landed, #89 fixed, #81 faster
 
 All open PRs are merged (#83-#88). Issues closed: #71, #79, #80, #82, #89. Still open for 1.1.0:

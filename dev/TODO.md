@@ -51,11 +51,16 @@ description fix alone.
   CodeRabbit fractional-padding correction passes 21 focused checks and the full suite
   (428 total, 401 passed, 27 opt-in skips, zero failures/errors); Android/Wasm/ABI/docs checks pass.
   Verification and historical results: `review/atlas/compose-cache-field-2026-10-20/README.md`.
-- [ ] **#81 follow-up:** bounded-resolution or off-composition field preparation. Full-resolution
-  EDT remains synchronous; odd-pad and field-consumer tests stay gates.
+- [ ] **#81 follow-up:** bounded-resolution field preparation and device timing remain. The first
+  build and outline/origin changes are still a synchronous full-resolution EDT; odd-pad and
+  field-consumer tests stay gates.
   24 Oct: EDT ~15% faster with bit-identical output (no per-neighbour closure/bounds check, packed
-  mask read); `FieldAllocationBenchmarkTest` pixels identical. The build is still synchronous at full
-  resolution.
+  mask read); `FieldAllocationBenchmarkTest` pixels identical.
+  24 Oct (PR, cloud session): size-only changes build on `Dispatchers.Default`, previous field kept
+  until published, conflated, dropped on leave; first field / empty-to-real / shape, pad, band,
+  density, direction changes stay synchronous. `GlassPathFieldOffCompositionTest` (7) holds the build
+  dispatcher and checks every composed frame. Remaining: bounded-resolution build; device timing.
+  review/atlas/pathfield-off-composition-2026-10-24.
 - [x] **#89 Material 3 slider RTL (24 Oct).** Tracks draw from the start edge, mirrored right to left;
   two RTL tests red before, green after; material3 22/22; review/atlas/material3-slider-rtl-2026-10-24.
 - [ ] **#78 Web demo first load: loader and on-page failures landed (itsaqeeldev, PR #85, 20 Oct); load time still open.** Measured in headless Chrome
