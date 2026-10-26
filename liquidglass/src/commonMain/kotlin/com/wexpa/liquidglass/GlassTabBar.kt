@@ -2262,7 +2262,7 @@ internal fun glassSelectorMaterial(style: GlassTabBarStyle, formation: Float, tr
     val transitSoft = fringe?.getOrNull(5) ?: GlassSelectorTransitRimSoft
     val heldMoving = fringe?.getOrNull(6) ?: GlassSelectorHeldFringeMoving
     return if (glassSelectorFold(style, formation, transitAppearance) > 0f)
-        material.copy(profile = GlassProfile.Measured, foldAtCorners = foldCorners, rimMirror = rimMirror, rimMirrorGain = rimGain, dispersion = moving, inkDispersion = moving * (fringe?.getOrNull(7) ?: 1f),
+        material.copy(profile = GlassProfile.Measured, foldAtCorners = foldCorners, rimMirror = rimMirror, rimMirrorGain = rimGain, dispersion = moving, inkDispersion = moving * (fringe?.getOrNull(7) ?: GlassSelectorInkSplitShare),
             rimSoftness = if (transitSoft > 0f) transitSoft.dp else material.rimSoftness)
     // A held lens keeps the measured held map when still and blends toward the same rim mirror
     // at its caps as it travels ([glassSelectorFormation] carries the travel amount).
