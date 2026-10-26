@@ -6,6 +6,9 @@ Read this first after an interruption. Detailed history lives in the
 
 ## Current state
 
+**27 October comb streaks and channel crush (#124, #108):** eliminated green/black vertical comb streaks during tap transits and channel crush at the lens rim. `delta` in `GlassContentShaderSource.kt` scales with `abs(shift)` instead of full band dispersion along straight runs, and `glassSelectorMaterial` scales transit `inkDispersion` by `GlassSelectorInkSplitShare`. Outward displacement is clamped to `max(shift - delta, 0.0)` in both `GlassShaderSource.kt` and `GlassContentShaderSource.kt`. Ports updated across Skia, npm, React Native, Flutter, Unity, Qt. Peak green count in rows 470–630 dropped from 793 to 319 (iOS: 131–403 px peak).
+[Evidence](../review/atlas/comb-streaks-2026-10-27/README.md).
+
 **26 October squircle lens (#93):** the held lens's outline blends .7 toward a superellipse n = 3 in the pose
 shader and the CPU query (`uPoseE`; agreement test at 0, .5, 1); width profile against IMG_6756 35.5 s 27.5 →
 7.1 px rms. Ports regenerated and set `uPoseE`. Pixel 7 not connected, device check pending.
