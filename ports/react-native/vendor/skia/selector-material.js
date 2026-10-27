@@ -59,9 +59,9 @@ export function calmSelectorMaterial({dark = true, formation = 0, transit = 0, h
     values = {...lerpStyle(style, lift), uTint: pigment.uTint, uLift: pigment.uLift};
     // A tapped selector's own fold (Compose's GlassTabBarStyle.tapTransitFold; tapOpticsFold before it).
     const transitFold = style.tapTransitFold ?? style.tapOpticsFold;
-    if (transitFold > 0 && formation < .5) {
+    if (transitFold > 0 && !(heldTravel > 0 && formation >= .5)) {
       const t = clamp(transit * style.tapOptics, 0, 1);
-      fold = t > formation ? t * clamp(transitFold, 0, 1) : 0;
+      fold = (t > formation || (heldTravel === 0 && t > 0)) ? t * clamp(transitFold, 0, 1) : 0;
     }
     const mirror = {uFoldCorners: DATA.fold.foldCorners, uRimMirror: DATA.fold.rimMirror,
       uRimMirrorGain: DATA.fold.rimMirrorGain};
@@ -70,11 +70,11 @@ export function calmSelectorMaterial({dark = true, formation = 0, transit = 0, h
     const moving = DATA.fold.movingDispersion;
     const split = DATA.fold.dispersion + (DATA.fold.heldMovingDispersion - DATA.fold.dispersion) * clamp(heldTravel, 0, 1);
     if (fold > 0) values = {...values, ...mirror, uAberration: moving, uInkSplit: moving,
-      uFoldCorners: DATA.fold.transitFoldCorners, uProfile: DATA.fold.measuredProfile};
-    else if (style.tapOpticsFold > 0 && formation >= .5) values = {...values, ...mirror,
+      uFoldCorners: DATA.fold.transitFoldCorners, uProfile: (formation >= .5 ? values.uProfile : DATA.fold.measuredProfile)};
+    else if (style.tapOpticsFold > 0 && (formation >= .5 || heldTravel > 0)) values = {...values, ...mirror,
       uAberration: split, uInkSplit: split * DATA.fold.inkSplitShare};
   }
-  const uFormation = style.tapOpticsFold > 0 && formation >= .5
+  const uFormation = style.tapOpticsFold > 0 && heldTravel > 0
     ? clamp(heldTravel * style.tapOpticsFold, 0, 1) : fold;
   return {values, uFormation: clamp(uFormation, 0, 1)};
 }

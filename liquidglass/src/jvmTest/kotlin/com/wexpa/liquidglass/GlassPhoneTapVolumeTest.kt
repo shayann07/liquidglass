@@ -25,7 +25,7 @@ class GlassPhoneTapVolumeTest {
             floatArrayOf(1f,.758364f,329f,204f),
         )
         for ((distance, phase, width, height) in cases) {
-            val c = GlassPoseController(GlassPoseSpec.Calm)
+            val c = GlassPoseController(GlassPoseSpec.CalmVolume)
             c.attach(bar,null,null); c.snapToRest(0)
             c.pointerDown(bar.centreOf(distance.toInt()),bar.centreY,0.0,true)
             c.retarget(distance.toInt())
@@ -56,7 +56,7 @@ class GlassPhoneTapVolumeTest {
     @Test fun cadenceScaleAndReversePreserveTheShape() {
         fun samples(hz: Int, scale: Float, reverse: Boolean): List<FloatArray> {
             val b=bar(scale)
-            val c=GlassPoseController(GlassPoseSpec.Calm)
+            val c=GlassPoseController(GlassPoseSpec.CalmVolume)
             c.attach(b,null,null); c.snapToRest(if(reverse)2 else 0); c.retarget(if(reverse)0 else 2)
             val e=GlassPoseExtents()
             val result=mutableListOf<FloatArray>()
@@ -83,7 +83,7 @@ class GlassPhoneTapVolumeTest {
 
     @Test fun interruptedTapAndHoldTransitionsStayContinuous() {
         val b=bar()
-        val c=GlassPoseController(GlassPoseSpec.Calm)
+        val c=GlassPoseController(GlassPoseSpec.CalmVolume)
         c.attach(b,null,null); c.snapToRest(0); c.retarget(2)
         val before=GlassPoseExtents(); val after=GlassPoseExtents()
         c.advanceTo(.11f); c.extents(before)
@@ -103,7 +103,7 @@ class GlassPhoneTapVolumeTest {
         // A later stationary press must use ordinary press growth, not stale tap area.
         // Same held formation rate, so only stale tap area could differ.
         val old=GlassPoseController(GlassPoseSpec.CalmIndependent.copy(
-            heldFormRiseOmega=GlassPoseSpec.Calm.heldFormRiseOmega))
+            heldFormRiseOmega=GlassPoseSpec.CalmVolume.heldFormRiseOmega))
         old.attach(b,null,null); old.snapToRest(0)
         c.pointerDown(b.centreOf(0),b.centreY,3.0,true)
         old.pointerDown(b.centreOf(0),b.centreY,3.0,true)

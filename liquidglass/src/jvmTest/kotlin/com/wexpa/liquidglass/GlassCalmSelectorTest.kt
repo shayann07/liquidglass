@@ -8,7 +8,7 @@ import java.io.File
  * Dynamics rates are authored; the 1.23 bar-height bound is an observed envelope. */
 class GlassCalmSelectorTest {
     private val bar = GlassSelectorBar(360f, 64f, 6f, 4, 32f, 39f, 29f, 29f, 40f, 55f, 1f, 260f)
-    private fun controller(): GlassPoseController = GlassPoseController(GlassPoseSpec.Calm).also {
+    private fun controller(spec: GlassPoseSpec = GlassPoseSpec.Calm): GlassPoseController = GlassPoseController(spec).also {
         it.attach(bar, FloatArray(8) { i -> bar.centreOf(i / 2) + if (i % 2 == 0) -20f else 20f },
             FloatArray(4) { i -> bar.centreOf(i) }, 18f)
         it.snapToRest(1)
@@ -36,8 +36,8 @@ class GlassCalmSelectorTest {
         assertTrue(abs(GlassPoseExtents().also(c::extents).height - 58f) < .5f)
     }
     @Test fun longerTravelDeformsMoreAndReturnsToItsRestingSize() {
-        fun trace(target: Int): Float {
-            val c = controller(); c.retarget(target)
+        fun trace(target: Int, spec: GlassPoseSpec = GlassPoseSpec.CalmWallLanding): Float {
+            val c = controller(spec); c.retarget(target)
             var maximum = 0f
             for (i in 1..180) {
                 c.advanceTo(i / 120f)
@@ -56,6 +56,10 @@ class GlassCalmSelectorTest {
         assertTrue(long > short + 5f, "distance did not affect shape: $short $long")
         assertTrue(short > 88f, "selector remained rigid: $short")
         println("CALM_TRAVEL short=$short long=$long rest=78")
+
+        val shortCalm = trace(2, GlassPoseSpec.Calm)
+        val longCalm = trace(3, GlassPoseSpec.Calm)
+        assertTrue(longCalm > shortCalm + 2f, "Calm distance did not affect shape: $shortCalm $longCalm")
     }
 
     @Test fun movementBeyondAnEndAnchorDoesNotInventSelectorTravel() {

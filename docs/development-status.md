@@ -7,6 +7,11 @@ research remains available; this page identifies which later changes supersede i
 
 ## Main after 1.0 (24 October)
 
+- 27 October: tap transit speed and lens formation match iOS 27. On a single-slot tap the selector
+  arrives in ~70–100 ms (was ~300 ms, `centreOmega` 44 rad/s, `tapSpineOmega` 36 rad/s, `tapShortTripRate` 1.0)
+  and during transit forms a full glass lens (`formRiseOmega` 75 rad/s, `formFromMovement` 1.0, formation $\ge 0.85$,
+  held profile $\ge 0.95$, moving fringes 0.14) that subsides to a resting pill upon landing (#123, #120).
+  [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/tap-transit-2026-10-27/README.md).
 - 26 October: the held lens's outline is a squircle (a .7 blend toward n = 3, the exponent iOS's lens fits),
   not a capsule; its width profile against iOS moves from 27.5 to 7.1 px rms.
   [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/lens-squircle-2026-10-26/README.md).
