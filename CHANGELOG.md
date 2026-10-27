@@ -6,6 +6,13 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Free buttons / search accessory: press flash, upright pull, and see-through overlap (#125).
+  Touch-down on the search button dims the glyph to ~0.50 alpha for 1 frame (16–33 ms) and recovers
+  over 50 ms (`GlassInteraction.pressFlash`, on in `Pullable`). Diagonal pulls preserve an upright
+  oval without tilting the body 20° or shearing the glyph (`GlassInteraction.uprightPull`, on in `Pullable`;
+  shear term strictly zero). When pushed against the tab bar, the bar end shows through the button's
+  translucent glass with a moving contact shadow, eliminating the dark ghost at rest.
+  [Evidence](review/atlas/search-button-2026-10-28/README.md).
 - Tab bar (Calm): the held lens's outline is a squircle, not a capsule: it blends .7 of the way toward a
   superellipse with n = 3, the shape iOS's held lens fits, so its top runs flatter and its shoulders squarer. The
   resting selector stays a capsule. The ports draw the same outline (#93).

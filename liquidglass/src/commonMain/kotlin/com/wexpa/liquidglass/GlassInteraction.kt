@@ -10,6 +10,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -58,6 +59,7 @@ internal data class GlassPress(
     val pulling: Boolean = false,
     /** Whether the press now drags something (the tab bar's selector); see [GlassInteraction.dragPressShare]. */
     val dragging: Boolean = false,
+    val pressCount: Int = 0,
 ) {
     companion object {
         /** Far enough off-panel that the Gaussian is zero, so an idle panel costs nothing. */
@@ -151,6 +153,16 @@ data class GlassInteraction(
      * [Pullable] uses 0.3, fitted on iOS's sideways releases.
      */
     val pullReleaseDampingX: Float = Float.NaN,
+    /**
+     * Touch-down flash: magnifier or icon content briefly dims to ~120-133 (alpha ~0.50) on contact
+     * and recovers over 50 ms. Opt-in; [Pullable] enables this for reference parity (item 147).
+     */
+    val pressFlash: Boolean = false,
+    /**
+     * Upright pull: constrains the drag deformation angle to cardinal axes (0°, 90°, 180°, -90°),
+     * preventing diagonal pull vectors from tilting the button oval and shearing the glyph (item 148).
+     */
+    val uprightPull: Boolean = false,
 ) {
     companion object {
         val Default = GlassInteraction()
@@ -177,6 +189,8 @@ data class GlassInteraction(
             // 19-34 s, three releases: glyph +6 px against our +2 at 0.45; 18 October): x damping 0.3 scores
             // centre 2.3 px rms (2.6), half-width 2.2 (2.7) and its narrowest 83 px (86; iOS 78).
             pullReleaseDampingX = 0.3f,
+            pressFlash = true,
+            uprightPull = true,
         )
         /**
          * What Apple's Reduce Motion asks for: "decreases the intensity of some effects and
@@ -272,11 +286,16 @@ class GlassPressSource internal constructor() {
     internal var isPressed by mutableStateOf(false)
     /** The press now drags something ([GlassInteraction.dragPressShare]); cleared on release. */
     internal var dragging by mutableStateOf(false)
+    var pressCount by mutableIntStateOf(0)
+        internal set
 
     /** Call on every pointer move as well as on down, so the glow tracks rather than jumps. */
     fun press(localPosition: Offset, pullOffset: Offset = Offset.Zero) {
         require(localPosition.x.isFinite() && localPosition.y.isFinite() &&
             pullOffset.x.isFinite() && pullOffset.y.isFinite()) { "Press coordinates must be finite" }
+        if (!isPressed) {
+            pressCount++
+        }
         this.localPosition = localPosition
         this.pullOffset = pullOffset
         isPressed = true
@@ -321,7 +340,8 @@ internal fun rememberGlassPress(
             label = "glass_press_amount_external",
         )
         return GlassPress(source.localPosition.x, source.localPosition.y, amount,
-            source.pullOffset.x, source.pullOffset.y, pulling = source.isPressed, dragging = source.dragging) to Modifier
+            source.pullOffset.x, source.pullOffset.y, pulling = source.isPressed, dragging = source.dragging,
+            pressCount = source.pressCount) to Modifier
     }
 
     var point by remember { mutableStateOf(Offset.Zero) }
@@ -330,6 +350,7 @@ internal fun rememberGlassPress(
     var pull by remember { mutableStateOf(Offset.Zero) }
     var pulling by remember { mutableStateOf(false) }
     var moved by remember { mutableStateOf(false) }
+    var pressCount by remember { mutableIntStateOf(0) }
     val amount by animateFloatAsState(
         targetValue = if (!down) 0f else if (moved) pullLiftShare.coerceIn(0f, 1f) else 1f,
         animationSpec = when {
@@ -350,6 +371,7 @@ internal fun rememberGlassPress(
             moved = false
             down = true
             pulling = true
+            pressCount++
             try {
                 while (true) {
                     val change = awaitPointerEvent().changes.firstOrNull { it.id == first.id } ?: break
@@ -365,5 +387,5 @@ internal fun rememberGlassPress(
         }
     }
 
-    return GlassPress(point.x, point.y, amount, pull.x, pull.y, pulling) to modifier
+    return GlassPress(point.x, point.y, amount, pull.x, pull.y, pulling, pressCount = pressCount) to modifier
 }

@@ -2,6 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {kotlin, haveKotlin, skslFunction} from './kotlin.mjs';
 import {regularStyle, clearStyle} from '../material.mjs';
+import {createFreeButton} from '../vendor/skia/interaction.mjs';
 import {restSourceLegacy, bevelSlope, snellShift, smoothstep, sdRoundRect, gradRoundRect, cornerWeight,
   shapeFor, geometryAt, displacementAt, highlightAt, displacementMap, rimMap, decodeOffset} from '../optics.mjs';
 
@@ -127,4 +128,14 @@ test('rim map: the measured edge light peaks on the lit edge, both edges lit, si
   // (GlassStyle.inApp's note: +60 one pixel in, then +40, +22, +10; the model gives 53, 34, 13).
   const column = [0, 1, 2, 3].map(j => dense.data[4 * (j * dense.width + 450) + 3]);
   assert.ok(column[1] > column[0] && column[1] > column[2] && column[2] > column[3], column.join(' '));
+});
+
+test('free button cardinal angle snapping uses ties-to-even', () => {
+  const btn = createFreeButton({size: 186, density: 3});
+  btn.down(0);
+  // dx = -50, dy = -50 -> atan2(-50, -50) = -135 degrees.
+  // With ties-to-even (-135 / 90 = -1.5 -> -2), anchor and angle snap to -180 degrees.
+  btn.move(0.1, -50, -50);
+  const sample = btn.sample(0.2);
+  assert.equal(sample.angle, -180);
 });

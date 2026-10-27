@@ -208,6 +208,11 @@ export function createFreeButton({size, density = 1, pressScale = 1.26, pressGro
     return {along: axis * k, across: side * (1 + .2 * (1 - k)), angle: anchor,
       tx: centre * nx - perp * ny, ty: centre * ny + perp * nx};
   }
+  const snapCardinal = deg => {
+    const n = deg / 90;
+    const i = Math.floor(n), f = n - i;
+    return (Math.abs(f - 0.5) < 1e-6 ? (Math.abs(i % 2) === 0 ? i : i + 1) : Math.round(n)) * 90;
+  };
   return {
     down(time) {
       moved = false;
@@ -217,7 +222,7 @@ export function createFreeButton({size, density = 1, pressScale = 1.26, pressGro
     move(time, dx, dy) {
       const len = Math.hypot(dx, dy);
       if (!moved && len > 4 * density) { moved = true; glow.to(time, pullLiftShare, FREE_SPECS.freeGlow); }
-      if (len > 4 * density) anchor = Math.atan2(dy, dx) * 180 / Math.PI;
+      if (len > 4 * density) anchor = snapCardinal(Math.atan2(dy, dx) * 180 / Math.PI);
       const travel = len * pullFollow;
       const k = !(len > 1e-5) || pullFollow <= 0 ? 1 : limit * Math.tanh(travel / limit) / travel;
       px.to(time, dx * k, FREE_SPECS.pullFollow); py.to(time, dy * k, FREE_SPECS.pullFollow);
@@ -238,7 +243,7 @@ export function createFreeButton({size, density = 1, pressScale = 1.26, pressGro
         const along = Math.min(1 + pullElongation * len / Math.max(e, 1), 1.6);
         const extension = (along - 1) * Math.max(e, 1);
         d = {along, across: Math.max(1 - pullWidthRatio * extension / Math.max(across, 1), .5),
-          angle: Math.atan2(y, x) * 180 / Math.PI, tx: pullFollow * x, ty: pullFollow * y};
+          angle: snapCardinal(Math.atan2(y, x) * 180 / Math.PI), tx: pullFollow * x, ty: pullFollow * y};
       }
       d = landing(d);
       const g = glow.value(time);

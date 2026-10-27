@@ -174,6 +174,7 @@ internal fun GlassTabBar(
         frost = state.frost,
         contrast = state.contrast,
     )
+    trailingAccessory?.link?.barState = barState
 
     // Nothing here clips: the lens stands proud of the bar while it is held.
     BoxWithConstraints(modifier = modifier.height(style.height)) {

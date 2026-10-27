@@ -18,7 +18,13 @@
   Then verify any remaining Argon sessions (`.local/gemini/sessions/`; 17-25 spot-checked in audit section U: iOS-only
   targets, 6 of 8 checked sessions accurate, re-measure each value before using it; 17 half answered, 26-30 pending).
 
-## RESUME HERE (27 Oct morning): Task A complete (all 30 Argon sessions verified), fix Task B
+## RESUME HERE (28 Oct): #125 search button optics completed
+
+- **#125 (28 Oct)**: Search button optics implemented and verified on branch `fix/125-search-button-optics`:
+  - Item 147: press flash (glyph dims from 255 to 128/0.50 alpha for 1 frame on touch-down, recovers linearly over 50 ms via `GlassInteraction.pressFlash` in `Pullable`).
+  - Item 148: upright pull (cardinal 90° angle snap in `glassPullDeformation` under `GlassInteraction.uprightPull` in `Pullable`; shear term $(along - across) \cdot \cos\theta \sin\theta \equiv 0$, eliminating 20° button tilt and glyph shear).
+  - Item 148: see-through overlap (`effectiveDelta = delta + pullTrans` in `LiquidGlass.kt` shifts backdrop sampling to follow button translation, rendering bar and Keypad pill through translucent glass and moving contact shadow, eliminating resting dark ghost).
+  - All ports (C# `FreeButton.cs`, JS Skia, npm, web) and fixture `ports/skia/fixtures/free-button.json` synchronized. Evidence at `review/atlas/search-button-2026-10-28/README.md`.
 
 All 30 Argon sessions are verified on decoded frames against reference replay renders (sessions 01-16 in section T, 17-25 in section U, 26-30 in section V of `review/atlas/ios-audit-2026-10-26/README.md`). Confirmed findings filed to issue checklists via `gh issue` on #119, #111, #125.
 PR #130 is open on branch `fix/124-comb-streaks` addressing issue #124, #108, #94.
