@@ -64,4 +64,58 @@ class GlassFreePullTest {
             assertTrue(hw >= .8f * a && hh >= .8f * b, "($a, $b) -> $hw x $hh: too small")
         }
     }
+
+    @Test fun aDiagonalPullConstrainsToUprightOvalWithZeroShear() {
+        // A diagonal pull vector (pullX = 180f, pullY = -500f) produces an angle of ~-70.2 degrees (20 deg tilt).
+        // Under Pullable's uprightPull constraint, the deformation angle snaps to -90f (upright oval),
+        // preventing diagonal button tilt and preventing glyph shear (shear term cos(a)*sin(a) = 0).
+        val args = floatArrayOf(186f, 186f, 93f, 3f, 1.258f, 1.258f, 180f, -500f, 117f)
+        val d = glassMaterialPull(args[0], args[1], args[2], args[3], args[4], args[5],
+            args[6], args[7], args[8], free)
+        assertEquals(-90f, d.angleDegrees, 0.01f, "diagonal pull angle snaps to upright -90°")
+        assertEquals(36f, d.translationX, 0.5f, "translationX follows 2D travel (0.2 * 180px)")
+        assertEquals(-100f, d.translationY, 0.5f, "translationY follows 2D travel (0.2 * -500px)")
+        val rad = d.angleDegrees * (kotlin.math.PI.toFloat() / 180f)
+        val shearTerm = cos(rad) * sin(rad) * (d.along - d.across)
+        assertEquals(0f, shearTerm, 1e-5f, "shear on glyph is strictly zero")
+    }
+
+    @Test fun pressFlashAndUprightPullDefaultsAndPullable() {
+        val defaultInteraction = GlassInteraction()
+        assertEquals(false, defaultInteraction.pressFlash)
+        assertEquals(false, defaultInteraction.uprightPull)
+
+        assertTrue(GlassInteraction.Pullable.pressFlash)
+        assertTrue(GlassInteraction.Pullable.uprightPull)
+    }
+
+    @Test fun pressSourceTracksTouchDownCount() {
+        val source = GlassPressSource()
+        assertEquals(0, source.pressCount)
+        source.press(androidx.compose.ui.geometry.Offset(10f, 10f))
+        assertEquals(1, source.pressCount)
+        source.press(androidx.compose.ui.geometry.Offset(15f, 15f))
+        assertEquals(1, source.pressCount)
+        source.release()
+        assertEquals(1, source.pressCount)
+        source.press(androidx.compose.ui.geometry.Offset(20f, 20f))
+        assertEquals(2, source.pressCount)
+    }
+
+    @Test fun uprightPullOptInPreservesFreeAngleWhenFalse() {
+        val freeNonUpright = GlassInteraction(pullShape = GlassPullShape.Free, uprightPull = false)
+        val args = floatArrayOf(186f, 186f, 93f, 3f, 1.258f, 1.258f, 180f, -500f, 117f)
+        val d = glassMaterialPull(args[0], args[1], args[2], args[3], args[4], args[5],
+            args[6], args[7], args[8], freeNonUpright)
+        val rawAngle = kotlin.math.atan2(-500f, 180f) * (180f / kotlin.math.PI.toFloat())
+        assertEquals(rawAngle, d.angleDegrees, 0.01f, "diagonal pull angle is preserved when uprightPull is false")
+    }
+
+    @Test fun accessoryLinkSharesBarStateWithLinkedButton() {
+        val link = GlassAccessoryLink()
+        assertEquals(null, link.barState)
+        val state = LiquidGlassState(androidx.compose.ui.graphics.Color.Black, 0f, 0f, 0f, 1f)
+        link.barState = state
+        assertEquals(state, link.barState)
+    }
 }

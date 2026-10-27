@@ -111,7 +111,7 @@ public sealed class FreeButton
     {
         var len = Math.Sqrt(dx * dx + dy * dy);
         if (!moved && len > 4 * density) { moved = true; glow.To(time, liftShare, FreeGlow); }
-        if (len > 4 * density) anchor = Math.Atan2(dy, dx) * 180 / Math.PI;
+        if (len > 4 * density) anchor = Math.Round(Math.Atan2(dy, dx) * 180 / Math.PI / 90) * 90;
         var travel = len * follow;
         var k = !(len > 1e-5) || follow <= 0 ? 1 : limit * Math.Tanh(travel / limit) / travel;
         px.To(time, dx * k, PullFollow); py.To(time, dy * k, PullFollow);
@@ -134,7 +134,7 @@ public sealed class FreeButton
             along = Math.Min(1 + elongation * len / Math.Max(e, 1), 1.6);
             var extension = (along - 1) * Math.Max(e, 1);
             across = Math.Max(1 - widthRatio * extension / Math.Max(acrossExtent, 1), .5);
-            angle = Math.Atan2(y, x) * 180 / Math.PI; tx = follow * x; ty = follow * y;
+            angle = Math.Round(Math.Atan2(y, x) * 180 / Math.PI / 90) * 90; tx = follow * x; ty = follow * y;
         }
         (along, across, angle, tx, ty) = Landing(along, across, angle, tx, ty);
         var g = glow.Value(time);
