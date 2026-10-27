@@ -1828,7 +1828,7 @@ data class GlassTabBarStyle(
                 // .03 reach of pass 7 pushed our bar 13 px past the lens's cap.
                 pressReach = 0f,
                 // iOS's bar snaps back after lift (0.12 s, ~10% overshoot) and parts from the button.
-                releaseStiffness = if (dark) 530f else 0f, releaseDamping = if (dark) .6f else 1f,
+                releaseStiffness = if (dark) 530f else 0f, releaseDamping = 1f,
                 // Once its lens is dragged, iOS's bar keeps about 10 px of growth a side.
                 dragPressShare = if (dark) .7f else 1f,
             ),

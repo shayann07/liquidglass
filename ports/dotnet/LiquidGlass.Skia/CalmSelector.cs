@@ -51,6 +51,7 @@ public sealed record CalmSelectorSpec
     public double TapAppearanceArea { get; init; } = 0; public double TapAppearanceSpine { get; init; } = 0;
     public double TapAppearanceFallOmega { get; init; } = 0; public double ReleaseFormationSpeed { get; init; } = 0;
     public double ReleaseStillHoldSeconds { get; init; } = 0;
+    public double ReleaseStillFadeOmega { get; init; } = 0;
     /// <summary>The held lens's superellipse blend (#93) at full formation, and its exponent.</summary>
     public double HeldSquircle { get; init; } = 0; public double SquircleExponent { get; init; } = 3;
 
@@ -65,9 +66,11 @@ public sealed record CalmSelectorSpec
         TravelOnly = true, ReleaseTravel = true, TapRecoilArea = true, HeldTravelPressureOmega = 60,
         TapSpineLimitSlots = .45, TapAreaGain = .51, TapShortTripRate = .75, TapAppearanceArea = .44,
         TapAppearanceSpine = .13, TapAppearanceFallOmega = 45, ReleaseFormationSpeed = 3,
-        GraspOmega = 120, HeldFormRiseOmega = 50, ReleaseTrailingEdge = true, ReleaseRecoveryOmega = 13,
+        GraspOmega = 120, HeldFormRiseOmega = 26, PressFormation = 0, HoldThresholdSeconds = .11,
+        ReleaseTrailingEdge = true, ReleaseRecoveryOmega = 13,
         ReleaseTrailingInOmega = 9, ReleaseTrailingInZeta = .3, ReleaseTrailingCarry = .1, ReleaseWallGive = .35,
-        ReleaseTrailingStiffening = .5, ReleaseStillHoldSeconds = .18, HeldTravelStrain = .6, HeldTravelStrainOmega = 10,
+        ReleaseTrailingStiffening = .5, ReleaseStillHoldSeconds = .035, ReleaseStillFadeOmega = 160,
+        HeldTravelStrain = .6, HeldTravelStrainOmega = 10,
         HeldSquircle = .7,
     };
 }
@@ -337,7 +340,7 @@ public sealed class CalmSelectorController
         HeldTravel < 1e-4 && quietSteps >= QuietSteps && strainDrive.Value == 0 &&
         // A still release keeping its glass: nothing moves yet, but the formation still has to fall.
         !(Mode == CalmSelectorMode.Released && releasedFromHold && releasedStill && form.Value > .01 &&
-          now - releasedAt < Spec.ReleaseStillHoldSeconds + .05);
+          now - releasedAt < Spec.ReleaseStillHoldSeconds + .15);
     private bool started;
 
     public void Attach(CalmSelectorBar bar, IReadOnlyList<double>? itemBounds = null, IReadOnlyList<double>? itemCentres = null, double? inkHalfHeight = null)
@@ -582,7 +585,9 @@ public sealed class CalmSelectorController
         else formTarget = 1 - (1 - pressResponse) * (1 - s.FormFromMovement * sv);
         form.Target = formTarget;
         var riseOmega = heldNow && s.HeldFormRiseOmega > 0 ? s.HeldFormRiseOmega : s.FormRiseOmega;
-        form.Step(dt, formTarget > form.Value ? riseOmega : s.FormOmega, s.FormZeta);
+        var fallOmega = Mode == CalmSelectorMode.Released && releasedStill && s.ReleaseStillFadeOmega > 0
+            ? s.ReleaseStillFadeOmega : s.FormOmega;
+        form.Step(dt, formTarget > form.Value ? riseOmega : fallOmega, s.FormZeta);
 
         var formation = Formation;
         var gain = MotionEnabled ? 2 * s.StretchGain * Math.Max(formation, .35) : 0;

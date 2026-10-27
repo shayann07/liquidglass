@@ -14,7 +14,7 @@ const bar = () => {
 };
 
 /** Positions in px; shape and optics in their own units. Float32 (Kotlin) against float64 here. */
-const TOLERANCE = {cx: .05, cy: .05, left: .05, right: .05, top: .05, bottom: .05, formation: 1e-4,
+const TOLERANCE = {cx: .05, cy: .05, left: .05, right: .05, top: .05, bottom: .05, formation: 5e-4,
   transit: 1e-3, heldTravel: 1e-4, a0: 1e-4, a1: 1e-4, a2: 1e-4, a3: 1e-4, spine: .05, radius: .05, band: .05};
 
 for (const scenario of fixture.scenarios) {

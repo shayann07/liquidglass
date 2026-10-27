@@ -7,6 +7,11 @@ research remains available; this page identifies which later changes supersede i
 
 ## Main after 1.0 (24 October)
 
+- 27 October: still-press and still-release timing matches iOS 27 measurements: held lens still release holds
+  for 35 ms before fading out within 65 ms; bar top dip after still release eliminated (0 px undershoot with
+  critical damping, eliminating search button neck regrowth); still-press swell onset begins at 110 ms, lens appears
+  at ~177 ms (~50%) and reaches fully formed at 294 ms (>95%) (#106, #95).
+  [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/press-release-timing-2026-10-27/README.md).
 - 26 October: the held lens's outline is a squircle (a .7 blend toward n = 3, the exponent iOS's lens fits),
   not a capsule; its width profile against iOS moves from 27.5 to 7.1 px rms.
   [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/lens-squircle-2026-10-26/README.md).

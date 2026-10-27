@@ -18,14 +18,17 @@
   Then verify any remaining Argon sessions (`.local/gemini/sessions/`; 17-25 spot-checked in audit section U: iOS-only
   targets, 6 of 8 checked sessions accurate, re-measure each value before using it; 17 half answered, 26-30 pending).
 
-## RESUME HERE (27 Oct morning): Task A complete (all 30 Argon sessions verified), fix Task B
+## RESUME HERE (27 Oct evening): PRs #130, #131, #132, #106 open, resume Task B
 
 All 30 Argon sessions are verified on decoded frames against reference replay renders (sessions 01-16 in section T, 17-25 in section U, 26-30 in section V of `review/atlas/ios-audit-2026-10-26/README.md`). Confirmed findings filed to issue checklists via `gh issue` on #119, #111, #125.
-PR #130 is open on branch `fix/124-comb-streaks` addressing issue #124, #108, #94.
+- **PR #130 open** on branch `fix/124-comb-streaks`: fixes tap comb streaks (#124), clamps rim channel crush (#108, item 111), and addresses throw-landing label ink regression (#94).
+- **PR #131 open** on branch `fix/123-tap-travel-and-lens`: matches iOS 27 tap travel speed 70–100 ms (#123) and transit lens formation >= 0.85 with moving fringes (#120).
+- **PR #132 open** on branch `fix/119-fast-scrub-flattening`: fixes fast scrub lens flattening and strain overshoot (#119). Verified with bounded dimensions (min height 139 px vs 102 px collapse, max width 459 px vs 588 px blowout).
+- **PR open on branch `fix/106-press-release-timing`** (#106, #95): fixes still release hold & fast fade (Item 104, 35 ms hold, 160 rad/s fade), bar top dip after still release (Item 105, critical damping `releaseDamping = 1f`, 0 px undershoot), and still-press formation onset & swell (Item 107, 110 ms onset, 26 rad/s rise, 0 press formation).
+- **Issue #108**: channel crush (item 111) and search-end neck edge channel crush documented with PR #130; item 111 ticked.
 
 **Exact next step on resume**:
-1. Continue Task B fix order: **#123 + #120** (tap travel speed ~300 ms vs iOS ~70–130 ms, tap lens formation, bar spread; branch from `main`).
-2. Then follow the remaining sequence in dev/TODO: #119, #108, #95/#106, #93, #125, #128, #129.
+1. Follow the remaining sequence in dev/TODO: #93, #125, #128, #129.
 
 ## 26 October, late night: second video pass verified
 
