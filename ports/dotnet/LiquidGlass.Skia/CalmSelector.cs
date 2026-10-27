@@ -26,7 +26,7 @@ public sealed record CalmSelectorSpec
     public double PullPressurePerDp { get; init; } = -.0007; public double PullOnsetDp { get; init; } = 12;
     public double PullMaxStrain { get; init; } = .12; public double PullFollow { get; init; } = .2;
     public double PullFollowCapRatio { get; init; } = .1; public double EndTravelCapRatio { get; init; } = .08;
-    public double PullTiltSeconds { get; init; } = .08; public double HeldHeightRatio { get; init; } = 1.2;
+    public double PullTiltSeconds { get; init; } = .08; public double HeldHeightRatio { get; init; } = 1.183;
     public double Squeeze { get; init; } = .4; public double TaperFromAcceleration { get; init; } = 0;
     public double TaperFromVelocity { get; init; } = 0; public double MaxTaper { get; init; } = 0;
     public double FormFromMovement { get; init; } = .25; public double PressFormation { get; init; } = .3;
@@ -59,7 +59,7 @@ public sealed record CalmSelectorSpec
     {
         CentreOmega = 24, SpineOmega = 30, SpineZeta = .78, TapSpineOmega = 26, TapSpineZeta = .45,
         TapElongationSlots = .36, TapReferenceSpeed = 10, SpineReleaseOmega = 22, PressureOmega = 22,
-        PressureFallOmega = 14, FormRiseOmega = 30, TapPressureOmega = 45, HeldHeightRatio = 1.2,
+        PressureFallOmega = 14, FormRiseOmega = 30, TapPressureOmega = 45, HeldHeightRatio = 1.183,
         HeldReferenceSpeed = 8, ElongationSlots = .28, Squeeze = .47, PullStrainPerDp = 0,
         PullPressurePerDp = 0, PullFollow = 0, EndTravelCapRatio = .025, MaxAccommodationSlots = .15,
         TravelOnly = true, ReleaseTravel = true, TapRecoilArea = true, HeldTravelPressureOmega = 60,

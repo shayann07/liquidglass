@@ -105,10 +105,9 @@ fun PhoneScene(
     search: GlassInteraction? = GlassInteraction.Pullable.copy(pullShape = GlassPullShape.Free, pullLiftShare = 0.65f),
     // LiquidGlassTheme.renderScale: the glass layers recorded at this fraction of full resolution.
     renderScale: Float = 1f,
-    // GlassTabBarAccessory.lensFusion: a held lens at the search end reaches the button through a neck.
-    // 24 dp since 26 October (#93): IMG_6756 35.5 s and docs/2 30 s show the lens joining the button
-    // with a shallow notch top and bottom; 12 dp pinched a waist, 40 dp lost the notch.
-    lensFusion: androidx.compose.ui.unit.Dp = 24.dp,
+    // GlassTabBarAccessory.lensFusion: 0.dp (#93, #107): iOS held lens overlaps the search button
+    // rather than necking into it; the notch belongs to the bar's own join, seen magnified through the lens.
+    lensFusion: androidx.compose.ui.unit.Dp = 0.dp,
 ) {
     LiquidGlassTheme(background = palette.page, renderScale = renderScale) {
     Box(modifier.size(PhoneGeometry.width, PhoneGeometry.height).background(palette.page)) {

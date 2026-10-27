@@ -1012,9 +1012,10 @@ internal fun GlassTabBar(
                 val nodeLeftPx = handle?.nodeLeft() ?: poseHandle!!.nodeLeft()
                 val nodeTopPx = poseHandle?.nodeTop() ?: -overflowTopPx
                 // [GlassTabBarAccessory.lensFusion]: a held lens at the accessory's end takes the neck
-                // the bar gives up, in the lens node's own frame.
+                // the bar gives up, in the lens node's own frame. Disabled in dark appearance (#93, #107):
+                // iOS 27 dark shows the lens overlapping the button cleanly with no neck.
                 val lensAccessoryFuse = if (trailingAccessory != null && motionEnabled && poseHandle != null &&
-                    trailingAccessory.lensFusion > 0.dp) {
+                    style.isLight && trailingAccessory.lensFusion > 0.dp) {
                     // A formed (held) lens only: the neck bridges just the last few px, so it shows only
                     // once the lens has reached the end; a tap's partial formation never draws it.
                     val f = ((poseHandle.formation - 0.5f) / 0.5f).coerceIn(0f, 1f)
@@ -2222,6 +2223,10 @@ class GlassTabBarAccessory(
     override fun hashCode(): Int = ((((size.hashCode() * 31 + gap.hashCode()) * 31 + fusion.hashCode()) * 31 +
         yieldsToLens.hashCode()) * 31 + lensFusion.hashCode()) * 31 + (link?.hashCode() ?: 0)
 }
+
+/** Whether this style represents a light appearance. */
+internal val GlassTabBarStyle.isLight: Boolean
+    get() = lens.heldEdgeTone > 0.5f || bar.edgeShadow > 0f
 
 /**
  * How much of the accessory's neck a formed pose selector has taken over, 0 to 1: its formation

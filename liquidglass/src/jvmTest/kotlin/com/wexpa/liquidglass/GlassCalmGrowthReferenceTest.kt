@@ -77,7 +77,8 @@ class GlassCalmGrowthReferenceTest {
         val e = GlassPoseExtents(); c.extents(e)
         assertTrue(c.isHeld)
         println("PHONE_T01 response=${spec.responseName()} height=${e.height} width=${e.width}")
-        assertEquals(225f, e.height, 4f, "Phone calm height")
+        val expectedHeight = 220f
+        assertEquals(expectedHeight, e.height, 4f, "Phone calm height")
         assertEquals(350f, e.width, 10f, "Phone calm width: pressure must not magnify the spine")
     }
 

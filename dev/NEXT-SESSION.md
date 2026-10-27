@@ -25,7 +25,7 @@ PR #130 is open on branch `fix/124-comb-streaks` addressing issue #124, #108, #9
 
 **Exact next step on resume**:
 1. Continue Task B fix order: **#123 + #120** (tap travel speed ~300 ms vs iOS ~70–130 ms, tap lens formation, bar spread; branch from `main`).
-2. Then follow the remaining sequence in dev/TODO: #119, #108, #95/#106, #93, #125, #128, #129.
+2. Then follow the remaining sequence in dev/TODO: #119, #108, #95/#106, #93 (addressed on fix/93-bar-growth-and-fusion), #125, #128, #129.
 
 ## 26 October, late night: second video pass verified
 
