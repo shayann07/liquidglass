@@ -18,14 +18,19 @@
   Then verify any remaining Argon sessions (`.local/gemini/sessions/`; 17-25 spot-checked in audit section U: iOS-only
   targets, 6 of 8 checked sessions accurate, re-measure each value before using it; 17 half answered, 26-30 pending).
 
-## RESUME HERE (27 Oct morning): Task A complete (all 30 Argon sessions verified), fix Task B
+## RESUME HERE: paused at checkpoint (27 Oct evening)
 
-All 30 Argon sessions are verified on decoded frames against reference replay renders (sessions 01-16 in section T, 17-25 in section U, 26-30 in section V of `review/atlas/ios-audit-2026-10-26/README.md`). Confirmed findings filed to issue checklists via `gh issue` on #119, #111, #125.
-PR #130 is open on branch `fix/124-comb-streaks` addressing issue #124, #108, #94.
+### State at pause:
+- **Task A**: All 30 Argon sessions are verified on decoded frames against reference replay renders (sessions 01-16 in section T, 17-25 in section U, 26-30 in section V of `review/atlas/ios-audit-2026-10-26/README.md`). Confirmed findings filed to issue checklists on #119, #111, #125.
+- **PR #130 is open** on branch `fix/124-comb-streaks`: fixes tap comb streaks (#124), clamps rim channel crush (#108), and addresses throw-landing label ink regression (#94).
+- **PR #131 is open** on branch `fix/123-tap-travel-and-lens`: matches iOS 27 tap travel speed 70–100 ms (#123) and transit lens formation >= 0.85 with moving fringes (#120). 441/441 JVM tests, 46/46 Skia tests, 27/27 npm tests passed.
+- **Issue #119 in progress** on branch `fix/119-fast-scrub-flattening`: directional tracking, reversal decay (`0.40f` on rapid scrub), scrub suppression, and strain overshoot capping (`maxStrain * 0.80f`) implemented in `GlassPoseDynamics.kt`, ported to Skia/dotnet, and verified in `GlassHeldTravelReferenceTest` (docs/2 18.7–22.0 s fast scrub height bounded to >= 139 px vs 102 px collapse, width capped to 459 px vs 588 px blowout). Staged/uncommitted files in working tree.
 
-**Exact next step on resume**:
-1. Continue Task B fix order: **#123 + #120** (tap travel speed ~300 ms vs iOS ~70–130 ms, tap lens formation, bar spread; branch from `main`).
-2. Then follow the remaining sequence in dev/TODO: #119, #108, #95/#106, #93, #125, #128, #129.
+### Exact next steps on resume:
+1. Complete verification for **#119** on branch `fix/119-fast-scrub-flattening`: run `python -m mkdocs build --strict`, `python .github/scripts/check_repo_links.py`, and `git diff --cached --check`.
+2. Commit, push branch `fix/119-fast-scrub-flattening`, and open PR to `main` referencing #119.
+3. Post before/after measurements and evidence link to issue #119.
+4. Continue with next items in Task B: **#108** (rim channel crush & neck color), then **#95/#106** timing, **#93**, **#125**, **#128**, **#129**.
 
 ## 26 October, late night: second video pass verified
 

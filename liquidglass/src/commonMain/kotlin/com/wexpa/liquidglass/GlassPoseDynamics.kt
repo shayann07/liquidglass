@@ -526,8 +526,9 @@ internal class GlassPoseController(
      * Optics only: drives the rim mirror of a moving held lens, never geometry or ownership. */
     val heldTravel: Float get() = travel.value.coerceIn(0f, 1f)
     private val tapArea = GlassSpring()
-    /** The held travel that drives [GlassPoseSpec.heldTravelStrain], filtered at its own rate. */
     private val strainDrive = GlassSpring()
+    private var heldTravelDirection = 0f
+    private var reversalInterval = 1f
     private var tapAreaActive = false
     private var tapDistance = 0f
     private var releaseImpactActive = false
@@ -1152,11 +1153,31 @@ internal class GlassPoseController(
         }
         if (spec.heldTravelStrain > 0f) {
             // Sustained held travel builds the strain; a short flick releases before it has.
-            strainDrive.target = if (mode == GlassPoseMode.Held && motionEnabled) sv * formation else 0f
+            val scrubSuppression: Float
+            if (mode == GlassPoseMode.Held && motionEnabled) {
+                reversalInterval += dt
+                val dir = if (abs(nvx) > 0.1f) (if (nvx > 0f) 1f else -1f) else 0f
+                if (dir != 0f && heldTravelDirection != 0f && dir != heldTravelDirection) {
+                    val rapid = reversalInterval < 0.28f
+                    val decay = if (rapid) 0.40f else 0.85f
+                    strainDrive.value *= decay
+                    strainDrive.velocity = 0f
+                    reversalInterval = 0f
+                }
+                if (dir != 0f) heldTravelDirection = dir
+                scrubSuppression = (reversalInterval / 0.25f).coerceIn(0.15f, 1f)
+            } else {
+                heldTravelDirection = 0f
+                reversalInterval = 1f
+                scrubSuppression = 1f
+            }
+            strainDrive.target = if (mode == GlassPoseMode.Held && motionEnabled) sv * formation * scrubSuppression else 0f
             strainDrive.step(dt, spec.heldTravelStrainOmega, 1f)
             if (abs(strainDrive.value) < .0001f && abs(strainDrive.velocity) < .002f && strainDrive.target == 0f) strainDrive.snapTo(0f)
         }
-        equilibrium.u = gain * (nvx * nvx - 0.5f * speed2) / denom + pullU + spec.heldTravelStrain * strainDrive.value
+        val maxHeldStrain = min(spec.heldTravelStrain, spec.maxStrain * 0.80f)
+        val heldTravelU = min(spec.heldTravelStrain * strainDrive.value, maxHeldStrain)
+        equilibrium.u = gain * (nvx * nvx - 0.5f * speed2) / denom + pullU + heldTravelU
         equilibrium.v = gain * (nvx * nvy) / denom + pullV
 
         val heldPressure = poseHeldPressure(spec.heldHeightRatio, bar.height, reference.height)

@@ -6,6 +6,12 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Tab bar (Calm): during fast back-and-forth scrubbing (video 2 18.7–22.0 s), the held lens no longer
+  overshoots its steady-state strain or crushes to half height (103 px against a 590 px flattened width).
+  Rapid direction reversals decay accumulated strainDrive and suppress the scrub target, maintaining a
+  minimum lens height of ~139 px (160 px at 20.0 s vs 102 px previously) and relaxing towards the
+  unstrained ~370 × 186 px full-height travelling capsule (#119).
+  [Evidence](review/atlas/scrub-flattening-2026-10-27/README.md).
 - Tab bar (Calm): the held lens's outline is a squircle, not a capsule: it blends .7 of the way toward a
   superellipse with n = 3, the shape iOS's held lens fits, so its top runs flatter and its shoulders squarer. The
   resting selector stays a capsule. The ports draw the same outline (#93).

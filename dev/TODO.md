@@ -40,7 +40,7 @@ scope/API/positioning decisions, one Gradle build per worktree).
 - [ ] **Audit #92-#104** (review/atlas/ios-audit-2026-10-26): 102 items; work them by severity.
   - [ ] Second video pass, verified (26 Oct night): items 145-148. New issues: #123 (tap travel ~300 ms vs iOS ~70-130 ms), #124 (comb streaks during tap transits; corrects section Q), #125 (search button: press flash, upright pull, see-through overlap). Landing collapse 50-80 ms early on #95; harness parking on #122.
   - [x] **Video-model pass 5, verified (27 Oct morning):** Argon sessions 17-30 verified (audit sections U and V). Confirmed and filed: fast scrub optical bridge to search button (#119, #107), settled selection pill bottom rim chromatic fringes (#111), search button two-stage press onset, trailing-edge pinning, and unlit release flash (#125).
-  - [ ] Video-model pass, verified (26 Oct night): items 139-144. New issues: #119 (fast scrub flattens the lens), #120 (tap transit should form a full lens on iOS 27), #121 (side caps cut content; items 15 and 16 re-homed from the closed #77). Replay-side gaps to fix in the harness: the search episodes are missing from script3, the finger parks on exact tab centres in gen3 scripts, and the sample switches its page on touch-down.
+  - [ ] Video-model pass, verified (26 Oct night): items 139-144. Fixed: #119 (fast scrub flattens the lens; review/atlas/scrub-flattening-2026-10-27/README.md). New issues: #120 (tap transit should form a full lens on iOS 27), #121 (side caps cut content; items 15 and 16 re-homed from the closed #77). Replay-side gaps to fix in the harness: the search episodes are missing from script3, the finger parks on exact tab centres in gen3 scripts, and the sample switches its page on touch-down.
   - [ ] Third pass (26 Oct evening, beyond the pixels): items 130-138, issues #114-#118 (press lighting, system accessibility settings, haptics, hover/focus on desktop and web, automatic quality fallback).
   - [ ] Second pass (26 Oct afternoon): items 103-129, issues #105-#113 (ink lift, press/release timing, lens over the search button, rim colour, rim highlights, glyphs, transit/landing, search mode, Control Center references).
   - [x] #93 item 9, the held lens's outline: squircle blend .7 toward n 3 (lens-squircle-2026-10-26). Pixel 7 check pending.
@@ -50,6 +50,7 @@ scope/API/positioning decisions, one Gradle build per worktree).
 No 1.0.1: the owner decided on 20 Oct to ship these together as 1.1.0 rather than release the Flutter
 description fix alone.
 
+- [x] **#119 Fast scrub flattening and strain overshoot (27 Oct).** Prevented held lens from collapsing to half height during sustained fast scrubbing. Direction reversal decay (0.40x on <0.28s intervals), scrub target suppression, and steady-state strain guard (max 0.80 * maxStrain). 20.0s shape 386.1 × 160.2 px (was 588.6 × 102.2 px, min height 139.0 px vs 102.2 px). Skia port and .NET synchronized; fixture regenerated. review/atlas/scrub-flattening-2026-10-27/README.md.
 - [x] **#80 / #82 and the first part of #81 (itsaqeeldev, 20 Oct), for 1.1.0.** Active-consumer
   view lifetime, matching cache/build geometry (whole-pixel size, exact recording-grid padding),
   shader-capability gating, bounded EDT
