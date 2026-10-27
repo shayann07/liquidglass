@@ -189,4 +189,89 @@ class GlassHeldTravelReferenceTest {
             if (abs(t - 19.0) < 1e-3) { c.extents(e); assertTrue(e.height > h1 + 25f, "previous Calm already flattened") }
         }
     }
+
+    @Test fun fastScrubRetainsLensHeightAndDoesNotOvershoot() {
+        val bar = run {
+            val width = 834f; val height = 186f; val inset = 24f; val density = 3f
+            val slot = (width - inset * 2f) / 3f
+            val rest = minOf(285f / 2f, (inset + slot / 2f - density).coerceAtLeast(density))
+            val half = minOf(height / 2f - 12f, rest)
+            GlassSelectorBar(width, height, inset, 3, height / 2f, rest, half,
+                maxOf(half, height / 2f - density), half, rest, density, width)
+        }
+        val events = File("../tools/reference-replay/v2-script.txt").readLines().mapNotNull { line ->
+            val w = line.trim().split(Regex("""\s+"""))
+            if (w.size == 4 && w[1] in setOf("down", "move", "up")) Triple(w[0].toInt(), w[1], w[2].toFloat()) else null
+        }
+        fun run(spec: GlassPoseSpec, from: Int, until: Int, selected: Int, sample: (Double, GlassPoseController) -> Unit) {
+            val c = GlassPoseController(spec)
+            c.attach(bar, null, null); c.snapToRest(selected)
+            val window = events.filter { it.first in from..until }
+            var next = 0
+            var frame = (from / 1000.0 * 60).toInt()
+            while (frame / 60.0 <= until / 1000.0) {
+                val t = frame / 60.0
+                while (next < window.size && window[next].first / 1000.0 <= t) {
+                    val (ms, op, x) = window[next++]
+                    when (op) {
+                        "down" -> c.pointerDown(x - 63f, bar.centreY, ms / 1000.0, true)
+                        "move" -> c.pointerMove(x - 63f, bar.centreY, ms / 1000.0)
+                        "up" -> c.pointerUp(selected)
+                    }
+                }
+                c.advanceFrameTo(t.toFloat())
+                assertFalse(c.solverFailed)
+                sample(t, c)
+                frame++
+            }
+        }
+        val e = GlassPoseExtents()
+        var minH = Float.MAX_VALUE; var maxH = -Float.MAX_VALUE
+        var minW = Float.MAX_VALUE; var maxW = -Float.MAX_VALUE
+        var at19W = 0f; var at19H = 0f
+        var at20W = 0f; var at20H = 0f
+        var minHTime = 0.0
+        run(GlassPoseSpec.Calm, 18580, 22000, 0) { t, c ->
+            c.extents(e)
+            if (e.height < minH) { minH = e.height; minHTime = t }
+            if (e.height > maxH) maxH = e.height
+            if (e.width < minW) minW = e.width
+            if (e.width > maxW) maxW = e.width
+            if (abs(t - 19.0) < 1e-3) { at19W = e.width; at19H = e.height }
+            if (abs(t - 20.0) < 1e-3) { at20W = e.width; at20H = e.height }
+        }
+        // At 19.0s initial swipe reversal, the lens matches video 2's measured travel flattening
+        assertEquals(.755f, at19H / bar.height, .05f, "travelling lens height at 19.0s")
+        assertTrue(at19W >= 410f, "travelling lens width at 19.0s: $at19W")
+
+        // Issue #119 / audit item 139: during docs/2 fast scrub (18.7-22.0s), main collapsed
+        // down to 102.2 px height and ballooned to 588.6 px width (trace 590x103 at 20.0s).
+        // iOS stays about 370x186 px full height. The strain must not overshoot and stay on.
+        assertTrue(at20H >= 150f, "height at 20.0s should recover towards full height, was $at20H")
+        assertTrue(at20W <= 420f, "width at 20.0s should not balloon to 590px, was $at20W")
+        assertTrue(minH >= 135f, "minimum scrub height should remain bounded, was $minH at $minHTime")
+        assertTrue(maxW <= 480f, "maximum scrub width should remain bounded, was $maxW")
+    }
+
+    @Test fun rapidScrubJitterAndReversalsNeverGoNegativeOrExceedStrainLimit() {
+        val bar = referenceBar()
+        val c = GlassPoseController(GlassPoseSpec.Calm)
+        c.attach(bar, null, null); c.snapToRest(2)
+        c.pointerDown(bar.centreOf(2), bar.centreY, 0.0, true)
+        for (i in 1..60) c.advanceFrameTo(i / 60f)
+        c.beginDrag(bar.centreOf(2), bar.centreY)
+        val ext = GlassPoseExtents()
+        // Simulate high frequency reversals (10 Hz back-and-forth) with vertical jitter
+        for (f in 61..240) {
+            val t = f / 60.0
+            val x = bar.centreOf(2) + 120f * kotlin.math.sin(20.0 * kotlin.math.PI * t).toFloat()
+            val y = bar.centreY + 8f * kotlin.math.cos(30.0 * kotlin.math.PI * t).toFloat()
+            c.pointerMove(x, y, t)
+            c.advanceFrameTo(t.toFloat())
+            assertFalse(c.solverFailed)
+            c.extents(ext)
+            assertTrue(ext.height >= 135f, "height collapsed during jitter: ${ext.height}")
+            assertTrue(ext.width <= 480f, "width ballooned during jitter: ${ext.width}")
+        }
+    }
 }

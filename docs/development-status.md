@@ -7,6 +7,10 @@ research remains available; this page identifies which later changes supersede i
 
 ## Main after 1.0 (24 October)
 
+- 27 October: fast scrubbing flattens the held lens within measured bounds without crushing it to half height
+  (minimum height 139 px vs 102 px; 386 × 160 px at 20.0 s vs 589 × 102 px previously, recovering to ~370 × 186 px).
+  Rapid reversals decay accumulated strainDrive and suppress the scrub target (#119).
+  [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/scrub-flattening-2026-10-27/README.md).
 - 26 October: the held lens's outline is a squircle (a .7 blend toward n = 3, the exponent iOS's lens fits),
   not a capsule; its width profile against iOS moves from 27.5 to 7.1 px rms.
   [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/lens-squircle-2026-10-26/README.md).

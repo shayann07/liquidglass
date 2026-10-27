@@ -6,6 +6,8 @@ Read this first after an interruption. Detailed history lives in the
 
 ## Current state
 
+**27 October fast scrub flattening fix (#119):** fixed strain overshoot and lens flattening during rapid scrubbing (video 2 18.7–22.0 s). Lens no longer collapses to 103 px (half height) and balloons to 590 px; rapid direction reversals (<0.28 s) decay accumulated strain (0.40f) and suppress the target ((interval/0.25).coerceIn(0.15, 1)), capping steady-state held strain to 80% of maxStrain (~0.336). Lens height at 20.0 s improved from 102.2 px to 160.2 px (min height 139.0 px vs 102.2 px; max width 459.0 px vs 588.6 px), recovering toward iOS full-height ~370 × 186 px capsule. Synchronized in Kotlin, Skia JS port, and .NET CalmSelector. Port fixture `selector-calm.json` regenerated. All 46 Skia tests pass; `fastScrubRetainsLensHeightAndDoesNotOvershoot` and `calmHeldTravelWidensAndFlattensLikeVideo2` pass. [Evidence](../review/atlas/scrub-flattening-2026-10-27/README.md).
+
 **27 October video-model pass 5 verified (Argon sessions 17-30):** all 30 sessions in the Argon suite are now fully verified and recorded in audit sections U and V. Confirmed and filed: fast scrub optical bridge across the inter-control gap to the search button (#119, #107; Y=44-68 green streak, iOS pure black), settled dark-mode selection pill bottom rim chromatic fringes (#111), search button two-stage press onset (16.7 ms glyph dimming 255 -> 133-142 preceding 133-150 ms radial expansion), trailing-edge pinning (pinned at x=491 on left pull, y=357 on up pull) and single-frame unlit release flash (#125). Issue checklists updated via `gh issue`.
 
 **26 October squircle lens (#93):** the held lens's outline blends .7 toward a superellipse n = 3 in the pose
