@@ -6,6 +6,8 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Tab bar (Calm) and shaders: eliminated green and black comb streaks during tap transits and fixed channel crush at the lens rim. In `GlassContentShaderSource.kt`, chromatic split `delta` scales with `abs(shift)` rather than applying full static band displacement along straight runs, and `glassSelectorMaterial` scales transit ink dispersion by `GlassSelectorInkSplitShare`. Outward chromatic displacement is clamped to `max(shift - delta, 0.0)` in both shaders, preventing channels from sampling the black background outside the bar. Port shaders and selector fixtures updated across all platforms (#124, #108).
+  [Evidence](review/atlas/comb-streaks-2026-10-27/README.md).
 - Tab bar (Calm): the held lens's outline is a squircle, not a capsule: it blends .7 of the way toward a
   superellipse with n = 3, the shape iOS's held lens fits, so its top runs flatter and its shoulders squarer. The
   resting selector stays a capsule. The ports draw the same outline (#93).

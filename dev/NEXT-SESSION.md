@@ -26,8 +26,8 @@ The owner is running 30 Gemini 4 Argon sessions on the private videos. Each sess
 #128, the #94 one a regression since 20 Oct), the rest tracked or wrong. Verify 17-30 the same way: frames, the replay
 `trace.csv`, scene pixels (helpers in `tools/reference-replay/refraction.py`; renders n6, p20, s6, l6 under
 `.local/sxs/ref/<rec>/`). Set 1's search clips have no search gesture in our render; use set 2's s6 clips. Then fix, in
-order: #124 (streaks; regression), #94 throw-landing label (regression), #123 + #120 (tap travel, tap lens, bar
-spread), #119, #108, #95 and #106 timing (incl. the regrowing release bridge), #93 (bar stays fused off the trailing
+order: **#124 (streaks, fixed 27 Oct in PR #130)**, **#94 throw-landing label (regression addressed in PR #130)**, **#123 + #120 (tap travel, tap lens, bar spread; NEXT)**,
+#119, #108, #95 and #106 timing (incl. the regrowing release bridge), #93 (bar stays fused off the trailing
 tab), #125, #128, #129 (sample glyph cut-outs). Sessions 11, 13, 15, 17, 20, 22 and 25-27 hold measured iOS targets.
 
 ## 26 October, late night: second video pass verified
