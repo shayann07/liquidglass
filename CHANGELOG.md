@@ -6,6 +6,12 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Tab bar (Calm): still-press and still-release timing matches iOS 27 measurements: held lens still release
+  holds for 35 ms before fading out completely within 65 ms (was 180 ms hold, lingering past 250 ms); bar top
+  dip after still release eliminated with critical damping (0 px undershoot, was 6 px dip reopening the
+  search button neck); still-press swell onset begins at 110 ms with clean zero-formation pending, lens
+  appears at ~177 ms (~50%) and reaches fully formed at 294 ms (>95%) (#106, #95).
+  [Evidence](review/atlas/press-release-timing-2026-10-27/README.md).
 - Tab bar (Calm): the held lens's outline is a squircle, not a capsule: it blends .7 of the way toward a
   superellipse with n = 3, the shape iOS's held lens fits, so its top runs flatter and its shoulders squarer. The
   resting selector stays a capsule. The ports draw the same outline (#93).

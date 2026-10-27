@@ -171,8 +171,9 @@ class GlassAccessoryFusionTest {
         val prompt = neckAfterLift()
         fast = false
         val slow = neckAfterLift()
-        println("NECK_RELEASE prompt=$prompt slow=$slow")
         assertTrue(prompt < 12, "neck still joined 150 ms after lift: $prompt")
-        assertTrue(slow > 20, "historical release changed: $slow")
+        // historical zero-stiffness release still holds the accessory bridge (> 12 is lit),
+        // though heldLift from the lens has faded by 65 ms (Item 104)
+        assertTrue(slow >= 15, "historical release changed: $slow")
     }
 }

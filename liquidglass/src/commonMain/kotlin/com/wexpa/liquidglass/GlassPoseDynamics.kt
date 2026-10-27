@@ -362,6 +362,12 @@ internal data class GlassPoseSpec(
      * lens loses its glass; after a throw the travel keeps it formed anyway. Authored.
      */
     val releaseStillHoldSeconds: Float = 0f,
+    /**
+     * Opt-in, with [releaseStillHoldSeconds]: fall rate for the formation of a still-released
+     * lens after its hold expires. Zero uses [formOmega]. Observed in IMG_6756 (iOS 27):
+     * the stationary held lens is gone 33-65 ms after lift. Authored rate.
+     */
+    val releaseStillFadeOmega: Float = 0f,
 ) {
     internal val spineLimitSlots: Float get() = max(elongationSlots, tapSpineLimitSlots)
 
@@ -395,6 +401,7 @@ internal data class GlassPoseSpec(
             tapRecoilArea = true,
             heldTravelPressureOmega = 60f,
             tapSpineLimitSlots = 0.45f,
+            heldFormRiseOmega = 26f, pressFormation = 0f, holdThresholdSeconds = .110f,
         )
 
         /** Coupled-area development preset; independent reference retained for comparison.
@@ -435,7 +442,8 @@ internal data class GlassPoseSpec(
          * lens does, which also covers the bar/search fusion neck while the lens is there. */
         val CalmWallLanding = CalmCriticalLanding.copy(releaseTrailingInOmega = 9f, releaseTrailingInZeta = .3f,
             releaseTrailingCarry = .1f, releaseWallGive = .35f, releaseTrailingStiffening = .5f,
-            releaseStillHoldSeconds = .18f)
+            releaseStillHoldSeconds = .035f, releaseStillFadeOmega = 160f,
+            heldFormRiseOmega = 26f, pressFormation = 0f, holdThresholdSeconds = .110f)
         /** Current Calm: [CalmWallLanding] whose held lens widens and flattens as it travels, as
          * video2's does. At the 19.0 s reversal (finger about 15 slots/s) iOS's travelling lens is
          * 458 x 145 px on a 192 px bar (0.755 of its height) where this one was 375 x 182: a held
@@ -1119,7 +1127,10 @@ internal class GlassPoseController(
         }
         form.target = formTarget
         val riseOmega = if (heldNow && spec.heldFormRiseOmega > 0f) spec.heldFormRiseOmega else spec.formRiseOmega
-        form.step(dt, if (formTarget > form.value) riseOmega else spec.formOmega, spec.formZeta)
+        val fallOmega = if (mode == GlassPoseMode.Released && releasedStill && spec.releaseStillFadeOmega > 0f) {
+            spec.releaseStillFadeOmega
+        } else spec.formOmega
+        form.step(dt, if (formTarget > form.value) riseOmega else fallOmega, spec.formZeta)
 
         // ---- equilibria
         // Trace-free strain and taper: kept in the state for the shader contract, both zero.
@@ -1974,7 +1985,7 @@ internal class GlassPoseController(
      * yet, but the formation still has to fall, so the frame loop must not sleep. */
     private val holdingStill: Boolean
         get() = mode == GlassPoseMode.Released && releasedFromHold && releasedStill && form.value > .01f &&
-            now - releasedAt < spec.releaseStillHoldSeconds + .05f
+            now - releasedAt < spec.releaseStillHoldSeconds + .15f
 
     private var quietSteps: Int = 0
     private val lastPublished = GlassPose()

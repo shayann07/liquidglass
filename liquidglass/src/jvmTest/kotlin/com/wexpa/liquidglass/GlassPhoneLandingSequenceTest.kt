@@ -256,6 +256,45 @@ class GlassPhoneLandingSequenceTest {
         assertTrue(old.formation < .9f)
     }
 
+    /** Item 104: On iOS 27 (IMG_6756), still release drops glass within 33–65 ms after lift. */
+    @Test fun stillReleaseFadesWithin65msAfterLift() {
+        val c = GlassPoseController(GlassPoseSpec.Calm)
+        c.attach(phoneBar, null, null); c.snapToRest(0)
+        c.pointerDown(phoneBar.centreOf(0), phoneBar.centreY, 0.0, true)
+        c.advanceTo(.6f, .9f)
+        assertTrue(c.isHeld && c.formation > .99f)
+        c.pointerUp(0)
+        // At 25 ms after lift: still held
+        c.advanceFrameTo(.625f)
+        assertTrue(c.formation > .95f, "still release lost formation before hold expired: ${c.formation}")
+        // At 65 ms after lift: lens is gone (<0.08)
+        c.advanceFrameTo(.665f)
+        assertTrue(c.formation < .08f, "lens took longer than 65 ms to subside: ${c.formation}")
+    }
+
+    /** Item 107: Still-press formation onset: bar swell at 103–120 ms, lens appears ~67 ms later, formed ~117 ms later. */
+    @Test fun stillPressFormationOnsetAndRiseTiming() {
+        val c = GlassPoseController(GlassPoseSpec.Calm)
+        c.attach(phoneBar, null, null); c.snapToRest(0)
+        c.pointerDown(phoneBar.centreOf(0), phoneBar.centreY, 0.0, true)
+        // Before 110 ms holdThreshold: no premature lens formation
+        c.advanceFrameTo(.090f)
+        assertFalse(c.isHeld, "became held before hold threshold")
+        assertEquals(0f, c.formation, 1e-4f, "formed prematurely before hold threshold")
+
+        // In the 103-120 ms window: becomes held, onset starts
+        c.advanceFrameTo(.115f)
+        assertTrue(c.isHeld, "not held at 115 ms")
+
+        // ~67 ms after swell (~182 ms): lens appears (formation ~0.50)
+        c.advanceFrameTo(.182f)
+        assertTrue(c.formation in .40f..0.60f, "appearance formation out of range: ${c.formation}")
+
+        // ~117 ms after appearance (~299 ms): lens is fully formed (>0.95)
+        c.advanceFrameTo(.300f)
+        assertTrue(c.formation > .95f, "lens not formed within 185 ms of onset: ${c.formation}")
+    }
+
     @Test fun regrabCarriesTheVelocityOfTheShapeAwareCentre() {
         for(reverse in listOf(false,true)) for(time in listOf(.96f,1.05f,1.14f,1.3f)) {
             val c=throwing(reverse)
