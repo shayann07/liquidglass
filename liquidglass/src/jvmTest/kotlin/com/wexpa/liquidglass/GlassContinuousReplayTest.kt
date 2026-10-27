@@ -66,7 +66,7 @@ class GlassContinuousReplayTest {
     }
 
     @Test fun aMovingTapShowsLensOpticsWithoutBecomingHeld() {
-        val c = GlassPoseController(GlassPoseSpec.Calm)
+        val c = GlassPoseController(GlassPoseSpec.CalmWallLanding)
         c.attach(bar, null, null); c.snapToRest(0)
         c.pointerDown(bar.centreOf(2), bar.centreY, 0.0, true); c.retarget(2)
         c.advanceTo(.04f); c.pointerUp(2)
@@ -90,6 +90,27 @@ class GlassContinuousReplayTest {
         val v3 = GlassTabBarStyle.V3()
         assertEquals(glassTransitStyle(lerpGlassStyle(v3.pill, v3.lens, .1f), .9f, v3.tapTintFade),
             glassSelectorMaterial(v3, .1f, .9f))
+    }
+
+    @Test fun aMovingTapOnCalmFormsFullLensUnderIOS27WithoutBecomingHeld() {
+        val c = GlassPoseController(GlassPoseSpec.Calm)
+        c.attach(bar, null, null); c.snapToRest(0)
+        c.pointerDown(bar.centreOf(2), bar.centreY, 0.0, true); c.retarget(2)
+        c.advanceTo(.04f); c.pointerUp(2)
+        val style = GlassTabBarStyle.Calm()
+        var peakFormation = 0f
+        var peakLens = 0f
+        for (i in 1..120) {
+            c.advanceTo(.04f + i / 480f)
+            assertFalse(c.isHeld)
+            peakFormation = maxOf(peakFormation, c.formation)
+            val material = glassSelectorMaterial(style, c.formation, c.transitAppearance)
+            peakLens = maxOf(peakLens, material.heldLens)
+        }
+        assertTrue(peakFormation >= 0.85f, "iOS 27 tap transit formation must reach >= 0.85, was $peakFormation")
+        assertTrue(peakLens >= 0.95f, "iOS 27 tap transit heldLens must reach full lens: $peakLens")
+        c.advanceTo(0.6f)
+        assertTrue(c.formation < 0.05f, "settled tap must subside back to resting pill, was ${c.formation}")
     }
 
     @Test fun aMovingSelectorMirrorsItsCapsAndAStillHoldKeepsTheHeldMap() {

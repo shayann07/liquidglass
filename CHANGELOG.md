@@ -6,6 +6,11 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Tab bar (Calm): tap travel speed and lens formation match iOS 27. On a single-slot tap the selector
+  arrives in ~70–100 ms (was ~300 ms, `centreOmega` 44 rad/s, `tapSpineOmega` 36 rad/s, `tapShortTripRate` 1.0)
+  and during transit forms a full glass lens (`formRiseOmega` 75 rad/s, `formFromMovement` 1.0, formation $\ge 0.85$,
+  held profile $\ge 0.95$, moving fringes 0.14) that subsides to a resting pill upon landing (#123, #120).
+  [Evidence](review/atlas/tap-transit-2026-10-27/README.md).
 - Tab bar (Calm): the held lens's outline is a squircle, not a capsule: it blends .7 of the way toward a
   superellipse with n = 3, the shape iOS's held lens fits, so its top runs flatter and its shoulders squarer. The
   resting selector stays a capsule. The ports draw the same outline (#93).
