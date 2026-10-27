@@ -107,7 +107,7 @@ class GlassHeldTravelReferenceTest {
                 }
                 minimumHeight = minOf(minimumHeight, extent.height)
             }
-            assertEquals(223.2f, extent.height, .5f, "stationary hold failed to recover")
+            assertEquals(bar.height * GlassPoseSpec.CalmWallLanding.heldHeightRatio, extent.height, .5f, "stationary hold failed to recover")
         }
         File("build/reports/atlas").apply { mkdirs() }.resolve("held-travel-reference.csv")
             .writeText(rows.joinToString("\n") + "\n")

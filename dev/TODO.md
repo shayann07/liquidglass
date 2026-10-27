@@ -44,6 +44,7 @@ scope/API/positioning decisions, one Gradle build per worktree).
   - [ ] Third pass (26 Oct evening, beyond the pixels): items 130-138, issues #114-#118 (press lighting, system accessibility settings, haptics, hover/focus on desktop and web, automatic quality fallback).
   - [ ] Second pass (26 Oct afternoon): items 103-129, issues #105-#113 (ink lift, press/release timing, lens over the search button, rim colour, rim highlights, glyphs, transit/landing, search mode, Control Center references).
   - [x] #93 item 9, the held lens's outline: squircle blend .7 toward n 3 (lens-squircle-2026-10-26). Pixel 7 check pending.
+  - [x] #93 items 8, 9, 10, 54, 101: held bar growth, overhang h to 12.3 px (ratio 1.183), crown row 436 (height 220 px), Keypad held width ~350 px, search button neck removed in dark appearance, soft grey disc removed (review/atlas/held-bar-geometry-2026-10-28).
 
 ### Agent work, in this order (GitHub milestone "1.1.0 — iOS 27 parity"; label `needs-dataset` = blocked on the owner's private recordings, assigned to the owner)
 

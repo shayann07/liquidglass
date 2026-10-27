@@ -6,6 +6,9 @@ Read this first after an interruption. Detailed history lives in the
 
 ## Current state
 
+**28 October held bar growth and geometry (#93):** held lens height ratio calibrated to 1.183 (was 1.20) in `GlassPoseSpec` and `CalmIndependent` (height 220 px on 186 px bar), lowering crown top to row 436 (was 434) and reducing bottom overhang h from 13.7 px to 12.3 px, matching iOS IMG_6756 measurements. Held lens width on Keypad expands towards ~350 px (was ~335 px). In dark appearance, search button fusion is disabled (`style.isLight && trailingAccessory.lensFusion > 0.dp`) and `PhoneScene.kt` defaults `lensFusion = 0.dp`, so the lens cleanly overlaps without forming an artificial neck or bridge, and the soft grey disc on Pixel 7 light is eliminated. Ports updated (`ports/skia/selector.mjs`, `ports/dotnet/LiquidGlass.Skia/CalmSelector.cs`, and `ports/skia/fixtures/selector-calm.json`).
+[Evidence](../review/atlas/held-bar-geometry-2026-10-28/README.md).
+
 **27 October video-model pass 5 verified (Argon sessions 17-30):** all 30 sessions in the Argon suite are now fully verified and recorded in audit sections U and V. Confirmed and filed: fast scrub optical bridge across the inter-control gap to the search button (#119, #107; Y=44-68 green streak, iOS pure black), settled dark-mode selection pill bottom rim chromatic fringes (#111), search button two-stage press onset (16.7 ms glyph dimming 255 -> 133-142 preceding 133-150 ms radial expansion), trailing-edge pinning (pinned at x=491 on left pull, y=357 on up pull) and single-frame unlit release flash (#125). Issue checklists updated via `gh issue`.
 
 **26 October squircle lens (#93):** the held lens's outline blends .7 toward a superellipse n = 3 in the pose
