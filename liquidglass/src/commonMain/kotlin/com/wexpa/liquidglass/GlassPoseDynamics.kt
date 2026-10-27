@@ -1216,7 +1216,7 @@ internal class GlassPoseController(
             if (abs(strainDrive.value) < .0001f && abs(strainDrive.velocity) < .002f && strainDrive.target == 0f) strainDrive.snapTo(0f)
         }
         val maxHeldStrain = min(spec.heldTravelStrain, spec.maxStrain * 0.80f)
-        val heldTravelU = min(spec.heldTravelStrain * strainDrive.value, maxHeldStrain)
+        val heldTravelU = (spec.heldTravelStrain * strainDrive.value).coerceIn(0f, maxHeldStrain)
         equilibrium.u = gain * (nvx * nvx - 0.5f * speed2) / denom + pullU + heldTravelU
         equilibrium.v = gain * (nvx * nvy) / denom + pullV
 

@@ -616,7 +616,7 @@ export class CalmSelectorController {
       if (Math.abs(this.strainDrive.value) < 1e-4 && Math.abs(this.strainDrive.velocity) < .002 && this.strainDrive.target === 0) this.strainDrive.snapTo(0);
     }
     const maxHeldStrain = Math.min(s.heldTravelStrain, s.maxStrain * 0.80);
-    const heldTravelU = Math.min(s.heldTravelStrain * this.strainDrive.value, maxHeldStrain);
+    const heldTravelU = Math.max(0, Math.min(s.heldTravelStrain * this.strainDrive.value, maxHeldStrain));
     eq.u = gain * (nvx * nvx - .5 * speed2) / denom + pullU + heldTravelU;
     eq.v = gain * (nvx * nvy) / denom + pullV;
     const held = heldPressure(s.heldHeightRatio, bar.height, ref.height);
