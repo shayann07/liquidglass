@@ -24,6 +24,9 @@ Read this first after an interruption. Detailed history lives in the
 
 ## Current state
 
+**27 October tap travel speed and lens formation (#123, #120):** tap travel speed and transit lens formation brought to iOS 27 parity on branch `fix/123-tap-travel-and-lens`. Single-slot tap arrival time dropped from ~300 ms to 70–100 ms (settled ~110–125 ms; `centreOmega = 44f`, `tapSpineOmega = 36f`, `tapShortTripRate = 1f`). During transit, the moving selector forms a full glass lens (`formRiseOmega = 75f`, `formFromMovement = 1f`, peak formation >= 0.85, held profile >= 0.95, moving fringes 0.14) that subsides to a resting pill upon settling. Base preset `CalmIndependent` preserved for historical comparison gates. All JVM tests pass (including timing, optics, continuous replay, volume, and phase reference gates). Ports synchronized across Skia (46/46 passed), npm (27/27 passed), React Native, and .NET.
+[Evidence](../review/atlas/tap-transit-2026-10-27/README.md).
+
 **27 October video-model pass 5 verified (Argon sessions 17-30):** all 30 sessions in the Argon suite are now fully verified and recorded in audit sections U and V. Confirmed and filed: fast scrub optical bridge across the inter-control gap to the search button (#119, #107; Y=44-68 green streak, iOS pure black), settled dark-mode selection pill bottom rim chromatic fringes (#111), search button two-stage press onset (16.7 ms glyph dimming 255 -> 133-142 preceding 133-150 ms radial expansion), trailing-edge pinning (pinned at x=491 on left pull, y=357 on up pull) and single-frame unlit release flash (#125). Issue checklists updated via `gh issue`.
 
 **26 October squircle lens (#93):** the held lens's outline blends .7 toward a superellipse n = 3 in the pose

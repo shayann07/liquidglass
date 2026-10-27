@@ -1,0 +1,1555 @@
+#
+# A fatal error has been detected by the Java Runtime Environment:
+#
+#  EXCEPTION_UNCAUGHT_CXX_EXCEPTION (0xe06d7363) at pc=0x00007ffea967569a, pid=27844, tid=56296
+#
+# JRE version: OpenJDK Runtime Environment Microsoft-14941484 (21.0.12.1+1) (build 21.0.12.1+1-LTS)
+# Java VM: OpenJDK 64-Bit Server VM Microsoft-14941484 (21.0.12.1+1-LTS, mixed mode, sharing, tiered, compressed oops, compressed class ptrs, g1 gc, windows-amd64)
+# Problematic frame:
+# C  [KERNELBASE.dll+0xc569a]
+#
+# No core dump will be written. Minidumps are not enabled by default on client versions of Windows
+#
+# If you would like to submit a bug report, please visit:
+#   https://github.com/microsoft/openjdk/issues
+# The crash happened outside the Java Virtual Machine in native code.
+# See problematic frame for where to report the bug.
+#
+
+---------------  S U M M A R Y ------------
+
+Command Line: -Dskiko.gpu.priority=discrete -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant com.wexpa.liquidglass.sample.desktop.PhoneReplayKt D:/Work/AndroidStudioProjects/SideProjects/kmp/liquidglass/.local/sxs/ref/JGEY2190/script.txt D:/Work/AndroidStudioProjects/SideProjects/kmp/liquidglass/.local/sxs/ref/JGEY2190/r131 calm
+
+Host: 13th Gen Intel(R) Core(TM) i5-13420H, 12 cores, 31G,  Windows 11 , 64 bit Build 26100 (10.0.26100.9818)
+Time: Sun Nov  1 04:05:02 2026 Pakistan Standard Time elapsed time: 61.282990 seconds (0d 0h 1m 1s)
+
+---------------  T H R E A D  ---------------
+
+Current thread (0x000001f271106430):  JavaThread "AWT-EventQueue-0"        [_thread_in_native, id=56296, stack(0x000000542df00000,0x000000542e000000) (1024K)]
+
+Stack: [0x000000542df00000,0x000000542e000000],  sp=0x000000542dffd7e0,  free space=1013k
+Native frames: (J=compiled Java code, j=interpreted, Vv=VM code, C=native code)
+C  [KERNELBASE.dll+0xc569a]  (no source info available)
+C  [skiko-windows-x64.dll+0xaa5373]  (no source info available)
+
+Java frames: (J=compiled Java code, j=interpreted, Vv=VM code)
+J 2694  org.jetbrains.skia.SurfaceKt.Surface_nReadPixels(JJII)Z (0 bytes) @ 0x000001f216c95d26 [0x000001f216c95cc0+0x0000000000000066]
+j  org.jetbrains.skia.SurfaceKt.access$Surface_nReadPixels(JJII)Z+6
+J 2911 c1 org.jetbrains.skia.Surface.readPixels(Lorg/jetbrains/skia/Bitmap;II)Z (52 bytes) @ 0x000001f20f542904 [0x000001f20f542720+0x00000000000001e4]
+j  com.wexpa.liquidglass.sample.desktop.PhoneReplayKt$replay$7$4.onRender(Lorg/jetbrains/skia/Canvas;IIJ)V+285
+j  org.jetbrains.skiko.SkiaLayer.update$skiko(J)V+358
+J 2860 c1 org.jetbrains.skiko.redrawer.Redrawer.update$default(Lorg/jetbrains/skiko/redrawer/Redrawer;JILjava/lang/Object;)V (39 bytes) @ 0x000001f20f522604 [0x000001f20f522320+0x00000000000002e4]
+j  org.jetbrains.skiko.redrawer.Direct3DRedrawer.renderImmediately()V+11
+J 2688 c1 com.wexpa.liquidglass.sample.desktop.PhoneReplayKt.replay$lambda$31(Lkotlin/jvm/internal/Ref$IntRef;Ljava/util/List;JLkotlin/jvm/internal/Ref$BooleanRef;Lkotlin/jvm/internal/Ref$ObjectRef;Lkotlin/jvm/internal/Ref$LongRef;Lorg/jetbrains/skiko/SkiaLayer;Lkotlin/jvm/internal/Ref$ObjectRef;ILjava/io/BufferedWriter;Ljava/io/File;)V (839 bytes) @ 0x000001f20f4b1d94 [0x000001f20f4b0400+0x0000000000001994]
+J 2907 c1 com.wexpa.liquidglass.sample.desktop.PhoneReplayKt$$Lambda+0x000001f22d216b98.run()V (48 bytes) @ 0x000001f20f53f1cc [0x000001f20f53f0c0+0x000000000000010c]
+J 2819 c1 java.awt.event.InvocationEvent.dispatch()V java.desktop@21.0.12.1 (69 bytes) @ 0x000001f20f50d1ec [0x000001f20f50d0a0+0x000000000000014c]
+j  java.awt.EventQueue.dispatchEventImpl(Ljava/awt/AWTEvent;Ljava/lang/Object;)V+21 java.desktop@21.0.12.1
+j  java.awt.EventQueue$4.run()Ljava/lang/Void;+32 java.desktop@21.0.12.1
+j  java.awt.EventQueue$4.run()Ljava/lang/Object;+1 java.desktop@21.0.12.1
+J 2785 c1 java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(Ljava/security/PrivilegedAction;Ljava/security/AccessControlContext;Ljava/security/AccessControlContext;)Ljava/lang/Object; java.base@21.0.12.1 (22 bytes) @ 0x000001f20f4fb7e4 [0x000001f20f4fb540+0x00000000000002a4]
+j  java.awt.EventQueue.dispatchEvent(Ljava/awt/AWTEvent;)V+46 java.desktop@21.0.12.1
+J 2805 c1 java.awt.EventDispatchThread.pumpOneEventForFilters(I)V java.desktop@21.0.12.1 (106 bytes) @ 0x000001f20f507f3c [0x000001f20f507760+0x00000000000007dc]
+j  java.awt.EventDispatchThread.pumpEventsForFilter(ILjava/awt/Conditional;Ljava/awt/EventFilter;)V+35 java.desktop@21.0.12.1
+j  java.awt.EventDispatchThread.pumpEventsForHierarchy(ILjava/awt/Conditional;Ljava/awt/Component;)V+11 java.desktop@21.0.12.1
+j  java.awt.EventDispatchThread.pumpEvents(ILjava/awt/Conditional;)V+4 java.desktop@21.0.12.1
+j  java.awt.EventDispatchThread.pumpEvents(Ljava/awt/Conditional;)V+3 java.desktop@21.0.12.1
+j  java.awt.EventDispatchThread.run()V+9 java.desktop@21.0.12.1
+v  ~StubRoutines::call_stub 0x000001f2165d100d
+
+siginfo: EXCEPTION_UNCAUGHT_CXX_EXCEPTION (0xe06d7363), ExceptionInformation=0x0000000019930520 0x000000542dffd960 0x00007ffd9d5e8d70 0x00007ffd9c8d0000 
+
+
+Registers:
+RAX=0x00007ffd9c96f9c0, RBX=0x000000542dffd908, RCX=0x0000000000000000, RDX=0x0000000605c32988
+RSP=0x000000542dffd7e0, RBP=0x0000000000000004, RSI=0x0000000000000001, RDI=0x00000000e06d7363
+R8 =0x00007ffd9ca03ca9, R9 =0x0000000000000005, R10=0x0000000000000060, R11=0x0000000606d4a870
+R12=0x0000000000322170, R13=0x0000000000001248, R14=0x000001f22bb487d0, R15=0x000000542dffda78
+RIP=0x00007ffea967569a, EFLAGS=0x0000000000000202
+
+XMM[0]=0x0000000000000027 0x000001f22bb48ca0
+XMM[1]=0x00007ffeac0a1cfb 0x0000000000000000
+XMM[2]=0x0000000000000000 0x000001f200000002
+XMM[3]=0x0000000000000000 0x0000000000000030
+XMM[4]=0x00007ffd9ca02fa1 0x000001f30a45e290
+XMM[5]=0x000001f26dbeec28 0x000000542dffd230
+XMM[6]=0x0000000000000000 0x0000000000000000
+XMM[7]=0x0000000000000000 0xbd4acb22c9f1ac48
+XMM[8]=0x0000000000000000 0x0000000041400000
+XMM[9]=0x0000000000000000 0xb3c792b1674589fd
+XMM[10]=0x0000000000000000 0x00000000b37df74c
+XMM[11]=0x0000000000000000 0x0a78c12171be4b1e
+XMM[12]=0x0000000000000000 0x00000000674589fd
+XMM[13]=0x0000000000000000 0x0000000000000000
+XMM[14]=0x0000000000000000 0x0000000000000000
+XMM[15]=0x0000000000000000 0x0000000000000000
+  MXCSR=0x00001fa7
+
+
+Register to memory mapping:
+
+RAX=0x00007ffd9c96f9c0 skiko-windows-x64.dll
+RBX=0x000000542dffd908 is pointing into the stack for thread: 0x000001f271106430
+RCX=0x0 is null
+RDX=0x0000000605c32988 is an oop: com.wexpa.liquidglass.GlassInteraction 
+{0x0000000605c32988} - klass: 'com/wexpa/liquidglass/GlassInteraction'
+ - ---- fields (total size 10 words):
+ - private final 'pressScale' 'F' @12  1.000000 (0x3f800000)
+ - private final 'illumination' 'F' @16  0.150000 (0x3e19999a)
+ - private final 'pressGrowth' 'F' @20  0.000000 (0x00000000)
+ - private final 'pressLift' 'F' @24  0.000000 (0x00000000)
+ - private final 'pullFollow' 'F' @28  0.780000 (0x3f47ae14)
+ - private final 'pullElongation' 'F' @32  0.450000 (0x3ee66666)
+ - private final 'pullWidthRatio' 'F' @36  1.100000 (0x3f8ccccd)
+ - private final 'pullLimit' 'F' @40  inf (0x7f800000)
+ - private final 'pressReach' 'F' @44  0.000000 (0x00000000)
+ - private final 'releaseStiffness' 'F' @48  0.000000 (0x00000000)
+ - private final 'releaseDamping' 'F' @52  1.000000 (0x3f800000)
+ - private final 'dragPressShare' 'F' @56  1.000000 (0x3f800000)
+ - private final 'pullLiftShare' 'F' @60  1.000000 (0x3f800000)
+ - private final 'pullReleaseDampingX' 'F' @64  nan (0x7fc00000)
+ - private final 'gel' 'Z' @68  false (0x00)
+ - private final 'pull' 'Z' @69  false (0x00)
+ - private final 'response' 'Lcom/wexpa/liquidglass/GlassResponse;' @72  a 'com/wexpa/liquidglass/GlassResponse'{0x0000000605c329d8} (0xc0b8653b)
+ - private final 'pullShape' 'Lcom/wexpa/liquidglass/GlassPullShape;' @76  a 'com/wexpa/liquidglass/GlassPullShape'{0x0000000605c5dac8} (0xc0b8bb59)
+RSP=0x000000542dffd7e0 is pointing into the stack for thread: 0x000001f271106430
+RBP=0x0000000000000004 is an unknown value
+RSI=0x0000000000000001 is an unknown value
+RDI=0x00000000e06d7363 is an unknown value
+R8 =0x00007ffd9ca03ca9 skiko-windows-x64.dll
+R9 =0x0000000000000005 is an unknown value
+R10=0x0000000000000060 is an unknown value
+R11=0x0000000606d4a870 is an oop: com.wexpa.liquidglass.GlassPadFloor 
+{0x0000000606d4a870} - klass: 'com/wexpa/liquidglass/GlassPadFloor'
+ - ---- fields (total size 2 words):
+ - private 'pad' 'F' @12  17.000000 (0x41880000)
+R12=0x0000000000322170 is an unknown value
+R13=0x0000000000001248 is an unknown value
+R14=0x000001f22bb487d0 points into unknown readable memory: 0x00007ffd9d4c8350 | 50 83 4c 9d fd 7f 00 00
+R15=0x000000542dffda78 is pointing into the stack for thread: 0x000001f271106430
+
+Top of Stack: (sp=0x000000542dffd7e0)
+0x000000542dffd7e0:   000001f22bb487d0 000000542dffd908   ...+.......-T...
+0x000000542dffd7f0:   0000000000000001 00000000e06d7363   ........csm.....
+0x000000542dffd800:   00000081e06d7363 0000000000000000   csm.............
+0x000000542dffd810:   00007ffea967569a 0000000000000004   .Vg.............
+0x000000542dffd820:   0000000019930520 000000542dffd960    .......`..-T...
+0x000000542dffd830:   00007ffd9d5e8d70 00007ffd9c8d0000   p.^.............
+0x000000542dffd840:   0000000000000000 0000000000000000   ................
+0x000000542dffd850:   0000000000000000 0000000000000000   ................
+0x000000542dffd860:   0000000000000000 0000000000000000   ................
+0x000000542dffd870:   0000000000000000 0000000000000000   ................
+0x000000542dffd880:   0000000000000000 0000000000000000   ................
+0x000000542dffd890:   0000000000000000 0000000000000005   ................
+0x000000542dffd8a0:   0000568e1d7d2b75 000000542dffd900   u+}..V.....-T...
+0x000000542dffd8b0:   00007ffd9d606000 0000000019930520   .``..... .......
+0x000000542dffd8c0:   000000542dffd960 000001f22bb48701   `..-T......+....
+0x000000542dffd8d0:   00007ffd9d5e8d70 00007ffd9d375373   p.^.....sS7.....
+0x000000542dffd8e0:   000001f309a0b1e0 00007ffd9d3e81df   ..........>.....
+0x000000542dffd8f0:   000097728357df26 000000542dffd990   &.W.r......-T...
+0x000000542dffd900:   00007ffd9c8d0000 0000000019930520   ........ .......
+0x000000542dffd910:   000000542dffd960 00007ffd9d5e8d70   `..-T...p.^.....
+0x000000542dffd920:   00007ffd9c8d0000 00007ffd9d3b380e   .........8;.....
+0x000000542dffd930:   000001f271883100 00007ffd9d34bb27   .1.q....'.4.....
+0x000000542dffd940:   000001f271883100 0000000000000000   .1.q............
+0x000000542dffd950:   0000000000322170 000000542dffdd98   p!2........-T...
+0x000000542dffd960:   00007ffd9d4597d0 00007ffd9d4597e0   ..E.......E.....
+0x000000542dffd970:   0000000000000000 00007ffd9cb3131a   ................
+0x000000542dffd980:   000001f271883100 00007ffd9d323fd1   .1.q.....?2.....
+0x000000542dffd990:   0000000000322170 000097728357de16   p!2.......W.r...
+0x000000542dffd9a0:   000001f316964d98 000001f271883100   .M.......1.q....
+0x000000542dffd9b0:   000001f316964d98 00007ffd9cb75633   .M......3V......
+0x000000542dffd9c0:   000000542dffdf38 000001f20f3f56c4   8..-T....V?.....
+0x000000542dffd9d0:   000001f26dfa6070 0000000606c8be90   p`.m............
+
+Instructions: (pc=0x00007ffea967569a)
+0x00007ffea967559a:   00 e8 90 66 fc ff 48 8b cb e8 d8 94 f5 ff 48 85
+0x00007ffea96755aa:   f6 74 08 48 8b ce e8 cb 94 f5 ff 48 85 ff 74 08
+0x00007ffea96755ba:   48 8b cf e8 be 94 f5 ff 8b 4c 24 40 48 ff 15 13
+0x00007ffea96755ca:   91 1d 00 0f 1f 44 00 00 90 48 8b 8c 24 a0 02 00
+0x00007ffea96755da:   00 48 33 cc e8 2d 48 0d 00 4c 8d 9c 24 b0 02 00
+0x00007ffea96755ea:   00 49 8b 5b 38 49 8b 73 40 49 8b e3 41 5f 41 5e
+0x00007ffea96755fa:   41 5d 41 5c 5f c3 cc cc cc cc cc cc cc cc cc cc
+0x00007ffea967560a:   cc cc cc cc cc cc 40 53 55 56 57 48 81 ec d8 00
+0x00007ffea967561a:   00 00 48 8b 05 ed 8a 2e 00 48 33 c4 48 89 84 24
+0x00007ffea967562a:   c0 00 00 00 8b f2 41 8b e8 33 d2 8b f9 48 8d 4c
+0x00007ffea967563a:   24 3c 49 8b d9 44 8d 42 7c e8 29 18 06 00 33 c9
+0x00007ffea967564a:   89 7c 24 20 83 e6 01 48 89 4c 24 28 89 74 24 24
+0x00007ffea967565a:   48 8d 05 af ff ff ff 48 89 44 24 30 48 85 db 74
+0x00007ffea967566a:   51 41 b8 0f 00 00 00 48 8d 4c 24 40 41 3b e8 48
+0x00007ffea967567a:   8b d3 44 0f 46 c5 44 89 44 24 38 49 c1 e0 03 e8
+0x00007ffea967568a:   39 47 0d 00 48 8d 4c 24 20 48 ff 15 8e 97 1d 00
+0x00007ffea967569a:   0f 1f 44 00 00 48 8b 8c 24 c0 00 00 00 48 33 cc
+0x00007ffea96756aa:   e8 61 47 0d 00 48 81 c4 d8 00 00 00 5f 5e 5d 5b
+0x00007ffea96756ba:   c3 cc 89 4c 24 38 eb cc cc cc cc cc cc cc cc cc
+0x00007ffea96756ca:   cc cc cc cc cc cc 48 89 5c 24 10 48 89 74 24 18
+0x00007ffea96756da:   57 48 83 ec 30 48 8b d9 33 ff f6 c1 08 0f 84 a7
+0x00007ffea96756ea:   00 00 00 48 8b 0d dc ea 2e 00 48 ff 15 75 91 1d
+0x00007ffea96756fa:   00 0f 1f 44 00 00 90 48 8d 53 f8 48 8d 0d d4 ea
+0x00007ffea967570a:   2e 00 48 ff 15 2d 91 1d 00 0f 1f 44 00 00 84 c0
+0x00007ffea967571a:   74 2f 48 8b 3b 48 89 7c 24 20 48 85 ff 74 1b 0f
+0x00007ffea967572a:   b7 4b fa ba ff 00 00 00 8d 41 01 66 89 43 fa 66
+0x00007ffea967573a:   3b ca 75 1e 66 89 4b fa eb 18 b9 9d 00 00 00 eb
+0x00007ffea967574a:   05 b9 06 00 00 00 48 ff 15 89 8f 1d 00 0f 1f 44
+0x00007ffea967575a:   00 00 eb 0f 33 ff 48 89 7c 24 20 8b c8 e8 c4 5a
+0x00007ffea967576a:   f5 ff 90 48 8b 0d 5c ea 2e 00 48 ff 15 ed 90 1d
+0x00007ffea967577a:   00 0f 1f 44 00 00 48 8b c7 48 8b 5c 24 48 48 8b
+0x00007ffea967578a:   74 24 50 48 83 c4 30 5f c3 cc 48 8b 05 d5 fd 2e
+
+
+Stack slot to memory mapping:
+
+stack at sp + 0 slots: 0x000001f22bb487d0 points into unknown readable memory: 0x00007ffd9d4c8350 | 50 83 4c 9d fd 7f 00 00
+stack at sp + 1 slots: 0x000000542dffd908 is pointing into the stack for thread: 0x000001f271106430
+stack at sp + 2 slots: 0x0000000000000001 is an unknown value
+stack at sp + 3 slots: 0x00000000e06d7363 is an unknown value
+stack at sp + 4 slots: 0x00000081e06d7363 is an unknown value
+stack at sp + 5 slots: 0x0 is null
+stack at sp + 6 slots: 0x00007ffea967569a KERNELBASE.dll
+stack at sp + 7 slots: 0x0000000000000004 is an unknown value
+
+
+Compiled method (n/a) 61536 2694     n 0       org.jetbrains.skia.SurfaceKt::Surface_nReadPixels (native)
+ total in heap  [0x000001f216c95b10,0x000001f216c95f10] = 1024
+ relocation     [0x000001f216c95c70,0x000001f216c95ca8] = 56
+ main code      [0x000001f216c95cc0,0x000001f216c95f05] = 581
+ stub code      [0x000001f216c95f05,0x000001f216c95f08] = 3
+ oops           [0x000001f216c95f08,0x000001f216c95f10] = 8
+
+[Constant Pool (empty)]
+
+[MachCode]
+[Entry Point]
+  # {method} {0x000001f26d9274f8} 'Surface_nReadPixels' '(JJII)Z' in 'org/jetbrains/skia/SurfaceKt'
+  # parm0:    rdx:rdx   = long
+  # parm1:    r8:r8     = long
+  # parm2:    r9        = int
+  # parm3:    rdi       = int
+  #           [sp+0x80]  (sp of caller)
+  0x000001f216c95cc0: 448b 5208 | 49bb 0000 | 002c f201 | 0000 4d03 | d349 3bc2 | 0f84 0600 
+
+  0x000001f216c95cd8: ;   {runtime_call ic_miss_stub}
+  0x000001f216c95cd8: 0000 e9a1 | 8a98 ff90 
+[Verified Entry Point]
+  0x000001f216c95ce0: 8984 2400 | 80ff ff55 | 488b ec48 | 83ec 7090 | 4181 7f20 | 0300 0000 
+
+  0x000001f216c95cf8: ;   {runtime_call StubRoutines (final stubs)}
+  0x000001f216c95cf8: 7405 e8e1 | 0797 ff48 | 897c 2428 | 4c89 4c24 | 204d 8bc8 
+
+  0x000001f216c95d0c: ;   {oop(a 'java/lang/Class'{0x000000060640c638} = 'org/jetbrains/skia/SurfaceKt')}
+  0x000001f216c95d0c: 4c8b c249 | be38 c640 | 0606 0000 | 004c 8974 | 2460 4c8d | 7424 6049 | 8bd6 c5f8 
+
+  0x000001f216c95d28: ;   {internal_word}
+  0x000001f216c95d28: 7749 ba26 | 5dc9 16f2 | 0100 004d | 8997 a803 | 0000 4989 | a7a0 0300 
+
+  0x000001f216c95d40: ;   {external_word}
+  0x000001f216c95d40: 0049 ba68 | 3e2b fffd | 7f00 0041 | 803a 000f | 844e 0000 | 0052 4150 
+
+  0x000001f216c95d58: ;   {metadata({method} {0x000001f26d9274f8} 'Surface_nReadPixels' '(JJII)Z' in 'org/jetbrains/skia/SurfaceKt')}
+  0x000001f216c95d58: 4151 48ba | f074 926d | f201 0000 | 498b cf48 | 83ec 2040 | f6c4 0f0f | 8419 0000 | 0048 83ec 
+  0x000001f216c95d78: ;   {runtime_call}
+  0x000001f216c95d78: 0848 b800 | add4 fefd | 7f00 00ff | d048 83c4 | 08e9 0c00 
+
+  0x000001f216c95d8c: ;   {runtime_call}
+  0x000001f216c95d8c: 0000 48b8 | 00ad d4fe | fd7f 0000 | ffd0 4883 | c420 4159 | 4158 5a49 | 8d8f c003 | 0000 41c7 
+  0x000001f216c95dac: 874c 0400 | 0004 0000 
+
+  0x000001f216c95db4: ;   {runtime_call}
+  0x000001f216c95db4: 0048 b8f0 | fe8f 9cfd | 7f00 00ff | d0c5 f877 | 25ff 0000 | 000f 95c0 | 41c7 874c | 0400 0005 
+  0x000001f216c95dd4: 0000 00f0 | 8344 24c0 | 0049 3baf | 5004 0000 | 0f87 0e00 | 0000 4183 | bf48 0400 | 0000 0f84 
+  0x000001f216c95df4: 2b00 0000 | c5f8 7748 | 8945 f849 | 8bcf 4c8b | e448 83ec | 2048 83e4 
+
+  0x000001f216c95e0c: ;   {runtime_call}
+  0x000001f216c95e0c: f048 b830 | f39f fefd | 7f00 00ff | d049 8be4 | 4d33 e448 | 8b45 f841 | c787 4c04 | 0000 0800 
+  0x000001f216c95e2c: 0000 4183 | bfc8 0400 | 0002 0f84 | 9c00 0000 
+
+  0x000001f216c95e3c: ;   {external_word}
+  0x000001f216c95e3c: 49ba 683e | 2bff fd7f | 0000 4180 | 3a00 0f84 | 4c00 0000 | 4889 45f8 
+
+  0x000001f216c95e54: ;   {metadata({method} {0x000001f26d9274f8} 'Surface_nReadPixels' '(JJII)Z' in 'org/jetbrains/skia/SurfaceKt')}
+  0x000001f216c95e54: 48ba f074 | 926d f201 | 0000 498b | cf48 83ec | 2040 f6c4 | 0f0f 8419 | 0000 0048 
+
+  0x000001f216c95e70: ;   {runtime_call}
+  0x000001f216c95e70: 83ec 0848 | b800 add4 | fefd 7f00 | 00ff d048 | 83c4 08e9 | 0c00 0000 
+
+  0x000001f216c95e88: ;   {runtime_call}
+  0x000001f216c95e88: 48b8 00ad | d4fe fd7f | 0000 ffd0 | 4883 c420 | 488b 45f8 | 49c7 87a0 | 0300 0000 | 0000 0049 
+  0x000001f216c95ea8: c787 a803 | 0000 0000 | 0000 c5f8 | 7749 8b8f | 3004 0000 | c781 0001 | 0000 0000 | 0000 c949 
+  0x000001f216c95ec8: 837f 0800 | 0f85 0100 
+
+  0x000001f216c95ed0: ;   {runtime_call StubRoutines (initial stubs)}
+  0x000001f216c95ed0: 0000 c3e9 | 28b0 93ff | c5f8 7748 | 8945 f84c | 8be4 4883 | ec20 4883 
+
+  0x000001f216c95ee8: ;   {runtime_call}
+  0x000001f216c95ee8: e4f0 48b8 | 30e4 d4fe | fd7f 0000 | ffd0 498b | e44d 33e4 | 488b 45f8 | e937 ffff | fff4 f4f4 
+[/MachCode]
+
+
+Compiled method (c1) 61551 2911   !   3       org.jetbrains.skia.Surface::readPixels (52 bytes)
+ total in heap  [0x000001f20f542510,0x000001f20f543000] = 2800
+ relocation     [0x000001f20f542670,0x000001f20f542720] = 176
+ main code      [0x000001f20f542720,0x000001f20f542cd8] = 1464
+ stub code      [0x000001f20f542cd8,0x000001f20f542d28] = 80
+ oops           [0x000001f20f542d28,0x000001f20f542d30] = 8
+ metadata       [0x000001f20f542d30,0x000001f20f542d58] = 40
+ scopes data    [0x000001f20f542d58,0x000001f20f542ea0] = 328
+ scopes pcs     [0x000001f20f542ea0,0x000001f20f542fa0] = 256
+ dependencies   [0x000001f20f542fa0,0x000001f20f542fa8] = 8
+ handler table  [0x000001f20f542fa8,0x000001f20f542ff0] = 72
+ nul chk table  [0x000001f20f542ff0,0x000001f20f543000] = 16
+
+[Constant Pool (empty)]
+
+[MachCode]
+[Entry Point]
+  # {method} {0x000001f26d920f00} 'readPixels' '(Lorg/jetbrains/skia/Bitmap;II)Z' in 'org/jetbrains/skia/Surface'
+  # this:     rdx:rdx   = 'org/jetbrains/skia/Surface'
+  # parm0:    r8:r8     = 'org/jetbrains/skia/Bitmap'
+  # parm1:    r9        = int
+  # parm2:    rdi       = int
+  #           [sp+0xa0]  (sp of caller)
+  0x000001f20f542720: 448b 5208 | 49bb 0000 | 002c f201 | 0000 4d03 | d34c 3bd0 
+
+  0x000001f20f542734: ;   {runtime_call ic_miss_stub}
+  0x000001f20f542734: 0f85 46c0 | 0d07 660f | 1f44 0000 
+[Verified Entry Point]
+  0x000001f20f542740: 8984 2400 | 80ff ff55 | 4881 ec90 | 0000 0090 | 4181 7f20 | 0300 0000 
+
+  0x000001f20f542758: ;   {runtime_call StubRoutines (final stubs)}
+  0x000001f20f542758: 7405 e881 | 3d0c 0748 | 8954 2468 | 4c89 4424 
+
+  0x000001f20f542768: ;   {metadata(method data for {method} {0x000001f26d920f00} 'readPixels' '(Lorg/jetbrains/skia/Bitmap;II)Z' in 'org/jetbrains/skia/Surface')}
+  0x000001f20f542768: 7048 be98 | 3274 6ef2 | 0100 008b | 9ecc 0000 | 0083 c302 | 899e cc00 | 0000 81e3 | fe07 0000 
+  0x000001f20f542788: 85db 0f84 | 9703 0000 | 897c 247c | 4489 4c24 
+
+  0x000001f20f542798: ;   {oop(a 'org/jetbrains/skia/impl/Stats'{0x0000000606400c38})}
+  0x000001f20f542798: 7848 be38 | 0c40 0606 | 0000 0048 
+
+  0x000001f20f5427a4: ;   {metadata(method data for {method} {0x000001f26d920f00} 'readPixels' '(Lorg/jetbrains/skia/Bitmap;II)Z' in 'org/jetbrains/skia/Surface')}
+  0x000001f20f5427a4: 8bde 48b8 | 9832 746e | f201 0000 | 4883 8010 | 0100 0001 | 488b d60f 
+
+  0x000001f20f5427bc: ;   {optimized virtual_call}
+  0x000001f20f5427bc: 1f40 00e8 
+
+  0x000001f20f5427c0: ; ImmutableOopMap {[104]=Oop [112]=Oop }
+                      ;*invokevirtual onNativeCall {reexecute=0 rethrow=0 return_oop=0}
+                      ; - org.jetbrains.skia.Surface::readPixels@4 (line 908)
+  0x000001f20f5427c0: fc5e 7407 
+
+  0x000001f20f5427c4: ;   {other}
+  0x000001f20f5427c4: 0f1f 8400 | b402 0000 | 488b 5424 
+
+  0x000001f20f5427d0: ;   {metadata(method data for {method} {0x000001f26d920f00} 'readPixels' '(Lorg/jetbrains/skia/Bitmap;II)Z' in 'org/jetbrains/skia/Surface')}
+  0x000001f20f5427d0: 6849 b898 | 3274 6ef2 | 0100 0049 | 8380 4801 | 0000 0148 | 8b54 2468 | 4c8b 4210 
+
+  0x000001f20f5427ec: ;   {metadata(method data for {method} {0x000001f26d920f00} 'readPixels' '(Lorg/jetbrains/skia/Bitmap;II)Z' in 'org/jetbrains/skia/Surface')}
+  0x000001f20f5427ec: 49b9 9832 | 746e f201 | 0000 4983 | 81b8 0100 
+
+  0x000001f20f5427fc: ;   {metadata(method data for {method} {0x000001f26dc451c0} 'getPtr' '(Lorg/jetbrains/skia/impl/Native;)J' in 'org/jetbrains/skia/impl/NativeKt')}
+  0x000001f20f5427fc: 0001 49b9 | 00f1 6a6e | f201 0000 | 418b b9cc | 0000 0083 | c702 4189 | b9cc 0000 | 0081 e7fe 
+  0x000001f20f54281c: ff1f 0085 | ff0f 8421 | 0300 0048 | 8b74 2470 
+
+  0x000001f20f54282c: ;   {metadata(method data for {method} {0x000001f26dc451c0} 'getPtr' '(Lorg/jetbrains/skia/impl/Native;)J' in 'org/jetbrains/skia/impl/NativeKt')}
+  0x000001f20f54282c: 4885 f649 | b900 f16a | 6ef2 0100 | 0048 c7c7 | 1001 0000 | 7407 48c7 | c720 0100 | 0049 8b1c 
+  0x000001f20f54284c: 3948 8d5b | 0149 891c | 390f 8431 | 0000 0048 | 3b06 4c8b 
+
+  0x000001f20f542860: ;   {metadata(method data for {method} {0x000001f26dc451c0} 'getPtr' '(Lorg/jetbrains/skia/impl/Native;)J' in 'org/jetbrains/skia/impl/NativeKt')}
+  0x000001f20f542860: ce48 bf00 | f16a 6ef2 | 0100 0048 | 8387 3001 | 0000 014c 
+
+  0x000001f20f542874: ;   {metadata(method data for {method} {0x000001f26dc451c0} 'getPtr' '(Lorg/jetbrains/skia/impl/Native;)J' in 'org/jetbrains/skia/impl/NativeKt')}
+  0x000001f20f542874: 8b4e 1048 | bf00 f16a | 6ef2 0100 | 00ff 8768 | 0100 00e9 | 4c00 0000 
+
+  0x000001f20f54288c: ;   {oop(a 'org/jetbrains/skia/impl/Native$Companion'{0x0000000605ce5e58})}
+  0x000001f20f54288c: 49b9 585e | ce05 0600 
+
+  0x000001f20f542894: ;   {metadata(method data for {method} {0x000001f26dc451c0} 'getPtr' '(Lorg/jetbrains/skia/impl/Native;)J' in 'org/jetbrains/skia/impl/NativeKt')}
+  0x000001f20f542894: 0000 48bf | 00f1 6a6e | f201 0000 | 4883 8780 | 0100 0001 
+
+  0x000001f20f5428a8: ;   {metadata(method data for {method} {0x000001f26d6d8838} 'getNullPointer' '()J' in 'org/jetbrains/skia/impl/Native$Companion')}
+  0x000001f20f5428a8: 49b9 20c4 | 6a6e f201 | 0000 418b | b9cc 0000 | 0083 c702 | 4189 b9cc | 0000 0081 | e7fe ff1f 
+  0x000001f20f5428c8: 0085 ff0f | 849d 0200 | 0049 c7c1 | 0000 0000 | 8b7c 2478 | 8b74 247c 
+
+  0x000001f20f5428e0: ;   {metadata(method data for {method} {0x000001f26d920f00} 'readPixels' '(Lorg/jetbrains/skia/Bitmap;II)Z' in 'org/jetbrains/skia/Surface')}
+  0x000001f20f5428e0: 48b8 9832 | 746e f201 | 0000 4883 | 80c8 0100 | 0001 498b | d04d 8bc1 | 4c8b cf48 
+
+  0x000001f20f5428fc: ;   {static_call}
+  0x000001f20f5428fc: 8bfe 90e8 
+
+  0x000001f20f542900: ; ImmutableOopMap {[104]=Oop [112]=Oop }
+                      ;*invokestatic access$Surface_nReadPixels {reexecute=0 rethrow=0 return_oop=0}
+                      ; - org.jetbrains.skia.Surface::readPixels@20 (line 909)
+  0x000001f20f542900: e303 0000 
+
+  0x000001f20f542904: ;   {other}
+  0x000001f20f542904: 0f1f 8400 | f403 0001 
+
+  0x000001f20f54290c: ;   {metadata(method data for {method} {0x000001f26d920f00} 'readPixels' '(Lorg/jetbrains/skia/Bitmap;II)Z' in 'org/jetbrains/skia/Surface')}
+  0x000001f20f54290c: 48be 9832 | 746e f201 | 0000 4883 | 86d8 0100 
+
+  0x000001f20f54291c: ;   {metadata(method data for {method} {0x000001f26dbb74a0} 'reachabilityBarrier' '(Ljava/lang/Object;)V' in 'org/jetbrains/skia/impl/Native_jvmKt')}
+  0x000001f20f54291c: 0001 48be | 6079 406e | f201 0000 | 8bbe cc00 | 0000 83c7 | 0289 becc | 0000 0081 | e7fe ff1f 
+  0x000001f20f54293c: 0085 ff0f | 844a 0200 
+
+  0x000001f20f542944: ;   {metadata(method data for {method} {0x000001f26dbb74a0} 'reachabilityBarrier' '(Ljava/lang/Object;)V' in 'org/jetbrains/skia/impl/Native_jvmKt')}
+  0x000001f20f542944: 0048 be60 | 7940 6ef2 | 0100 0048 | 8386 1001 
+
+  0x000001f20f542954: ;   {metadata(method data for {method} {0x000001f22c03dbd0} 'reachabilityFence' '(Ljava/lang/Object;)V' in 'java/lang/ref/Reference')}
+  0x000001f20f542954: 0000 0148 | be98 1703 | 6df2 0100 | 008b becc | 0000 0083 | c702 89be | cc00 0000 | 81e7 feff 
+  0x000001f20f542974: 1f00 85ff | 0f84 3202 
+
+  0x000001f20f54297c: ;   {metadata(method data for {method} {0x000001f26d920f00} 'readPixels' '(Lorg/jetbrains/skia/Bitmap;II)Z' in 'org/jetbrains/skia/Surface')}
+  0x000001f20f54297c: 0000 48be | 9832 746e | f201 0000 | 4883 86e8 | 0100 0001 
+
+  0x000001f20f542990: ;   {metadata(method data for {method} {0x000001f26dbb74a0} 'reachabilityBarrier' '(Ljava/lang/Object;)V' in 'org/jetbrains/skia/impl/Native_jvmKt')}
+  0x000001f20f542990: 48be 6079 | 406e f201 | 0000 8bbe | cc00 0000 | 83c7 0289 | becc 0000 | 0081 e7fe | ff1f 0085 
+  0x000001f20f5429b0: ff0f 841a 
+
+  0x000001f20f5429b4: ;   {metadata(method data for {method} {0x000001f26dbb74a0} 'reachabilityBarrier' '(Ljava/lang/Object;)V' in 'org/jetbrains/skia/impl/Native_jvmKt')}
+  0x000001f20f5429b4: 0200 0048 | be60 7940 | 6ef2 0100 | 0048 8386 | 1001 0000 
+
+  0x000001f20f5429c8: ;   {metadata(method data for {method} {0x000001f22c03dbd0} 'reachabilityFence' '(Ljava/lang/Object;)V' in 'java/lang/ref/Reference')}
+  0x000001f20f5429c8: 0148 be98 | 1703 6df2 | 0100 008b | becc 0000 | 0083 c702 | 89be cc00 | 0000 81e7 | feff 1f00 
+  0x000001f20f5429e8: 85ff 0f84 | 0202 0000 
+
+  0x000001f20f5429f0: ;   {metadata(method data for {method} {0x000001f26d920f00} 'readPixels' '(Lorg/jetbrains/skia/Bitmap;II)Z' in 'org/jetbrains/skia/Surface')}
+  0x000001f20f5429f0: 48be 9832 | 746e f201 | 0000 ff86 | f801 0000 | 83e0 0148 | 81c4 9000 
+
+  0x000001f20f542a08: ;   {poll_return}
+  0x000001f20f542a08: 0000 5d49 | 3ba7 5004 | 0000 0f87 | fb01 0000 | c349 8b87 | 0005 0000 | 4d33 d24d | 8997 0005 
+  0x000001f20f542a28: 0000 4d33 | d24d 8997 | 0805 0000 | 4c8b 4424 | 7048 8b54 
+
+  0x000001f20f542a3c: ;   {metadata(method data for {method} {0x000001f26d920f00} 'readPixels' '(Lorg/jetbrains/skia/Bitmap;II)Z' in 'org/jetbrains/skia/Surface')}
+  0x000001f20f542a3c: 2468 48be | 9832 746e | f201 0000 | 4883 8610 | 0200 0001 
+
+  0x000001f20f542a50: ;   {metadata(method data for {method} {0x000001f26dbb74a0} 'reachabilityBarrier' '(Ljava/lang/Object;)V' in 'org/jetbrains/skia/impl/Native_jvmKt')}
+  0x000001f20f542a50: 48be 6079 | 406e f201 | 0000 8bbe | cc00 0000 | 83c7 0289 | becc 0000 | 0081 e7fe | ff1f 0085 
+  0x000001f20f542a70: ff0f 84b2 
+
+  0x000001f20f542a74: ;   {metadata(method data for {method} {0x000001f26dbb74a0} 'reachabilityBarrier' '(Ljava/lang/Object;)V' in 'org/jetbrains/skia/impl/Native_jvmKt')}
+  0x000001f20f542a74: 0100 0048 | be60 7940 | 6ef2 0100 | 0048 8386 | 1001 0000 
+
+  0x000001f20f542a88: ;   {metadata(method data for {method} {0x000001f22c03dbd0} 'reachabilityFence' '(Ljava/lang/Object;)V' in 'java/lang/ref/Reference')}
+  0x000001f20f542a88: 0148 be98 | 1703 6df2 | 0100 008b | becc 0000 | 0083 c702 | 89be cc00 | 0000 81e7 | feff 1f00 
+  0x000001f20f542aa8: 85ff 0f84 | 9a01 0000 
+
+  0x000001f20f542ab0: ;   {metadata(method data for {method} {0x000001f26d920f00} 'readPixels' '(Lorg/jetbrains/skia/Bitmap;II)Z' in 'org/jetbrains/skia/Surface')}
+  0x000001f20f542ab0: 48be 9832 | 746e f201 | 0000 4883 | 8620 0200 
+
+  0x000001f20f542ac0: ;   {metadata(method data for {method} {0x000001f26dbb74a0} 'reachabilityBarrier' '(Ljava/lang/Object;)V' in 'org/jetbrains/skia/impl/Native_jvmKt')}
+  0x000001f20f542ac0: 0001 48be | 6079 406e | f201 0000 | 8bbe cc00 | 0000 83c7 | 0289 becc | 0000 0081 | e7fe ff1f 
+  0x000001f20f542ae0: 0085 ff0f | 8482 0100 
+
+  0x000001f20f542ae8: ;   {metadata(method data for {method} {0x000001f26dbb74a0} 'reachabilityBarrier' '(Ljava/lang/Object;)V' in 'org/jetbrains/skia/impl/Native_jvmKt')}
+  0x000001f20f542ae8: 0048 be60 | 7940 6ef2 | 0100 0048 | 8386 1001 
+
+  0x000001f20f542af8: ;   {metadata(method data for {method} {0x000001f22c03dbd0} 'reachabilityFence' '(Ljava/lang/Object;)V' in 'java/lang/ref/Reference')}
+  0x000001f20f542af8: 0000 0148 | be98 1703 | 6df2 0100 | 008b becc | 0000 0083 | c702 89be | cc00 0000 | 81e7 feff 
+  0x000001f20f542b18: 1f00 85ff | 0f84 6a01 | 0000 e9a3 
+
+  0x000001f20f542b24: ;   {metadata({method} {0x000001f26d920f00} 'readPixels' '(Lorg/jetbrains/skia/Bitmap;II)Z' in 'org/jetbrains/skia/Surface')}
+  0x000001f20f542b24: 0100 0049 | baf8 0e92 | 6df2 0100 | 004c 8954 | 2408 48c7 | 0424 ffff 
+
+  0x000001f20f542b3c: ;   {runtime_call counter_overflow Runtime1 stub}
+  0x000001f20f542b3c: ffff e8bd 
+
+  0x000001f20f542b40: ; ImmutableOopMap {rdx=Oop r8=Oop [104]=Oop [112]=Oop }
+                      ;*synchronization entry
+                      ; - org.jetbrains.skia.Surface::readPixels@-1 (line 907)
+  0x000001f20f542b40: f319 07e9 | 48fc ffff 
+
+  0x000001f20f542b48: ;   {metadata({method} {0x000001f26dc451c0} 'getPtr' '(Lorg/jetbrains/skia/impl/Native;)J' in 'org/jetbrains/skia/impl/NativeKt')}
+  0x000001f20f542b48: 49ba b851 | c46d f201 | 0000 4c89 | 5424 0848 | c704 24ff 
+
+  0x000001f20f542b5c: ;   {runtime_call counter_overflow Runtime1 stub}
+  0x000001f20f542b5c: ffff ffe8 
+
+  0x000001f20f542b60: ; ImmutableOopMap {rdx=Oop [104]=Oop [112]=Oop }
+                      ;*synchronization entry
+                      ; - org.jetbrains.skia.impl.NativeKt::getPtr@-1 (line 24)
+                      ; - org.jetbrains.skia.Surface::readPixels@15 (line 911)
+  0x000001f20f542b60: 9cf3 1907 | e9be fcff 
+
+  0x000001f20f542b68: ;   {runtime_call throw_null_pointer_exception Runtime1 stub}
+  0x000001f20f542b68: ffe8 92a2 
+
+  0x000001f20f542b6c: ; ImmutableOopMap {rdx=Oop rsi=Oop [104]=Oop [112]=Oop }
+                      ;*invokevirtual get_ptr$skiko {reexecute=0 rethrow=0 return_oop=0}
+                      ; - org.jetbrains.skia.impl.NativeKt::getPtr@5 (line 24)
+                      ; - org.jetbrains.skia.Surface::readPixels@15 (line 911)
+                      ;   {metadata({method} {0x000001f26d6d8838} 'getNullPointer' '()J' in 'org/jetbrains/skia/impl/Native$Companion')}
+  0x000001f20f542b6c: 1907 49ba | 3088 6d6d | f201 0000 | 4c89 5424 | 0848 c704 | 24ff ffff 
+
+  0x000001f20f542b84: ;   {runtime_call counter_overflow Runtime1 stub}
+  0x000001f20f542b84: ffe8 76f3 
+
+  0x000001f20f542b88: ; ImmutableOopMap {rdx=Oop rsi=Oop [104]=Oop [112]=Oop }
+                      ;*synchronization entry
+                      ; - org.jetbrains.skia.impl.Native$Companion::getNullPointer@-1 (line 11)
+                      ; - org.jetbrains.skia.impl.NativeKt::getPtr@15 (line 24)
+                      ; - org.jetbrains.skia.Surface::readPixels@15 (line 911)
+  0x000001f20f542b88: 1907 e942 
+
+  0x000001f20f542b8c: ;   {metadata({method} {0x000001f26dbb74a0} 'reachabilityBarrier' '(Ljava/lang/Object;)V' in 'org/jetbrains/skia/impl/Native_jvmKt')}
+  0x000001f20f542b8c: fdff ff49 | ba98 74bb | 6df2 0100 | 004c 8954 | 2408 48c7 | 0424 ffff 
+
+  0x000001f20f542ba4: ;   {runtime_call counter_overflow Runtime1 stub}
+  0x000001f20f542ba4: ffff e855 
+
+  0x000001f20f542ba8: ; ImmutableOopMap {[104]=Oop [112]=Oop }
+                      ;*synchronization entry
+                      ; - org.jetbrains.skia.impl.Native_jvmKt::reachabilityBarrier@-1 (line 47)
+                      ; - org.jetbrains.skia.Surface::readPixels@26 (line 916)
+  0x000001f20f542ba8: f319 07e9 | 95fd ffff 
+
+  0x000001f20f542bb0: ;   {metadata({method} {0x000001f22c03dbd0} 'reachabilityFence' '(Ljava/lang/Object;)V' in 'java/lang/ref/Reference')}
+  0x000001f20f542bb0: 49ba c8db | 032c f201 | 0000 4c89 | 5424 0848 | c704 24ff 
+
+  0x000001f20f542bc4: ;   {runtime_call counter_overflow Runtime1 stub}
+  0x000001f20f542bc4: ffff ffe8 
+
+  0x000001f20f542bc8: ; ImmutableOopMap {[112]=Oop }
+                      ;*synchronization entry
+                      ; - java.lang.ref.Reference::reachabilityFence@-1 (line 628)
+                      ; - org.jetbrains.skia.impl.Native_jvmKt::reachabilityBarrier@1 (line 47)
+                      ; - org.jetbrains.skia.Surface::readPixels@26 (line 916)
+  0x000001f20f542bc8: 34f3 1907 | e9ad fdff 
+
+  0x000001f20f542bd0: ;   {metadata({method} {0x000001f26dbb74a0} 'reachabilityBarrier' '(Ljava/lang/Object;)V' in 'org/jetbrains/skia/impl/Native_jvmKt')}
+  0x000001f20f542bd0: ff49 ba98 | 74bb 6df2 | 0100 004c | 8954 2408 | 48c7 0424 | ffff ffff 
+
+  0x000001f20f542be8: ;   {runtime_call counter_overflow Runtime1 stub}
+  0x000001f20f542be8: e813 f319 
+
+  0x000001f20f542bec: ; ImmutableOopMap {[112]=Oop }
+                      ;*synchronization entry
+                      ; - org.jetbrains.skia.impl.Native_jvmKt::reachabilityBarrier@-1 (line 47)
+                      ; - org.jetbrains.skia.Surface::readPixels@30 (line 917)
+  0x000001f20f542bec: 07e9 c5fd 
+
+  0x000001f20f542bf0: ;   {metadata({method} {0x000001f22c03dbd0} 'reachabilityFence' '(Ljava/lang/Object;)V' in 'java/lang/ref/Reference')}
+  0x000001f20f542bf0: ffff 49ba | c8db 032c | f201 0000 | 4c89 5424 | 0848 c704 | 24ff ffff 
+
+  0x000001f20f542c08: ;   {runtime_call counter_overflow Runtime1 stub}
+  0x000001f20f542c08: ffe8 f2f2 
+
+  0x000001f20f542c0c: ; ImmutableOopMap {}
+                      ;*synchronization entry
+                      ; - java.lang.ref.Reference::reachabilityFence@-1 (line 628)
+                      ; - org.jetbrains.skia.impl.Native_jvmKt::reachabilityBarrier@1 (line 47)
+                      ; - org.jetbrains.skia.Surface::readPixels@30 (line 917)
+  0x000001f20f542c0c: 1907 e9dd 
+
+  0x000001f20f542c10: ;   {internal_word}
+  0x000001f20f542c10: fdff ff49 | ba0b 2a54 | 0ff2 0100 | 004d 8997 | 6804 0000 
+
+  0x000001f20f542c24: ;   {runtime_call SafepointBlob}
+  0x000001f20f542c24: e957 280e 
+
+  0x000001f20f542c28: ;   {metadata({method} {0x000001f26dbb74a0} 'reachabilityBarrier' '(Ljava/lang/Object;)V' in 'org/jetbrains/skia/impl/Native_jvmKt')}
+  0x000001f20f542c28: 0749 ba98 | 74bb 6df2 | 0100 004c | 8954 2408 | 48c7 0424 | ffff ffff 
+
+  0x000001f20f542c40: ;   {runtime_call counter_overflow Runtime1 stub}
+  0x000001f20f542c40: e8bb f219 
+
+  0x000001f20f542c44: ; ImmutableOopMap {rax=Oop rdx=Oop r8=Oop [104]=Oop [112]=Oop }
+                      ;*synchronization entry
+                      ; - org.jetbrains.skia.impl.Native_jvmKt::reachabilityBarrier@-1 (line 47)
+                      ; - org.jetbrains.skia.Surface::readPixels@39 (line 916)
+  0x000001f20f542c44: 07e9 2dfe 
+
+  0x000001f20f542c48: ;   {metadata({method} {0x000001f22c03dbd0} 'reachabilityFence' '(Ljava/lang/Object;)V' in 'java/lang/ref/Reference')}
+  0x000001f20f542c48: ffff 49ba | c8db 032c | f201 0000 | 4c89 5424 | 0848 c704 | 24ff ffff 
+
+  0x000001f20f542c60: ;   {runtime_call counter_overflow Runtime1 stub}
+  0x000001f20f542c60: ffe8 9af2 
+
+  0x000001f20f542c64: ; ImmutableOopMap {rax=Oop r8=Oop [112]=Oop }
+                      ;*synchronization entry
+                      ; - java.lang.ref.Reference::reachabilityFence@-1 (line 628)
+                      ; - org.jetbrains.skia.impl.Native_jvmKt::reachabilityBarrier@1 (line 47)
+                      ; - org.jetbrains.skia.Surface::readPixels@39 (line 916)
+  0x000001f20f542c64: 1907 e945 
+
+  0x000001f20f542c68: ;   {metadata({method} {0x000001f26dbb74a0} 'reachabilityBarrier' '(Ljava/lang/Object;)V' in 'org/jetbrains/skia/impl/Native_jvmKt')}
+  0x000001f20f542c68: feff ff49 | ba98 74bb | 6df2 0100 | 004c 8954 | 2408 48c7 | 0424 ffff 
+
+  0x000001f20f542c80: ;   {runtime_call counter_overflow Runtime1 stub}
+  0x000001f20f542c80: ffff e879 
+
+  0x000001f20f542c84: ; ImmutableOopMap {rax=Oop r8=Oop [112]=Oop }
+                      ;*synchronization entry
+                      ; - org.jetbrains.skia.impl.Native_jvmKt::reachabilityBarrier@-1 (line 47)
+                      ; - org.jetbrains.skia.Surface::readPixels@43 (line 917)
+  0x000001f20f542c84: f219 07e9 | 5dfe ffff 
+
+  0x000001f20f542c8c: ;   {metadata({method} {0x000001f22c03dbd0} 'reachabilityFence' '(Ljava/lang/Object;)V' in 'java/lang/ref/Reference')}
+  0x000001f20f542c8c: 49ba c8db | 032c f201 | 0000 4c89 | 5424 0848 | c704 24ff 
+
+  0x000001f20f542ca0: ;   {runtime_call counter_overflow Runtime1 stub}
+  0x000001f20f542ca0: ffff ffe8 
+
+  0x000001f20f542ca4: ; ImmutableOopMap {rax=Oop }
+                      ;*synchronization entry
+                      ; - java.lang.ref.Reference::reachabilityFence@-1 (line 628)
+                      ; - org.jetbrains.skia.impl.Native_jvmKt::reachabilityBarrier@1 (line 47)
+                      ; - org.jetbrains.skia.Surface::readPixels@43 (line 917)
+  0x000001f20f542ca4: 58f2 1907 | e975 feff | ff49 8b87 | 0005 0000 | 49c7 8700 | 0500 0000 | 0000 0049 | c787 0805 
+  0x000001f20f542cc4: 0000 0000 | 0000 4881 | c490 0000 
+
+  0x000001f20f542cd0: ;   {runtime_call unwind_exception Runtime1 stub}
+  0x000001f20f542cd0: 005d e929 | 9219 07f4 
+[Stub Code]
+  0x000001f20f542cd8: ;   {no_reloc}
+  0x000001f20f542cd8: 48bb 0000 | 0000 0000 
+
+  0x000001f20f542ce0: ;   {runtime_call nmethod}
+  0x000001f20f542ce0: 0000 e9fb 
+
+  0x000001f20f542ce4: ;   {static_stub}
+  0x000001f20f542ce4: ffff ff48 | bb50 9592 | 6df2 0100 
+
+  0x000001f20f542cf0: ;   {runtime_call I2C/C2I adapters}
+  0x000001f20f542cf0: 00e9 f830 
+
+  0x000001f20f542cf4: ;   {runtime_call handle_exception_from_callee Runtime1 stub}
+  0x000001f20f542cf4: 2107 e805 
+
+  0x000001f20f542cf8: ;   {external_word}
+  0x000001f20f542cf8: bf19 0748 | b9b0 2301 | fffd 7f00 | 0048 83e4 
+
+  0x000001f20f542d08: ;   {runtime_call}
+  0x000001f20f542d08: f048 b820 | 78c3 fefd | 7f00 00ff 
+
+  0x000001f20f542d14: ;   {section_word}
+  0x000001f20f542d14: d0f4 49ba | 162d 540f | f201 0000 
+
+  0x000001f20f542d20: ;   {runtime_call DeoptimizationBlob}
+  0x000001f20f542d20: 4152 e9f9 | 190e 07f4 
+[/MachCode]
+
+
+Compiled method (c1) 61562 2860       3       org.jetbrains.skiko.redrawer.Redrawer::update$default (39 bytes)
+ total in heap  [0x000001f20f522110,0x000001f20f522a78] = 2408
+ relocation     [0x000001f20f522270,0x000001f20f522320] = 176
+ main code      [0x000001f20f522320,0x000001f20f5227c8] = 1192
+ stub code      [0x000001f20f5227c8,0x000001f20f522850] = 136
+ oops           [0x000001f20f522850,0x000001f20f522858] = 8
+ metadata       [0x000001f20f522858,0x000001f20f522898] = 64
+ scopes data    [0x000001f20f522898,0x000001f20f522938] = 160
+ scopes pcs     [0x000001f20f522938,0x000001f20f522a48] = 272
+ dependencies   [0x000001f20f522a48,0x000001f20f522a58] = 16
+ nul chk table  [0x000001f20f522a58,0x000001f20f522a78] = 32
+
+[Constant Pool (empty)]
+
+[MachCode]
+[Verified Entry Point]
+  # {method} {0x000001f26d75a500} 'update$default' '(Lorg/jetbrains/skiko/redrawer/Redrawer;JILjava/lang/Object;)V' in 'org/jetbrains/skiko/redrawer/Redrawer'
+  # parm0:    rdx:rdx   = 'org/jetbrains/skiko/redrawer/Redrawer'
+  # parm1:    r8:r8     = long
+  # parm2:    r9        = int
+  # parm3:    rdi:rdi   = 'java/lang/Object'
+  #           [sp+0x70]  (sp of caller)
+  0x000001f20f522320: 8984 2400 | 80ff ff55 | 4883 ec60 | 4181 7f20 | 0300 0000 
+
+  0x000001f20f522334: ;   {runtime_call StubRoutines (final stubs)}
+  0x000001f20f522334: 7405 e8a5 | 410e 0748 | 8954 2440 
+
+  0x000001f20f522340: ;   {metadata(method data for {method} {0x000001f26d75a500} 'update$default' '(Lorg/jetbrains/skiko/redrawer/Redrawer;JILjava/lang/Object;)V' in 'org/jetbrains/skiko/redrawer/Redrawer')}
+  0x000001f20f522340: 48be 90cf | 736e f201 | 0000 8b9e | cc00 0000 | 83c3 0289 | 9ecc 0000 | 0081 e3fe | 0700 0085 
+  0x000001f20f522360: db0f 845f | 0300 0048 
+
+  0x000001f20f522368: ;   {metadata(method data for {method} {0x000001f26d75a500} 'update$default' '(Lorg/jetbrains/skiko/redrawer/Redrawer;JILjava/lang/Object;)V' in 'org/jetbrains/skiko/redrawer/Redrawer')}
+  0x000001f20f522368: 85ff 48be | 90cf 736e | f201 0000 | 48c7 c720 | 0100 0075 | 0748 c7c7 | 1001 0000 | 488b 1c3e 
+  0x000001f20f522388: 488d 5b01 | 4889 1c3e | 0f85 8902 | 0000 4183 | e101 4585 
+
+  0x000001f20f52239c: ;   {metadata(method data for {method} {0x000001f26d75a500} 'update$default' '(Lorg/jetbrains/skiko/redrawer/Redrawer;JILjava/lang/Object;)V' in 'org/jetbrains/skiko/redrawer/Redrawer')}
+  0x000001f20f52239c: c948 be90 | cf73 6ef2 | 0100 0048 | c7c7 5001 | 0000 7507 | 48c7 c740 | 0100 0048 | 8b1c 3e48 
+  0x000001f20f5223bc: 8d5b 0148 | 891c 3e0f | 850a 0000 | 004c 8944 | 2448 e9e6 
+
+  0x000001f20f5223d0: ;   {metadata(method data for {method} {0x000001f26d75a500} 'update$default' '(Lorg/jetbrains/skiko/redrawer/Redrawer;JILjava/lang/Object;)V' in 'org/jetbrains/skiko/redrawer/Redrawer')}
+  0x000001f20f5223d0: 0000 0049 | b890 cf73 | 6ef2 0100 | 0049 8380 | 6001 0000 
+
+  0x000001f20f5223e4: ;   {metadata(method data for {method} {0x000001f26e175390} 'access$getInitialTime$p' '()J' in 'org/jetbrains/skiko/redrawer/RedrawerKt')}
+  0x000001f20f5223e4: 0149 b8b8 | d173 6ef2 | 0100 0041 | 8bb0 cc00 | 0000 83c6 | 0241 89b0 | cc00 0000 | 81e6 feff 
+  0x000001f20f522404: 1f00 85f6 | 0f84 d902 
+
+  0x000001f20f52240c: ;   {metadata(method data for {method} {0x000001f26d75a500} 'update$default' '(Lorg/jetbrains/skiko/redrawer/Redrawer;JILjava/lang/Object;)V' in 'org/jetbrains/skiko/redrawer/Redrawer')}
+  0x000001f20f52240c: 0000 49b8 | 90cf 736e | f201 0000 | 4983 8070 | 0100 0001 
+
+  0x000001f20f522420: ;   {metadata(method data for {method} {0x000001f26e1739f8} 'elapsedNow-UwyO8pc' '(J)J' in 'kotlin/time/TimeSource$Monotonic$ValueTimeMark')}
+  0x000001f20f522420: 49b8 e0d2 | 736e f201 | 0000 418b | b0cc 0000 | 0083 c602 | 4189 b0cc | 0000 0081 | e6fe ff1f 
+  0x000001f20f522440: 0085 f60f | 84bf 0200 
+
+  0x000001f20f522448: ;   {oop(a 'kotlin/time/MonotonicTimeSource'{0x000000060654c990})}
+  0x000001f20f522448: 0048 be90 | c954 0606 | 0000 004c 
+
+  0x000001f20f522454: ;   {metadata(method data for {method} {0x000001f26e1739f8} 'elapsedNow-UwyO8pc' '(J)J' in 'kotlin/time/TimeSource$Monotonic$ValueTimeMark')}
+  0x000001f20f522454: 8bc6 48bf | e0d2 736e | f201 0000 | 4883 8710 | 0100 0001 | 49c7 c0fc | 0800 0048 | 8bd6 0f1f 
+  0x000001f20f522474: ;   {optimized virtual_call}
+  0x000001f20f522474: 4400 00e8 
+
+  0x000001f20f522478: ; ImmutableOopMap {[64]=Oop }
+                      ;*invokevirtual elapsedFrom-6eNON_k {reexecute=0 rethrow=0 return_oop=0}
+                      ; - kotlin.time.TimeSource$Monotonic$ValueTimeMark::elapsedNow-UwyO8pc@4 (line 82)
+                      ; - org.jetbrains.skiko.redrawer.Redrawer::update$default@24 (line 15)
+  0x000001f20f522478: 6003 0000 
+
+  0x000001f20f52247c: ;   {other}
+  0x000001f20f52247c: 0f1f 8400 | 6c03 0000 
+
+  0x000001f20f522484: ;   {metadata(method data for {method} {0x000001f26d75a500} 'update$default' '(Lorg/jetbrains/skiko/redrawer/Redrawer;JILjava/lang/Object;)V' in 'org/jetbrains/skiko/redrawer/Redrawer')}
+  0x000001f20f522484: 48ba 90cf | 736e f201 | 0000 4883 | 8280 0100 | 0001 488b | d066 0f1f 
+
+  0x000001f20f52249c: ;   {static_call}
+  0x000001f20f52249c: 4400 00e8 
+
+  0x000001f20f5224a0: ; ImmutableOopMap {[64]=Oop }
+                      ;*invokestatic getInWholeNanoseconds-impl {reexecute=0 rethrow=0 return_oop=0}
+                      ; - org.jetbrains.skiko.redrawer.Redrawer::update$default@27 (line 15)
+  0x000001f20f5224a0: 4703 0000 
+
+  0x000001f20f5224a4: ;   {other}
+  0x000001f20f5224a4: 0f1f 8400 | 9403 0001 | 4c8b c04c | 8944 2448 | 488b 5424 | 4048 85d2 | 0f84 2900 
+
+  0x000001f20f5224c0: ;   {metadata('org/jetbrains/skiko/redrawer/AWTRedrawer')}
+  0x000001f20f5224c0: 0000 48b8 | 58cc 202d | f201 0000 | 8b5a 0849 | ba00 0000 | 2cf2 0100 | 0049 03da | 483b 4338 
+  0x000001f20f5224e0: 0f85 4302 | 0000 e900 | 0000 0048 | 8bf2 483b | 0248 8bf2 
+
+  0x000001f20f5224f4: ;   {metadata(method data for {method} {0x000001f26d75a500} 'update$default' '(Lorg/jetbrains/skiko/redrawer/Redrawer;JILjava/lang/Object;)V' in 'org/jetbrains/skiko/redrawer/Redrawer')}
+  0x000001f20f5224f4: 48bf 90cf | 736e f201 | 0000 8b76 | 0849 ba00 | 0000 2cf2 | 0100 0049 | 03f2 483b | b7a0 0100 
+  0x000001f20f522514: 0075 0d48 | 8387 a801 | 0000 01e9 | 6000 0000 | 483b b7b0 | 0100 0075 | 0d48 8387 | b801 0000 
+  0x000001f20f522534: 01e9 4a00 | 0000 4883 | bfa0 0100 | 0000 7517 | 4889 b7a0 | 0100 0048 | c787 a801 | 0000 0100 
+  0x000001f20f522554: 0000 e929 | 0000 0048 | 83bf b001 | 0000 0075 | 1748 89b7 | b001 0000 | 48c7 87b8 | 0100 0001 
+  0x000001f20f522574: 0000 00e9 | 0800 0000 | 4883 8790 | 0100 0001 
+
+  0x000001f20f522584: ;   {metadata(method data for {method} {0x000001f26e159440} 'update' '(J)V' in 'org/jetbrains/skiko/redrawer/AWTRedrawer')}
+  0x000001f20f522584: 48be 80d9 | 736e f201 | 0000 8bbe | cc00 0000 | 83c7 0289 | becc 0000 | 0081 e7fe | ff1f 0085 
+  0x000001f20f5225a4: ff0f 8488 | 0100 0048 
+
+  0x000001f20f5225ac: ;   {metadata(method data for {method} {0x000001f26e159440} 'update' '(J)V' in 'org/jetbrains/skiko/redrawer/AWTRedrawer')}
+  0x000001f20f5225ac: 8bf2 48bf | 80d9 736e | f201 0000 | 4883 8710 | 0100 0001 | 488b f248 
+
+  0x000001f20f5225c4: ;   {optimized virtual_call}
+  0x000001f20f5225c4: 8bd6 90e8 
+
+  0x000001f20f5225c8: ; ImmutableOopMap {[64]=Oop }
+                      ;*invokevirtual checkDisposed {reexecute=0 rethrow=0 return_oop=0}
+                      ; - org.jetbrains.skiko.redrawer.AWTRedrawer::update@1 (line 53)
+                      ; - org.jetbrains.skiko.redrawer.Redrawer::update$default@33 (line 15)
+  0x000001f20f5225c8: 54ec f7ff 
+
+  0x000001f20f5225cc: ;   {other}
+  0x000001f20f5225cc: 0f1f 8400 | bc04 0002 | 488b 5424 | 408b 5210 | 48c1 e203 
+
+  0x000001f20f5225e0: ; implicit exception: dispatches to 0x000001f20f522754
+  0x000001f20f5225e0: 483b 024c 
+
+  0x000001f20f5225e4: ;   {metadata(method data for {method} {0x000001f26e159440} 'update' '(J)V' in 'org/jetbrains/skiko/redrawer/AWTRedrawer')}
+  0x000001f20f5225e4: 8bc2 48be | 80d9 736e | f201 0000 | 4883 8648 | 0100 0001 | 4c8b 4424 
+
+  0x000001f20f5225fc: ;   {optimized virtual_call}
+  0x000001f20f5225fc: 4866 90e8 
+
+  0x000001f20f522600: ; ImmutableOopMap {}
+                      ;*invokevirtual update$skiko {reexecute=0 rethrow=0 return_oop=0}
+                      ; - org.jetbrains.skiko.redrawer.AWTRedrawer::update@9 (line 54)
+                      ; - org.jetbrains.skiko.redrawer.Redrawer::update$default@33 (line 15)
+  0x000001f20f522600: 0502 0000 
+
+  0x000001f20f522604: ;   {other}
+  0x000001f20f522604: 0f1f 8400 | f404 0003 | 4883 c460 
+
+  0x000001f20f522610: ;   {poll_return}
+  0x000001f20f522610: 5d49 3ba7 | 5004 0000 | 0f87 3b01 | 0000 c390 
+
+  0x000001f20f522620: ;   {no_reloc}
+  0x000001f20f522620: e959 0100 | 0000 0000 | 0000 80ba | 3101 0000 | 040f 8556 | 0100 0049 | 8b87 b801 | 0000 488d 
+  0x000001f20f522640: 7828 493b | bfc8 0100 | 000f 873e | 0100 0049 | 89bf b801 | 0000 48c7 | 0001 0000 | 0048 8bca 
+  0x000001f20f522660: 49ba 0000 | 002c f201 | 0000 492b | ca89 4808 | 4833 c989 | 480c 4833 | c948 8948 | 1048 8948 
+  0x000001f20f522680: 1848 8948 | 204c 8bc0 
+
+  0x000001f20f522688: ;   {metadata(method data for {method} {0x000001f26d75a500} 'update$default' '(Lorg/jetbrains/skiko/redrawer/Redrawer;JILjava/lang/Object;)V' in 'org/jetbrains/skiko/redrawer/Redrawer')}
+  0x000001f20f522688: 48ba 90cf | 736e f201 | 0000 4883 | 8230 0100 
+
+  0x000001f20f522698: ;   {oop("Super calls with default arguments not supported in this target, function: update"{0x00000006254f53c8})}
+  0x000001f20f522698: 0001 49b8 | c853 4f25 | 0600 0000 | 488b d048 | 8944 2450 
+
+  0x000001f20f5226ac: ;   {optimized virtual_call}
+  0x000001f20f5226ac: 6666 90e8 
+
+  0x000001f20f5226b0: ; ImmutableOopMap {[80]=Oop }
+                      ;*invokespecial <init> {reexecute=0 rethrow=0 return_oop=0}
+                      ; - org.jetbrains.skiko.redrawer.Redrawer::update$default@11 (line 15)
+  0x000001f20f5226b0: ccc3 0f07 
+
+  0x000001f20f5226b4: ;   {other}
+  0x000001f20f5226b4: 0f1f 8400 | a405 0004 | 488b 4424 | 50e9 f100 
+
+  0x000001f20f5226c4: ;   {metadata({method} {0x000001f26d75a500} 'update$default' '(Lorg/jetbrains/skiko/redrawer/Redrawer;JILjava/lang/Object;)V' in 'org/jetbrains/skiko/redrawer/Redrawer')}
+  0x000001f20f5226c4: 0000 49ba | f8a4 756d | f201 0000 | 4c89 5424 | 0848 c704 | 24ff ffff 
+
+  0x000001f20f5226dc: ;   {runtime_call counter_overflow Runtime1 stub}
+  0x000001f20f5226dc: ffe8 1ef8 
+
+  0x000001f20f5226e0: ; ImmutableOopMap {rdx=Oop rdi=Oop [64]=Oop }
+                      ;*synchronization entry
+                      ; - org.jetbrains.skiko.redrawer.Redrawer::update$default@-1 (line 15)
+  0x000001f20f5226e0: 1b07 e980 
+
+  0x000001f20f5226e4: ;   {metadata({method} {0x000001f26e175390} 'access$getInitialTime$p' '()J' in 'org/jetbrains/skiko/redrawer/RedrawerKt')}
+  0x000001f20f5226e4: fcff ff49 | ba88 5317 | 6ef2 0100 | 004c 8954 | 2408 48c7 | 0424 ffff 
+
+  0x000001f20f5226fc: ;   {runtime_call counter_overflow Runtime1 stub}
+  0x000001f20f5226fc: ffff e8fd 
+
+  0x000001f20f522700: ; ImmutableOopMap {[64]=Oop }
+                      ;*synchronization entry
+                      ; - org.jetbrains.skiko.redrawer.RedrawerKt::access$getInitialTime$p@-1 (line 1)
+                      ; - org.jetbrains.skiko.redrawer.Redrawer::update$default@21 (line 15)
+  0x000001f20f522700: f71b 07e9 | 06fd ffff 
+
+  0x000001f20f522708: ;   {metadata({method} {0x000001f26e1739f8} 'elapsedNow-UwyO8pc' '(J)J' in 'kotlin/time/TimeSource$Monotonic$ValueTimeMark')}
+  0x000001f20f522708: 49ba f039 | 176e f201 | 0000 4c89 | 5424 0848 | c704 24ff 
+
+  0x000001f20f52271c: ;   {runtime_call counter_overflow Runtime1 stub}
+  0x000001f20f52271c: ffff ffe8 
+
+  0x000001f20f522720: ; ImmutableOopMap {[64]=Oop }
+                      ;*synchronization entry
+                      ; - kotlin.time.TimeSource$Monotonic$ValueTimeMark::elapsedNow-UwyO8pc@-1 (line 82)
+                      ; - org.jetbrains.skiko.redrawer.Redrawer::update$default@24 (line 15)
+  0x000001f20f522720: dcf7 1b07 | e920 fdff 
+
+  0x000001f20f522728: ;   {runtime_call throw_incompatible_class_change_error Runtime1 stub}
+  0x000001f20f522728: ffe8 d2cd 
+
+  0x000001f20f52272c: ; ImmutableOopMap {rdx=Oop [64]=Oop }
+                      ;*invokeinterface update {reexecute=0 rethrow=0 return_oop=0}
+                      ; - org.jetbrains.skiko.redrawer.Redrawer::update$default@33 (line 15)
+                      ;   {runtime_call throw_null_pointer_exception Runtime1 stub}
+  0x000001f20f52272c: 1b07 e8cd 
+
+  0x000001f20f522730: ; ImmutableOopMap {rdx=Oop [64]=Oop }
+                      ;*invokeinterface update {reexecute=0 rethrow=0 return_oop=0}
+                      ; - org.jetbrains.skiko.redrawer.Redrawer::update$default@33 (line 15)
+                      ;   {metadata({method} {0x000001f26e159440} 'update' '(J)V' in 'org/jetbrains/skiko/redrawer/AWTRedrawer')}
+  0x000001f20f522730: a61b 0749 | ba38 9415 | 6ef2 0100 | 004c 8954 | 2408 48c7 | 0424 ffff 
+
+  0x000001f20f522748: ;   {runtime_call counter_overflow Runtime1 stub}
+  0x000001f20f522748: ffff e8b1 
+
+  0x000001f20f52274c: ; ImmutableOopMap {rdx=Oop [64]=Oop }
+                      ;*synchronization entry
+                      ; - org.jetbrains.skiko.redrawer.AWTRedrawer::update@-1 (line 53)
+                      ; - org.jetbrains.skiko.redrawer.Redrawer::update$default@33 (line 15)
+  0x000001f20f52274c: f71b 07e9 | 57fe ffff 
+
+  0x000001f20f522754: ;   {runtime_call throw_null_pointer_exception Runtime1 stub}
+  0x000001f20f522754: e8a7 a61b 
+
+  0x000001f20f522758: ; ImmutableOopMap {rdx=Oop }
+                      ;*invokevirtual update$skiko {reexecute=0 rethrow=0 return_oop=0}
+                      ; - org.jetbrains.skiko.redrawer.AWTRedrawer::update@9 (line 54)
+                      ; - org.jetbrains.skiko.redrawer.Redrawer::update$default@33 (line 15)
+                      ;   {internal_word}
+  0x000001f20f522758: 0749 ba11 | 2652 0ff2 | 0100 004d | 8997 6804 
+
+  0x000001f20f522768: ;   {runtime_call SafepointBlob}
+  0x000001f20f522768: 0000 e911 
+
+  0x000001f20f52276c: ;   {metadata(nullptr)}
+  0x000001f20f52276c: 2d10 0748 | ba00 0000 | 0000 0000 | 00b8 000f 
+
+  0x000001f20f52277c: ;   {runtime_call load_klass_patching Runtime1 stub}
+  0x000001f20f52277c: 050a e8fd 
+
+  0x000001f20f522780: ; ImmutableOopMap {}
+                      ;*new {reexecute=1 rethrow=0 return_oop=0}
+                      ; - (reexecute) org.jetbrains.skiko.redrawer.Redrawer::update$default@5 (line 15)
+  0x000001f20f522780: e61b 07e9 | 98fe ffff 
+
+  0x000001f20f522788: ;   {runtime_call throw_null_pointer_exception Runtime1 stub}
+  0x000001f20f522788: e873 a61b 
+
+  0x000001f20f52278c: ; ImmutableOopMap {}
+                      ;*new {reexecute=0 rethrow=0 return_oop=0}
+                      ; - org.jetbrains.skiko.redrawer.Redrawer::update$default@5 (line 15)
+  0x000001f20f52278c: 0748 8bd2 
+
+  0x000001f20f522790: ;   {runtime_call fast_new_instance_init_check Runtime1 stub}
+  0x000001f20f522790: e86b b21b 
+
+  0x000001f20f522794: ; ImmutableOopMap {}
+                      ;*new {reexecute=0 rethrow=0 return_oop=0}
+                      ; - org.jetbrains.skiko.redrawer.Redrawer::update$default@5 (line 15)
+  0x000001f20f522794: 07e9 ebfe | ffff 498b | 8700 0500 | 0049 c787 | 0005 0000 | 0000 0000 | 49c7 8708 | 0500 0000 
+  0x000001f20f5227b4: 0000 0048 | 83c4 605d 
+
+  0x000001f20f5227bc: ;   {runtime_call unwind_exception Runtime1 stub}
+  0x000001f20f5227bc: e93f 971b | 07f4 f4f4 | f4f4 f4f4 
+[Stub Code]
+  0x000001f20f5227c8: ;   {no_reloc}
+  0x000001f20f5227c8: 0f1f 4400 
+
+  0x000001f20f5227cc: ;   {static_stub}
+  0x000001f20f5227cc: 0048 bb00 | 0000 0000 
+
+  0x000001f20f5227d4: ;   {runtime_call nmethod}
+  0x000001f20f5227d4: 0000 00e9 | fbff ffff 
+
+  0x000001f20f5227dc: ;   {static_stub}
+  0x000001f20f5227dc: 48bb 3028 | 176e f201 
+
+  0x000001f20f5227e4: ;   {runtime_call I2C/C2I adapters}
+  0x000001f20f5227e4: 0000 e97c 
+
+  0x000001f20f5227e8: ;   {static_stub}
+  0x000001f20f5227e8: 3310 0748 | bbb0 6e20 | 6ef2 0100 
+
+  0x000001f20f5227f4: ;   {runtime_call I2C/C2I adapters}
+  0x000001f20f5227f4: 00e9 e9c2 
+
+  0x000001f20f5227f8: ;   {static_stub}
+  0x000001f20f5227f8: 0d07 48bb | 0000 0000 | 0000 0000 
+
+  0x000001f20f522804: ;   {runtime_call nmethod}
+  0x000001f20f522804: e9fb ffff 
+
+  0x000001f20f522808: ;   {static_stub}
+  0x000001f20f522808: ff48 bb28 | 1740 6df2 
+
+  0x000001f20f522810: ;   {runtime_call I2C/C2I adapters}
+  0x000001f20f522810: 0100 00e9 | 4f33 1007 
+[Exception Handler]
+  0x000001f20f522818: ;   {runtime_call handle_exception_from_callee Runtime1 stub}
+  0x000001f20f522818: e8e3 c31b 
+
+  0x000001f20f52281c: ;   {external_word}
+  0x000001f20f52281c: 0748 b9b0 | 2301 fffd | 7f00 0048 
+
+  0x000001f20f522828: ;   {runtime_call}
+  0x000001f20f522828: 83e4 f048 | b820 78c3 | fefd 7f00 | 00ff d0f4 
+[Deopt Handler Code]
+  0x000001f20f522838: ;   {section_word}
+  0x000001f20f522838: 49ba 3828 | 520f f201 | 0000 4152 
+
+  0x000001f20f522844: ;   {runtime_call DeoptimizationBlob}
+  0x000001f20f522844: e9d7 1e10 | 07f4 f4f4 | f4f4 f4f4 
+[/MachCode]
+
+
+---------------  P R O C E S S  ---------------
+
+Threads class SMR info:
+_java_thread_list=0x000001f30a719440, length=22, elements={
+0x000001f20441af20, 0x000001f2285f5a40, 0x000001f2285f9220, 0x000001f2285fad80,
+0x000001f2285fe3e0, 0x000001f228608530, 0x000001f228609670, 0x000001f228618380,
+0x000001f22861b440, 0x000001f22860a390, 0x000001f228609d00, 0x000001f22860c460,
+0x000001f228608fe0, 0x000001f22860aa20, 0x000001f22860b740, 0x000001f22860bdd0,
+0x000001f271102fb0, 0x000001f271105da0, 0x000001f271104360, 0x000001f271106430,
+0x000001f271105080, 0x000001f271107e70
+}
+
+Java Threads: ( => current thread )
+  0x000001f20441af20 JavaThread "main"                              [_thread_blocked, id=48872, stack(0x000000542bc00000,0x000000542bd00000) (1024K)]
+  0x000001f2285f5a40 JavaThread "Reference Handler"          daemon [_thread_blocked, id=6276, stack(0x000000542c400000,0x000000542c500000) (1024K)]
+  0x000001f2285f9220 JavaThread "Finalizer"                  daemon [_thread_blocked, id=81828, stack(0x000000542c500000,0x000000542c600000) (1024K)]
+  0x000001f2285fad80 JavaThread "Signal Dispatcher"          daemon [_thread_blocked, id=96476, stack(0x000000542c600000,0x000000542c700000) (1024K)]
+  0x000001f2285fe3e0 JavaThread "Attach Listener"            daemon [_thread_blocked, id=81852, stack(0x000000542c700000,0x000000542c800000) (1024K)]
+  0x000001f228608530 JavaThread "Service Thread"             daemon [_thread_blocked, id=11520, stack(0x000000542c800000,0x000000542c900000) (1024K)]
+  0x000001f228609670 JavaThread "Monitor Deflation Thread"   daemon [_thread_blocked, id=91348, stack(0x000000542c900000,0x000000542ca00000) (1024K)]
+  0x000001f228618380 JavaThread "C2 CompilerThread0"         daemon [_thread_blocked, id=89864, stack(0x000000542ca00000,0x000000542cb00000) (1024K)]
+  0x000001f22861b440 JavaThread "C1 CompilerThread0"         daemon [_thread_blocked, id=83808, stack(0x000000542cb00000,0x000000542cc00000) (1024K)]
+  0x000001f22860a390 JavaThread "Notification Thread"        daemon [_thread_blocked, id=95372, stack(0x000000542cc00000,0x000000542cd00000) (1024K)]
+  0x000001f228609d00 JavaThread "Common-Cleaner"             daemon [_thread_blocked, id=95308, stack(0x000000542cd00000,0x000000542ce00000) (1024K)]
+  0x000001f22860c460 JavaThread "DefaultDispatcher-worker-1" daemon [_thread_blocked, id=89596, stack(0x000000542cf00000,0x000000542d000000) (1024K)]
+  0x000001f228608fe0 JavaThread "DefaultDispatcher-worker-2" daemon [_thread_blocked, id=16316, stack(0x000000542d000000,0x000000542d100000) (1024K)]
+  0x000001f22860aa20 JavaThread "DefaultDispatcher-worker-3" daemon [_thread_blocked, id=27392, stack(0x000000542d100000,0x000000542d200000) (1024K)]
+  0x000001f22860b740 JavaThread "Reference Cleaner"          daemon [_thread_blocked, id=12348, stack(0x000000542d200000,0x000000542d300000) (1024K)]
+  0x000001f22860bdd0 JavaThread "kotlinx.coroutines.DefaultExecutor" daemon [_thread_blocked, id=80920, stack(0x000000542d300000,0x000000542d400000) (1024K)]
+  0x000001f271102fb0 JavaThread "Java2D Disposer"            daemon [_thread_blocked, id=6256, stack(0x000000542d400000,0x000000542d500000) (1024K)]
+  0x000001f271105da0 JavaThread "AWT-Shutdown"                      [_thread_blocked, id=99136, stack(0x000000542ce00000,0x000000542cf00000) (1024K)]
+  0x000001f271104360 JavaThread "AWT-Windows"                daemon [_thread_in_native, id=95652, stack(0x000000542d500000,0x000000542d600000) (1024K)]
+=>0x000001f271106430 JavaThread "AWT-EventQueue-0"                  [_thread_in_native, id=56296, stack(0x000000542df00000,0x000000542e000000) (1024K)]
+  0x000001f271105080 JavaThread "TimerQueue"                 daemon [_thread_blocked, id=85104, stack(0x000000542e000000,0x000000542e100000) (1024K)]
+  0x000001f271107e70 JavaThread "skiko-dispatcher-to-block-on" daemon [_thread_blocked, id=80288, stack(0x000000542ee00000,0x000000542ef00000) (1024K)]
+Total: 22
+
+Other Threads:
+  0x000001f2285d8290 VMThread "VM Thread"                           [id=71968, stack(0x000000542c300000,0x000000542c400000) (1024K)]
+  0x000001f2285c6b10 WatcherThread "VM Periodic Task Thread"        [id=92140, stack(0x000000542c200000,0x000000542c300000) (1024K)]
+  0x000001f206a2d330 WorkerThread "GC Thread#0"                     [id=10564, stack(0x000000542bd00000,0x000000542be00000) (1024K)]
+  0x000001f2711c7760 WorkerThread "GC Thread#1"                     [id=65996, stack(0x000000542d600000,0x000000542d700000) (1024K)]
+  0x000001f2711c7b10 WorkerThread "GC Thread#2"                     [id=75388, stack(0x000000542d700000,0x000000542d800000) (1024K)]
+  0x000001f2711cbed0 WorkerThread "GC Thread#3"                     [id=89176, stack(0x000000542d800000,0x000000542d900000) (1024K)]
+  0x000001f2711cc280 WorkerThread "GC Thread#4"                     [id=21380, stack(0x000000542d900000,0x000000542da00000) (1024K)]
+  0x000001f2711cce40 WorkerThread "GC Thread#5"                     [id=15076, stack(0x000000542da00000,0x000000542db00000) (1024K)]
+  0x000001f2711cd600 WorkerThread "GC Thread#6"                     [id=28368, stack(0x000000542db00000,0x000000542dc00000) (1024K)]
+  0x000001f2711d1dd0 WorkerThread "GC Thread#7"                     [id=87028, stack(0x000000542dc00000,0x000000542dd00000) (1024K)]
+  0x000001f2711d2180 WorkerThread "GC Thread#8"                     [id=70844, stack(0x000000542dd00000,0x000000542de00000) (1024K)]
+  0x000001f2711d2530 WorkerThread "GC Thread#9"                     [id=94116, stack(0x000000542de00000,0x000000542df00000) (1024K)]
+  0x000001f206a2e2f0 ConcurrentGCThread "G1 Main Marker"            [id=91904, stack(0x000000542be00000,0x000000542bf00000) (1024K)]
+  0x000001f228450ae0 WorkerThread "G1 Conc#0"                       [id=95164, stack(0x000000542bf00000,0x000000542c000000) (1024K)]
+  0x000001f27156cf00 WorkerThread "G1 Conc#1"                       [id=93980, stack(0x000000542f000000,0x000000542f100000) (1024K)]
+  0x000001f27156d2b0 WorkerThread "G1 Conc#2"                       [id=89384, stack(0x000000542f100000,0x000000542f200000) (1024K)]
+  0x000001f22851bce0 ConcurrentGCThread "G1 Refine#0"               [id=31776, stack(0x000000542c000000,0x000000542c100000) (1024K)]
+  0x000001f22851c700 ConcurrentGCThread "G1 Service"                [id=31124, stack(0x000000542c100000,0x000000542c200000) (1024K)]
+Total: 18
+
+Threads with active compile tasks:
+Total: 0
+
+VM state: not at safepoint (normal execution)
+
+VM Mutex/Monitor currently owned by a thread: None
+
+Heap address: 0x0000000605c00000, size: 8100 MB, Compressed Oops mode: Zero based, Oop shift amount: 3
+
+CDS archive(s) mapped at: [0x000001f22c000000-0x000001f22cc80000-0x000001f22cc80000), size 13107200, SharedBaseAddress: 0x000001f22c000000, ArchiveRelocationMode: 1.
+Compressed class space mapped at: 0x000001f22d000000-0x000001f26d000000, reserved size: 1073741824
+Narrow klass base: 0x000001f22c000000, Narrow klass shift: 0, Narrow klass range: 0x100000000
+
+GC Precious Log:
+ CardTable entry size: 512
+ Card Set container configuration: InlinePtr #cards 4 size 8 Array Of Cards #cards 32 size 80 Howl #buckets 8 coarsen threshold 7372 Howl Bitmap #cards 1024 size 144 coarsen threshold 921 Card regions per heap region 1 cards per card region 8192
+ CPUs: 12 total, 12 available
+ Memory: 32397M
+ Large Page Support: Disabled
+ NUMA Support: Disabled
+ Compressed Oops: Enabled (Zero based)
+ Heap Region Size: 4M
+ Heap Min Capacity: 8M
+ Heap Initial Capacity: 508M
+ Heap Max Capacity: 8100M
+ Pre-touch: Disabled
+ Parallel Workers: 10
+ Concurrent Workers: 3
+ Concurrent Refinement Workers: 10
+ Periodic GC: Disabled
+
+Heap:
+ garbage-first heap   total 45056K, used 16071K [0x0000000605c00000, 0x0000000800000000)
+  region size 4096K, 3 young (12288K), 1 survivors (4096K)
+ Metaspace       used 26731K, committed 27456K, reserved 1114112K
+  class space    used 2645K, committed 2944K, reserved 1048576K
+
+Heap Regions: E=young(eden), S=young(survivor), O=old, HS=humongous(starts), HC=humongous(continues), CS=collection set, F=free, TAMS=top-at-mark-start, PB=parsable bottom
+|   0|0x0000000605c00000, 0x0000000605fa7058, 0x0000000606000000| 91%| O|  |TAMS 0x0000000605c00000| PB 0x0000000605c00000| Untracked 
+|   1|0x0000000606000000, 0x0000000606400000, 0x0000000606400000|100%|HS|  |TAMS 0x0000000606000000| PB 0x0000000606000000| Complete 
+|   2|0x0000000606400000, 0x00000006065cfd30, 0x0000000606800000| 45%| O|  |TAMS 0x0000000606400000| PB 0x0000000606400000| Untracked 
+|   3|0x0000000606800000, 0x0000000606800000, 0x0000000606c00000|  0%| F|  |TAMS 0x0000000606800000| PB 0x0000000606800000| Untracked 
+|   4|0x0000000606c00000, 0x0000000606e3aea0, 0x0000000607000000| 55%| S|CS|TAMS 0x0000000606c00000| PB 0x0000000606c00000| Complete 
+|   5|0x0000000607000000, 0x0000000607000000, 0x0000000607400000|  0%| F|  |TAMS 0x0000000607000000| PB 0x0000000607000000| Untracked 
+|   6|0x0000000607400000, 0x0000000607400000, 0x0000000607800000|  0%| F|  |TAMS 0x0000000607400000| PB 0x0000000607400000| Untracked 
+|   7|0x0000000607800000, 0x0000000607800000, 0x0000000607c00000|  0%| F|  |TAMS 0x0000000607800000| PB 0x0000000607800000| Untracked 
+|   8|0x0000000607c00000, 0x0000000607c00000, 0x0000000608000000|  0%| F|  |TAMS 0x0000000607c00000| PB 0x0000000607c00000| Untracked 
+| 121|0x0000000624000000, 0x0000000624400000, 0x0000000624400000|100%| E|  |TAMS 0x0000000624000000| PB 0x0000000624000000| Complete 
+| 126|0x0000000625400000, 0x0000000625800000, 0x0000000625800000|100%| E|CS|TAMS 0x0000000625400000| PB 0x0000000625400000| Complete 
+
+Card table byte_map: [0x000001f21f5d0000,0x000001f2205b0000] _byte_map_base: 0x000001f21c5a2000
+
+Marking Bits: (CMBitMap*) 0x000001f206a2da40
+ Bits: [0x000001f2205b0000, 0x000001f228440000)
+
+Polling page: 0x000001f204720000
+
+Metaspace:
+
+Usage:
+  Non-class:     23.52 MB used.
+      Class:      2.58 MB used.
+       Both:     26.11 MB used.
+
+Virtual space:
+  Non-class space:       64.00 MB reserved,      23.94 MB ( 37%) committed,  1 nodes.
+      Class space:        1.00 GB reserved,       2.88 MB ( <1%) committed,  1 nodes.
+             Both:        1.06 GB reserved,      26.81 MB (  2%) committed. 
+
+Chunk freelists:
+   Non-Class:  7.97 MB
+       Class:  13.16 MB
+        Both:  21.13 MB
+
+MaxMetaspaceSize: unlimited
+CompressedClassSpaceSize: 1.00 GB
+Initial GC threshold: 21.00 MB
+Current GC threshold: 35.12 MB
+CDS: on
+ - commit_granule_bytes: 65536.
+ - commit_granule_words: 8192.
+ - virtual_space_node_default_size: 8388608.
+ - enlarge_chunks_in_place: 1.
+ - use_allocation_guard: 0.
+
+
+Internal statistics:
+
+num_allocs_failed_limit: 3.
+num_arena_births: 876.
+num_arena_deaths: 0.
+num_vsnodes_births: 2.
+num_vsnodes_deaths: 0.
+num_space_committed: 429.
+num_space_uncommitted: 0.
+num_chunks_returned_to_freelist: 3.
+num_chunks_taken_from_freelist: 1837.
+num_chunk_merges: 3.
+num_chunk_splits: 1206.
+num_chunks_enlarged: 770.
+num_inconsistent_stats: 0.
+
+CodeHeap 'non-profiled nmethods': size=120000Kb used=1424Kb max_used=1424Kb free=118575Kb
+ bounds [0x000001f216b70000, 0x000001f216de0000, 0x000001f21e0a0000]
+CodeHeap 'profiled nmethods': size=120000Kb used=5454Kb max_used=5454Kb free=114546Kb
+ bounds [0x000001f20f0a0000, 0x000001f20f600000, 0x000001f2165d0000]
+CodeHeap 'non-nmethods': size=5760Kb used=2445Kb max_used=2476Kb free=3314Kb
+ bounds [0x000001f2165d0000, 0x000001f216850000, 0x000001f216b70000]
+CodeCache: size=245760Kb, used=9323Kb, max_used=9354Kb, free=236435Kb
+ total_blobs=4865, nmethods=3347, adapters=1422, full_count=0
+Compilation: enabled, stopped_count=0, restarted_count=0
+
+Compilation events (20 events):
+Event: 61.259 Thread 0x000001f22861b440 3337       3       kotlinx.coroutines.internal.ThreadContextKt::restoreThreadContext (56 bytes)
+Event: 61.259 Thread 0x000001f22861b440 nmethod 3337 0x000001f20f5e9c90 code [0x000001f20f5e9f00, 0x000001f20f5eaab8]
+Event: 61.261 Thread 0x000001f22861b440 3338       3       androidx.compose.runtime.SnapshotMutableFloatStateImpl::getFloatValue (21 bytes)
+Event: 61.262 Thread 0x000001f22861b440 nmethod 3338 0x000001f20f5ead90 code [0x000001f20f5eaf40, 0x000001f20f5eb198]
+Event: 61.262 Thread 0x000001f22861b440 3339       3       androidx.compose.ui.node.NodeCoordinator::onPlaced (437 bytes)
+Event: 61.263 Thread 0x000001f22861b440 nmethod 3339 0x000001f20f5eb290 code [0x000001f20f5eb5a0, 0x000001f20f5ec9d8]
+Event: 61.263 Thread 0x000001f22861b440 3340       3       androidx.compose.ui.node.LookaheadCapablePlaceable::captureRulersIfNeeded$ui (996 bytes)
+Event: 61.266 Thread 0x000001f22861b440 nmethod 3340 0x000001f20f5ed390 code [0x000001f20f5ed900, 0x000001f20f5f0b90]
+Event: 61.266 Thread 0x000001f22861b440 3344       3       androidx.compose.ui.graphics.SkiaBackedCanvas::restore (9 bytes)
+Event: 61.266 Thread 0x000001f22861b440 nmethod 3344 0x000001f20f5f2010 code [0x000001f20f5f21e0, 0x000001f20f5f2440]
+Event: 61.266 Thread 0x000001f22861b440 3341       3       androidx.compose.ui.node.LookaheadCapablePlaceable::resetProvidedRulers (236 bytes)
+Event: 61.266 Thread 0x000001f22861b440 nmethod 3341 0x000001f20f5f2590 code [0x000001f20f5f27a0, 0x000001f20f5f2ea0]
+Event: 61.266 Thread 0x000001f22861b440 3342   !   3       kotlinx.coroutines.internal.DispatchedContinuationKt::safeIsDispatchNeeded (19 bytes)
+Event: 61.267 Thread 0x000001f22861b440 nmethod 3342 0x000001f20f5f3210 code [0x000001f20f5f33e0, 0x000001f20f5f36c0]
+Event: 61.267 Thread 0x000001f22861b440 3346       1       com.wexpa.liquidglass.GlassStyle::getBackdropSigma-D9Ej5fM (5 bytes)
+Event: 61.267 Thread 0x000001f22861b440 nmethod 3346 0x000001f216cd3890 code [0x000001f216cd3a20, 0x000001f216cd3ae8]
+Event: 61.267 Thread 0x000001f22861b440 3347       1       com.wexpa.liquidglass.GlassStyle::getBackdropBlur-D9Ej5fM (5 bytes)
+Event: 61.267 Thread 0x000001f22861b440 nmethod 3347 0x000001f216cd3b90 code [0x000001f216cd3d20, 0x000001f216cd3de8]
+Event: 61.267 Thread 0x000001f22861b440 3345       1       androidx.compose.ui.geometry.Rect::getTop (5 bytes)
+Event: 61.267 Thread 0x000001f22861b440 nmethod 3345 0x000001f216cd3e90 code [0x000001f216cd4020, 0x000001f216cd40e8]
+
+GC Heap History (10 events):
+Event: 0.912 GC heap before
+{Heap before GC invocations=0 (full 0):
+ garbage-first heap   total 520192K, used 24576K [0x0000000605c00000, 0x0000000800000000)
+  region size 4096K, 6 young (24576K), 0 survivors (0K)
+ Metaspace       used 8525K, committed 8768K, reserved 1114112K
+  class space    used 724K, committed 832K, reserved 1048576K
+}
+Event: 0.917 GC heap after
+{Heap after GC invocations=1 (full 0):
+ garbage-first heap   total 520192K, used 3827K [0x0000000605c00000, 0x0000000800000000)
+  region size 4096K, 1 young (4096K), 1 survivors (4096K)
+ Metaspace       used 8525K, committed 8768K, reserved 1114112K
+  class space    used 724K, committed 832K, reserved 1048576K
+}
+Event: 1.520 GC heap before
+{Heap before GC invocations=1 (full 0):
+ garbage-first heap   total 520192K, used 24307K [0x0000000605c00000, 0x0000000800000000)
+  region size 4096K, 7 young (28672K), 1 survivors (4096K)
+ Metaspace       used 15314K, committed 15552K, reserved 1114112K
+  class space    used 1361K, committed 1472K, reserved 1048576K
+}
+Event: 1.523 GC heap after
+{Heap after GC invocations=2 (full 0):
+ garbage-first heap   total 520192K, used 4780K [0x0000000605c00000, 0x0000000800000000)
+  region size 4096K, 1 young (4096K), 1 survivors (4096K)
+ Metaspace       used 15314K, committed 15552K, reserved 1114112K
+  class space    used 1361K, committed 1472K, reserved 1048576K
+}
+Event: 5.308 GC heap before
+{Heap before GC invocations=2 (full 0):
+ garbage-first heap   total 520192K, used 21164K [0x0000000605c00000, 0x0000000800000000)
+  region size 4096K, 6 young (24576K), 1 survivors (4096K)
+ Metaspace       used 21215K, committed 21504K, reserved 1114112K
+  class space    used 2028K, committed 2176K, reserved 1048576K
+}
+Event: 5.310 GC heap after
+{Heap after GC invocations=3 (full 0):
+ garbage-first heap   total 520192K, used 9806K [0x0000000605c00000, 0x0000000800000000)
+  region size 4096K, 1 young (4096K), 1 survivors (4096K)
+ Metaspace       used 21215K, committed 21504K, reserved 1114112K
+  class space    used 2028K, committed 2176K, reserved 1048576K
+}
+Event: 40.290 GC heap before
+{Heap before GC invocations=4 (full 0):
+ garbage-first heap   total 40960K, used 34382K [0x0000000605c00000, 0x0000000800000000)
+  region size 4096K, 8 young (32768K), 1 survivors (4096K)
+ Metaspace       used 25539K, committed 26176K, reserved 1114112K
+  class space    used 2550K, committed 2816K, reserved 1048576K
+}
+Event: 40.293 GC heap after
+{Heap after GC invocations=5 (full 0):
+ garbage-first heap   total 45056K, used 11793K [0x0000000605c00000, 0x0000000800000000)
+  region size 4096K, 1 young (4096K), 1 survivors (4096K)
+ Metaspace       used 25539K, committed 26176K, reserved 1114112K
+  class space    used 2550K, committed 2816K, reserved 1048576K
+}
+Event: 52.251 GC heap before
+{Heap before GC invocations=5 (full 0):
+ garbage-first heap   total 45056K, used 32273K [0x0000000605c00000, 0x0000000800000000)
+  region size 4096K, 6 young (24576K), 1 survivors (4096K)
+ Metaspace       used 25787K, committed 26432K, reserved 1114112K
+  class space    used 2551K, committed 2816K, reserved 1048576K
+}
+Event: 52.253 GC heap after
+{Heap after GC invocations=6 (full 0):
+ garbage-first heap   total 45056K, used 11975K [0x0000000605c00000, 0x0000000800000000)
+  region size 4096K, 1 young (4096K), 1 survivors (4096K)
+ Metaspace       used 25787K, committed 26432K, reserved 1114112K
+  class space    used 2551K, committed 2816K, reserved 1048576K
+}
+
+Dll operation events (20 events):
+Event: 0.012 Attempting to load shared library C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\java.dll
+Event: 0.012 Loaded shared library C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\java.dll
+Event: 0.051 Attempting to load shared library C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\jsvml.dll
+Event: 0.052 Loaded shared library C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\jsvml.dll
+Event: 0.115 Attempting to load shared library C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\net.dll
+Event: 0.116 Loaded shared library C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\net.dll
+Event: 0.117 Attempting to load shared library C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\nio.dll
+Event: 0.117 Loaded shared library C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\nio.dll
+Event: 0.119 Attempting to load shared library C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\zip.dll
+Event: 0.120 Loaded shared library C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\zip.dll
+Event: 0.413 Attempting to load shared library C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\jimage.dll
+Event: 0.413 Loaded shared library C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\jimage.dll
+Event: 0.432 Attempting to load shared library C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\awt.dll
+Event: 0.443 Loaded shared library C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\awt.dll
+Event: 0.531 Attempting to load shared library C:\Users\shaya\.skiko\skiko-windows-x64-e90e2e5ae3d48c7694b6cf5948953f6d007fe40478b1040353040acef118dd41\skiko-windows-x64.dll
+Event: 0.542 Loaded shared library C:\Users\shaya\.skiko\skiko-windows-x64-e90e2e5ae3d48c7694b6cf5948953f6d007fe40478b1040353040acef118dd41\skiko-windows-x64.dll
+Event: 1.755 Attempting to load shared library C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\freetype.dll
+Event: 1.756 Loaded shared library C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\freetype.dll
+Event: 1.757 Attempting to load shared library C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\fontmanager.dll
+Event: 1.759 Loaded shared library C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\fontmanager.dll
+
+Deoptimization events (20 events):
+Event: 54.562 Thread 0x000001f271106430 Uncommon trap: trap_request=0xffffff45 fr.pc=0x000001f216c8b494 relative=0x0000000000000074
+Event: 54.562 Thread 0x000001f271106430 Uncommon trap: reason=unstable_if action=reinterpret pc=0x000001f216c8b494 method=androidx.compose.ui.node.LayoutNode.getZSortedChildren()Landroidx/compose/runtime/collection/MutableVector; @ 4 c2
+Event: 54.562 Thread 0x000001f271106430 DEOPT PACKING pc=0x000001f216c8b494 sp=0x000000542dff9f00
+Event: 54.563 Thread 0x000001f271106430 DEOPT UNPACKING pc=0x000001f216624422 sp=0x000000542dff9e88 mode 2
+Event: 54.601 Thread 0x000001f271106430 Uncommon trap: trap_request=0xffffff45 fr.pc=0x000001f216c81854 relative=0x0000000000000154
+Event: 54.601 Thread 0x000001f271106430 Uncommon trap: reason=unstable_if action=reinterpret pc=0x000001f216c81854 method=kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(Ljava/lang/Object;)V @ 98 c2
+Event: 54.601 Thread 0x000001f271106430 DEOPT PACKING pc=0x000001f216c81854 sp=0x000000542dffd160
+Event: 54.601 Thread 0x000001f271106430 DEOPT UNPACKING pc=0x000001f216624422 sp=0x000000542dffd0d0 mode 2
+Event: 54.611 Thread 0x000001f271106430 Uncommon trap: trap_request=0xffffff45 fr.pc=0x000001f216c8636c relative=0x000000000000004c
+Event: 54.611 Thread 0x000001f271106430 Uncommon trap: reason=unstable_if action=reinterpret pc=0x000001f216c8636c method=kotlin.ResultKt.throwOnFailure(Ljava/lang/Object;)V @ 4 c2
+Event: 54.611 Thread 0x000001f271106430 DEOPT PACKING pc=0x000001f216c8636c sp=0x000000542dffd460
+Event: 54.611 Thread 0x000001f271106430 DEOPT UNPACKING pc=0x000001f216624422 sp=0x000000542dffd3f0 mode 2
+Event: 55.057 Thread 0x000001f271106430 Uncommon trap: trap_request=0xffffff45 fr.pc=0x000001f216c239d4 relative=0x00000000000000b4
+Event: 55.057 Thread 0x000001f271106430 Uncommon trap: reason=unstable_if action=reinterpret pc=0x000001f216c239d4 method=java.lang.ref.ReferenceQueue.poll()Ljava/lang/ref/Reference; @ 4 c2
+Event: 55.057 Thread 0x000001f271106430 DEOPT PACKING pc=0x000001f216c239d4 sp=0x000000542dffc100
+Event: 55.057 Thread 0x000001f271106430 DEOPT UNPACKING pc=0x000001f216624422 sp=0x000000542dffbfa0 mode 2
+Event: 55.057 Thread 0x000001f271106430 Uncommon trap: trap_request=0xffffff45 fr.pc=0x000001f216c07c10 relative=0x0000000000000070
+Event: 55.057 Thread 0x000001f271106430 Uncommon trap: reason=unstable_if action=reinterpret pc=0x000001f216c07c10 method=java.lang.ref.ReferenceQueue.poll()Ljava/lang/ref/Reference; @ 4 c2
+Event: 55.057 Thread 0x000001f271106430 DEOPT PACKING pc=0x000001f216c07c10 sp=0x000000542dffc000
+Event: 55.057 Thread 0x000001f271106430 DEOPT UNPACKING pc=0x000001f216624422 sp=0x000000542dffbf90 mode 2
+
+Classes loaded (20 events):
+Event: 5.680 Loading class java/lang/FdLibm$Sinh
+Event: 5.681 Loading class java/lang/FdLibm$Sinh done
+Event: 5.681 Loading class java/lang/FdLibm$Expm1
+Event: 5.681 Loading class java/lang/FdLibm$Expm1 done
+Event: 28.057 Loading class java/util/Formatter$FixedString
+Event: 28.057 Loading class java/util/Formatter$FixedString done
+Event: 28.059 Loading class jdk/internal/module/ModulePatcher$PatchedModuleReader
+Event: 28.059 Loading class jdk/internal/module/ModulePatcher$PatchedModuleReader done
+Event: 28.059 Loading class sun/net/www/protocol/jrt/Handler
+Event: 28.060 Loading class sun/net/www/protocol/jrt/Handler done
+Event: 28.067 Loading class sun/text/resources/cldr/FormatData_en
+Event: 28.067 Loading class sun/text/resources/cldr/FormatData_en done
+Event: 28.067 Loading class sun/text/resources/cldr/FormatData_en_US
+Event: 28.067 Loading class sun/text/resources/cldr/FormatData_en_US done
+Event: 28.118 Loading class java/io/FileOutputStream$1
+Event: 28.118 Loading class java/io/FileOutputStream$1 done
+Event: 54.612 Loading class java/lang/FdLibm$Tanh
+Event: 54.612 Loading class java/lang/FdLibm$Tanh done
+Event: 54.902 Loading class java/lang/invoke/MethodHandleImpl$CountingWrapper$1
+Event: 54.902 Loading class java/lang/invoke/MethodHandleImpl$CountingWrapper$1 done
+
+Classes unloaded (0 events):
+No events
+
+Classes redefined (0 events):
+No events
+
+Internal exceptions (20 events):
+Event: 5.653 Thread 0x000001f271106430 Exception <a 'java/lang/NoSuchMethodError'{0x00000006077740a0}: 'java.lang.Object java.lang.invoke.DirectMethodHandle$Holder.newInvokeSpecial(java.lang.Object, float)'> (0x00000006077740a0) 
+thrown [s\src\hotspot\share\interpreter\linkResolver.cpp, line 773]
+Event: 5.658 Thread 0x000001f271106430 Exception <a 'java/lang/NoSuchMethodError'{0x00000006077837c8}: 'java.lang.Object java.lang.invoke.DirectMethodHandle$Holder.invokeStatic(java.lang.Object, float, java.lang.Object)'> (0x00000006077837c8) 
+thrown [s\src\hotspot\share\interpreter\linkResolver.cpp, line 773]
+Event: 5.659 Thread 0x000001f271106430 Exception <a 'java/lang/NoSuchMethodError'{0x0000000607789e78}: 'java.lang.Object java.lang.invoke.DirectMethodHandle$Holder.invokeStatic(java.lang.Object, java.lang.Object, java.lang.Object, long, java.lang.Object)'> (0x0000000607789e78) 
+thrown [s\src\hotspot\share\interpreter\linkResolver.cpp, line 773]
+Event: 5.660 Thread 0x000001f271106430 Exception <a 'java/lang/NoSuchMethodError'{0x00000006077915a0}: 'java.lang.Object java.lang.invoke.DirectMethodHandle$Holder.newInvokeSpecial(java.lang.Object, java.lang.Object, java.lang.Object, long)'> (0x00000006077915a0) 
+thrown [s\src\hotspot\share\interpreter\linkResolver.cpp, line 773]
+Event: 5.661 Thread 0x000001f271106430 Exception <a 'java/lang/NoSuchMethodError'{0x0000000607795bd8}: 'java.lang.Object java.lang.invoke.DirectMethodHandle$Holder.invokeStatic(java.lang.Object, java.lang.Object, int, float)'> (0x0000000607795bd8) 
+thrown [s\src\hotspot\share\interpreter\linkResolver.cpp, line 773]
+Event: 5.671 Thread 0x000001f271106430 Exception <a 'java/lang/NoSuchMethodError'{0x00000006077e3c90}: 'java.lang.Object java.lang.invoke.DirectMethodHandle$Holder.invokeStatic(java.lang.Object, java.lang.Object, int, java.lang.Object)'> (0x00000006077e3c90) 
+thrown [s\src\hotspot\share\interpreter\linkResolver.cpp, line 773]
+Event: 5.674 Thread 0x000001f271106430 Exception <a 'java/lang/NoSuchMethodError'{0x00000006077f73c8}: 'java.lang.Object java.lang.invoke.DirectMethodHandle$Holder.invokeSpecial(java.lang.Object, java.lang.Object, int, long)'> (0x00000006077f73c8) 
+thrown [s\src\hotspot\share\interpreter\linkResolver.cpp, line 773]
+Event: 5.683 Thread 0x000001f271106430 Exception <a 'java/lang/NoSuchMethodError'{0x0000000607027eb8}: 'java.lang.Object java.lang.invoke.DirectMethodHandle$Holder.newInvokeSpecial(java.lang.Object, java.lang.Object, float, java.lang.Object)'> (0x0000000607027eb8) 
+thrown [s\src\hotspot\share\interpreter\linkResolver.cpp, line 773]
+Event: 5.684 Thread 0x000001f271106430 Exception <a 'java/lang/NoSuchMethodError'{0x0000000607037290}: 'java.lang.Object java.lang.invoke.DirectMethodHandle$Holder.invokeStatic(java.lang.Object, int, int, java.lang.Object)'> (0x0000000607037290) 
+thrown [s\src\hotspot\share\interpreter\linkResolver.cpp, line 773]
+Event: 5.690 Thread 0x000001f271106430 Exception <a 'java/lang/NoSuchMethodError'{0x0000000607077e98}: 'java.lang.Object java.lang.invoke.DirectMethodHandle$Holder.invokeSpecial(java.lang.Object, java.lang.Object, int, java.lang.Object, int)'> (0x0000000607077e98) 
+thrown [s\src\hotspot\share\interpreter\linkResolver.cpp, line 773]
+Event: 5.724 Thread 0x000001f271106430 Exception <a 'java/lang/NoSuchMethodError'{0x0000000607175198}: 'java.lang.Object java.lang.invoke.DirectMethodHandle$Holder.invokeStatic(java.lang.Object, java.lang.Object, long, java.lang.Object)'> (0x0000000607175198) 
+thrown [s\src\hotspot\share\interpreter\linkResolver.cpp, line 773]
+Event: 5.724 Thread 0x000001f271106430 Exception <a 'java/lang/NoSuchMethodError'{0x000000060717ba90}: 'java.lang.Object java.lang.invoke.DirectMethodHandle$Holder.newInvokeSpecial(java.lang.Object, java.lang.Object, long)'> (0x000000060717ba90) 
+thrown [s\src\hotspot\share\interpreter\linkResolver.cpp, line 773]
+Event: 5.725 Thread 0x000001f271106430 Exception <a 'java/lang/NoSuchMethodError'{0x000000060717f238}: 'java.lang.Object java.lang.invoke.Invokers$Holder.linkToTargetMethod(java.lang.Object, long, java.lang.Object)'> (0x000000060717f238) 
+thrown [s\src\hotspot\share\interpreter\linkResolver.cpp, line 773]
+Event: 5.739 Thread 0x000001f271106430 Exception <a 'java/lang/NoSuchMethodError'{0x00000006071c67e0}: 'java.lang.Object java.lang.invoke.DirectMethodHandle$Holder.newInvokeSpecial(java.lang.Object, java.lang.Object, java.lang.Object, java.lang.Object, long, java.lang.Object)'> (0x00000006071c67e0) 
+thrown [s\src\hotspot\share\interpreter\linkResolver.cpp, line 773]
+Event: 5.739 Thread 0x000001f271106430 Exception <a 'java/lang/NoSuchMethodError'{0x00000006071caab8}: 'java.lang.Object java.lang.invoke.DirectMethodHandle$Holder.invokeSpecial(java.lang.Object, java.lang.Object, java.lang.Object, java.lang.Object, java.lang.Object, long, java.lang.Object)'> (0x00000006071caab8) 
+thrown [s\src\hotspot\share\interpreter\linkResolver.cpp, line 773]
+Event: 5.768 Thread 0x000001f271106430 Exception <a 'java/lang/NoSuchMethodError'{0x00000006072ec880}: 'java.lang.Object java.lang.invoke.DirectMethodHandle$Holder.invokeSpecial(java.lang.Object, java.lang.Object, java.lang.Object, long, java.lang.Object)'> (0x00000006072ec880) 
+thrown [s\src\hotspot\share\interpreter\linkResolver.cpp, line 773]
+Event: 5.769 Thread 0x000001f271106430 Exception <a 'java/lang/NoSuchMethodError'{0x00000006072f0530}: 'java.lang.Object java.lang.invoke.Invokers$Holder.linkToTargetMethod(java.lang.Object, long, java.lang.Object, java.lang.Object)'> (0x00000006072f0530) 
+thrown [s\src\hotspot\share\interpreter\linkResolver.cpp, line 773]
+Event: 5.838 Thread 0x000001f271106430 Exception <a 'java/lang/NoSuchMethodError'{0x0000000606d84788}: 'java.lang.Object java.lang.invoke.DirectMethodHandle$Holder.invokeStatic(java.lang.Object, float, java.lang.Object, java.lang.Object)'> (0x0000000606d84788) 
+thrown [s\src\hotspot\share\interpreter\linkResolver.cpp, line 773]
+Event: 5.839 Thread 0x000001f271106430 Exception <a 'java/lang/NoSuchMethodError'{0x0000000606d8b910}: 'java.lang.Object java.lang.invoke.DirectMethodHandle$Holder.newInvokeSpecial(java.lang.Object, float, java.lang.Object)'> (0x0000000606d8b910) 
+thrown [s\src\hotspot\share\interpreter\linkResolver.cpp, line 773]
+Event: 54.902 Thread 0x000001f271106430 Exception <a 'java/lang/NoSuchMethodError'{0x0000000624247908}: 'int java.lang.invoke.DelegatingMethodHandle$Holder.delegate(java.lang.Object, int, java.lang.Object)'> (0x0000000624247908) 
+thrown [s\src\hotspot\share\interpreter\linkResolver.cpp, line 773]
+
+ZGC Phase Switch (0 events):
+No events
+
+VM Operations (20 events):
+Event: 49.349 Executing safepoint VM operation: Cleanup
+Event: 49.349 Executing safepoint VM operation: Cleanup done
+Event: 50.356 Executing safepoint VM operation: Cleanup
+Event: 50.356 Executing safepoint VM operation: Cleanup done
+Event: 51.363 Executing safepoint VM operation: Cleanup
+Event: 51.363 Executing safepoint VM operation: Cleanup done
+Event: 52.251 Executing safepoint VM operation: G1CollectForAllocation (G1 Evacuation Pause)
+Event: 52.253 Executing safepoint VM operation: G1CollectForAllocation (G1 Evacuation Pause) done
+Event: 53.259 Executing safepoint VM operation: Cleanup
+Event: 53.259 Executing safepoint VM operation: Cleanup done
+Event: 54.568 Executing non-safepoint VM operation: HandshakeAllThreads (Deoptimize)
+Event: 54.568 Executing non-safepoint VM operation: HandshakeAllThreads (Deoptimize) done
+Event: 54.568 Executing safepoint VM operation: Cleanup
+Event: 54.568 Executing safepoint VM operation: Cleanup done
+Event: 55.580 Executing safepoint VM operation: Cleanup
+Event: 55.580 Executing safepoint VM operation: Cleanup done
+Event: 60.081 Executing non-safepoint VM operation: HandshakeAllThreads (HandshakeForDeflation)
+Event: 60.081 Executing non-safepoint VM operation: HandshakeAllThreads (HandshakeForDeflation) done
+Event: 60.081 Executing non-safepoint VM operation: RendezvousGCThreads
+Event: 60.081 Executing non-safepoint VM operation: RendezvousGCThreads done
+
+Memory protections (0 events):
+No events
+
+Nmethod flushes (0 events):
+No events
+
+Events (20 events):
+Event: 0.108 Thread 0x000001f20441af20 Thread added: 0x000001f228609d00
+Event: 0.143 Thread 0x000001f22861b440 Thread added: 0x000001f22b355430
+Event: 0.549 Thread 0x000001f20441af20 Thread added: 0x000001f22860aa20
+Event: 0.559 Thread 0x000001f22860aa20 Thread exited: 0x000001f22860aa20
+Event: 0.643 Thread 0x000001f20441af20 Thread added: 0x000001f22860c460
+Event: 0.643 Thread 0x000001f20441af20 Thread added: 0x000001f228608fe0
+Event: 0.643 Thread 0x000001f228608fe0 Thread added: 0x000001f22860aa20
+Event: 0.650 Thread 0x000001f20441af20 Thread added: 0x000001f22860b740
+Event: 0.658 Thread 0x000001f228608fe0 Thread added: 0x000001f22860bdd0
+Event: 0.831 Thread 0x000001f20441af20 Thread added: 0x000001f271102fb0
+Event: 0.832 Thread 0x000001f22b355430 Thread exited: 0x000001f22b355430
+Event: 0.833 Thread 0x000001f20441af20 Thread added: 0x000001f271105da0
+Event: 0.834 Thread 0x000001f20441af20 Thread added: 0x000001f271104360
+Event: 0.980 Thread 0x000001f20441af20 Thread added: 0x000001f271106430
+Event: 1.394 Thread 0x000001f271106430 Thread added: 0x000001f271105080
+Event: 4.780 Thread 0x000001f271106430 Thread added: 0x000001f271107e70
+Event: 5.488 Thread 0x000001f22861b440 Thread added: 0x000001f309fb5590
+Event: 10.898 Thread 0x000001f309fb5590 Thread exited: 0x000001f309fb5590
+Event: 55.048 Thread 0x000001f22861b440 Thread added: 0x000001f22bb69a70
+Event: 60.081 Thread 0x000001f22bb69a70 Thread exited: 0x000001f22bb69a70
+
+
+Dynamic libraries:
+0x00007ff6ab060000 - 0x00007ff6ab06e000 	C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\java.exe
+0x00007ffeac070000 - 0x00007ffeac2dc000 	C:\WINDOWS\SYSTEM32\ntdll.dll
+0x00007ffeaafa0000 - 0x00007ffeab06b000 	C:\WINDOWS\System32\KERNEL32.DLL
+0x00007ffea95b0000 - 0x00007ffea99b9000 	C:\WINDOWS\System32\KERNELBASE.dll
+0x00007ffea9450000 - 0x00007ffea959c000 	C:\WINDOWS\System32\ucrtbase.dll
+0x00007ffe9fe40000 - 0x00007ffe9fe5e000 	C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\VCRUNTIME140.dll
+0x00007ffe9fe20000 - 0x00007ffe9fe38000 	C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\jli.dll
+0x00007ffeaa770000 - 0x00007ffeaa94e000 	C:\WINDOWS\System32\USER32.dll
+0x00007ffe8f8e0000 - 0x00007ffe8fb71000 	C:\WINDOWS\WinSxS\amd64_microsoft.windows.common-controls_6595b64144ccf1df_6.0.26100.9818_none_3e071914e3359bdd\COMCTL32.dll
+0x00007ffea9230000 - 0x00007ffea9257000 	C:\WINDOWS\System32\win32u.dll
+0x00007ffeaaa20000 - 0x00007ffeaaac9000 	C:\WINDOWS\System32\msvcrt.dll
+0x00007ffeab9e0000 - 0x00007ffeaba0b000 	C:\WINDOWS\System32\GDI32.dll
+0x00007ffea9260000 - 0x00007ffea9389000 	C:\WINDOWS\System32\gdi32full.dll
+0x00007ffea9ca0000 - 0x00007ffea9d43000 	C:\WINDOWS\System32\msvcp_win.dll
+0x00007ffea9d50000 - 0x00007ffea9d81000 	C:\WINDOWS\System32\IMM32.DLL
+0x00007ffea0260000 - 0x00007ffea026c000 	C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\vcruntime140_1.dll
+0x00007ffe1c3d0000 - 0x00007ffe1c459000 	C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\msvcp140.dll
+0x00007ffdfe600000 - 0x00007ffdff3af000 	C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\server\jvm.dll
+0x00007ffeaba10000 - 0x00007ffeabacb000 	C:\WINDOWS\System32\ADVAPI32.dll
+0x00007ffeaa230000 - 0x00007ffeaa2d8000 	C:\WINDOWS\System32\sechost.dll
+0x00007ffeabda0000 - 0x00007ffeabeb8000 	C:\WINDOWS\System32\RPCRT4.dll
+0x00007ffeab070000 - 0x00007ffeab0f0000 	C:\WINDOWS\System32\WS2_32.dll
+0x00007ffe9c840000 - 0x00007ffe9c876000 	C:\WINDOWS\SYSTEM32\WINMM.dll
+0x00007ffe9e400000 - 0x00007ffe9e40b000 	C:\WINDOWS\SYSTEM32\VERSION.dll
+0x00007ffea89b0000 - 0x00007ffea8a0e000 	C:\WINDOWS\SYSTEM32\POWRPROF.dll
+0x00007ffea8990000 - 0x00007ffea89a5000 	C:\WINDOWS\SYSTEM32\UMPDC.dll
+0x00007ffea7ed0000 - 0x00007ffea7eeb000 	C:\WINDOWS\SYSTEM32\kernel.appcore.dll
+0x00007ffe9fbd0000 - 0x00007ffe9fbda000 	C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\jimage.dll
+0x00007ffea6590000 - 0x00007ffea67dc000 	C:\WINDOWS\SYSTEM32\DBGHELP.DLL
+0x00007ffea9d90000 - 0x00007ffeaa135000 	C:\WINDOWS\System32\combase.dll
+0x00007ffeaaad0000 - 0x00007ffeaaba9000 	C:\WINDOWS\System32\OLEAUT32.dll
+0x00007ffe73f30000 - 0x00007ffe73f6b000 	C:\WINDOWS\SYSTEM32\dbgcore.DLL
+0x00007ffea99c0000 - 0x00007ffea9a6c000 	C:\WINDOWS\System32\bcryptPrimitives.dll
+0x00007ffe937d0000 - 0x00007ffe937f1000 	C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\java.dll
+0x00007ffeab120000 - 0x00007ffeab8d0000 	C:\WINDOWS\System32\SHELL32.dll
+0x00007ffea6c40000 - 0x00007ffea7500000 	C:\WINDOWS\SYSTEM32\windows.storage.dll
+0x00007ffeab8e0000 - 0x00007ffeab9d8000 	C:\WINDOWS\System32\SHCORE.dll
+0x00007ffeabd30000 - 0x00007ffeabd98000 	C:\WINDOWS\System32\shlwapi.dll
+0x00007ffea9140000 - 0x00007ffea9169000 	C:\WINDOWS\SYSTEM32\profapi.dll
+0x00007ffe12d90000 - 0x00007ffe12e66000 	C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\jsvml.dll
+0x00007ffe9fbb0000 - 0x00007ffe9fbc1000 	C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\net.dll
+0x00007ffe9ffc0000 - 0x00007ffea00e3000 	C:\WINDOWS\SYSTEM32\WINHTTP.dll
+0x00007ffea8490000 - 0x00007ffea84fb000 	C:\WINDOWS\system32\mswsock.dll
+0x00007ffe9fb10000 - 0x00007ffe9fb26000 	C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\nio.dll
+0x00007ffe9ef80000 - 0x00007ffe9ef98000 	C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\zip.dll
+0x00007ffe1cb30000 - 0x00007ffe1ccc3000 	C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\awt.dll
+0x00007ffea3270000 - 0x00007ffea330f000 	C:\WINDOWS\SYSTEM32\apphelp.dll
+0x00007ffd9c8d0000 - 0x00007ffd9d661000 	C:\Users\shaya\.skiko\skiko-windows-x64-e90e2e5ae3d48c7694b6cf5948953f6d007fe40478b1040353040acef118dd41\skiko-windows-x64.dll
+0x00007ffeaae00000 - 0x00007ffeaaf99000 	C:\WINDOWS\System32\ole32.dll
+0x00007ffea38c0000 - 0x00007ffea38ee000 	C:\WINDOWS\SYSTEM32\dwmapi.dll
+0x00007ffea0ca0000 - 0x00007ffea0d94000 	C:\WINDOWS\SYSTEM32\PROPSYS.dll
+0x00007ffea3640000 - 0x00007ffea36ea000 	C:\WINDOWS\system32\uxtheme.dll
+0x00007ffe14d90000 - 0x00007ffe14e9c000 	C:\WINDOWS\system32\opengl32.dll
+0x00007ffe4ab30000 - 0x00007ffe4ab68000 	C:\WINDOWS\SYSTEM32\GLU32.dll
+0x00007ffea5eb0000 - 0x00007ffea5efa000 	C:\WINDOWS\SYSTEM32\dxcore.dll
+0x00007ffea9a80000 - 0x00007ffea9bfe000 	C:\WINDOWS\System32\CRYPT32.dll
+0x00007ffeabec0000 - 0x00007ffeac01b000 	C:\WINDOWS\System32\MSCTF.dll
+0x00007ffea1f50000 - 0x00007ffea21bb000 	C:\WINDOWS\SYSTEM32\dwrite.dll
+0x00007ffea0eb0000 - 0x00007ffea0f3b000 	C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\freetype.dll
+0x00007ffe93110000 - 0x00007ffe9320f000 	C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\fontmanager.dll
+0x00007ffea0ea0000 - 0x00007ffea0ea7000 	C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\jawt.dll
+0x00007ffea3750000 - 0x00007ffea3893000 	C:\WINDOWS\SYSTEM32\Dxgi.dll
+0x00007ffea05e0000 - 0x00007ffea063f000 	C:\WINDOWS\SYSTEM32\directxdatabasehelper.dll
+0x00007ffea8e60000 - 0x00007ffea8eb2000 	C:\WINDOWS\SYSTEM32\cfgmgr32.dll
+0x00007ffe59da0000 - 0x00007ffe59dc3000 	C:\WINDOWS\SYSTEM32\D3D12.dll
+0x00007ffe152b0000 - 0x00007ffe15601000 	C:\WINDOWS\SYSTEM32\D3D12Core.dll
+0x00007ffea8870000 - 0x00007ffea8883000 	C:\WINDOWS\SYSTEM32\msasn1.dll
+0x00007ffe9cc70000 - 0x00007ffe9ccab000 	C:\WINDOWS\SYSTEM32\cryptnet.dll
+0x00007ffea8810000 - 0x00007ffea881c000 	C:\WINDOWS\SYSTEM32\cryptbase.dll
+0x00007ffea8910000 - 0x00007ffea8980000 	C:\WINDOWS\SYSTEM32\wldp.dll
+0x00007ffe9caf0000 - 0x00007ffe9cc6b000 	C:\WINDOWS\SYSTEM32\drvstore.dll
+0x00007ffea8ec0000 - 0x00007ffea8eef000 	C:\WINDOWS\SYSTEM32\devobj.dll
+0x00007ffea9c10000 - 0x00007ffea9c93000 	C:\WINDOWS\System32\wintrust.dll
+0x00007ffeaa960000 - 0x00007ffeaa980000 	C:\WINDOWS\System32\imagehlp.dll
+0x00007ffea87f0000 - 0x00007ffea880b000 	C:\WINDOWS\SYSTEM32\CRYPTSP.dll
+0x00007ffea7e30000 - 0x00007ffea7e69000 	C:\WINDOWS\system32\rsaenh.dll
+0x00007ffea9110000 - 0x00007ffea913a000 	C:\WINDOWS\SYSTEM32\bcrypt.dll
+0x00007ffe581e0000 - 0x00007ffe5834d000 	C:\WINDOWS\system32\nvspcap64.dll
+0x00007ffea8000000 - 0x00007ffea8036000 	C:\WINDOWS\SYSTEM32\ntmarta.dll
+0x00007ffe9eb90000 - 0x00007ffe9ec5e000 	C:\WINDOWS\System32\DriverStore\FileRepository\nvhmsi.inf_amd64_763834c930105469\nvldumdx.dll
+0x00007ffd8ee10000 - 0x00007ffd957b8000 	C:\WINDOWS\System32\DriverStore\FileRepository\nvhmsi.inf_amd64_763834c930105469\nvgpucomp64.dll
+0x00007ffe6dca0000 - 0x00007ffe6ddfb000 	C:\WINDOWS\System32\DriverStore\FileRepository\nvhmsi.inf_amd64_763834c930105469\NvMemMapStoragex.dll
+0x00007ffd84740000 - 0x00007ffd89d5a000 	C:\WINDOWS\System32\DriverStore\FileRepository\nvhmsi.inf_amd64_763834c930105469\nvwgf2umx.dll
+0x00007ffe4e6a0000 - 0x00007ffe4edc7000 	C:\WINDOWS\System32\DriverStore\FileRepository\nvhmsi.inf_amd64_763834c930105469\nvppex.dll
+0x00007ffe150b0000 - 0x00007ffe1518f000 	C:\WINDOWS\SYSTEM32\D3DSCache.dll
+0x00007ffea8530000 - 0x00007ffea8564000 	C:\WINDOWS\SYSTEM32\USERENV.dll
+0x00007ffea23e0000 - 0x00007ffea263f000 	C:\WINDOWS\SYSTEM32\d3d11.dll
+0x00007ffe8e960000 - 0x00007ffe8ee7b000 	C:\WINDOWS\System32\DriverStore\FileRepository\iigd_dch.inf_amd64_8e2429f185e36439\igd10iumd64.dll
+0x00007ffe8dcf0000 - 0x00007ffe8e95f000 	C:\WINDOWS\System32\DriverStore\FileRepository\iigd_dch.inf_amd64_8e2429f185e36439\igd10um64xe.DLL
+0x00007ffe8dc40000 - 0x00007ffe8dcf0000 	C:\WINDOWS\System32\DriverStore\FileRepository\iigd_dch.inf_amd64_8e2429f185e36439\IntelControlLib.dll
+0x00007ffe8dbe0000 - 0x00007ffe8dc33000 	C:\WINDOWS\System32\DriverStore\FileRepository\iigd_dch.inf_amd64_8e2429f185e36439\igdgmm2_64.dll
+0x00007ffe8d790000 - 0x00007ffe8dbdc000 	C:\WINDOWS\System32\DriverStore\FileRepository\iigd_dch.inf_amd64_8e2429f185e36439\igdgmm64.dll
+0x00007ffe88370000 - 0x00007ffe8d624000 	C:\WINDOWS\System32\DriverStore\FileRepository\iigd_dch.inf_amd64_8e2429f185e36439\igc64.dll
+0x00007ffea2680000 - 0x00007ffea28b4000 	C:\WINDOWS\SYSTEM32\dcomp.dll
+0x00007ffea11b0000 - 0x00007ffea11ca000 	C:\WINDOWS\SYSTEM32\Microsoft.Internal.WarpPal.dll
+0x00007ffea11d0000 - 0x00007ffea164f000 	C:\WINDOWS\SYSTEM32\d3dcompiler_47.dll
+
+JVMTI agents: none
+
+dbghelp: loaded successfully - version: 4.0.5 - missing functions: none
+symbol engine: initialized successfully - sym options: 0x614 - pdb path: .;C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin;C:\WINDOWS\SYSTEM32;C:\WINDOWS\WinSxS\amd64_microsoft.windows.common-controls_6595b64144ccf1df_6.0.26100.9818_none_3e071914e3359bdd;C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin\server;C:\Users\shaya\.skiko\skiko-windows-x64-e90e2e5ae3d48c7694b6cf5948953f6d007fe40478b1040353040acef118dd41;C:\WINDOWS\System32\DriverStore\FileRepository\nvhmsi.inf_amd64_763834c930105469;C:\WINDOWS\System32\DriverStore\FileRepository\iigd_dch.inf_amd64_8e2429f185e36439
+
+VM Arguments:
+jvm_args: -Dskiko.gpu.priority=discrete -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant 
+java_command: com.wexpa.liquidglass.sample.desktop.PhoneReplayKt D:/Work/AndroidStudioProjects/SideProjects/kmp/liquidglass/.local/sxs/ref/JGEY2190/script.txt D:/Work/AndroidStudioProjects/SideProjects/kmp/liquidglass/.local/sxs/ref/JGEY2190/r131 calm
+java_class_path (initial): D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\worktrees\repair-131\apps\desktop\build\classes\kotlin\desktop\main;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\worktrees\repair-131\apps\desktop\build\classes\java\desktopMain;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\worktrees\repair-131\apps\desktop\build\processedResources\desktop\main;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\worktrees\repair-131\liquidglass-material3\build\libs\liquidglass-material3-jvm.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\worktrees\repair-131\liquidglass\build\libs\liquidglass-jvm.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jetbrains.compose.material\material-icons-core-desktop\1.7.3\414b3096050fe647b0638832eace80f22c06b85c\material-icons-core-desktop-1.7.3.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jetbrains.compose.material3\material3-desktop\1.9.0\19004c4eb3dc6618eb66a076bbe3d7e1a2e7b85\material3-desktop-1.9.0.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jetbrains.compose.desktop\desktop-jvm\1.12.2\55722afc383641f44e5059e3a87e076436190826\desktop-jvm-1.12.2.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jetbrains.compose.material\material-desktop\1.12.2\6d090e795e1575f46fcd5f993f38c2e34b976a32\material-desktop-1.12.2.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jetbrains.compose.animation\animation-core-desktop\1.12.2\a14cdb09ab8792b6b20d298d0a26530969228b0f\animation-core-desktop-1.12.2.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jetbrains.compose.material\material-ripple-desktop\1.12.2\b4b34a8be94b8c41526d448a58d7ce2256872df5\material-ripple-desktop-1.12.2.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jetbrains.compose.animation\animation-desktop\1.12.2\4e815509a4bedbf3ff9f3ce292c548989a00ff53\animation-desktop-1.12.2.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jetbrains.compose.foundation\foundation-layout-desktop\1.12.2\64d4f43ec090a85f3069762a5c39a147c6d2c9aa\foundation-layout-desktop-1.12.2.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jetbrains.compose.foundation\foundation-desktop\1.12.2\cb418f810ab36f9268c13816a6b21d9cd6ffa4b7\foundation-desktop-1.12.2.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jetbrains.compose.ui\ui-tooling-preview-desktop\1.12.2\9871d626c28849c2f353e15d7694e38d7996ddcc\ui-tooling-preview-desktop-1.12.2.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jetbrains.compose.ui\ui-backhandler-desktop\1.12.2\170494f680ff0f7532eeba0f4ba936b54224ed32\ui-backhandler-desktop-1.12.2.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jetbrains.compose.ui\ui-geometry-desktop\1.12.2\21ca5715bcde50586e57506f07b280ff8b626bdb\ui-geometry-desktop-1.12.2.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jetbrains.compose.ui\ui-unit-desktop\1.12.2\e0670f2fc4ace09368fdba41c15558e1fa79e866\ui-unit-desktop-1.12.2.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jetbrains.compose.ui\ui-graphics-desktop\1.12.2\dc0dbaa823b75a72d2306459e0a118b65769aa22\ui-graphics-desktop-1.12.2.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jetbrains.compose.ui\ui-util-desktop\1.12.2\2d41b1dcda0c16efa86718f309fe2159a2890028\ui-util-desktop-1.12.2.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jetbrains.compose.ui\ui-text-desktop\1.12.2\af2aab56220491e300daa1def6ce1e586f18d84\ui-text-desktop-1.12.2.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jetbrains.compose.ui\ui-desktop\1.12.2\a6d765fb5086ca7046af0172a7fc2ff3b32a3e59\ui-desktop-1.12.2.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jetbrains.skiko\skiko-awt-runtime-windows-x64\0.150.2\fbbcac589182ae3dacf99946378220e6e3777fda\skiko-awt-runtime-windows-x64-0.150.2.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jetbrains.skiko\skiko-awt\0.150.2\21a6d7f0748ab032669bf0c031b319100fce258e\skiko-awt-0.150.2.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jetbrains.androidx.navigationevent\navigationevent-compose-desktop\1.1.0\d4c4408fbc6ac4dbddaef91d82013f435c02a9c5\navigationevent-compose-desktop-1.1.0.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\androidx.lifecycle\lifecycle-viewmodel-desktop\2.11.0\156dea0e0e4862b60bc14881891bae1e5df64f81\lifecycle-viewmodel-desktop-2.11.0.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\androidx.lifecycle\lifecycle-runtime-compose-desktop\2.11.0\8a85615b7e4f5728106bf7bc3cfa95f429eb6264\lifecycle-runtime-compose-desktop-2.11.0.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\androidx.lifecycle\lifecycle-runtime-desktop\2.11.0\c2b5e2f7d739375538c2a74757531a30607f85ff\lifecycle-runtime-desktop-2.11.0.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jetbrains.androidx.savedstate\savedstate-compose-desktop\1.3.6\63692375ffe667f12cb3ea8aa1e605d659ed2add\savedstate-compose-desktop-1.3.6.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\androidx.savedstate\savedstate-compose-desktop\1.4.0\d3d6e0e2108528eb6080dc250da925a572be4202\savedstate-compose-desktop-1.4.0.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\androidx.savedstate\savedstate-desktop\1.4.0\3b049a0f81643d6b4b900de95bc23efc085c32d5\savedstate-desktop-1.4.0.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\androidx.lifecycle\lifecycle-common-jvm\2.11.0\2c4f7d92f1fd723121d394c93455f50158403ad9\lifecycle-common-jvm-2.11.0.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\androidx.lifecycle\lifecycle-viewmodel-savedstate-desktop\2.11.0\4e8025bc47a196b0ee403b8d915393ae7922c21a\lifecycle-viewmodel-savedstate-desktop-2.11.0.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\androidx.lifecycle\lifecycle-viewmodel-compose-desktop\2.11.0\29daa46bc0d2d574ee95309be1f325764f40b35b\lifecycle-viewmodel-compose-desktop-2.11.0.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\androidx.navigationevent\navigationevent-compose-desktop\1.1.1\ef8d1270c6439178474691b1886e2c3dc97f9ce\navigationevent-compose-desktop-1.1.1.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\androidx.navigationevent\navigationevent-desktop\1.1.1\10a65e605d90c6dc98f3de9d32ae32824a7d0a1f\navigationevent-desktop-1.1.1.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\androidx.compose.runtime\runtime-annotation-jvm\1.12.1\4cf2b71ea98c0d69c95a2885e521ba28af5fa7a0\runtime-annotation-jvm-1.12.1.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\androidx.compose.runtime\runtime-retain-desktop\1.12.1\3aa3ec26ef2a3d26bc556b51b33d09efc1a198e8\runtime-retain-desktop-1.12.1.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\androidx.compose.runtime\runtime-saveable-desktop\1.12.1\8cacc17c590b2ac5fabf040c4f66d432092a821\runtime-saveable-desktop-1.12.1.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jetbrains.compose.runtime\runtime-saveable-desktop\1.12.2\b4a48d211ac0281b049bf42cb21f715c71b69145\runtime-saveable-desktop-1.12.2.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jetbrains.androidx.lifecycle\lifecycle-runtime-compose-desktop\2.9.6\7b6b6793f3c4c5996b20d1d99cf728e5fac00364\lifecycle-runtime-compose-desktop-2.9.6.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jetbrains.compose.runtime\runtime-desktop\1.12.2\d9b0c5277cd9ba7a116fbb06e1716d02d0b33401\runtime-desktop-1.12.2.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\androidx.compose.runtime\runtime-desktop\1.12.1\82e40832ddf785e9c0c15c4186d32f8c894fd914\runtime-desktop-1.12.1.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jetbrains.kotlinx\kotlinx-coroutines-core-jvm\1.11.0\3d57dc678bd8d72a60e7adf0eca5c54e3f4f4b79\kotlinx-coroutines-core-jvm-1.11.0.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jetbrains.kotlinx\kotlinx-coroutines-swing\1.11.0\3cf134b8aefd813622edc37e60d66b939b55cb36\kotlinx-coroutines-swing-1.11.0.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\androidx.collection\collection-jvm\1.5.0\7ba2c69414d46ebc2dd76598bdd0a75c54281a57\collection-jvm-1.5.0.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jetbrains.kotlinx\atomicfu-jvm\0.28.0\6a9ac536f4b2144e57c176fd4e26821eb12084f4\atomicfu-jvm-0.28.0.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\androidx.arch.core\core-common\2.2.0\5e1b8b81dfd5f52c56a8d53b18ca759c19a301f3\core-common-2.2.0.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\androidx.annotation\annotation-jvm\1.9.1\b17951747e38bf3986a24431b9ba0d039958aa5f\annotation-jvm-1.9.1.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jetbrains.kotlinx\kotlinx-datetime-jvm\0.7.1\81c2e0246bd28cc2dcbdf0ab53628322e66a9de9\kotlinx-datetime-jvm-0.7.1.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jetbrains.kotlinx\kotlinx-serialization-core-jvm\1.7.3\1f226780b845ff9206474c05159245d861556249\kotlinx-serialization-core-jvm-1.7.3.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jetbrains.kotlin\kotlin-stdlib\2.4.21\c343e135bd1e7dd94b7ed76b4159068d888d09db\kotlin-stdlib-2.4.21.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jetbrains\annotations\23.0.0\8cc20c07506ec18e0834947b84a864bfc094484e\annotations-23.0.0.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jetbrains.runtime\jbr-api\1.9.0\2bc161f5472b5fd5610740e4d6ebe896c811cb0e\jbr-api-1.9.0.jar;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\gradle-home\caches\modules-2\files-2.1\org.jspecify\jspecify\1.0.0\7425a601c1c7ec76645a78d22b8c6a627edee507\jspecify-1.0.0.jar
+Launcher Type: SUN_STANDARD
+
+[Global flags]
+     intx CICompilerCount                          = 4                                         {product} {ergonomic}
+     uint ConcGCThreads                            = 3                                         {product} {ergonomic}
+     uint G1ConcRefinementThreads                  = 10                                        {product} {ergonomic}
+   size_t G1HeapRegionSize                         = 4194304                                   {product} {ergonomic}
+    uintx GCDrainStackTargetSize                   = 64                                        {product} {ergonomic}
+   size_t InitialHeapSize                          = 532676608                                 {product} {ergonomic}
+   size_t MarkStackSize                            = 4194304                                   {product} {ergonomic}
+   size_t MaxHeapSize                              = 8493465600                                {product} {ergonomic}
+   size_t MaxNewSize                               = 5096079360                                {product} {ergonomic}
+   size_t MinHeapDeltaBytes                        = 4194304                                   {product} {ergonomic}
+   size_t MinHeapSize                              = 8388608                                   {product} {ergonomic}
+    uintx NonNMethodCodeHeapSize                   = 5839372                                {pd product} {ergonomic}
+    uintx NonProfiledCodeHeapSize                  = 122909434                              {pd product} {ergonomic}
+    uintx ProfiledCodeHeapSize                     = 122909434                              {pd product} {ergonomic}
+    uintx ReservedCodeCacheSize                    = 251658240                              {pd product} {ergonomic}
+     bool SegmentedCodeCache                       = true                                      {product} {ergonomic}
+   size_t SoftMaxHeapSize                          = 8493465600                             {manageable} {ergonomic}
+     bool UseCompressedOops                        = true                           {product lp64_product} {ergonomic}
+     bool UseG1GC                                  = true                                      {product} {ergonomic}
+     bool UseLargePagesIndividualAllocation        = false                                  {pd product} {ergonomic}
+
+Logging:
+Log output configuration:
+ #0: stdout all=warning uptime,level,tags foldmultilines=false
+ #1: stderr all=off uptime,level,tags foldmultilines=false
+
+Release file:
+IMPLEMENTOR="Microsoft" 
+IMPLEMENTOR_VERSION="Microsoft-14941484" 
+JAVA_RUNTIME_VERSION="21.0.12.1+1-LTS" 
+JAVA_VERSION="21.0.12.1" 
+JAVA_VERSION_DATE="2026-08-18" 
+LIBC="default" 
+MODULES="java.base java.compiler java.datatransfer java.xml java.prefs java.desktop java.instrument java.logging java.management java.security.sasl java.naming java.rmi java.management.rmi java.net.http java.scripting java.security.jgss java.transaction.xa java.sql java.sql.rowset java.xml.crypto java.se java.smartcardio jdk.accessibility jdk.internal.jvmstat jdk.attach jdk.charsets jdk.internal.opt jdk.zipfs jdk.compiler jdk.crypto.ec jdk.crypto.cryptoki jdk.crypto.mscapi jdk.dynalink jdk.internal.ed jdk.editpad jdk.hotspot.agent jdk.httpserver jdk.incubator.vector jdk.internal.le jdk.internal.vm.ci jdk.internal.vm.compiler jdk.internal.vm.compiler.management jdk.jartool jdk.javadoc jdk.jcmd jdk.management jdk.management.agent jdk.jconsole jdk.jdeps jdk.jdwp.agent jdk.jdi jdk.jfr jdk.jlink jdk.jpackage jdk.jshell jdk.jsobject jdk.jstatd jdk.localedata jdk.management.jfr jdk.naming.dns jdk.naming.rmi jdk.net jdk.nio.mapmode jdk.random jdk.sctp jdk.security.auth jdk.security.jgss jdk.unsupported jdk.unsupported.desktop jdk.xml.dom" 
+OS_ARCH="x86_64" 
+OS_NAME="Windows" 
+SOURCE=".:git:6f26c6b2b098" 
+
+Environment Variables:
+JAVA_HOME=C:/Program Files/Microsoft/jdk-21.0.12.101-hotspot
+PATH=C:\Users\shaya\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\local\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Users\shaya\bin;C:\Program Files\Eclipse Adoptium\jdk-23.0.2.7-hotspot\bin;C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0;C:\WINDOWS\System32\OpenSSH;C:\Program Files\dotnet;C:\Program Files\NVIDIA Corporation\NVIDIA App\NvDLISR;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\Git\cmd;C:\Program Files\nodejs;C:\Program Files\GitHub CLI;C:\Users\shaya\AppData\Local\agy\bin;C:\Users\shaya\AppData\Local\Programs\Python\Launcher;C:\Users\shaya\AppData\Local\Programs\Python\Python312\Scripts;C:\Users\shaya\AppData\Local\Programs\Python\Python312;C:\Users\shaya\.cargo\bin;C:\Users\shaya\AppData\Local\Microsoft\WindowsApps;C:\Users\shaya\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\shaya\AppData\Local\JetBrains\Toolbox\scripts;D:\Programs\Antigravity IDE\bin;C:\Users\shaya\AppData\Local\Programs\Antigravity IDE\bin;C:\Users\shaya\AppData\Local\Microsoft\WinGet\Links;D:\Programs\Antigravity IDE\Antigravity IDE\bin;C:\Users\shaya\.local\bin;C:\Users\shaya\AppData\Roaming\npm;D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\dotnet-home\.dotnet\tools;C:\Users\shaya\.dotnet\tools;C:\Users\shaya\AppData\Local\Programs\Microsoft VS Code\bin\copilot-shim;D:\Work\AntigravityComputerUse\.localdata\dotnet-home\.dotnet\tools;C:\Users\shaya\AppData\Local\Programs\Python\Python312;C:\Program Files\nodejs;C:\Program Files\Git\mingw64\bin;C:\Program Files\GitHub CLI;C:\Program Files\Git\usr\bin\vendor_perl;C:\Program Files\Git\usr\bin\core_perl
+USERNAME=shaya
+SHELL=C:\Program Files\Git\usr\bin\bash.exe
+TERM=xterm-256color
+OS=Windows_NT
+PROCESSOR_IDENTIFIER=Intel64 Family 6 Model 186 Stepping 2, GenuineIntel
+TMP=D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\temp
+TEMP=D:\Work\AndroidStudioProjects\SideProjects\kmp\liquidglass\.local\temp
+
+
+
+
+Periodic native trim disabled
+
+---------------  S Y S T E M  ---------------
+
+OS:
+ Windows 11 , 64 bit Build 26100 (10.0.26100.9818)
+OS uptime: 0 days 2:59 hours
+Hyper-V role detected
+
+CPU: total 12 (initial active 12) (6 cores per cpu, 2 threads per core) family 6 model 186 stepping 2 microcode 0x6134, cx8, cmov, fxsr, ht, mmx, 3dnowpref, sse, sse2, sse3, ssse3, sse4.1, sse4.2, popcnt, lzcnt, tsc, tscinvbit, avx, avx2, aes, erms, clmul, bmi1, bmi2, adx, sha, fma, vzeroupper, clflush, clflushopt, clwb, hv, serialize, rdtscp, rdpid, fsrm, f16c, cet_ibt, cet_ss
+Processor Information for the first 12 processors :
+  Max Mhz: 2100, Current Mhz: 2100, Mhz Limit: 2100
+
+Memory: 4k page, system-wide physical 32397M (734M free)
+TotalPageFile size 65165M (AvailPageFile size 14M)
+current process WorkingSet (physical memory assigned to process): 365M, peak: 397M
+current process commit charge ("private bytes"): 652M, peak: 790M
+
+vm_info: OpenJDK 64-Bit Server VM (21.0.12.1+1-LTS) for windows-amd64 JRE (21.0.12.1+1-LTS), built on 2026-08-11T20:50:01Z by "MicrosoftCorporation" with MS VC++ 17.14 (VS2022)
+
+END.

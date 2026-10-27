@@ -2305,12 +2305,13 @@ internal fun glassSelectorMaterial(style: GlassTabBarStyle, formation: Float, tr
     val rimGain = fringe?.getOrNull(4) ?: GlassSelectorRimGain
     val transitSoft = fringe?.getOrNull(5) ?: GlassSelectorTransitRimSoft
     val heldMoving = fringe?.getOrNull(6) ?: GlassSelectorHeldFringeMoving
-    return if (glassSelectorFold(style, formation, transitAppearance) > 0f)
-        material.copy(profile = GlassProfile.Measured, foldAtCorners = foldCorners, rimMirror = rimMirror, rimMirrorGain = rimGain, dispersion = moving, inkDispersion = moving * (fringe?.getOrNull(7) ?: GlassSelectorTransitInkSplitShare),
+    val fold = glassSelectorFold(style, formation, transitAppearance, heldTravel)
+    return if (fold > 0f)
+        material.copy(profile = if (formation >= 0.5f) material.profile else GlassProfile.Measured, foldAtCorners = foldCorners, rimMirror = rimMirror, rimMirrorGain = rimGain, dispersion = moving, inkDispersion = moving * (fringe?.getOrNull(7) ?: GlassSelectorTransitInkSplitShare),
             rimSoftness = if (transitSoft > 0f) transitSoft.dp else material.rimSoftness)
     // A held lens keeps the measured held map when still and blends toward the same rim mirror
     // at its caps as it travels ([glassSelectorFormation] carries the travel amount).
-    else if (style.tapOpticsFold > 0f && formation >= 0.5f) {
+    else if (style.tapOpticsFold > 0f && (formation >= 0.5f || heldTravel > 0f)) {
         val split = still + (heldMoving - still) * heldTravel.coerceIn(0f, 1f)
         material.copy(foldAtCorners = 1f, rimMirror = rimMirror, rimMirrorGain = rimGain, dispersion = split, inkDispersion = split * GlassSelectorInkSplitShare)
     }
@@ -2356,8 +2357,8 @@ internal const val GlassSelectorTransitFoldCorners = 0.2f
  * (rim-mirror blend at its caps) while held. */
 internal fun glassSelectorFormation(style: GlassTabBarStyle, formation: Float, transitAppearance: Float,
                                     heldTravel: Float): Float =
-    if (style.tapOpticsFold > 0f && formation >= 0.5f) (heldTravel * style.tapOpticsFold).coerceIn(0f, 1f)
-    else glassSelectorFold(style, formation, transitAppearance)
+    if (style.tapOpticsFold > 0f && heldTravel > 0f) (heldTravel * style.tapOpticsFold).coerceIn(0f, 1f)
+    else glassSelectorFold(style, formation, transitAppearance, heldTravel)
 
 /**
  * The fold strength of a moving, unheld selector's band, for `lensFormation`: 0 unless
@@ -2368,11 +2369,12 @@ internal fun glassSelectorFormation(style: GlassTabBarStyle, formation: Float, t
  * measured fold family's outer band (deeper content shown upside down), not the held map, which
  * pulls the exterior in and was measured on stationary held stills.
  */
-internal fun glassSelectorFold(style: GlassTabBarStyle, formation: Float, transitAppearance: Float): Float {
+internal fun glassSelectorFold(style: GlassTabBarStyle, formation: Float, transitAppearance: Float,
+                               heldTravel: Float = 0f): Float {
     val fold = if (style.tapTransitFold.isNaN()) style.tapOpticsFold else style.tapTransitFold
-    if (style.tapOptics <= 0f || fold <= 0f || formation >= 0.5f) return 0f
+    if (style.tapOptics <= 0f || fold <= 0f || (heldTravel > 0f && formation >= 0.5f)) return 0f
     val transit = (transitAppearance * style.tapOptics).coerceIn(0f, 1f)
-    return if (transit > formation) transit * fold.coerceIn(0f, 1f) else 0f
+    return if (transit > formation || (heldTravel == 0f && transit > 0f)) transit * fold.coerceIn(0f, 1f) else 0f
 }
 
 /** The gesture's own pointer has lifted: a tap, as opposed to a pointer taken by another node. */
