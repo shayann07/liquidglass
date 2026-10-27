@@ -607,8 +607,8 @@ public sealed class CalmSelectorController
             if (Mode == CalmSelectorMode.Held && MotionEnabled)
             {
                 reversalInterval += dt;
-                var dir = Math.Abs(nvx) > 0.1 ? (nvx > 0 ? 1.0 : -1.0) : 0.0;
-                if (dir != 0 && heldTravelDirection != 0 && dir != heldTravelDirection)
+                var scrubDir = Math.Abs(nvx) > 0.1 ? (nvx > 0 ? 1.0 : -1.0) : 0.0;
+                if (scrubDir != 0 && heldTravelDirection != 0 && scrubDir != heldTravelDirection)
                 {
                     var rapid = reversalInterval < 0.28;
                     var decay = rapid ? 0.40 : 0.85;
@@ -616,7 +616,7 @@ public sealed class CalmSelectorController
                     strainDrive.Velocity = 0;
                     reversalInterval = 0;
                 }
-                if (dir != 0) heldTravelDirection = dir;
+                if (scrubDir != 0) heldTravelDirection = scrubDir;
                 scrubSuppression = Math.Clamp(reversalInterval / 0.25, 0.15, 1.0);
             }
             else
@@ -630,7 +630,7 @@ public sealed class CalmSelectorController
             if (Math.Abs(strainDrive.Value) < 1e-4 && Math.Abs(strainDrive.Velocity) < .002 && strainDrive.Target == 0) strainDrive.SnapTo(0);
         }
         var maxHeldStrain = Math.Min(s.HeldTravelStrain, s.MaxStrain * 0.80);
-        var heldTravelU = Math.Min(s.HeldTravelStrain * strainDrive.Value, maxHeldStrain);
+        var heldTravelU = Math.Clamp(s.HeldTravelStrain * strainDrive.Value, 0.0, maxHeldStrain);
         equilibrium.U = gain * (nvx * nvx - .5 * speed2) / denom + pullU + heldTravelU;
         equilibrium.V = gain * (nvx * nvy) / denom + pullV;
         var held = HeldPressure(s.HeldHeightRatio, b.Height, refr.Height);

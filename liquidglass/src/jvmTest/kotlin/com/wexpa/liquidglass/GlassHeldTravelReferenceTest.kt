@@ -252,4 +252,26 @@ class GlassHeldTravelReferenceTest {
         assertTrue(minH >= 135f, "minimum scrub height should remain bounded, was $minH at $minHTime")
         assertTrue(maxW <= 480f, "maximum scrub width should remain bounded, was $maxW")
     }
+
+    @Test fun rapidScrubJitterAndReversalsNeverGoNegativeOrExceedStrainLimit() {
+        val bar = referenceBar()
+        val c = GlassPoseController(GlassPoseSpec.Calm)
+        c.attach(bar, null, null); c.snapToRest(2)
+        c.pointerDown(bar.centreOf(2), bar.centreY, 0.0, true)
+        for (i in 1..60) c.advanceFrameTo(i / 60f)
+        c.beginDrag(bar.centreOf(2), bar.centreY)
+        val ext = GlassPoseExtents()
+        // Simulate high frequency reversals (10 Hz back-and-forth) with vertical jitter
+        for (f in 61..240) {
+            val t = f / 60.0
+            val x = bar.centreOf(2) + 120f * kotlin.math.sin(20.0 * kotlin.math.PI * t).toFloat()
+            val y = bar.centreY + 8f * kotlin.math.cos(30.0 * kotlin.math.PI * t).toFloat()
+            c.pointerMove(x, y, t)
+            c.advanceFrameTo(t.toFloat())
+            assertFalse(c.solverFailed)
+            c.extents(ext)
+            assertTrue(ext.height >= 135f, "height collapsed during jitter: ${ext.height}")
+            assertTrue(ext.width <= 480f, "width ballooned during jitter: ${ext.width}")
+        }
+    }
 }
