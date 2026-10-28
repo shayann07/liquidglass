@@ -64,6 +64,10 @@ internal object GlassEndpointRender {
         refractBand: Float = 24f,
         refractDepth: Float = 10f,
         profile: Float = 2f,
+        formation: Float = 0f,
+        foldCorners: Float = 0f,
+        rimMirror: Float = 0f,
+        rimMirrorGain: Float = 1f,
         heldLens: Float = 1f,
         heldMagnification: Float = 0f,
         restMap: Float = 0f,
@@ -153,7 +157,10 @@ internal object GlassEndpointRender {
         pb.uniform("uAdaptive", 0f)
         pb.uniform("uLegibility", 0f)
         pb.uniform("uProfile", profile)
-        pb.uniform("uFormation", 0f)
+        pb.uniform("uFormation", formation)
+        pb.uniform("uFoldCorners", foldCorners)
+        pb.uniform("uRimMirror", rimMirror)
+        pb.uniform("uRimMirrorGain", rimMirrorGain)
         pb.uniform("uHeldLens", heldLens)
         pb.uniform("uHeldMagnification", heldMagnification)
         pb.uniform("uHeldGlow", 1f)
@@ -192,7 +199,10 @@ internal object GlassEndpointRender {
         cb.uniform("uTouch", -1e5f, -1e5f)
         cb.uniform("uTouchAmt", 0f)
         cb.uniform("uProfile", profile)
-        cb.uniform("uFormation", 0f)
+        cb.uniform("uFormation", formation)
+        cb.uniform("uFoldCorners", foldCorners)
+        cb.uniform("uRimMirror", rimMirror)
+        cb.uniform("uRimMirrorGain", rimMirrorGain)
         cb.uniform("uHeldLens", heldLens)
         cb.uniform("uHeldMagnification", heldMagnification)
         cb.uniform("uRestMap", restMap)

@@ -989,8 +989,12 @@ float4 glassMain(float2 coord) {
         // The fold shows red the deeper content; the held lens shows blue the deeper content,
         // so blue's copy of the pulled-in edge lands outermost (FINDINGS 19).
         float heldOrder = heldFamily * (1.0 - ((uRimMirror > 0.0) ? clamp(uFormation, 0.0, 1.0) * foldMask : 0.0));
-        pushR = -n * lerp(shift + delta, max(shift - delta, 0.0), heldOrder);
-        pushB = -n * lerp(max(shift - delta, 0.0), shift + delta, heldOrder);
+        float dR = lerp(delta, -delta, heldOrder);
+        float maxOutward = lerp(0.0, max(uPad, W), heldOrder);
+        float shiftR = max(shift + dR, -maxOutward);
+        float shiftB = max(shift - dR, -maxOutward);
+        pushR = -n * shiftR;
+        pushB = -n * shiftB;
         bend = clamp(abs(shift) / W, 0.0, 1.0);
     }
     if (uProfile >= 2.5) {

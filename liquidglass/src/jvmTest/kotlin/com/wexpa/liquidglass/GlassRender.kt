@@ -70,6 +70,12 @@ internal object GlassRender {
         formation: Float = 1f,
         heldLens: Float = 0f,
         heldMagnification: Float = 0f,
+        foldCorners: Float = 0f,
+        rimMirror: Float = 0f,
+        rimMirrorGain: Float = 1f,
+        heldGlowFloor: Float = 0f,
+        heldGlowReach: Float = 0f,
+        heldEdgeTone: Float = 0f,
         heldGlow: Float = 1f,
         heldEdgeRecovery: Float = 0f,
         /** 0 the legacy rest map, 1 the measured resting-corner table (uRestMap). */
@@ -199,6 +205,12 @@ internal object GlassRender {
         b.uniform("uHeldLens", heldLens)
         b.uniform("uHeldMagnification", heldMagnification)
         b.uniform("uHeldGlow", heldGlow)
+        b.uniform("uFoldCorners", foldCorners)
+        b.uniform("uRimMirror", rimMirror)
+        b.uniform("uRimMirrorGain", rimMirrorGain)
+        b.uniform("uHeldGlowFloor", heldGlowFloor)
+        b.uniform("uHeldGlowReach", heldGlowReach)
+        b.uniform("uHeldEdgeTone", heldEdgeTone)
         b.uniform("uHeldEdgeRecovery", heldEdgeRecovery)
         b.uniform("uRestMap", restMap)
         b.uniform("uWideStrip", if (stripH > 0) h.toFloat() else 0f)
