@@ -290,7 +290,7 @@ function animated(initial) {
  */
 export function createFreeButton({size, density = 1, pressScale = 1.26, pressGrowth = 8, pressLift = .2,
   pullFollow = .2, pullElongation = .124, pullWidthRatio = 1, pullLimit = .5, pullLiftShare = .65,
-  pullReleaseDampingX = .3} = {}) {
+  pullReleaseDampingX = .3, uprightPull = false} = {}) {
   if (!(size > 0) || !(density > 0)) throw new RangeError('Positive size and density required');
   const growth = pressGrowth * density, radius = size / 2;
   const balloon = Math.min(1 + 2 * growth / size, pressScale);
@@ -334,7 +334,10 @@ export function createFreeButton({size, density = 1, pressScale = 1.26, pressGro
     move(time, dx, dy) {
       const len = Math.hypot(dx, dy);
       if (!moved && len > 4 * density) { moved = true; glow.to(time, pullLiftShare, FREE_SPECS.freeGlow); }
-      if (len > 4 * density) anchor = snapCardinal(Math.atan2(dy, dx) * 180 / Math.PI);
+      if (len > 4 * density) {
+        const raw = Math.atan2(dy, dx) * 180 / Math.PI;
+        anchor = uprightPull ? snapCardinal(raw) : raw;
+      }
       const travel = len * pullFollow;
       const k = !(len > 1e-5) || pullFollow <= 0 ? 1 : limit * Math.tanh(travel / limit) / travel;
       px.to(time, dx * k, FREE_SPECS.pullFollow); py.to(time, dy * k, FREE_SPECS.pullFollow);
@@ -354,8 +357,9 @@ export function createFreeButton({size, density = 1, pressScale = 1.26, pressGro
         const e = extent(scale, scale, x, y), across = extent(scale, scale, -y, x);
         const along = Math.min(1 + pullElongation * len / Math.max(e, 1), 1.6);
         const extension = (along - 1) * Math.max(e, 1);
+        const raw = Math.atan2(y, x) * 180 / Math.PI;
         d = {along, across: Math.max(1 - pullWidthRatio * extension / Math.max(across, 1), .5),
-          angle: snapCardinal(Math.atan2(y, x) * 180 / Math.PI), tx: pullFollow * x, ty: pullFollow * y};
+          angle: uprightPull ? snapCardinal(raw) : raw, tx: pullFollow * x, ty: pullFollow * y};
       }
       d = landing(d);
       const g = glow.value(time);

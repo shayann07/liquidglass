@@ -81,6 +81,7 @@ public sealed class FreeButton
     }
 
     private readonly double size, radius, density, balloon, limit, pressLift, follow, elongation, widthRatio, liftShare;
+    private readonly bool uprightPull;
     private readonly Animated press = new(0), glow = new(0), px = new(0), py = new(0);
     private double anchor = double.NaN;
     private readonly Spec releaseX;
@@ -88,13 +89,13 @@ public sealed class FreeButton
 
     public FreeButton(double size, double density = 1, double pressScale = 1.26, double pressGrowth = 8, double pressLift = .2,
         double pullFollow = .2, double pullElongation = .124, double pullWidthRatio = 1, double pullLimit = .5,
-        double pullLiftShare = .65, double pullReleaseDampingX = .3)
+        double pullLiftShare = .65, double pullReleaseDampingX = .3, bool uprightPull = false)
     {
         if (!(size > 0) || !(density > 0)) throw new ArgumentOutOfRangeException(nameof(size), "Positive size and density required");
         (this.size, radius, this.density) = (size, size / 2, density);
         balloon = Math.Min(1 + 2 * pressGrowth * density / size, pressScale);
         limit = size * balloon * pullLimit;
-        (this.pressLift, follow, elongation, widthRatio, liftShare) = (pressLift, pullFollow, pullElongation, pullWidthRatio, pullLiftShare);
+        (this.pressLift, follow, elongation, widthRatio, liftShare, this.uprightPull) = (pressLift, pullFollow, pullElongation, pullWidthRatio, pullLiftShare, uprightPull);
         // Compose's GlassInteraction.pullReleaseDampingX: a separate x damping on release.
         releaseX = double.IsFinite(pullReleaseDampingX) ? new Spec(0, Math.Clamp(pullReleaseDampingX, .05, 2), 264) : FreeRelease;
     }
@@ -111,7 +112,11 @@ public sealed class FreeButton
     {
         var len = Math.Sqrt(dx * dx + dy * dy);
         if (!moved && len > 4 * density) { moved = true; glow.To(time, liftShare, FreeGlow); }
-        if (len > 4 * density) anchor = Math.Round(Math.Atan2(dy, dx) * 180 / Math.PI / 90) * 90;
+        if (len > 4 * density)
+        {
+            var raw = Math.Atan2(dy, dx) * 180 / Math.PI;
+            anchor = uprightPull ? Math.Round(raw / 90) * 90 : raw;
+        }
         var travel = len * follow;
         var k = !(len > 1e-5) || follow <= 0 ? 1 : limit * Math.Tanh(travel / limit) / travel;
         px.To(time, dx * k, PullFollow); py.To(time, dy * k, PullFollow);
@@ -134,7 +139,9 @@ public sealed class FreeButton
             along = Math.Min(1 + elongation * len / Math.Max(e, 1), 1.6);
             var extension = (along - 1) * Math.Max(e, 1);
             across = Math.Max(1 - widthRatio * extension / Math.Max(acrossExtent, 1), .5);
-            angle = Math.Round(Math.Atan2(y, x) * 180 / Math.PI / 90) * 90; tx = follow * x; ty = follow * y;
+            var raw = Math.Atan2(y, x) * 180 / Math.PI;
+            angle = uprightPull ? Math.Round(raw / 90) * 90 : raw;
+            tx = follow * x; ty = follow * y;
         }
         (along, across, angle, tx, ty) = Landing(along, across, angle, tx, ty);
         var g = glow.Value(time);

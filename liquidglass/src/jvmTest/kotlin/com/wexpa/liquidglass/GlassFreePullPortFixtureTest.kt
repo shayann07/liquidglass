@@ -65,7 +65,10 @@ class GlassFreePullPortFixtureTest {
                     "move" -> {
                         val len = hypot(c.x, c.y)
                         if (!moved && len > 4f * density) { moved = true; glow.to(c.t, interaction.pullLiftShare, GlassMotion.FreeGlow) }
-                        if (len > 4f * density) anchor = kotlin.math.round(atan2(c.y, c.x) * (180f / kotlin.math.PI.toFloat()) / 90f) * 90f
+                        if (len > 4f * density) anchor = if (interaction.uprightPull)
+                            kotlin.math.round(atan2(c.y, c.x) * (180f / kotlin.math.PI.toFloat()) / 90f) * 90f
+                        else
+                            atan2(c.y, c.x) * (180f / kotlin.math.PI.toFloat())
                         val k = glassPullTargetScale(len, interaction.pullFollow, limit)
                         px.to(c.t, c.x * k, GlassMotion.PullFollow); py.to(c.t, c.y * k, GlassMotion.PullFollow)
                     }
@@ -118,7 +121,8 @@ class GlassFreePullPortFixtureTest {
 
     @Test fun freeButtonTrajectoriesForPorts() {
         val json = "{\"button\":{\"size\":186,\"density\":3,\"pressScale\":1.26,\"pressGrowth\":8,\"pressLift\":0.2," +
-            "\"pullFollow\":${interaction.pullFollow},\"pullElongation\":${interaction.pullElongation},\"pullWidthRatio\":1,\"pullLimit\":0.5,\"pullLiftShare\":${interaction.pullLiftShare},\"pullReleaseDampingX\":${interaction.pullReleaseDampingX}},\n" +
+            "\"pullFollow\":${interaction.pullFollow},\"pullElongation\":${interaction.pullElongation},\"pullWidthRatio\":1,\"pullLimit\":0.5,\"pullLiftShare\":${interaction.pullLiftShare},\"pullReleaseDampingX\":${interaction.pullReleaseDampingX}," +
+            "\"uprightPull\":${interaction.uprightPull}},\n" +
             "\"frameFields\":[\"t\",\"glow\",\"pressScale\",\"along\",\"across\",\"angle\",\"tx\",\"ty\",\"pullX\"],\n" +
             "\"scenarios\":[\n" + scenarios().joinToString(",\n") + "]}\n"
         val file = File("../ports/skia/fixtures/free-button.json")

@@ -130,12 +130,19 @@ test('rim map: the measured edge light peaks on the lit edge, both edges lit, si
   assert.ok(column[1] > column[0] && column[1] > column[2] && column[2] > column[3], column.join(' '));
 });
 
-test('free button cardinal angle snapping uses ties-to-even', () => {
-  const btn = createFreeButton({size: 186, density: 3});
+test('free button cardinal angle snapping uses ties-to-even when uprightPull is enabled', () => {
+  const btn = createFreeButton({size: 186, density: 3, uprightPull: true});
   btn.down(0);
   // dx = -50, dy = -50 -> atan2(-50, -50) = -135 degrees.
   // With ties-to-even (-135 / 90 = -1.5 -> -2), anchor and angle snap to -180 degrees.
   btn.move(0.1, -50, -50);
   const sample = btn.sample(0.2);
   assert.equal(sample.angle, -180);
+
+  // Without uprightPull (default false), angles remain continuous.
+  const freeBtn = createFreeButton({size: 186, density: 3});
+  freeBtn.down(0);
+  freeBtn.move(0.1, -50, -50);
+  const freeSample = freeBtn.sample(0.2);
+  assert.equal(freeSample.angle, -135);
 });

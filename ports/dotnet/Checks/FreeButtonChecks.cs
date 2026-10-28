@@ -15,7 +15,9 @@ internal static class FreeButtonChecks
         foreach (var scenario in fixture.RootElement.GetProperty("scenarios").EnumerateArray())
         {
             var button = new FreeButton(G("size"), G("density"), G("pressScale"), G("pressGrowth"), G("pressLift"),
-                G("pullFollow"), G("pullElongation"), G("pullWidthRatio"), G("pullLimit"), G("pullLiftShare"));
+                G("pullFollow"), G("pullElongation"), G("pullWidthRatio"), G("pullLimit"), G("pullLiftShare"),
+                b.TryGetProperty("pullReleaseDampingX", out var prd) ? prd.GetDouble() : .3,
+                b.TryGetProperty("uprightPull", out var up) ? up.GetBoolean() : true);
             var calls = scenario.GetProperty("calls").EnumerateArray().ToList();
             var next = 0;
             foreach (var row in scenario.GetProperty("frames").EnumerateArray())

@@ -62,3 +62,45 @@ In `IMG_6756` at 20.3 s and 31.0 s, the search button is pressed leftward into t
   where $\text{pullTrans} = (\text{pullDeformation.translationX}, \text{pullDeformation.translationY})$.
 - In `LiquidGlass.kt`, `effectiveDelta` is used for `sampleBounds` and inside `rawLayer`, `wideLayer`, and `backdropComposite` drawing translations, while `effectiveThroughDelta` aligns `throughLayer` (the tab bar) under the translated button.
 - This composites and refracts the underlying bar end and Keypad pill through translucent button glass, moves the contact shadow, and eliminates the dark ghost at the resting position.
+
+---
+
+## 4. Exact Numerical Constants & Provenance Classification
+
+| Constant / Parameter | Exact Value | Provenance | Authoritative Source & Verification |
+|---|---|---|---|
+| `pressFlash` initial alpha | `128f / 255f` ($\approx 0.5019608$) | **[Measured]** | Mean of 7 search button presses in `IMG_6756` (S01: 133, S02: 128, S03: 135, S04: 130, S05: 132, S06: 126, S07: 129; mean 130.4). |
+| `pressFlash` initial frame duration | 1 frame ($16.7\text{--}33.3\text{ ms}$) | **[Measured]** | Single-frame dip observed across all 7 presses in `IMG_6756`. |
+| `pressFlash` recovery duration | $50\text{ ms}$ | **[Measured]** | Measured in `IMG_6756` (recovers over ~50 ms before radial expansion). |
+| `pressFlash` recovery easing | `LinearEasing` | **[Authored]** | Linear interpolation from $128/255$ to $1.0$ over $50\text{ ms}$. |
+| `pressFlash` default | `false` (base), `true` (`Pullable`) | **[Authored]** | Rule 8 opt-in for new optics. |
+| `uprightPull` snap angles | $\{0^\circ, 90^\circ, 180^\circ, -90^\circ\}$ | **[Authored]** | Derived from `IMG_6756` 10.5 s reference observation. |
+| `uprightPull` formula | $\text{round}(\theta_{raw} / 90^\circ) \times 90^\circ$ | **[Authored]** | IEEE 754 Banker's rounding (round half to even). |
+| `uprightPull` distance threshold | $> 4 \times \text{density}$ ($12\text{ px}$ at 3x) | **[Authored]** | Inherited gesture movement threshold before anchor assignment. |
+| `uprightPull` minimum length | $10^{-3}\text{ px}$ | **[Inherited]** | Numerical stability guard in `glassPullDeformation`. |
+| `uprightPull` shear term | $\equiv 0.0$ | **[Inherited]** | Mathematical identity $\cos\theta \sin\theta = 0$ for cardinal angles. |
+| `uprightPull` default | `false` (base), `true` (`Pullable`) | **[Authored]** | Rule 8 opt-in. |
+| `pullFollow` gain | $0.2\text{f}$ | **[Authored]** | Compliance fitted on owner's device check (was 0.35 prior to 18 Oct). |
+| `pullElongation` gain | $0.124\text{f}$ | **[Authored]** | $0.124 / 0.2 = 0.62$ length change per body travel, near S01 69/112. |
+| `pullWidthRatio` | $1.0\text{f}$ | **[Authored]** | Equal length gain and width loss normalized by support width. |
+| `pullLimit` | $0.5\text{f}$ | **[Authored]** | Bounds maximum input resistance. |
+| `pullLiftShare` | $0.65\text{f}$ | **[Measured]** | Settles from 95 pressed to 70 dragged against 32 at rest in `IMG_6756`. |
+| `pullReleaseDampingX` | $0.3\text{f}$ | **[Measured]** | Sideways release damping fitted on `IMG_6756` 19–34 s releases. |
+| `pressScale` in `Pullable` | $1.26\text{f}$ | **[Measured]** | Equilibrium balloon scale (S01: 186 -> 234 settled; K01: 234 -> 282). |
+| `pressGrowth` in `Pullable` | $8\text{ dp}$ | **[Measured]** | Eight points per side equilibrium growth. |
+| `pressLift` in `Pullable` | $0.2\text{f}$ | **[Measured]** | Peak interior lift on touch-down. |
+| `freeLanding` bulge ratio | $0.2\text{f}$ | **[Measured]** | `IMG_6756`: 154 x 182 px against 186 px rest ($0.2$ of 32 px squash). |
+
+---
+
+## 5. Comparison Data & Parity Evidence
+
+| Metric / Gesture | iOS Reference (`IMG_6756`) | Before PR #135 | With PR #135 | Parity Status |
+|---|---|---|---|---|
+| Search touch-down glyph luma | Dimmed to ~128–135 on contact frame 0 | 255 (unchanged, full brightness) | 128 / 255 (≈0.502) on frame 0 | **Matched** [Measured] |
+| Search touch-down recovery | Recovers linearly in ~50 ms | N/A (no dimming) | 50 ms linear tween to 1.0f | **Matched** [Measured] |
+| Diagonal pull deformation angle | Upright oval (0° / 90° cardinal) | Tilted ~20° along pull vector (e.g. -70.2°) | Cardinal snap: round(raw/90)*90 (-90.0°) | **Matched** [Authored] |
+| Diagonal pull glyph shear | Zero shear ((along - across)*cos*sin = 0) | Sheared glyph (shear != 0) | Strict 0.0 shear | **Matched** [Inherited] |
+| Leftward pull into tab bar | Tab bar end & Keypad pill visible through button | Button opaque over bar | Bar end & Keypad pill refracted through button | **Matched** [Measured] |
+| Resting position dark ghost | None | Dark ghost offset behind button | Displaced delta eliminates resting ghost | **Matched** [Measured] |
+| Cardinal snap rounding across ports | Ties-to-even (Banker's rounding) | Inconsistent between Kotlin and JS Math.round | Banker's rounding in Kotlin, C#, JS snapCardinal | **Matched** [Authored] |

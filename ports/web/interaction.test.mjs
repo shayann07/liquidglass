@@ -187,7 +187,8 @@ test('free button: every frame of the Kotlin-exported trajectories is reproduced
   for (const s of fixture.scenarios) {
     const button = createFreeButton({size: b.size, density: b.density, pressScale: b.pressScale,
       pressGrowth: b.pressGrowth, pressLift: b.pressLift, pullFollow: b.pullFollow, pullElongation: b.pullElongation,
-      pullWidthRatio: b.pullWidthRatio, pullLimit: b.pullLimit, pullLiftShare: b.pullLiftShare});
+      pullWidthRatio: b.pullWidthRatio, pullLimit: b.pullLimit, pullLiftShare: b.pullLiftShare,
+      pullReleaseDampingX: b.pullReleaseDampingX ?? .3, uprightPull: b.uprightPull ?? true});
     let next = 0;
     for (const [t, glow, pressScale, along, across, angle, tx, ty, pullX] of s.frames) {
       while (next < s.calls.length && s.calls[next][0] <= t + 1e-9) {
