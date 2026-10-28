@@ -81,6 +81,26 @@ class GlassPhoneTapVolumeTest {
         }
     }
 
+    @Test fun calmTapMaintainsBoundedAspectAndHeightCeiling() {
+        val b = bar()
+        val c = GlassPoseController(GlassPoseSpec.Calm)
+        c.attach(b, null, null); c.snapToRest(0)
+        c.pointerDown(b.centreOf(2), b.centreY, 0.0, true); c.retarget(2)
+        var released = false
+        val e = GlassPoseExtents()
+        for (i in 0..480) {
+            val t = i / 480f
+            if (!released && t >= .04f) { c.advanceTo(.04f); c.pointerUp(2); released = true }
+            c.advanceTo(t); c.extents(e)
+            assertFalse(c.solverFailed)
+            assertTrue(e.height <= b.height * 1.25f, "height ceiling exceeded on Calm: ${e.height}")
+            assertTrue(e.width in 200f..480f, "width out of bounds on Calm: ${e.width}")
+        }
+        c.advanceTo(1f)
+        assertEquals(b.centreOf(2), c.centreX, 0.5f)
+        assertTrue(c.isIdle)
+    }
+
     @Test fun interruptedTapAndHoldTransitionsStayContinuous() {
         val b=bar()
         val c=GlassPoseController(GlassPoseSpec.CalmVolume)

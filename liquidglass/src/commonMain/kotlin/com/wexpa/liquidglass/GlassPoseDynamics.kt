@@ -36,6 +36,12 @@ internal data class GlassPoseSpec(
     val centreOmega: Float = 40f,
     val centreZeta: Float = 1f,
     /**
+     * Stiffer centre spring scoped specifically to tap transits (e.g. 44/s for iOS 27 tap parity,
+     * #123), decoupling tap arrival speed from general drag-and-release edge recovery and throw landing.
+     * Nonpositive uses [centreOmega].
+     */
+    val tapCentreOmega: Float = 0f,
+    /**
      * The spine: elongation along the motion. Fast, so it tracks the speed that drives it; the
      * pill in the recording is longest about 25 ms after the centre is fastest and has contracted
      * again two frames after the centre arrives.
@@ -455,7 +461,7 @@ internal data class GlassPoseSpec(
          * full-speed short trips (1.0 vs 0.75), transit formation target 1.0 (peaks at ~0.85-0.95),
          * and form rise rate 50/s. Tap travel arrives in ~70-130 ms and rises into a full glass lens. */
         val Calm = CalmWallLanding.copy(heldTravelStrain = .6f, heldTravelStrainOmega = 10f,
-            heldReferenceSpeed = 8f, heldSquircle = .7f, centreOmega = 44f, tapSpineOmega = 36f,
+            heldReferenceSpeed = 8f, heldSquircle = .7f, tapCentreOmega = 44f, tapSpineOmega = 36f,
             tapShortTripRate = 1f, formFromMovement = 1f, formRiseOmega = 75f)
     }
 }
@@ -1460,7 +1466,12 @@ internal class GlassPoseController(
                 pose.cx = targetX; pose.cy = targetY
                 velocity.cx = 0f; velocity.cy = 0f
             } else {
-                val co = spec.centreOmega * tapClock
+                val springOmega = if (spec.tapCentreOmega > 0f && (mode == GlassPoseMode.TapTransit || mode == GlassPoseMode.PressPending)) {
+                    spec.tapCentreOmega
+                } else {
+                    spec.centreOmega
+                }
+                val co = springOmega * tapClock
                 val cz = spec.centreZeta
                 stepState(dt, pose.cx, velocity.cx, targetX, co, cz).let { pose.cx = it[0]; velocity.cx = it[1] }
                 stepState(dt, pose.cy, velocity.cy, targetY, co, cz).let { pose.cy = it[0]; velocity.cy = it[1] }

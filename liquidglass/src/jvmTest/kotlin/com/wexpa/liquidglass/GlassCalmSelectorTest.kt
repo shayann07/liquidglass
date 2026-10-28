@@ -52,14 +52,18 @@ class GlassCalmSelectorTest {
             assertTrue(abs(settled.width - 78f) < .5f)
             return maximum
         }
-        val short = trace(2); val long = trace(3)
-        assertTrue(long > short + 5f, "distance did not affect shape: $short $long")
-        assertTrue(short > 88f, "selector remained rigid: $short")
-        println("CALM_TRAVEL short=$short long=$long rest=78")
+        val shortWall = trace(2, GlassPoseSpec.CalmWallLanding)
+        val longWall = trace(3, GlassPoseSpec.CalmWallLanding)
+        assertTrue(longWall > shortWall + 5f, "distance did not affect shape on CalmWallLanding: $shortWall $longWall")
+        assertTrue(shortWall > 88f, "selector remained rigid on CalmWallLanding: $shortWall")
+        println("CALM_TRAVEL wall short=$shortWall long=$longWall rest=78")
 
+        // Direct Calm preset coverage (#123, #120):
         val shortCalm = trace(2, GlassPoseSpec.Calm)
         val longCalm = trace(3, GlassPoseSpec.Calm)
         assertTrue(longCalm > shortCalm + 2f, "Calm distance did not affect shape: $shortCalm $longCalm")
+        assertTrue(shortCalm > 80f, "Calm selector remained rigid: $shortCalm")
+        println("CALM_TRAVEL calm short=$shortCalm long=$longCalm rest=78")
     }
 
     @Test fun movementBeyondAnEndAnchorDoesNotInventSelectorTravel() {

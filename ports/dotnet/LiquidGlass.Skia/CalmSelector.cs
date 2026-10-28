@@ -8,7 +8,7 @@ namespace LiquidGlass.Skia;
 /// <summary>Authored presets; see GlassPoseSpec in the Compose library for every value's provenance.</summary>
 public sealed record CalmSelectorSpec
 {
-    public double CentreOmega { get; init; } = 40; public double CentreZeta { get; init; } = 1;
+    public double CentreOmega { get; init; } = 40; public double TapCentreOmega { get; init; } = 0; public double CentreZeta { get; init; } = 1;
     public double SpineOmega { get; init; } = 90; public double SpineZeta { get; init; } = 1;
     public double TapSpineOmega { get; init; } = 36; public double TapSpineZeta { get; init; } = .43;
     public double TapElongationSlots { get; init; } = .36; public double TapReferenceSpeed { get; init; } = 15;
@@ -57,7 +57,7 @@ public sealed record CalmSelectorSpec
     /// <summary>GlassPoseSpec.Calm.</summary>
     public static CalmSelectorSpec Calm { get; } = new()
     {
-        CentreOmega = 44, SpineOmega = 30, SpineZeta = .78, TapSpineOmega = 36, TapSpineZeta = .45,
+        CentreOmega = 24, TapCentreOmega = 44, SpineOmega = 30, SpineZeta = .78, TapSpineOmega = 36, TapSpineZeta = .45,
         TapElongationSlots = .36, TapReferenceSpeed = 10, SpineReleaseOmega = 22, PressureOmega = 22,
         PressureFallOmega = 14, FormRiseOmega = 75, FormFromMovement = 1, TapPressureOmega = 45, HeldHeightRatio = 1.2,
         HeldReferenceSpeed = 8, ElongationSlots = .28, Squeeze = .47, PullStrainPerDp = 0,
@@ -783,7 +783,8 @@ public sealed class CalmSelectorController
             if (!MotionEnabled) { pose.Cx = tx; pose.Cy = ty; velocity.Cx = 0; velocity.Cy = 0; }
             else
             {
-                var co = s.CentreOmega * tapClock;
+                var baseOmega = s.TapCentreOmega > 0 && (Mode == CalmSelectorMode.TapTransit || Mode == CalmSelectorMode.PressPending) ? s.TapCentreOmega : s.CentreOmega;
+                var co = baseOmega * tapClock;
                 (pose.Cx, velocity.Cx) = StepState(dt, pose.Cx, velocity.Cx, tx, co, s.CentreZeta);
                 (pose.Cy, velocity.Cy) = StepState(dt, pose.Cy, velocity.Cy, ty, co, s.CentreZeta);
             }

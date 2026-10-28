@@ -201,27 +201,29 @@ class GlassPhoneTapOpticsTest {
 
     @Test fun calmTapFormsFullGlassLensUnderIOS27() {
         val b = bar()
-        val c = GlassPoseController(GlassPoseSpec.Calm)
-        c.attach(b, null, null); c.snapToRest(0)
-        c.pointerDown(b.centreOf(2), b.centreY, 0.0, true); c.retarget(2)
-        c.advanceTo(.04f); c.pointerUp(2)
-        val style = patchStyle()
-        var peakFormation = 0f
-        var peakLens = 0f
-        var peakDispersion = 0f
-        for (i in 1..120) {
-            c.advanceTo(.04f + i / 480f)
-            assertFalse(c.isHeld)
-            peakFormation = maxOf(peakFormation, c.formation)
-            val material = glassSelectorMaterial(style, c.formation, c.transitAppearance)
-            peakLens = maxOf(peakLens, material.heldLens)
-            peakDispersion = maxOf(peakDispersion, material.dispersion)
+        // Verify BOTH primary GlassTabBarStyle.Calm() AND patchStyle()
+        for (style in listOf(GlassTabBarStyle.Calm(), patchStyle())) {
+            val c = GlassPoseController(GlassPoseSpec.Calm)
+            c.attach(b, null, null); c.snapToRest(0)
+            c.pointerDown(b.centreOf(2), b.centreY, 0.0, true); c.retarget(2)
+            c.advanceTo(.04f); c.pointerUp(2)
+            var peakFormation = 0f
+            var peakLens = 0f
+            var peakDispersion = 0f
+            for (i in 1..120) {
+                c.advanceTo(.04f + i / 480f)
+                assertFalse(c.isHeld)
+                peakFormation = maxOf(peakFormation, c.formation)
+                val material = glassSelectorMaterial(style, c.formation, c.transitAppearance)
+                peakLens = maxOf(peakLens, material.heldLens)
+                peakDispersion = maxOf(peakDispersion, material.dispersion)
+            }
+            println("CALM_IOS27_TAP_LENS style=${style::class.simpleName} peakFormation=$peakFormation peakLens=$peakLens peakDispersion=$peakDispersion")
+            assertTrue(peakFormation >= 0.85f, "iOS 27 tap transit formation must reach >= 0.85, was $peakFormation")
+            assertTrue(peakLens >= 0.95f, "iOS 27 tap transit heldLens must reach full lens: $peakLens")
+            assertTrue(peakDispersion >= GlassSelectorRimFringeMoving, "transit must show moving fringes: $peakDispersion")
+            c.advanceTo(0.6f)
+            assertTrue(c.formation < 0.05f, "settled tap must subside back to resting pill, was ${c.formation}")
         }
-        println("CALM_IOS27_TAP_LENS peakFormation=$peakFormation peakLens=$peakLens peakDispersion=$peakDispersion")
-        assertTrue(peakFormation >= 0.85f, "iOS 27 tap transit formation must reach >= 0.85, was $peakFormation")
-        assertTrue(peakLens >= 0.95f, "iOS 27 tap transit heldLens must reach full lens: $peakLens")
-        assertTrue(peakDispersion >= GlassSelectorRimFringeMoving, "transit must show moving fringes: $peakDispersion")
-        c.advanceTo(0.6f)
-        assertTrue(c.formation < 0.05f, "settled tap must subside back to resting pill, was ${c.formation}")
     }
 }
