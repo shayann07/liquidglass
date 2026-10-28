@@ -1,14 +1,19 @@
 package com.wexpa.liquidglass
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.RememberObserver
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -285,6 +290,18 @@ private fun GlassOverlay(region: GlassRegion, modifier: Modifier) {
 
 @Composable
 private fun OverlayGlass(region: GlassRegion, entry: GlassOverlayEntry) {
+    val flashAlpha = remember { Animatable(1f) }
+    val lastAnimatedPress = remember { intArrayOf(0) }
+    val isNewPress = entry.press.pressCount != lastAnimatedPress[0] && entry.press.isPressed
+    LaunchedEffect(entry.press.pressCount) {
+        if (entry.press.pressCount > 0 && entry.interaction?.pressFlash == true) {
+            lastAnimatedPress[0] = entry.press.pressCount
+            flashAlpha.snapTo(128f / 255f)
+            flashAlpha.animateTo(1f, animationSpec = tween(durationMillis = 50, easing = LinearEasing))
+        }
+    }
+    val currentFlashAlpha = if (isNewPress && entry.interaction?.pressFlash == true) (128f / 255f) else flashAlpha.value
+
     Box(
         Modifier
             .layout { measurable, _ ->
@@ -305,10 +322,16 @@ private fun OverlayGlass(region: GlassRegion, entry: GlassOverlayEntry) {
                 } else drawContent()
             }
             .liquidGlass(entry.state ?: region.state, entry.shape, entry.style, entry.light, interaction = entry.interaction,
-                pressSource = entry.press, link = entry.link)
+                pressSource = entry.press, link = entry.link, through = entry.link?.barState)
             // A released layer is recycled for other content: drawing it could draw anything, even
             // the recording this overlay sits over, so a departed element's layer is never drawn.
-            .drawWithContent { drawContent(); if (!entry.disposed && !entry.foreground.isReleased) drawLayer(entry.foreground) },
+            .drawWithContent {
+                drawContent()
+                if (!entry.disposed && !entry.foreground.isReleased) {
+                    entry.foreground.alpha = currentFlashAlpha
+                    drawLayer(entry.foreground)
+                }
+            },
     )
 }
 

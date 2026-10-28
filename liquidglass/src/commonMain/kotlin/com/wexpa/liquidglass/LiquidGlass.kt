@@ -468,7 +468,8 @@ internal fun Modifier.liquidGlassCore(
     var freeAnchor by remember { mutableStateOf(Float.NaN) }
     if (pullDown && interaction?.pullShape == GlassPullShape.Free &&
         kotlin.math.hypot(press.pullX, press.pullY) > 4f * density.density) {
-        freeAnchor = kotlin.math.atan2(press.pullY, press.pullX) * (180f / kotlin.math.PI.toFloat())
+        val rawAnchor = kotlin.math.atan2(press.pullY, press.pullX) * (180f / kotlin.math.PI.toFloat())
+        freeAnchor = if (interaction?.uprightPull == true) kotlin.math.round(rawAnchor / 90f) * 90f else rawAnchor
     }
     val pullDeformation = if (pullEnabled && interaction != null) {
         // The element's extent along the pull, as it is while pressed.
@@ -570,7 +571,11 @@ internal fun Modifier.liquidGlassCore(
                 val tintMap=if(tintField!=null) tintDrawing!!.footprintMap(tintOrigin!!) else null
                 val contactShadow = glassShadow(sizeFactor)
                 val contactShadowAlpha = contactShadow.alpha * style.contactShadow.coerceIn(0f, 1f)
-                val bounds = sampleBounds(pad, delta, size, state.sourceSize)
+                val pullTrans = if (interaction?.pullShape == GlassPullShape.Free) {
+                    Offset(pullDeformation.translationX, pullDeformation.translationY)
+                } else Offset.Zero
+                val effectiveDelta = delta + pullTrans
+                val bounds = sampleBounds(pad, effectiveDelta, size, state.sourceSize)
                 if (!hasSampleRegion(bounds)) {
                     withGlassMaterialPull(pullDeformation, materialPressX, materialPressY) {
                         drawGlassFallback(style, light, radii, style.bevel.toPx())
@@ -767,12 +772,15 @@ internal fun Modifier.liquidGlassCore(
                     }
                     val throughLayer = through?.layer
                     val throughDelta = through?.let { panelOffsetInSource(it.sourceCoordinates, coordinates) }
+                    val effectiveThroughDelta = if (throughDelta != null && interaction?.pullShape == GlassPullShape.Free) {
+                        throughDelta + pullTrans
+                    } else throughDelta
                     val rawBlurPx = style.rawBlur.toPx()
-                    val blurRaw = style.rawShare > 0.001f && rawBlurPx > 0.01f && throughLayer != null && throughDelta != null
+                    val blurRaw = style.rawShare > 0.001f && rawBlurPx > 0.01f && throughLayer != null && effectiveThroughDelta != null
                     if (blurRaw) {
                         rawLayer.record(size = paddedSize) {
                             scale(rs, rs, pivot = Offset.Zero) {
-                                translate(-delta.x + pad, -delta.y + pad) { drawLayer(source) }
+                                translate(-effectiveDelta.x + pad, -effectiveDelta.y + pad) { drawLayer(source) }
                             }
                         }
                         rawLayer.renderEffect = effects.raw(rawBlurPx * rs)
@@ -781,9 +789,9 @@ internal fun Modifier.liquidGlassCore(
                         wideLayer.record(size = stripSize) {
                             drawRect(state.background)
                             scale(wideScale * rs, wideScale * rs, pivot = Offset.Zero) {
-                                translate(-delta.x + pad, -delta.y + pad) { drawLayer(source) }
-                                if (throughLayer != null && throughDelta != null) {
-                                    translate(-throughDelta.x + pad, -throughDelta.y + pad) { drawLayer(throughLayer) }
+                                translate(-effectiveDelta.x + pad, -effectiveDelta.y + pad) { drawLayer(source) }
+                                if (throughLayer != null && effectiveThroughDelta != null) {
+                                    translate(-effectiveThroughDelta.x + pad, -effectiveThroughDelta.y + pad) { drawLayer(throughLayer) }
                                 }
                             }
                         }
@@ -801,7 +809,7 @@ internal fun Modifier.liquidGlassCore(
                     // Baking the ground in once leaves an opaque image for the blur to work
                     // on, which is both correct and cheaper than compensating downstream.
                         drawRect(state.background)
-                        translate(-delta.x + pad, -delta.y + pad) { drawLayer(source) }
+                        translate(-effectiveDelta.x + pad, -effectiveDelta.y + pad) { drawLayer(source) }
                         // The panel's own shadow, on the backdrop rather than over it, so the
                         // rim bends it and the interior scatter defocuses it with everything
                         // else. Drawn before `through` for the same reason a real shadow is
@@ -816,14 +824,14 @@ internal fun Modifier.liquidGlassCore(
                         }
                         // Whatever sits between this panel and the backdrop goes on top of it,
                         // in this panel's frame, so the rim refracts that too.
-                        if (throughLayer != null && throughDelta != null) {
-                            translate(-throughDelta.x + pad, -throughDelta.y + pad) { drawLayer(throughLayer) }
+                        if (throughLayer != null && effectiveThroughDelta != null) {
+                            translate(-effectiveThroughDelta.x + pad, -effectiveThroughDelta.y + pad) { drawLayer(throughLayer) }
                             // And a share of the raw backdrop again, added on top (rawShare).
                             if (blurRaw) {
                                 // Recorded at the padded size in device px: undo this layer's scale.
                                 scale(1f / rs, 1f / rs, pivot = Offset.Zero) { drawAdded(rawLayer, 0f, 0f, style.rawShare) }
                             } else if (style.rawShare > 0.001f) {
-                                drawAdded(source, -delta.x + pad, -delta.y + pad, style.rawShare)
+                                drawAdded(source, -effectiveDelta.x + pad, -effectiveDelta.y + pad, style.rawShare)
                             }
                         }
                       }

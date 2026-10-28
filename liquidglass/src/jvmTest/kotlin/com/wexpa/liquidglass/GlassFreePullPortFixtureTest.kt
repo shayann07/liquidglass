@@ -65,7 +65,7 @@ class GlassFreePullPortFixtureTest {
                     "move" -> {
                         val len = hypot(c.x, c.y)
                         if (!moved && len > 4f * density) { moved = true; glow.to(c.t, interaction.pullLiftShare, GlassMotion.FreeGlow) }
-                        if (len > 4f * density) anchor = atan2(c.y, c.x) * (180f / kotlin.math.PI.toFloat())
+                        if (len > 4f * density) anchor = kotlin.math.round(atan2(c.y, c.x) * (180f / kotlin.math.PI.toFloat()) / 90f) * 90f
                         val k = glassPullTargetScale(len, interaction.pullFollow, limit)
                         px.to(c.t, c.x * k, GlassMotion.PullFollow); py.to(c.t, c.y * k, GlassMotion.PullFollow)
                     }
