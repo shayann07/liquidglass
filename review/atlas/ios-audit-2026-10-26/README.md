@@ -548,6 +548,24 @@ and lock-screen / Control Center components.
 - Lateral pre-step (8-14 px) and opposite rebound in first frame of touch-down: thumb contact roll / touch-target snapping in the inferred finger input.
 - Mid-drag vertical deflation and premature 166.7 ms snap to Contacts in `121-side-caps-x8.mp4`: tab-centre parking in the replay script, which snaps the finger directly to the tab center and triggers synthetic velocity-dependent lens flattening.
 
+## W. Independent takeover verification (29 October, in progress)
+
+The earlier statement that all 30 sessions are fully verified is too broad: section U
+explicitly leaves session 25 unchecked, and section T defers target tables until fix scoring.
+Codex is independently checking those claims; Claude must review these checks on return.
+
+- **Corrected provenance:** session 25 clock samples omit the source clip start of 60 s.
+  F594/F702/F835 map to COSG3073 82.349349/85.566016/89.966016 s, not 22–30 s.
+  Selected bevel RGB probes match; complete geometry/trajectory verification remains pending.
+- **Tracked, reproduced:** session 30's #111 rim chroma at F056/F072 matches decoded clip
+  pixels. Its #123 clip source start is 3.40 s, which its source-time fields omit.
+  Three original HDR-to-sRGB source frames confirm the iOS rim is neutral (channel spread
+  1/2/1 levels in the mapped ROI). The renderer's third sampled clip frame is nearly neutral,
+  so do not claim persistence across every settled frame.
+
+Exact probes, methods and limits: [independent record](../agent-takeover-2026-10-29/README.md).
+No new optical constants were adopted from these partial checks.
+
 ## Grouping into issues
 
 | Issue | Items |

@@ -1,3 +1,12 @@
+## 29 October independent takeover
+
+Owner authorized independent verification and repairs of the handoff, all open PRs and issues.
+Claude reviews and merges. Current evidence and incomplete checks are tracked in
+[the takeover record](../review/atlas/agent-takeover-2026-10-29/README.md) and
+[issue queue](../review/atlas/agent-takeover-2026-10-29/issue-queue.md).
+Argon session completion claims require correction; source offsets for sessions 25 and 30
+were independently checked. No milestone completion is claimed.
+
 # LiquidGlass / Atlas progress and recovery
 
 Updated 2026-10-12. **Goal active: full 1:1 iOS parity is not established.**
