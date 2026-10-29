@@ -1,5 +1,23 @@
 # Resume LiquidGlass / Atlas Studio
 
+## RESUME HERE — 29 October independent takeover
+
+Owner authorizes verification, repairs, commits, pushes and PRs across the open issues and
+handoff work. Claude must independently review and merge. Antigravity is stopped.
+Measured default corrections are allowed; ask before public API changes. No tags/releases.
+
+Read `review/atlas/agent-takeover-2026-10-29/README.md` for the exact candidate matrix,
+verification gaps and mandatory Claude-return checklist. Do not rely on the historical
+"all 30 sessions verified" statement below: session 25 was explicitly not checked, and
+several target tables were deferred. Each used target must be measured again.
+
+Current: PR #130 local candidate 5b955d8 passed eight neutrality tests; full suite is running
+in `.local/worktrees/repair-130`, log `.local/qualification-2026-10-29/full-suite.log`.
+Next: inspect that run, score complete defect sequences, verify other repair branches and
+Argon targets. Preserve all existing dirty work and the XML takeover branch.
+
+## Historical handoff (retained for provenance)
+
 ## BASELINE (27 Oct, before the Antigravity / Flash hand-off): compare all new work against this
 
 - **Code:** main `a84637c` (no library, port or app source change since `2a7c7b0`). Anything after it on main or
