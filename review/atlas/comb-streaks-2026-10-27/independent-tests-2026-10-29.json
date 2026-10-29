@@ -1,0 +1,42 @@
+{
+  "classes": 93,
+  "tests": 446,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 27,
+  "source_revision": "5b955d8",
+  "runtime": "Windows JDK 21; JVM production render suite",
+  "duration": "20m21s",
+  "skia_port_tests": 46,
+  "skia_failures": 0,
+  "neutrality_tests": 8,
+  "scope": "Earlier 5b955d8 checkpoint; full suite predates transit ink correction",
+  "negative_control": {
+    "source_revision": "94417f4",
+    "same_tests_and_helpers_as": "5b955d8",
+    "tests": 8,
+    "failures": 4,
+    "messages": [
+      "java.lang.AssertionError: Negative (outward) displacement: expected 0 non-neutral pixels (R==G==B), but found 2722 with maxDiff=7 expected:<0> but was:<2722>",
+      "java.lang.AssertionError: Held lens zero-dispersion grayscale ramp: expected 0 non-neutral pixels (R==G==B), but found 3792 with maxDiff=7 expected:<0> but was:<3792>",
+      "java.lang.AssertionError: Contrasting rim held lens zero-dispersion: expected 0 non-neutral pixels (R==G==B), but found 650 with maxDiff=202 expected:<0> but was:<650>",
+      "java.lang.AssertionError: Dark appearance held lens zero-dispersion: expected 0 non-neutral pixels (R==G==B), but found 3782 with maxDiff=7 expected:<0> but was:<3782>"
+    ]
+  },
+  "dotnet_checks": 16,
+  "dotnet_passed": true,
+  "dotnet_runtime": "Installed Microsoft.NETCore.App 8.0.32; build with private SDK 10",
+  "latest_candidate": {
+    "focused_tests": 12,
+    "failures": 0,
+    "blue_ink_negative_control": "2 false-green pixels before; zero after",
+    "full_suite": "pending",
+    "remaining_recordings": "pending",
+    "selector_tests": 19,
+    "selector_failures": 0,
+    "dotnet_checks": 16,
+    "dotnet_all_passed": true,
+    "strict_docs": "passed",
+    "repo_links": 157
+  }
+}

@@ -118,7 +118,7 @@ public static class CalmSelectorMaterial
                 values["uAberration"] = [split]; values["uInkSplit"] = [split * fold["inkSplitShare"]];
                 if (folded > 0)
                 {
-                    values["uAberration"] = [fold["movingDispersion"]]; values["uInkSplit"] = [fold["movingDispersion"] * fold["inkSplitShare"]];
+                    values["uAberration"] = [fold["movingDispersion"]]; values["uInkSplit"] = [fold["movingDispersion"] * fold["transitInkSplitShare"]];
                     values["uProfile"] = [fold["measuredProfile"]];
                     values["uFoldCorners"] = [fold["transitFoldCorners"]];
                 }

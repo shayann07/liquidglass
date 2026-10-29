@@ -21,6 +21,33 @@ import kotlin.test.assertTrue
  */
 class GlassShaderNeutralityTest {
 
+    @Test
+    fun calmTransitDoesNotTurnBlueSemanticInkIntoFalseGreenTeeth() {
+        val material = glassSelectorMaterial(GlassTabBarStyle.Calm(), .2f, .8f, 0f)
+        fun render(split: Float): IntArray {
+            val result = GlassEndpointRender.render(
+                width = 120, height = 60, pad = 24,
+                profile = 1f, formation = .8f, foldCorners = .2f,
+                rimMirror = .3f, rimMirrorGain = .15f,
+                inkSplit = split, aberration = .14f,
+                backdrop = { _, _ -> 0xFF000000.toInt() },
+                ink1 = { x, y -> if ((x / 3 + y / 5) % 3 == 0) 0xFF0897FF.toInt() else 0 },
+            )
+            return result.ink
+        }
+        fun falseGreen(pixels: IntArray) = pixels.count { p ->
+            val r = (p ushr 16) and 255
+            val g = (p ushr 8) and 255
+            val b = p and 255
+            g > 100 && r < 30 && b < 30
+        }
+        // Negative control: the previous authored transit share manufactures green ink from blue.
+        assertTrue(falseGreen(render(.14f * .3f)) > 0, "control must expose separated ink channels")
+        val actual = render(material.inkDispersion)
+        assertTrue(actual.any { (it and 255) > 100 }, "blue glyph coverage must remain")
+        assertEquals(0, falseGreen(actual), "Calm transit must preserve semantic ink colour")
+    }
+
     private fun checkNeutrality(
         pixels: IntArray,
         width: Int,

@@ -69,7 +69,7 @@ export function calmSelectorMaterial({dark = true, formation = 0, transit = 0, h
     // split rises from the still value with its travel, and its ink takes a share of it.
     const moving = DATA.fold.movingDispersion;
     const split = DATA.fold.dispersion + (DATA.fold.heldMovingDispersion - DATA.fold.dispersion) * clamp(heldTravel, 0, 1);
-    if (fold > 0) values = {...values, ...mirror, uAberration: moving, uInkSplit: moving * DATA.fold.inkSplitShare,
+    if (fold > 0) values = {...values, ...mirror, uAberration: moving, uInkSplit: moving * DATA.fold.transitInkSplitShare,
       uFoldCorners: DATA.fold.transitFoldCorners, uProfile: DATA.fold.measuredProfile};
     else if (style.tapOpticsFold > 0 && formation >= .5) values = {...values, ...mirror,
       uAberration: split, uInkSplit: split * DATA.fold.inkSplitShare};

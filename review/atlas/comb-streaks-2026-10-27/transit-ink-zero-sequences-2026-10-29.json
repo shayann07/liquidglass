@@ -1,0 +1,987 @@
+{
+  "roi_scene_rows_inclusive": [
+    470,
+    630
+  ],
+  "windows": [
+    {
+      "recording": "docs1",
+      "window": [
+        0.87,
+        1.02
+      ],
+      "summary": {
+        "base": {
+          "frames": 10,
+          "green_peak": 1162,
+          "neon_peak": 561,
+          "crushed_peak": 637
+        },
+        "candidate": {
+          "frames": 10,
+          "green_peak": 109,
+          "neon_peak": 0,
+          "crushed_peak": 0
+        },
+        "ios": {
+          "frames": 7,
+          "green_peak": 817,
+          "neon_peak": 0,
+          "crushed_peak": 127
+        }
+      },
+      "frames": [
+        {
+          "source": "base",
+          "frame": 52,
+          "seconds": 0.8666666666666667,
+          "green": 0,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "base",
+          "frame": 53,
+          "seconds": 0.8833333333333333,
+          "green": 0,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "base",
+          "frame": 54,
+          "seconds": 0.9,
+          "green": 85,
+          "neon": 0,
+          "crushed": 5
+        },
+        {
+          "source": "base",
+          "frame": 55,
+          "seconds": 0.9166666666666666,
+          "green": 154,
+          "neon": 29,
+          "crushed": 107
+        },
+        {
+          "source": "base",
+          "frame": 56,
+          "seconds": 0.9333333333333333,
+          "green": 0,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "base",
+          "frame": 57,
+          "seconds": 0.95,
+          "green": 281,
+          "neon": 189,
+          "crushed": 257
+        },
+        {
+          "source": "base",
+          "frame": 58,
+          "seconds": 0.9666666666666667,
+          "green": 461,
+          "neon": 212,
+          "crushed": 343
+        },
+        {
+          "source": "base",
+          "frame": 59,
+          "seconds": 0.9833333333333333,
+          "green": 1162,
+          "neon": 561,
+          "crushed": 637
+        },
+        {
+          "source": "base",
+          "frame": 60,
+          "seconds": 1.0,
+          "green": 665,
+          "neon": 259,
+          "crushed": 173
+        },
+        {
+          "source": "base",
+          "frame": 61,
+          "seconds": 1.0166666666666666,
+          "green": 281,
+          "neon": 57,
+          "crushed": 36
+        },
+        {
+          "source": "candidate",
+          "frame": 52,
+          "seconds": 0.8666666666666667,
+          "green": 109,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 53,
+          "seconds": 0.8833333333333333,
+          "green": 109,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 54,
+          "seconds": 0.9,
+          "green": 92,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 55,
+          "seconds": 0.9166666666666666,
+          "green": 105,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 56,
+          "seconds": 0.9333333333333333,
+          "green": 0,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 57,
+          "seconds": 0.95,
+          "green": 0,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 58,
+          "seconds": 0.9666666666666667,
+          "green": 0,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 59,
+          "seconds": 0.9833333333333333,
+          "green": 0,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 60,
+          "seconds": 1.0,
+          "green": 0,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 61,
+          "seconds": 1.0166666666666666,
+          "green": 0,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "ios",
+          "seconds": 0.905,
+          "green": 72,
+          "neon": 0,
+          "crushed": 105
+        },
+        {
+          "source": "ios",
+          "seconds": 0.9299999999999999,
+          "green": 72,
+          "neon": 0,
+          "crushed": 105
+        },
+        {
+          "source": "ios",
+          "seconds": 0.9466667,
+          "green": 342,
+          "neon": 0,
+          "crushed": 87
+        },
+        {
+          "source": "ios",
+          "seconds": 0.9633333,
+          "green": 817,
+          "neon": 0,
+          "crushed": 110
+        },
+        {
+          "source": "ios",
+          "seconds": 0.98,
+          "green": 760,
+          "neon": 0,
+          "crushed": 101
+        },
+        {
+          "source": "ios",
+          "seconds": 0.996667,
+          "green": 750,
+          "neon": 0,
+          "crushed": 125
+        },
+        {
+          "source": "ios",
+          "seconds": 1.013333,
+          "green": 616,
+          "neon": 0,
+          "crushed": 127
+        }
+      ]
+    },
+    {
+      "recording": "docs1",
+      "window": [
+        21.3,
+        21.43
+      ],
+      "summary": {
+        "base": {
+          "frames": 9,
+          "green_peak": 1065,
+          "neon_peak": 561,
+          "crushed_peak": 675
+        },
+        "candidate": {
+          "frames": 9,
+          "green_peak": 120,
+          "neon_peak": 0,
+          "crushed_peak": 0
+        },
+        "ios": {
+          "frames": 8,
+          "green_peak": 890,
+          "neon_peak": 0,
+          "crushed_peak": 137
+        }
+      },
+      "frames": [
+        {
+          "source": "base",
+          "frame": 1278,
+          "seconds": 21.3,
+          "green": 93,
+          "neon": 0,
+          "crushed": 1
+        },
+        {
+          "source": "base",
+          "frame": 1279,
+          "seconds": 21.316666666666666,
+          "green": 156,
+          "neon": 76,
+          "crushed": 127
+        },
+        {
+          "source": "base",
+          "frame": 1280,
+          "seconds": 21.333333333333332,
+          "green": 0,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "base",
+          "frame": 1281,
+          "seconds": 21.35,
+          "green": 265,
+          "neon": 222,
+          "crushed": 361
+        },
+        {
+          "source": "base",
+          "frame": 1282,
+          "seconds": 21.366666666666667,
+          "green": 450,
+          "neon": 202,
+          "crushed": 407
+        },
+        {
+          "source": "base",
+          "frame": 1283,
+          "seconds": 21.383333333333333,
+          "green": 1065,
+          "neon": 561,
+          "crushed": 675
+        },
+        {
+          "source": "base",
+          "frame": 1284,
+          "seconds": 21.4,
+          "green": 660,
+          "neon": 268,
+          "crushed": 192
+        },
+        {
+          "source": "base",
+          "frame": 1285,
+          "seconds": 21.416666666666668,
+          "green": 243,
+          "neon": 56,
+          "crushed": 29
+        },
+        {
+          "source": "base",
+          "frame": 1286,
+          "seconds": 21.433333333333334,
+          "green": 432,
+          "neon": 92,
+          "crushed": 365
+        },
+        {
+          "source": "candidate",
+          "frame": 1278,
+          "seconds": 21.3,
+          "green": 109,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 1279,
+          "seconds": 21.316666666666666,
+          "green": 102,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 1280,
+          "seconds": 21.333333333333332,
+          "green": 120,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 1281,
+          "seconds": 21.35,
+          "green": 0,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 1282,
+          "seconds": 21.366666666666667,
+          "green": 0,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 1283,
+          "seconds": 21.383333333333333,
+          "green": 0,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 1284,
+          "seconds": 21.4,
+          "green": 0,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 1285,
+          "seconds": 21.416666666666668,
+          "green": 0,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 1286,
+          "seconds": 21.433333333333334,
+          "green": 0,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "ios",
+          "seconds": 21.310000000000002,
+          "green": 0,
+          "neon": 0,
+          "crushed": 81
+        },
+        {
+          "source": "ios",
+          "seconds": 21.3266667,
+          "green": 0,
+          "neon": 0,
+          "crushed": 57
+        },
+        {
+          "source": "ios",
+          "seconds": 21.3433333,
+          "green": 32,
+          "neon": 0,
+          "crushed": 39
+        },
+        {
+          "source": "ios",
+          "seconds": 21.36,
+          "green": 164,
+          "neon": 0,
+          "crushed": 44
+        },
+        {
+          "source": "ios",
+          "seconds": 21.3766667,
+          "green": 665,
+          "neon": 0,
+          "crushed": 79
+        },
+        {
+          "source": "ios",
+          "seconds": 21.393333300000002,
+          "green": 890,
+          "neon": 0,
+          "crushed": 116
+        },
+        {
+          "source": "ios",
+          "seconds": 21.41,
+          "green": 593,
+          "neon": 0,
+          "crushed": 137
+        },
+        {
+          "source": "ios",
+          "seconds": 21.426667000000002,
+          "green": 539,
+          "neon": 0,
+          "crushed": 86
+        }
+      ]
+    },
+    {
+      "recording": "JGEY2190",
+      "window": [
+        4.67,
+        4.82
+      ],
+      "summary": {
+        "base": {
+          "frames": 10,
+          "green_peak": 1135,
+          "neon_peak": 756,
+          "crushed_peak": 688
+        },
+        "candidate": {
+          "frames": 10,
+          "green_peak": 128,
+          "neon_peak": 0,
+          "crushed_peak": 49
+        },
+        "ios": {
+          "frames": 8,
+          "green_peak": 978,
+          "neon_peak": 0,
+          "crushed_peak": 216
+        }
+      },
+      "frames": [
+        {
+          "source": "base",
+          "frame": 280,
+          "seconds": 4.666666666666667,
+          "green": 431,
+          "neon": 153,
+          "crushed": 294
+        },
+        {
+          "source": "base",
+          "frame": 281,
+          "seconds": 4.683333333333334,
+          "green": 0,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "base",
+          "frame": 282,
+          "seconds": 4.7,
+          "green": 0,
+          "neon": 0,
+          "crushed": 2
+        },
+        {
+          "source": "base",
+          "frame": 283,
+          "seconds": 4.716666666666667,
+          "green": 399,
+          "neon": 207,
+          "crushed": 245
+        },
+        {
+          "source": "base",
+          "frame": 284,
+          "seconds": 4.733333333333333,
+          "green": 1135,
+          "neon": 756,
+          "crushed": 688
+        },
+        {
+          "source": "base",
+          "frame": 285,
+          "seconds": 4.75,
+          "green": 352,
+          "neon": 151,
+          "crushed": 195
+        },
+        {
+          "source": "base",
+          "frame": 286,
+          "seconds": 4.766666666666667,
+          "green": 373,
+          "neon": 223,
+          "crushed": 196
+        },
+        {
+          "source": "base",
+          "frame": 287,
+          "seconds": 4.783333333333333,
+          "green": 349,
+          "neon": 196,
+          "crushed": 339
+        },
+        {
+          "source": "base",
+          "frame": 288,
+          "seconds": 4.8,
+          "green": 366,
+          "neon": 65,
+          "crushed": 188
+        },
+        {
+          "source": "base",
+          "frame": 289,
+          "seconds": 4.816666666666666,
+          "green": 419,
+          "neon": 132,
+          "crushed": 173
+        },
+        {
+          "source": "candidate",
+          "frame": 280,
+          "seconds": 4.666666666666667,
+          "green": 0,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 281,
+          "seconds": 4.683333333333334,
+          "green": 100,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 282,
+          "seconds": 4.7,
+          "green": 101,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 283,
+          "seconds": 4.716666666666667,
+          "green": 114,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 284,
+          "seconds": 4.733333333333333,
+          "green": 101,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 285,
+          "seconds": 4.75,
+          "green": 101,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 286,
+          "seconds": 4.766666666666667,
+          "green": 128,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 287,
+          "seconds": 4.783333333333333,
+          "green": 103,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 288,
+          "seconds": 4.8,
+          "green": 106,
+          "neon": 0,
+          "crushed": 5
+        },
+        {
+          "source": "candidate",
+          "frame": 289,
+          "seconds": 4.816666666666666,
+          "green": 117,
+          "neon": 0,
+          "crushed": 49
+        },
+        {
+          "source": "ios",
+          "seconds": 4.67,
+          "green": 0,
+          "neon": 0,
+          "crushed": 216
+        },
+        {
+          "source": "ios",
+          "seconds": 4.6866667,
+          "green": 173,
+          "neon": 0,
+          "crushed": 192
+        },
+        {
+          "source": "ios",
+          "seconds": 4.7033333,
+          "green": 978,
+          "neon": 0,
+          "crushed": 46
+        },
+        {
+          "source": "ios",
+          "seconds": 4.7366667,
+          "green": 494,
+          "neon": 0,
+          "crushed": 71
+        },
+        {
+          "source": "ios",
+          "seconds": 4.7533332999999995,
+          "green": 211,
+          "neon": 0,
+          "crushed": 51
+        },
+        {
+          "source": "ios",
+          "seconds": 4.77,
+          "green": 100,
+          "neon": 0,
+          "crushed": 27
+        },
+        {
+          "source": "ios",
+          "seconds": 4.786667,
+          "green": 0,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "ios",
+          "seconds": 4.803333,
+          "green": 19,
+          "neon": 0,
+          "crushed": 31
+        }
+      ]
+    },
+    {
+      "recording": "JGEY2190",
+      "window": [
+        40.48,
+        40.63
+      ],
+      "summary": {
+        "base": {
+          "frames": 10,
+          "green_peak": 842,
+          "neon_peak": 410,
+          "crushed_peak": 424
+        },
+        "candidate": {
+          "frames": 10,
+          "green_peak": 102,
+          "neon_peak": 0,
+          "crushed_peak": 28
+        },
+        "ios": {
+          "frames": 10,
+          "green_peak": 503,
+          "neon_peak": 0,
+          "crushed_peak": 430
+        }
+      },
+      "frames": [
+        {
+          "source": "base",
+          "frame": 2429,
+          "seconds": 40.483333333333334,
+          "green": 172,
+          "neon": 9,
+          "crushed": 11
+        },
+        {
+          "source": "base",
+          "frame": 2430,
+          "seconds": 40.5,
+          "green": 37,
+          "neon": 3,
+          "crushed": 12
+        },
+        {
+          "source": "base",
+          "frame": 2431,
+          "seconds": 40.516666666666666,
+          "green": 0,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "base",
+          "frame": 2432,
+          "seconds": 40.53333333333333,
+          "green": 166,
+          "neon": 69,
+          "crushed": 75
+        },
+        {
+          "source": "base",
+          "frame": 2433,
+          "seconds": 40.55,
+          "green": 673,
+          "neon": 261,
+          "crushed": 252
+        },
+        {
+          "source": "base",
+          "frame": 2434,
+          "seconds": 40.56666666666667,
+          "green": 842,
+          "neon": 410,
+          "crushed": 424
+        },
+        {
+          "source": "base",
+          "frame": 2435,
+          "seconds": 40.583333333333336,
+          "green": 542,
+          "neon": 196,
+          "crushed": 157
+        },
+        {
+          "source": "base",
+          "frame": 2436,
+          "seconds": 40.6,
+          "green": 297,
+          "neon": 62,
+          "crushed": 39
+        },
+        {
+          "source": "base",
+          "frame": 2437,
+          "seconds": 40.61666666666667,
+          "green": 364,
+          "neon": 60,
+          "crushed": 192
+        },
+        {
+          "source": "base",
+          "frame": 2438,
+          "seconds": 40.63333333333333,
+          "green": 469,
+          "neon": 50,
+          "crushed": 176
+        },
+        {
+          "source": "candidate",
+          "frame": 2429,
+          "seconds": 40.483333333333334,
+          "green": 97,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 2430,
+          "seconds": 40.5,
+          "green": 102,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 2431,
+          "seconds": 40.516666666666666,
+          "green": 0,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 2432,
+          "seconds": 40.53333333333333,
+          "green": 0,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 2433,
+          "seconds": 40.55,
+          "green": 0,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 2434,
+          "seconds": 40.56666666666667,
+          "green": 0,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 2435,
+          "seconds": 40.583333333333336,
+          "green": 0,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 2436,
+          "seconds": 40.6,
+          "green": 0,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 2437,
+          "seconds": 40.61666666666667,
+          "green": 0,
+          "neon": 0,
+          "crushed": 0
+        },
+        {
+          "source": "candidate",
+          "frame": 2438,
+          "seconds": 40.63333333333333,
+          "green": 0,
+          "neon": 0,
+          "crushed": 28
+        },
+        {
+          "source": "ios",
+          "seconds": 40.48,
+          "green": 0,
+          "neon": 0,
+          "crushed": 71
+        },
+        {
+          "source": "ios",
+          "seconds": 40.4966667,
+          "green": 344,
+          "neon": 0,
+          "crushed": 187
+        },
+        {
+          "source": "ios",
+          "seconds": 40.5133333,
+          "green": 503,
+          "neon": 0,
+          "crushed": 124
+        },
+        {
+          "source": "ios",
+          "seconds": 40.529999999999994,
+          "green": 109,
+          "neon": 0,
+          "crushed": 145
+        },
+        {
+          "source": "ios",
+          "seconds": 40.546666699999996,
+          "green": 143,
+          "neon": 0,
+          "crushed": 4
+        },
+        {
+          "source": "ios",
+          "seconds": 40.5633333,
+          "green": 144,
+          "neon": 0,
+          "crushed": 120
+        },
+        {
+          "source": "ios",
+          "seconds": 40.58,
+          "green": 143,
+          "neon": 0,
+          "crushed": 80
+        },
+        {
+          "source": "ios",
+          "seconds": 40.596667,
+          "green": 155,
+          "neon": 0,
+          "crushed": 322
+        },
+        {
+          "source": "ios",
+          "seconds": 40.613333,
+          "green": 131,
+          "neon": 0,
+          "crushed": 96
+        },
+        {
+          "source": "ios",
+          "seconds": 40.629999999999995,
+          "green": 34,
+          "neon": 0,
+          "crushed": 430
+        }
+      ]
+    }
+  ],
+  "provenance": {
+    "baseline": "0cbd5e2, calm",
+    "candidate_source": "5b955d8",
+    "candidate_variant": "calm+fringe=0.08,0.14,0.2,0.3,0.15,0,0.14,0",
+    "renderer": "Direct3D NVIDIA RTX 3050 Laptop 6GB",
+    "input": "same script3.txt per paired recording; inferred input",
+    "limits": "Diagnostic masks, not full optical parity; production default replay and other recordings remain pending"
+  }
+}

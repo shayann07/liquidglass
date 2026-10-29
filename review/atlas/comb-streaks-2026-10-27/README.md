@@ -1,3 +1,23 @@
+## PAUSED at owner request — 29 October 2026
+
+Current local candidate adds transit-only semantic ink share 0 (held ink share remains .3).
+Same-input replays of docs1 and JGEY2190 give zero neon pixels in all four #124 windows;
+previous 5b955d8 repair still peaked at 98-170. Source iOS also has zero in that mask.
+The new blue-ink regression failed before (2 false-green pixels), passes after. All 12
+focused shader/material/export checks pass. Fixtures and Skia/npm/React Native copies rebuilt.
+
+IMPORTANT: full-suite 419 passes / 27 skips, 46 Skia and 16 .NET passes belong to prior
+5b955d8, BEFORE this transit-ink change. The final candidate still needs the full suite,
+remaining-recording checks (docs2/IMG_6756/LOLL8185), physical qualification, and #131
+integration checks. It must not be marked merge-ready or claimed full parity.
+
+Resume: finish final port checks, run full JVM suite, replay remaining recordings with
+matched scripts and compare held/refraction/fringe/landing behavior. Reuse completed
+replays under `.local/qualification-2026-10-29/replays[-zero]`; do not overwrite them.
+Claude independently reviews and merges. No tag/release. No active Gradle job at pause.
+
+See [matched sequence measurements](transit-ink-zero-sequences-2026-10-29.json).
+
 # Comb Streaks (#124) and Channel Crush (#108) Fix — 27 October 2026
 
 Issues [#124](https://github.com/shayann07/liquidglass/issues/124) (comb streaks during tap transits) and [#108](https://github.com/shayann07/liquidglass/issues/108) (channel crush at lens rim), from the [iOS parity audit](../ios-audit-2026-10-26/README.md).
@@ -57,7 +77,23 @@ Because the held lens has negative outward `shift`, clamping red displacement to
      - Nonzero dispersion preserving intended chromatic fringes.
      - Semantic ink pass neutrality and comb streak prevention.
 
-## Verification & Measurements
+## Independent verification status — 29 October 2026
+
+The saved PNGs below were introduced at `a254a87`, before the shader repair at `5b955d8`.
+They are historical evidence of the original proposal, not captures of the repaired shader.
+Independent pixel counting reproduces their crop totals (neon 198 to 36; crushed 172 to 50),
+but this does not validate the explanation that the remaining neon pixels are legitimate
+anti-aliasing. Fresh candidate replays and original-source comparisons remain required.
+
+At `5b955d8`, eight shader-neutrality tests and all 46 Skia port tests passed independently
+on 29 October. The full JVM suite passed: 446 tests, 419 passed, 27 skipped, zero failures/errors
+in 20m21s (93 classes). [Independent totals](independent-tests-2026-10-29.json). Hosted CI at remote
+`94417f4` fails the .NET material fixture (uInkSplit 0.14 versus expected 0.042000003).
+The original remote shader at `94417f4`, compiled with the same test helpers, fails four
+of eight neutrality tests (including 2,722 non-neutral pixels in the negative-displacement
+case); repaired `5b955d8` passes all eight. Claude must review final code/evidence before merging.
+
+## Historical verification claims (pending independent replay)
 
 ### 1. Defect Sequence Evaluation (#124)
 Evaluated across complete recorded defect sequences comparing un-fixed main baseline `n6` (2a7c7b0), 20 Oct baseline `p20`, and decoded iOS reference frames:

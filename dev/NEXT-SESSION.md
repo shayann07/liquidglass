@@ -1,3 +1,33 @@
+## PAUSED at owner request — 29 October 2026
+
+Current local candidate adds transit-only semantic ink share 0 (held ink share remains .3).
+Same-input replays of docs1 and JGEY2190 give zero neon pixels in all four #124 windows;
+previous 5b955d8 repair still peaked at 98-170. Source iOS also has zero in that mask.
+The new blue-ink regression failed before (2 false-green pixels), passes after. All 12
+focused shader/material/export checks, 19 selector tests and 16 .NET checks pass. Fixtures and Skia/npm/React Native copies rebuilt.
+
+IMPORTANT: full-suite 419 passes / 27 skips, 46 Skia and 16 .NET passes belong to prior
+5b955d8, BEFORE this transit-ink change. The final candidate still needs the full suite,
+remaining-recording checks (docs2/IMG_6756/LOLL8185), physical qualification, and #131
+integration checks. It must not be marked merge-ready or claimed full parity.
+
+Resume: finish final port checks, run full JVM suite, replay remaining recordings with
+matched scripts and compare held/refraction/fringe/landing behavior. Reuse completed
+replays under `.local/qualification-2026-10-29/replays[-zero]`; do not overwrite them.
+Claude independently reviews and merges. No tag/release. No active Gradle job at pause.
+
+## 29 October independent verification — current
+
+Candidate 5b955d8 passed eight neutrality tests, 46 Skia port tests and the full JVM suite:
+446 total, 419 passed, 27 skipped, zero failures/errors in 20m21s. Saved summary and log
+under `.local/qualification-2026-10-29/`. Original-PR negative control is now running in
+verify130-original; no second Gradle build until it exits.
+Saved PNGs belong to original a254a87, not repaired 5b955d8. Re-render complete defect
+windows with exact source/script identity before claiming visual completion.
+Original remote 94417f4 negative-control worktree is prepared at sibling verify130-original
+with identical test helpers; run its neutrality suite after the current full run finishes.
+Owner authorizes commits/pushes/PRs and measured default corrections; Claude reviews/merges.
+
 # Resume LiquidGlass / Atlas Studio
 
 ## BASELINE (27 Oct, before the Antigravity / Flash hand-off): compare all new work against this

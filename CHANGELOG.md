@@ -1,3 +1,9 @@
+<!-- Development checkpoint: not release acceptance. -->
+
+Transit ink candidate (29 October): preserve blue semantic glyph colour during tap folds;
+material dispersion and held ink remain separate. Four reported neon-proxy windows and
+12 focused checks pass; full suite and broader device/recording qualification remain pending.
+
 # Changelog
 
 This file records user-visible development changes. Published artifacts are identified separately;

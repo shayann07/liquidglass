@@ -2262,7 +2262,7 @@ internal fun glassSelectorMaterial(style: GlassTabBarStyle, formation: Float, tr
     val transitSoft = fringe?.getOrNull(5) ?: GlassSelectorTransitRimSoft
     val heldMoving = fringe?.getOrNull(6) ?: GlassSelectorHeldFringeMoving
     return if (glassSelectorFold(style, formation, transitAppearance) > 0f)
-        material.copy(profile = GlassProfile.Measured, foldAtCorners = foldCorners, rimMirror = rimMirror, rimMirrorGain = rimGain, dispersion = moving, inkDispersion = moving * (fringe?.getOrNull(7) ?: GlassSelectorInkSplitShare),
+        material.copy(profile = GlassProfile.Measured, foldAtCorners = foldCorners, rimMirror = rimMirror, rimMirrorGain = rimGain, dispersion = moving, inkDispersion = moving * (fringe?.getOrNull(7) ?: GlassSelectorTransitInkSplitShare),
             rimSoftness = if (transitSoft > 0f) transitSoft.dp else material.rimSoftness)
     // A held lens keeps the measured held map when still and blends toward the same rim mirror
     // at its caps as it travels ([glassSelectorFormation] carries the travel amount).
@@ -2294,6 +2294,10 @@ internal const val GlassSelectorTransitRimSoft = 0f
 /** The share of the rim split the selected ink takes: iOS's ink stays clean inside a held lens; the full
  * split drew a dark ring round each icon (LOLL8185 22.2 s, 26 October). Authored. */
 internal const val GlassSelectorInkSplitShare = 0.3f
+/** Authored correction scored on all four #124 defect windows (29 October): independent
+ * ink-channel sampling manufactures neon green from blue glyphs. Keep transit ink sharp;
+ * the panel's material dispersion and the held ink share remain independent. */
+internal const val GlassSelectorTransitInkSplitShare = 0f
 /** The rim split at full motion: a tap in transit, a held lens at full travel (#73). */
 internal const val GlassSelectorRimFringeMoving = 0.14f
 /** How far the unheld transit fold is confined to the caps (1) rather than running along the
