@@ -24,7 +24,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -39,7 +41,7 @@ import com.wexpa.liquidglass.GlassStyle
 import kotlin.reflect.KClass
 
 /**
- * The sample's front door: three screens, each reached through a panel that is itself the
+ * The sample's front door: screens reached through a panel that is itself the
  * material. Nothing here is a bespoke glass component. Every panel is a `Column` with
  * `Modifier.glassEffect(Glass(GlassStyle.Regular), RectangleShape)` on it, and the state comes from the scene.
  */
@@ -69,6 +71,7 @@ private fun Home(open: (KClass<out Activity>) -> Unit) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .safeDrawingPadding()
                 .padding(horizontal = 20.dp, vertical = 24.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -91,7 +94,7 @@ private fun Home(open: (KClass<out Activity>) -> Unit) {
                     style = TextStyle(color = Color.White.copy(alpha = 0.85f), fontSize = 14.sp),
                 )
             }
-            Spacer(Modifier.weight(1f))
+            Spacer(Modifier.height(4.dp))
 
             Door(
                 title = "Gallery",
@@ -111,6 +114,12 @@ private fun Home(open: (KClass<out Activity>) -> Unit) {
                     "bespoke component.",
                 style = GlassStyle.Chrome,
             ) { open(MaterialConversionActivity::class) }
+            Door(
+                title = "Android XML Views",
+                detail = "LiquidGlassView and LiquidGlassHostView in an XML layout, refracting a " +
+                    "scrolling Android ScrollView with selective touch pass-through.",
+                style = GlassStyle.Regular,
+            ) { open(XmlInteropActivity::class) }
             Door(
                 title = "Optics",
                 detail = "Rim softening, tint as an absorbing medium and the dome field, each " +

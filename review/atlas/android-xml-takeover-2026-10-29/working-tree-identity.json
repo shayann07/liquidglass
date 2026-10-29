@@ -1,0 +1,73 @@
+{
+  "baseCommit": "1fb561cffda149d3e46bff9adf27d139eec1dbb3",
+  "branch": "codex/xml-interop-takeover",
+  "status": "tested working-tree snapshot; prepared for maintainer commit and Claude review; not merged",
+  "sourceFiles": {
+    "liquidglass/src/androidMain/kotlin/com/wexpa/liquidglass/GlassViewEffect.android.kt": "190efeb4bceadea84cf01c65fdf66cb056ea2e8d339cd189073fe904835765c7",
+    "liquidglass/src/androidMain/kotlin/com/wexpa/liquidglass/GlassNativeRenderer.android.kt": "34ed8e1504b9d7fa8d315d5ceb26275c57e305eddc73139204bc7ed38479f628",
+    "apps/sample/src/androidTest/kotlin/com/wexpa/liquidglass/sample/GlassBackdropHardwareTest.kt": "650ca6a26557c7d41c8fb4f7ea62b7a3a2f308212c5f6e8d2c5d8216f81a6dac",
+    "apps/sample/build.gradle.kts": "dabf4c16c59ff1ce25769f9933ee74dd49153d0c20d992e05f870e86946974a3"
+  },
+  "apkSha256": "26468c11901a7424c6d1b81ba10005692edfe413e6242938408795c8f409924e",
+  "testApkSha256": "8ccaf2fbde1b256966acaba7413930d2c38bdce2a860c5014992729ac438cf62",
+  "applicationId": "com.wexpa.liquidglass.sample.qualification",
+  "s24": {
+    "api": 36,
+    "tests": 37,
+    "passed": 37,
+    "seconds": 27.421
+  },
+  "api32": {
+    "tests": 3,
+    "passed": 3,
+    "seconds": 4.278
+  },
+  "api28": {
+    "tests": 3,
+    "passed": 3,
+    "seconds": 10.4
+  },
+  "nativeComposeInterior": {
+    "rgbMAE": 0.41659722222222223,
+    "channelSamples": 28800,
+    "tolerance": 3,
+    "range": "0..255"
+  },
+  "jvm": {
+    "suites": 92,
+    "tests": 438,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 27
+  },
+  "negativeControls": {
+    "clickBefore": "1 test, 1 expected failure",
+    "api32AlphaBefore": "1 test, 1 expected failure; channel 155 instead of 218"
+  },
+  "calibration": {
+    "matchedImages": 24,
+    "pixelIdentical": 24,
+    "reference": "research/analysis/closeout/phase3/render_legacy/library",
+    "scope": "historical calibration regression; not full iOS parity"
+  },
+  "screenshots": {
+    "parity-compose.png": "36719480ffa9fc4d2b2fcc08431715f7dfb41a1e2b81f6d752a8d30f998fdd4a",
+    "parity-native.png": "a7d2a125fb5ce90dd986812ab48336172285f79e0dfc540c17e9d8d8934e3c21",
+    "xml-final-s24.png": "202b1b0de9ed5e169f9aba11c8804bd84b655c11bf223cf3b683c9181612d3e4"
+  },
+  "motion": {
+    "docs2Frames": 2153,
+    "searchFrames": 2041,
+    "byteIdenticalFrames": 4194,
+    "traceDifferences": 0,
+    "baseCommit": "0cbd5e24058d2fb3fffe45b72cd07915d4dcea6f",
+    "scriptHashesRecordedIn": "motion/runs.json",
+    "comparisonToolNegativeControls": "one pixel and one unit trace mutation both rejected"
+  },
+  "sourceLFNormalizedSha256": {
+    "liquidglass/src/androidMain/kotlin/com/wexpa/liquidglass/GlassViewEffect.android.kt": "e3983b1e1a2b23356b3da15bba2169ce60cb9d75549e3ef1d007e5b2711344ea",
+    "liquidglass/src/androidMain/kotlin/com/wexpa/liquidglass/GlassNativeRenderer.android.kt": "e2abc92cbe436d1355fe0975dce05298c11e756347ec86e07442149c27e17f25",
+    "apps/sample/src/androidTest/kotlin/com/wexpa/liquidglass/sample/GlassBackdropHardwareTest.kt": "b8ef0a26e9986bc6a99bd66548ccadb906314f841d93dc59344f99200ba78020",
+    "apps/sample/build.gradle.kts": "898f593b70facde9514e1fccb17850cfe95d8cc12ad1da45d2706872065972ce"
+  }
+}

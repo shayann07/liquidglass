@@ -7,6 +7,8 @@ research remains available; this page identifies which later changes supersede i
 
 ## Main after 1.0 (24 October)
 
+- 26 October: Android XML View interop (`LiquidGlassView`, `LiquidGlassHostView`, `LiveViewBackdrop`, `Modifier.glassHitTarget`): declarative XML glass containers and selective touch pass-through overlays over Android `View` hierarchies, verified on a Samsung Galaxy S24+ (AGSL).
+  [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/android-xml-interop-2026-10-26/README.md).
 - 26 October: the held lens's outline is a squircle (a .7 blend toward n = 3, the exponent iOS's lens fits),
   not a capsule; its width profile against iOS moves from 27.5 to 7.1 px rms.
   [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/lens-squircle-2026-10-26/README.md).
@@ -453,3 +455,9 @@ size/backend, captions that distinguish measured source from candidate output, r
 and an exact verification record. Failed attempts stay labelled and historical claims retain their
 original scope. Raw/private recordings and full profile traces stay outside the published site.
 The maintainer checklist is in [CONTRIBUTING](https://github.com/shayann07/liquidglass/blob/main/CONTRIBUTING.md).
+
+
+<!-- XML interop takeover, 2026-10-29 -->
+Android View interop correction: interactive effects preserve application clickability, and drawable opacity fades the complete native/fallback output once. Independently checked on physical S24+ API 36 and focused API 28/32 emulators; shared JVM rendering and original calibration-target regressions pass. Qualification is local; see `review/atlas/android-xml-takeover-2026-10-29/README.md` for provenance and limits.
+
+The completed motion regression compares 4,194 frames from full docs2 and IMG_6756 Search scripts against freshly rendered merge-base output: all frames and motion traces match exactly. The physical Android suite now passes 37 tests, including scrolling, child invalidation and detach/reattach across all three consumer paths. The existing Search brightness gap from iOS remains a shared-material limitation.

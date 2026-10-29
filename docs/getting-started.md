@@ -170,6 +170,10 @@ GlassTabBar(itemCount = 3, selectedIndex = selected, onSelected = { selected = i
 
 It needs the `LiquidGlassTheme` above it and takes no state. See the [tab bar guide](tab-bar.md).
 
+## Android XML Views
+
+In an existing Android XML or ViewBinding layout (`Fragment`, `Activity`, `ConstraintLayout`, `CoordinatorLayout`, `RecyclerView`), use `LiquidGlassView` to wrap XML child views in a refracting glass container directly in XML, or `LiquidGlassHostView` to float interactive Compose glass controls (`GlassTabBar`, FABs, menus) over an Android `View` hierarchy with selective touch pass-through (`Modifier.glassHitTarget`). See [Liquid Glass for Android](for/android.md#android-xml-and-view-layouts) and the [API reference](api-reference.md#android-xml-view-interop).
+
 ## Below Android 13
 
 `RuntimeShader` — and therefore the whole optical path — is API 33+. Below that the material

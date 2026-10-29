@@ -1,3 +1,7 @@
+## 29 October: XML interop takeover locally qualified
+
+`codex/xml-interop-takeover` from `1fb561c`: clickability and grouped opacity fixed; full JVM 411 passed/27 skipped, physical S24+ 37/37, API 32 and 28 focused 3/3 each. Original defects reproduced by negative controls. Native/Compose interior RGB MAE 0.417/255; 24 calibration images unchanged. Fresh complete docs2 and Search motion runs: all 4,194 frames byte-identical to the freshly rendered merge base; zero motion trace differences. Decoded iOS measurements and inherited brightness gap recorded. See `review/atlas/android-xml-takeover-2026-10-29/README.md` for exact scope and source hashes. Owner authorized packaging/pushing the verified candidate for Claude's independent review and merge. No release authorized. Primary-checkout optical experiments untouched.
+
 # LiquidGlass / Atlas delivery checklist
 
 Updated 2026-10-14. Start with [NEXT-SESSION.md](NEXT-SESSION.md). Checked entries describe

@@ -272,7 +272,7 @@ internal class GlassOverlayEntry(
 }
 
 @Composable
-private fun GlassOverlay(region: GlassRegion, modifier: Modifier) {
+internal fun GlassOverlay(region: GlassRegion, modifier: Modifier) {
     Box(modifier) {
         for (layer in region.layers) key(layer) {
             when (layer) {

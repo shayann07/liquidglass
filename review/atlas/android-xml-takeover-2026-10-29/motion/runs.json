@@ -1,0 +1,30 @@
+[
+  {
+    "case": "docs2",
+    "label": "base",
+    "script": "D:\\Work\\AndroidStudioProjects\\SideProjects\\kmp\\liquidglass\\.local\\sxs\\ref\\docs2\\script.txt",
+    "scriptSha256": "176d2e3550f77029696daf4c387cee66b2f62635039cc80f494056758f88f6da",
+    "exitCode": 0
+  },
+  {
+    "case": "docs2",
+    "label": "candidate",
+    "script": "D:\\Work\\AndroidStudioProjects\\SideProjects\\kmp\\liquidglass\\.local\\sxs\\ref\\docs2\\script.txt",
+    "scriptSha256": "176d2e3550f77029696daf4c387cee66b2f62635039cc80f494056758f88f6da",
+    "exitCode": 0
+  },
+  {
+    "case": "search",
+    "label": "base",
+    "script": "D:\\Work\\AndroidStudioProjects\\SideProjects\\kmp\\liquidglass\\.local\\sxs\\ref\\IMG_6756\\search-script.txt",
+    "scriptSha256": "f04f24bcd3edcdb66c53f91fe1a49aa780aad9cab023cc9e7b497e7cd0df28b2",
+    "exitCode": 0
+  },
+  {
+    "case": "search",
+    "label": "candidate",
+    "script": "D:\\Work\\AndroidStudioProjects\\SideProjects\\kmp\\liquidglass\\.local\\sxs\\ref\\IMG_6756\\search-script.txt",
+    "scriptSha256": "f04f24bcd3edcdb66c53f91fe1a49aa780aad9cab023cc9e7b497e7cd0df28b2",
+    "exitCode": 0
+  }
+]

@@ -43,6 +43,9 @@
         <activity
             android:name=".PhoneActivity"
             android:exported="true" />
+        <activity
+            android:name=".XmlInteropActivity"
+            android:exported="true" />
     </application>
 
 </manifest>

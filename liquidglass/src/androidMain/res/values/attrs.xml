@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="liquidGlassBackdrop" format="reference" />
+    <attr name="liquidGlassBackdropMargin" format="dimension" />
+    <attr name="liquidGlassCaptureFullBounds" format="boolean" />
+    <attr name="liquidGlassDark" format="enum">
+        <enum name="auto" value="0" />
+        <enum name="light" value="1" />
+        <enum name="dark" value="2" />
+    </attr>
+    <attr name="liquidGlassBackground" format="color" />
+    <attr name="liquidGlassPreset" format="enum">
+        <enum name="regular" value="0" />
+        <enum name="clear" value="1" />
+        <enum name="toolbar" value="2" />
+        <enum name="tabBar" value="3" />
+        <enum name="chrome" value="4" />
+        <enum name="lens" value="5" />
+        <enum name="identity" value="6" />
+    </attr>
+    <attr name="liquidGlassShape" format="enum">
+        <enum name="capsule" value="0" />
+        <enum name="circle" value="1" />
+        <enum name="rounded" value="2" />
+        <enum name="squircle" value="3" />
+    </attr>
+    <attr name="liquidGlassCornerRadius" format="dimension" />
+    <attr name="liquidGlassCornerPower" format="float" />
+    <attr name="liquidGlassTint" format="color" />
+    <attr name="liquidGlassInteractive" format="boolean" />
+    <attr name="liquidGlassLensMagnification" format="float" />
+
+    <declare-styleable name="GlassBackdrop">
+    </declare-styleable>
+
+    <declare-styleable name="LiquidGlassHostView">
+        <attr name="liquidGlassBackdrop" />
+        <attr name="liquidGlassBackdropMargin" />
+        <attr name="liquidGlassCaptureFullBounds" />
+        <attr name="liquidGlassDark" />
+        <attr name="liquidGlassBackground" />
+    </declare-styleable>
+
+    <declare-styleable name="LiquidGlassView">
+        <attr name="liquidGlassBackdrop" />
+        <attr name="liquidGlassDark" />
+        <attr name="liquidGlassBackground" />
+        <attr name="liquidGlassPreset" />
+        <attr name="liquidGlassShape" />
+        <attr name="liquidGlassCornerRadius" />
+        <attr name="liquidGlassCornerPower" />
+        <attr name="liquidGlassTint" />
+        <attr name="liquidGlassInteractive" />
+        <attr name="liquidGlassLensMagnification" />
+    </declare-styleable>
+</resources>

@@ -58,9 +58,9 @@ private val runtimeShader: RuntimeShader? by lazy {
     else runCatching { RuntimeShader(GLASS_SHADER_SOURCE) }.getOrNull()
 }
 
-internal actual fun createGlassRenderEffect(
+internal fun createAndroidGlassRenderEffect(
     uniforms: GlassUniforms,
-): androidx.compose.ui.graphics.RenderEffect? {
+): RenderEffect? {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return null
     val shader = runtimeShader ?: return null
     if (uniforms.width <= 0f || uniforms.height <= 0f) return null
@@ -189,11 +189,16 @@ internal actual fun createGlassRenderEffect(
         RenderEffect.createChainEffect(
             glass,
             RenderEffect.createBlurEffect(radius, radius, Shader.TileMode.CLAMP),
-        ).asComposeRenderEffect()
+        )
     } else {
-        glass.asComposeRenderEffect()
+        glass
     }
 }
+
+internal actual fun createGlassRenderEffect(
+    uniforms: GlassUniforms,
+): androidx.compose.ui.graphics.RenderEffect? =
+    createAndroidGlassRenderEffect(uniforms)?.asComposeRenderEffect()
 
 /**
  * Android's blur takes a radius and turns it into a Gaussian sigma of `0.57735 * radius + 0.5`
@@ -206,11 +211,15 @@ private fun platformBlurRadius(sigma: Float, radius: Float): Float =
 internal actual fun platformBlurRadiusForSigma(sigma: Float): Float =
     ((sigma - 0.5f) / 0.57735f).coerceAtLeast(0f)
 
-internal actual fun createWideKernelEffect(sigmaPx: Float): androidx.compose.ui.graphics.RenderEffect? {
+internal fun createAndroidWideKernelEffect(sigmaPx: Float): RenderEffect? {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return null
     val radius = platformBlurRadiusForSigma(sigmaPx)
-    return RenderEffect.createBlurEffect(radius, radius, Shader.TileMode.CLAMP).asComposeRenderEffect()
+    if (radius <= 0f) return null
+    return RenderEffect.createBlurEffect(radius, radius, Shader.TileMode.CLAMP)
 }
+
+internal actual fun createWideKernelEffect(sigmaPx: Float): androidx.compose.ui.graphics.RenderEffect? =
+    createAndroidWideKernelEffect(sigmaPx)?.asComposeRenderEffect()
 
 private val contentRuntimeShader: RuntimeShader? by lazy {
     if (!LiquidGlassSupport.hasShaders) null

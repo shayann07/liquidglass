@@ -23,6 +23,9 @@ dependencies {
     // The glass Material 3 components and the showcase screen shared with desktop and web.
     implementation(project(":liquidglass-material3"))
     implementation(libs.compose.material.icons.core)
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation(libs.kotlin.test)
 }
 
 android {
@@ -37,6 +40,11 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = providers.gradleProperty("VERSION_NAME").get()
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+    // Optional isolated qualification install; leaves the developer's existing sample intact.
+    if (providers.gradleProperty("sample.qualification").orNull == "true") {
+        buildTypes.getByName("debug").applicationIdSuffix = ".qualification"
     }
     packaging {
         resources {

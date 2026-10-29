@@ -845,6 +845,56 @@ expect object LiquidGlassSupport {
 Check it if you want to change the *design* below Android 13 rather than just the colour. If you
 only need the colour, set `GlassStyle.fallbackSurface` and ignore this.
 
+### Android XML View Interop
+
+Available on Android (`androidMain`) for XML, ViewBinding, and hybrid `View`/Compose hierarchies:
+
+```kotlin
+open class GlassBackdrop @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0,
+) : FrameLayout
+
+fun View.glassEffect(
+    backdrop: GlassBackdrop,
+    glass: Glass = Glass.Regular,
+    shape: Shape = CapsuleShape,
+    dark: Boolean? = null,
+    backgroundColor: Color? = null,
+    replaceBackground: Boolean = true,
+): GlassViewEffect
+
+open class LiquidGlassHostView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0,
+) : FrameLayout
+
+class LiquidGlassView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0,
+) : LiquidGlassHostView
+
+@Composable
+fun Modifier.glassHitTarget(
+    id: String,
+    host: LiquidGlassHostView,
+    interactive: Boolean = true,
+    captureBackdrop: Boolean = true,
+): Modifier
+
+enum class GlassXmlDarkMode { Auto, Dark, Light }
+enum class GlassXmlPreset { Regular, Clear, Toolbar, TabBar, Chrome, Lens, Identity }
+enum class GlassXmlShape { Capsule, Circle, Rounded, Squircle }
+```
+
+- **`LiquidGlassView`**: XML-inflatable `FrameLayout` (`<com.wexpa.liquidglass.LiquidGlassView>`) that renders a refracting Liquid Glass surface behind its XML child views sampling directly from the referenced `GlassBackdrop` via hardware `RenderNode`. Supports `app:liquidGlassBackdrop`, `app:liquidGlassDark`, `app:liquidGlassBackground`, `app:liquidGlassPreset`, `app:liquidGlassShape`, `app:liquidGlassCornerRadius`, `app:liquidGlassCornerPower`, `app:liquidGlassTint`, `app:liquidGlassInteractive`, and `app:liquidGlassLensMagnification`.
+- **`LiquidGlassHostView`**: XML-inflatable overlay host (`<com.wexpa.liquidglass.LiquidGlassHostView>`) for floating Compose glass controls (such as `GlassTabBar`, FABs, or menus) over an Android `View` hierarchy. Supports `app:liquidGlassBackdrop`, `app:liquidGlassDark`, and `app:liquidGlassBackground`. Use `setThemedGlassContent { ... }` and mark interactive controls with `Modifier.glassHitTarget(id, host)` so touches outside those regions pass through to the underlying XML views.
+
+See [Android XML View interop evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/android-xml-interop-2026-10-26/README.md) for the physical-device capture, source revision, backend, method, and limits.
+
 ---
 
 ## Sample

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/xmlRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FF0B0E1A"
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+    <!-- Shared GlassBackdrop container recording non-glass content natively on the hardware thread -->
+    <com.wexpa.liquidglass.GlassBackdrop
+        android:id="@+id/xmlBackdrop"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ScrollView
+            android:id="@+id/xmlBackdropScroll"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingTop="140dp"
+            android:paddingBottom="120dp">
+
+            <LinearLayout
+                android:id="@+id/xmlBackdropContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="20dp" />
+
+        </ScrollView>
+
+    </com.wexpa.liquidglass.GlassBackdrop>
+
+    <!-- Pure XML LiquidGlassView header pill wrapping standard Android TextViews -->
+    <com.wexpa.liquidglass.LiquidGlassView
+        android:id="@+id/xmlHeaderCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="48dp"
+        android:clickable="true"
+        android:focusable="true"
+        app:liquidGlassBackdrop="@id/xmlBackdrop"
+        app:liquidGlassBackground="#FF0B0E1A"
+        app:liquidGlassCornerRadius="26dp"
+        app:liquidGlassDark="dark"
+        app:liquidGlassInteractive="true"
+        app:liquidGlassPreset="regular"
+        app:liquidGlassShape="rounded">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="20dp"
+            android:paddingVertical="16dp">
+
+            <TextView
+                android:id="@+id/xmlHeaderTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Android XML Views"
+                android:textColor="#FFFFFFFF"
+                android:textSize="19sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/xmlHeaderSubtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Refracting Android ScrollView rows beneath a pure XML LiquidGlassView and a LiquidGlassHostView tab bar."
+                android:textColor="#D9FFFFFF"
+                android:textSize="13sp" />
+
+        </LinearLayout>
+
+    </com.wexpa.liquidglass.LiquidGlassView>
+
+    <!-- Hybrid XML + Compose overlay host for GlassTabBar with selective touch pass-through -->
+    <com.wexpa.liquidglass.LiquidGlassHostView
+        android:id="@+id/xmlTabBarHost"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:liquidGlassBackdrop="@id/xmlBackdrop"
+        app:liquidGlassBackdropMargin="40dp"
+        app:liquidGlassBackground="#FF0B0E1A"
+        app:liquidGlassDark="dark" />
+
+</FrameLayout>

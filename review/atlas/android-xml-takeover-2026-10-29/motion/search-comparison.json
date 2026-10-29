@@ -1,0 +1,19 @@
+{
+  "frames": 2041,
+  "byteIdenticalFrames": 2041,
+  "pixelIdenticalFrames": 2041,
+  "traceMaxDifferences": {
+    "frame": 0,
+    "ms": 0,
+    "selectorX": 0,
+    "bodyWidth": 0,
+    "held": 0,
+    "formation": 0,
+    "protrusion": 0,
+    "dragIndex": 0,
+    "transit": 0,
+    "heldTravel": 0
+  },
+  "differentFrames": [],
+  "passed": true
+}

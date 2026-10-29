@@ -625,6 +625,10 @@ public final class com/wexpa/liquidglass/LiquidGlassCoverSheetKt {
 public abstract interface annotation class com/wexpa/liquidglass/LiquidGlassDiagnosticApi : java/lang/annotation/Annotation {
 }
 
+public final class com/wexpa/liquidglass/LiquidGlassKt {
+	public static synthetic fun buildGlassPanelUniforms-4sIRGsg$default (Lcom/wexpa/liquidglass/GlassStyle;Landroidx/compose/ui/graphics/Shape;JFFF[FF[FJLcom/wexpa/liquidglass/GlassLight;FFFFFFFFFFFLcom/wexpa/liquidglass/GlassPress;FFLcom/wexpa/liquidglass/GlassBody;Lcom/wexpa/liquidglass/GlassPoseRender;[FZLcom/wexpa/liquidglass/GlassPathField;Landroidx/compose/ui/graphics/ImageBitmap;Lkotlin/Pair;Lcom/wexpa/liquidglass/GlassInteraction;IILjava/lang/Object;)Lcom/wexpa/liquidglass/GlassUniforms;
+}
+
 public final class com/wexpa/liquidglass/LiquidGlassSupport {
 	public static final field $stable I
 	public static final field INSTANCE Lcom/wexpa/liquidglass/LiquidGlassSupport;

@@ -44,6 +44,38 @@ public final class com/wexpa/liquidglass/GlassAdaptationKt {
 	public static final fun glassShadowAlpha (F)F
 }
 
+public class com/wexpa/liquidglass/GlassBackdrop : android/widget/FrameLayout {
+	public static final field $stable I
+	public static final field Companion Lcom/wexpa/liquidglass/GlassBackdrop$Companion;
+	public fun <init> (Landroid/content/Context;)V
+	public fun <init> (Landroid/content/Context;Landroid/util/AttributeSet;)V
+	public fun <init> (Landroid/content/Context;Landroid/util/AttributeSet;I)V
+	public synthetic fun <init> (Landroid/content/Context;Landroid/util/AttributeSet;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	protected fun dispatchDraw (Landroid/graphics/Canvas;)V
+	public fun draw (Landroid/graphics/Canvas;)V
+	protected fun drawChild (Landroid/graphics/Canvas;Landroid/view/View;J)Z
+	public final fun getSourceNode ()Landroid/graphics/RenderNode;
+	public final fun isRegisteredConsumer (Landroid/view/View;)Z
+	protected fun onDetachedFromWindow ()V
+	public fun onViewAdded (Landroid/view/View;)V
+	public final fun registerGlassConsumer (Landroid/view/View;)V
+	public final fun unregisterGlassConsumer (Landroid/view/View;)V
+}
+
+public final class com/wexpa/liquidglass/GlassBackdrop$Companion {
+}
+
+public final class com/wexpa/liquidglass/GlassBackgroundDrawable : android/graphics/drawable/Drawable {
+	public static final field $stable I
+	public fun <init> (Lcom/wexpa/liquidglass/GlassNativeRenderer;)V
+	public fun draw (Landroid/graphics/Canvas;)V
+	public fun getAlpha ()I
+	public fun getOpacity ()I
+	public final fun getRenderer ()Lcom/wexpa/liquidglass/GlassNativeRenderer;
+	public fun setAlpha (I)V
+	public fun setColorFilter (Landroid/graphics/ColorFilter;)V
+}
+
 public final class com/wexpa/liquidglass/GlassEffectContainerKt {
 	public static final fun GlassEffectContainer-DzVHIIc (Landroidx/compose/ui/Modifier;FLcom/wexpa/liquidglass/Glass;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
 	public static final fun GlassOverlay (Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;I)V
@@ -186,6 +218,31 @@ public final class com/wexpa/liquidglass/GlassMorphKt {
 
 public final class com/wexpa/liquidglass/GlassNamespace {
 	public static final field $stable I
+}
+
+public final class com/wexpa/liquidglass/GlassNativeRenderer {
+	public static final field $stable I
+	public synthetic fun <init> (Landroid/view/View;Lcom/wexpa/liquidglass/GlassBackdrop;Lcom/wexpa/liquidglass/Glass;Landroidx/compose/ui/graphics/Shape;ZJILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Landroid/view/View;Lcom/wexpa/liquidglass/GlassBackdrop;Lcom/wexpa/liquidglass/Glass;Landroidx/compose/ui/graphics/Shape;ZJLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun draw (Landroid/graphics/Canvas;II)V
+	public final fun getBackdrop ()Lcom/wexpa/liquidglass/GlassBackdrop;
+	public final fun getBackgroundColor-0d7_KjU ()J
+	public final fun getDark ()Z
+	public final fun getGlass ()Lcom/wexpa/liquidglass/Glass;
+	public final fun getGlassNode ()Landroid/graphics/RenderNode;
+	public final fun getShape ()Landroidx/compose/ui/graphics/Shape;
+	public final fun getTargetView ()Landroid/view/View;
+	public final fun getTouchAmount ()F
+	public final fun getTouchX ()F
+	public final fun getTouchY ()F
+	public final fun setBackdrop (Lcom/wexpa/liquidglass/GlassBackdrop;)V
+	public final fun setBackgroundColor-8_81llA (J)V
+	public final fun setDark (Z)V
+	public final fun setGlass (Lcom/wexpa/liquidglass/Glass;)V
+	public final fun setShape (Landroidx/compose/ui/graphics/Shape;)V
+	public final fun setTouchAmount (F)V
+	public final fun setTouchX (F)V
+	public final fun setTouchY (F)V
 }
 
 public final class com/wexpa/liquidglass/GlassPressSource {
@@ -618,6 +675,62 @@ public final class com/wexpa/liquidglass/GlassTabBarStyle$Companion {
 	public final fun getRestingInsetMeasured ()Lcom/wexpa/liquidglass/GlassStyle;
 }
 
+public final class com/wexpa/liquidglass/GlassViewEffect {
+	public static final field $stable I
+	public final fun dispose ()V
+	public final fun getBackdrop ()Lcom/wexpa/liquidglass/GlassBackdrop;
+	public final fun getBackgroundColor-0d7_KjU ()J
+	public final fun getDark ()Z
+	public final fun getDrawable ()Lcom/wexpa/liquidglass/GlassBackgroundDrawable;
+	public final fun getGlass ()Lcom/wexpa/liquidglass/Glass;
+	public final fun getRenderer ()Lcom/wexpa/liquidglass/GlassNativeRenderer;
+	public final fun getShape ()Landroidx/compose/ui/graphics/Shape;
+	public final fun getTouchListener ()Landroid/view/View$OnTouchListener;
+	public final fun getView ()Landroid/view/View;
+	public final fun setBackgroundColor-8_81llA (J)V
+	public final fun setDark (Z)V
+	public final fun setGlass (Lcom/wexpa/liquidglass/Glass;)V
+	public final fun setShape (Landroidx/compose/ui/graphics/Shape;)V
+	public final fun update ()V
+}
+
+public final class com/wexpa/liquidglass/GlassViewEffect_androidKt {
+	public static final fun glassEffect-lMAxDYE (Landroid/view/View;Lcom/wexpa/liquidglass/GlassBackdrop;Lcom/wexpa/liquidglass/Glass;Landroidx/compose/ui/graphics/Shape;Ljava/lang/Boolean;Landroidx/compose/ui/graphics/Color;Z)Lcom/wexpa/liquidglass/GlassViewEffect;
+	public static synthetic fun glassEffect-lMAxDYE$default (Landroid/view/View;Lcom/wexpa/liquidglass/GlassBackdrop;Lcom/wexpa/liquidglass/Glass;Landroidx/compose/ui/graphics/Shape;Ljava/lang/Boolean;Landroidx/compose/ui/graphics/Color;ZILjava/lang/Object;)Lcom/wexpa/liquidglass/GlassViewEffect;
+}
+
+public final class com/wexpa/liquidglass/GlassXmlDarkMode : java/lang/Enum {
+	public static final field Auto Lcom/wexpa/liquidglass/GlassXmlDarkMode;
+	public static final field Dark Lcom/wexpa/liquidglass/GlassXmlDarkMode;
+	public static final field Light Lcom/wexpa/liquidglass/GlassXmlDarkMode;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/wexpa/liquidglass/GlassXmlDarkMode;
+	public static fun values ()[Lcom/wexpa/liquidglass/GlassXmlDarkMode;
+}
+
+public final class com/wexpa/liquidglass/GlassXmlPreset : java/lang/Enum {
+	public static final field Chrome Lcom/wexpa/liquidglass/GlassXmlPreset;
+	public static final field Clear Lcom/wexpa/liquidglass/GlassXmlPreset;
+	public static final field Identity Lcom/wexpa/liquidglass/GlassXmlPreset;
+	public static final field Lens Lcom/wexpa/liquidglass/GlassXmlPreset;
+	public static final field Regular Lcom/wexpa/liquidglass/GlassXmlPreset;
+	public static final field TabBar Lcom/wexpa/liquidglass/GlassXmlPreset;
+	public static final field Toolbar Lcom/wexpa/liquidglass/GlassXmlPreset;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/wexpa/liquidglass/GlassXmlPreset;
+	public static fun values ()[Lcom/wexpa/liquidglass/GlassXmlPreset;
+}
+
+public final class com/wexpa/liquidglass/GlassXmlShape : java/lang/Enum {
+	public static final field Capsule Lcom/wexpa/liquidglass/GlassXmlShape;
+	public static final field Circle Lcom/wexpa/liquidglass/GlassXmlShape;
+	public static final field Rounded Lcom/wexpa/liquidglass/GlassXmlShape;
+	public static final field Squircle Lcom/wexpa/liquidglass/GlassXmlShape;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/wexpa/liquidglass/GlassXmlShape;
+	public static fun values ()[Lcom/wexpa/liquidglass/GlassXmlShape;
+}
+
 public final class com/wexpa/liquidglass/LiquidGlassCoverSheetKt {
 	public static final fun LiquidGlassCoverSheet-_SDZwk0 (FZLandroidx/compose/ui/Modifier;Landroidx/compose/ui/graphics/Shape;JLcom/wexpa/liquidglass/GlassStyle;Lcom/wexpa/liquidglass/GlassLight;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
 }
@@ -625,10 +738,86 @@ public final class com/wexpa/liquidglass/LiquidGlassCoverSheetKt {
 public abstract interface annotation class com/wexpa/liquidglass/LiquidGlassDiagnosticApi : java/lang/annotation/Annotation {
 }
 
+public class com/wexpa/liquidglass/LiquidGlassHostView : android/widget/FrameLayout {
+	public static final field $stable I
+	public fun <init> (Landroid/content/Context;)V
+	public fun <init> (Landroid/content/Context;Landroid/util/AttributeSet;)V
+	public fun <init> (Landroid/content/Context;Landroid/util/AttributeSet;I)V
+	public synthetic fun <init> (Landroid/content/Context;Landroid/util/AttributeSet;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun dispatchTouchEvent (Landroid/view/MotionEvent;)Z
+	protected final fun findBackdropById (I)Landroid/view/View;
+	public final fun getBackdropMarginDp-D9Ej5fM ()F
+	public final fun getBackdropView ()Landroid/view/View;
+	public final fun getBackdropViewId ()I
+	public final fun getCaptureFullHostBounds ()Z
+	public final fun getComposeView ()Landroidx/compose/ui/platform/ComposeView;
+	public final fun getDarkMode ()Lcom/wexpa/liquidglass/GlassXmlDarkMode;
+	public final fun getGlassBackgroundColor-QN2ZGVo ()Landroidx/compose/ui/graphics/Color;
+	public final fun getInterceptAllTouches ()Z
+	public final fun getOnOutsideTouchWhenIntercepting ()Lkotlin/jvm/functions/Function0;
+	public final fun isPointInsideGlass (FF)Z
+	protected fun onAppearanceChanged ()V
+	protected fun onAttachedToWindow ()V
+	protected fun onDetachedFromWindow ()V
+	protected fun refreshBackdropTarget ()V
+	protected final fun resolveBackgroundColor-vNxB06k (Z)J
+	protected final fun resolveIsDark ()Z
+	public final fun setBackdropMarginDp-0680j_4 (F)V
+	public final fun setBackdropView (Landroid/view/View;)V
+	public final fun setBackdropViewId (I)V
+	public final fun setCaptureFullHostBounds (Z)V
+	public final fun setDarkMode (Lcom/wexpa/liquidglass/GlassXmlDarkMode;)V
+	public final fun setGlassBackgroundColor-Y2TPw74 (Landroidx/compose/ui/graphics/Color;)V
+	public final fun setGlassContent (Lkotlin/jvm/functions/Function3;)V
+	public fun setId (I)V
+	public final fun setInterceptAllTouches (Z)V
+	public final fun setOnOutsideTouchWhenIntercepting (Lkotlin/jvm/functions/Function0;)V
+	public final fun setThemedGlassContent (Lcom/wexpa/liquidglass/Glass;Lkotlin/jvm/functions/Function3;)V
+	public static synthetic fun setThemedGlassContent$default (Lcom/wexpa/liquidglass/LiquidGlassHostView;Lcom/wexpa/liquidglass/Glass;Lkotlin/jvm/functions/Function3;ILjava/lang/Object;)V
+	protected fun shouldFilterTouches ()Z
+}
+
+public final class com/wexpa/liquidglass/LiquidGlassKt {
+	public static synthetic fun buildGlassPanelUniforms-4sIRGsg$default (Lcom/wexpa/liquidglass/GlassStyle;Landroidx/compose/ui/graphics/Shape;JFFF[FF[FJLcom/wexpa/liquidglass/GlassLight;FFFFFFFFFFFLcom/wexpa/liquidglass/GlassPress;FFLcom/wexpa/liquidglass/GlassBody;Lcom/wexpa/liquidglass/GlassPoseRender;[FZLcom/wexpa/liquidglass/GlassPathField;Landroidx/compose/ui/graphics/ImageBitmap;Lkotlin/Pair;Lcom/wexpa/liquidglass/GlassInteraction;IILjava/lang/Object;)Lcom/wexpa/liquidglass/GlassUniforms;
+}
+
 public final class com/wexpa/liquidglass/LiquidGlassSupport {
 	public static final field $stable I
 	public static final field INSTANCE Lcom/wexpa/liquidglass/LiquidGlassSupport;
 	public final fun getHasBackdropBlur ()Z
 	public final fun getHasShaders ()Z
+}
+
+public final class com/wexpa/liquidglass/LiquidGlassView : com/wexpa/liquidglass/LiquidGlassHostView {
+	public static final field $stable I
+	public fun <init> (Landroid/content/Context;)V
+	public fun <init> (Landroid/content/Context;Landroid/util/AttributeSet;)V
+	public fun <init> (Landroid/content/Context;Landroid/util/AttributeSet;I)V
+	public synthetic fun <init> (Landroid/content/Context;Landroid/util/AttributeSet;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun dispatchTouchEvent (Landroid/view/MotionEvent;)Z
+	public final fun getCornerPower ()F
+	public final fun getCornerRadiusDp-D9Ej5fM ()F
+	public final fun getCustomGlass ()Lcom/wexpa/liquidglass/Glass;
+	public final fun getCustomShape ()Landroidx/compose/ui/graphics/Shape;
+	public final fun getGlassTint-QN2ZGVo ()Landroidx/compose/ui/graphics/Color;
+	public final fun getLensMagnification ()F
+	public final fun getPreset ()Lcom/wexpa/liquidglass/GlassXmlPreset;
+	public final fun getRenderer ()Lcom/wexpa/liquidglass/GlassNativeRenderer;
+	public final fun getXmlShape ()Lcom/wexpa/liquidglass/GlassXmlShape;
+	public final fun isGlassInteractive ()Z
+	public fun onTouchEvent (Landroid/view/MotionEvent;)Z
+	public final fun setCornerPower (F)V
+	public final fun setCornerRadiusDp-0680j_4 (F)V
+	public final fun setCustomGlass (Lcom/wexpa/liquidglass/Glass;)V
+	public final fun setCustomShape (Landroidx/compose/ui/graphics/Shape;)V
+	public final fun setGlassInteractive (Z)V
+	public final fun setGlassTint-Y2TPw74 (Landroidx/compose/ui/graphics/Color;)V
+	public final fun setLensMagnification (F)V
+	public final fun setPreset (Lcom/wexpa/liquidglass/GlassXmlPreset;)V
+	public final fun setXmlShape (Lcom/wexpa/liquidglass/GlassXmlShape;)V
+}
+
+public final class com/wexpa/liquidglass/LiquidGlassView_androidKt {
+	public static final fun glassHitTarget (Landroidx/compose/ui/Modifier;Ljava/lang/String;Lcom/wexpa/liquidglass/LiquidGlassHostView;ZZLandroidx/compose/runtime/Composer;II)Landroidx/compose/ui/Modifier;
 }
 

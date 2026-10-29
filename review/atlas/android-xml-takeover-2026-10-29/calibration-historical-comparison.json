@@ -1,0 +1,125 @@
+{
+  "note": "Historical calibration output; not same-revision acceptance baseline",
+  "rows": [
+    {
+      "file": "C1a-lib000-dark-dark.png",
+      "mae": 0.0,
+      "max": 0
+    },
+    {
+      "file": "C1a-lib000-dark-light.png",
+      "mae": 0.0,
+      "max": 0
+    },
+    {
+      "file": "C1a-lib000-light-dark.png",
+      "mae": 0.0,
+      "max": 0
+    },
+    {
+      "file": "C1a-lib000-light-light.png",
+      "mae": 0.0,
+      "max": 0
+    },
+    {
+      "file": "C1a-lib029-dark-dark.png",
+      "mae": 0.0,
+      "max": 0
+    },
+    {
+      "file": "C1a-lib029-light-dark.png",
+      "mae": 0.0,
+      "max": 0
+    },
+    {
+      "file": "C1a-lib031-dark-light.png",
+      "mae": 0.0,
+      "max": 0
+    },
+    {
+      "file": "C1a-lib031-light-light.png",
+      "mae": 0.0,
+      "max": 0
+    },
+    {
+      "file": "C1a-lib035-dark-dark.png",
+      "mae": 0.0,
+      "max": 0
+    },
+    {
+      "file": "C1a-lib035-light-dark.png",
+      "mae": 0.0,
+      "max": 0
+    },
+    {
+      "file": "C1a-lib050-dark-dark.png",
+      "mae": 0.0,
+      "max": 0
+    },
+    {
+      "file": "C1a-lib050-dark-light.png",
+      "mae": 0.0,
+      "max": 0
+    },
+    {
+      "file": "C1a-lib050-light-dark.png",
+      "mae": 0.0,
+      "max": 0
+    },
+    {
+      "file": "C1a-lib050-light-light.png",
+      "mae": 0.0,
+      "max": 0
+    },
+    {
+      "file": "C1a-lib062-dark-dark.png",
+      "mae": 0.0,
+      "max": 0
+    },
+    {
+      "file": "C1a-lib062-dark-light.png",
+      "mae": 0.0,
+      "max": 0
+    },
+    {
+      "file": "C1a-lib062-light-dark.png",
+      "mae": 0.0,
+      "max": 0
+    },
+    {
+      "file": "C1a-lib062-light-light.png",
+      "mae": 0.0,
+      "max": 0
+    },
+    {
+      "file": "C1a-lib086-dark-dark.png",
+      "mae": 0.0,
+      "max": 0
+    },
+    {
+      "file": "C1a-lib086-light-dark.png",
+      "mae": 0.0,
+      "max": 0
+    },
+    {
+      "file": "C1a-lib100-dark-dark.png",
+      "mae": 0.0,
+      "max": 0
+    },
+    {
+      "file": "C1a-lib100-dark-light.png",
+      "mae": 0.0,
+      "max": 0
+    },
+    {
+      "file": "C1a-lib100-light-dark.png",
+      "mae": 0.0,
+      "max": 0
+    },
+    {
+      "file": "C1a-lib100-light-light.png",
+      "mae": 0.0,
+      "max": 0
+    }
+  ]
+}

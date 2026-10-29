@@ -6,6 +6,8 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Android XML View interop (`LiquidGlassView`, `LiquidGlassHostView`, `LiveViewBackdrop`, `Modifier.glassHitTarget`, and `R.styleable.LiquidGlassView` / `R.styleable.LiquidGlassHostView`): wrap ordinary Android XML views in a refracting glass container directly in XML (`<com.wexpa.liquidglass.LiquidGlassView>`) or float Compose glass controls (`GlassTabBar`, FABs, menus) over existing Android `View` / `ScrollView` / `RecyclerView` hierarchies with selective touch pass-through and scroll-aware live backdrop capture. Verified in `:sample` (`XmlInteropActivity`) on a Samsung Galaxy S24+ (AGSL).
+  [Evidence](review/atlas/android-xml-interop-2026-10-26/README.md).
 - Tab bar (Calm): the held lens's outline is a squircle, not a capsule: it blends .7 of the way toward a
   superellipse with n = 3, the shape iOS's held lens fits, so its top runs flatter and its shoulders squarer. The
   resting selector stays a capsule. The ports draw the same outline (#93).
@@ -1079,3 +1081,9 @@ The first public release.
 - Below Android 13 the material degrades to a tinted surface with the same rim lighting.
 - A rendered test harness: the real shader compiled through Skia on the JVM, with optics asserted
   on pixels.
+
+
+<!-- XML interop takeover, 2026-10-29 -->
+Android View interop correction: interactive effects preserve application clickability, and drawable opacity fades the complete native/fallback output once. Independently checked on physical S24+ API 36 and focused API 28/32 emulators; shared JVM rendering and original calibration-target regressions pass. Qualification is local; see `review/atlas/android-xml-takeover-2026-10-29/README.md` for provenance and limits.
+
+The completed motion regression compares 4,194 frames from full docs2 and IMG_6756 Search scripts against freshly rendered merge-base output: all frames and motion traces match exactly. The physical Android suite now passes 37 tests, including scrolling, child invalidation and detach/reattach across all three consumer paths. The existing Search brightness gap from iOS remains a shared-material limitation.
