@@ -1,0 +1,182 @@
+[
+  {
+    "session": 1,
+    "sha256": "959e75f3c5638542e9fe2d2462fe58fc0a23820673c45f266698b4d8113a93e7",
+    "status": "Pending independent recheck; inherited audit is not proof of exhaustive verification",
+    "claude_return_review": "required"
+  },
+  {
+    "session": 2,
+    "sha256": "2ad067ea43a6a57fec9a2531e69602465f4a3d62fc666ef15ca48d78c0769947",
+    "status": "Pending independent recheck; inherited audit is not proof of exhaustive verification",
+    "claude_return_review": "required"
+  },
+  {
+    "session": 3,
+    "sha256": "2af2d37ea38605d46deb5f2f9e79906251a731983e1215c6a3d4703e13ea6568",
+    "status": "Pending independent recheck; inherited audit is not proof of exhaustive verification",
+    "claude_return_review": "required"
+  },
+  {
+    "session": 4,
+    "sha256": "f8229b90bc1d3d45ec01f2c14fc64ed2a00fc93abeff41841217c4cce08e902d",
+    "status": "Pending independent recheck; inherited audit is not proof of exhaustive verification",
+    "claude_return_review": "required"
+  },
+  {
+    "session": 5,
+    "sha256": "4ef628030fbbdbe309d3aaae81bfe323f81379d10dc435bb9f9b6b62508ec720",
+    "status": "Pending independent recheck; inherited audit is not proof of exhaustive verification",
+    "claude_return_review": "required"
+  },
+  {
+    "session": 6,
+    "sha256": "498678bff2217631cf24ad9a01e93bb44988bd3f06ec5cfe1ffd9c0ebeda7817",
+    "status": "Pending independent recheck; inherited audit is not proof of exhaustive verification",
+    "claude_return_review": "required"
+  },
+  {
+    "session": 7,
+    "sha256": "8901b3653364ce5330ace8ad7bb90b19254b35646f5081574bbf41fc2503a668",
+    "status": "Pending independent recheck; inherited audit is not proof of exhaustive verification",
+    "claude_return_review": "required"
+  },
+  {
+    "session": 8,
+    "sha256": "3abea04b1514d2faee32a8e0fcd37cb46ac019e9cd4eb4e8a945718a9d6f2877",
+    "status": "Pending independent recheck; inherited audit is not proof of exhaustive verification",
+    "claude_return_review": "required"
+  },
+  {
+    "session": 9,
+    "sha256": "17394977796fb57e592f96b271c72d08f912d10d29c65eb47bcb1b27c04c26c8",
+    "status": "Pending independent recheck; inherited audit is not proof of exhaustive verification",
+    "claude_return_review": "required"
+  },
+  {
+    "session": 10,
+    "sha256": "47dad9dcd9f7d989457bde1b2616d52ebd8546eadeb48a288f7e4e77ceda3182",
+    "status": "Pending independent recheck; inherited audit is not proof of exhaustive verification",
+    "claude_return_review": "required"
+  },
+  {
+    "session": 11,
+    "sha256": "e9a9c2cedb0f60b67628896aed6dbd3c373178df9c407f25f3f8b55b06ffc02e",
+    "status": "Pending independent recheck; inherited audit is not proof of exhaustive verification",
+    "claude_return_review": "required"
+  },
+  {
+    "session": 12,
+    "sha256": "8125fca7a41bb118eca7143c51136699fa41268a18937674246603520aeb859f",
+    "status": "Pending independent recheck; inherited audit is not proof of exhaustive verification",
+    "claude_return_review": "required"
+  },
+  {
+    "session": 13,
+    "sha256": "0af00531ac9ce10f8ade8e8168caae861fbdb698c4f5c131c554dbf2ac8ff66a",
+    "status": "Pending independent recheck; inherited audit is not proof of exhaustive verification",
+    "claude_return_review": "required"
+  },
+  {
+    "session": 14,
+    "sha256": "601639efdb4d56a76462a2269c83eb0bd26ec8b7297e89e0d392687be4bcc0f1",
+    "status": "Pending independent recheck; inherited audit is not proof of exhaustive verification",
+    "claude_return_review": "required"
+  },
+  {
+    "session": 15,
+    "sha256": "cac803603e5e4b20ea5992d072a5d44ef7716cb5487353ea903e1fc51be5448e",
+    "status": "Pending independent recheck; inherited audit is not proof of exhaustive verification",
+    "claude_return_review": "required"
+  },
+  {
+    "session": 16,
+    "sha256": "293be4ad53be6aaf9caeda08073f76c064b259f0cad1212642360fe8e5872fff",
+    "status": "Pending independent recheck; inherited audit is not proof of exhaustive verification",
+    "claude_return_review": "required"
+  },
+  {
+    "session": 17,
+    "sha256": "37110ebb15c98929d1de475555a91bab1508cfc812173aee98ed00f2610407fa",
+    "status": "Pending independent recheck; inherited audit is not proof of exhaustive verification",
+    "claude_return_review": "required"
+  },
+  {
+    "session": 18,
+    "sha256": "69045fc219c17ef219b4ed74c28867c750f534bae6131200c89cf56454ec044b",
+    "status": "Pending independent recheck; inherited audit is not proof of exhaustive verification",
+    "claude_return_review": "required"
+  },
+  {
+    "session": 19,
+    "sha256": "1a75220d71e6d59935dcd5abcad9610f0c4d5a0ed650ea44bb2fde668cc5507a",
+    "status": "Pending independent recheck; inherited audit is not proof of exhaustive verification",
+    "claude_return_review": "required"
+  },
+  {
+    "session": 20,
+    "sha256": "c4ddd00ab003fe20514e985a5bf049be9b347342614f7373e0dc12669de99f12",
+    "status": "Pending independent recheck; inherited audit is not proof of exhaustive verification",
+    "claude_return_review": "required"
+  },
+  {
+    "session": 21,
+    "sha256": "93aff7c759ad9fd58103114a7a3c028534d36ae2458f6abc81e6082f014b8eb4",
+    "status": "Pending independent recheck; inherited audit is not proof of exhaustive verification",
+    "claude_return_review": "required"
+  },
+  {
+    "session": 22,
+    "sha256": "ab2aa40fb649241c77557318afce1feb6541d127bdae0e96e2e2f22f26325b6c",
+    "status": "Pending independent recheck; inherited audit is not proof of exhaustive verification",
+    "claude_return_review": "required"
+  },
+  {
+    "session": 23,
+    "sha256": "40e646b773f4719cc9bc2336e916489de85d7e7bdaacd4c364f97acb561c2ee3",
+    "status": "Pending independent recheck; inherited audit is not proof of exhaustive verification",
+    "claude_return_review": "required"
+  },
+  {
+    "session": 24,
+    "sha256": "0847e5abd19c9e413ad95b2cbd0d49773a86153e3b1ea55d4eca16223434dfb0",
+    "status": "Selected clock bevel probes reproduced; remaining claims pending",
+    "claude_return_review": "required"
+  },
+  {
+    "session": 25,
+    "sha256": "de9ccabe63700dc1924272b83184e9d1e543a245d0ab908b39db3b09b7d6f8d8",
+    "status": "Source offset corrected; three bevel-frame probes reproduced; geometry/trajectory pending",
+    "claude_return_review": "required"
+  },
+  {
+    "session": 26,
+    "sha256": "96cce1349a6e03815131b05f0572e98486adebc2803c5e356a32ae90807c630e",
+    "status": "Pending independent recheck; inherited audit is not proof of exhaustive verification",
+    "claude_return_review": "required"
+  },
+  {
+    "session": 27,
+    "sha256": "9d85f6932600ce7831c3bc804539023785a1c685a06433f4ce33920e0c489226",
+    "status": "Pending independent recheck; inherited audit is not proof of exhaustive verification",
+    "claude_return_review": "required"
+  },
+  {
+    "session": 28,
+    "sha256": "e4c4009af429afbc2bb51ae55883d2b63e18c1b29d35ea5f05b364f65e89a5bd",
+    "status": "Pending independent recheck; inherited audit is not proof of exhaustive verification",
+    "claude_return_review": "required"
+  },
+  {
+    "session": 29,
+    "sha256": "8080b3a0afd9e4c144bb39b608263a6735efaaacfe6729633ec3bfb01891280a",
+    "status": "Pending independent recheck; inherited audit is not proof of exhaustive verification",
+    "claude_return_review": "required"
+  },
+  {
+    "session": 30,
+    "sha256": "da4cb6c34e3e29084815370c6e5535ea830c4fefacf4926cf23bd570075ce045",
+    "status": "Selected settled-rim claim reproduced in clip and original; other claims pending",
+    "claude_return_review": "required"
+  }
+]

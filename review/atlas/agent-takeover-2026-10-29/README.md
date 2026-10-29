@@ -72,6 +72,21 @@ has maximum RGB channel spreads 1/2/1 levels, corroborating the neutral iOS rim.
 [Original-source probes](session30-source-rim.json). Compression, scaling and nearest-frame
 selection mean exact clip RGB values must not be treated as original-pixel values.
 
+## Additional repair findings (not yet accepted)
+
+- #135 changes public `GlassInteraction` constructor and `copy` signatures by adding two
+  booleans. Updating ABI snapshots does not preserve existing compiled consumers. The owner
+  explicitly chose to keep the correction internal. Candidate edits in `repair-135` remove
+  these parameters, make the press counter internal, and scope feedback to the existing
+  enabled Free pull role; compilation/ABI checks are pending.
+- #135 rounds pull direction to the nearest cardinal axis. Crossing 45 degrees swaps the
+  long and short axes abruptly. A continuous no-shear correction and cross-port tests are
+  still needed; do not accept the existing one-diagonal-angle test as gesture coverage.
+- #131's timing comment promises 100–130 ms settling, while its assertion allows 150–250 ms.
+  Its “long trip keeps verified trajectory” comparison uses two identical effective specs
+  (`tapShortTripRate` is already 1). Re-establish a meaningful baseline and score actual
+  recorded trajectories before accepting the timing claims.
+
 ## Required Claude return review
 
 - [ ] Independently recheck the newly verified Argon claims against decoded source frames.
