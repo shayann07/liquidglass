@@ -116,7 +116,7 @@ final class com.wexpa.liquidglass/GlassFuse { // com.wexpa.liquidglass/GlassFuse
 }
 
 final class com.wexpa.liquidglass/GlassInteraction { // com.wexpa.liquidglass/GlassInteraction|null[0]
-    constructor <init>(kotlin/Float = ..., kotlin/Float = ..., kotlin/Boolean = ..., androidx.compose.ui.unit/Dp = ..., kotlin/Float = ..., kotlin/Boolean = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., com.wexpa.liquidglass/GlassResponse = ..., com.wexpa.liquidglass/GlassPullShape = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Boolean = ..., kotlin/Boolean = ...) // com.wexpa.liquidglass/GlassInteraction.<init>|<init>(kotlin.Float;kotlin.Float;kotlin.Boolean;androidx.compose.ui.unit.Dp;kotlin.Float;kotlin.Boolean;kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Float;com.wexpa.liquidglass.GlassResponse;com.wexpa.liquidglass.GlassPullShape;kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Boolean;kotlin.Boolean){}[0]
+    constructor <init>(kotlin/Float = ..., kotlin/Float = ..., kotlin/Boolean = ..., androidx.compose.ui.unit/Dp = ..., kotlin/Float = ..., kotlin/Boolean = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., com.wexpa.liquidglass/GlassResponse = ..., com.wexpa.liquidglass/GlassPullShape = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ...) // com.wexpa.liquidglass/GlassInteraction.<init>|<init>(kotlin.Float;kotlin.Float;kotlin.Boolean;androidx.compose.ui.unit.Dp;kotlin.Float;kotlin.Boolean;kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Float;com.wexpa.liquidglass.GlassResponse;com.wexpa.liquidglass.GlassPullShape;kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Float){}[0]
 
     final val dragPressShare // com.wexpa.liquidglass/GlassInteraction.dragPressShare|{}dragPressShare[0]
         final fun <get-dragPressShare>(): kotlin/Float // com.wexpa.liquidglass/GlassInteraction.dragPressShare.<get-dragPressShare>|<get-dragPressShare>(){}[0]
@@ -124,8 +124,6 @@ final class com.wexpa.liquidglass/GlassInteraction { // com.wexpa.liquidglass/Gl
         final fun <get-gel>(): kotlin/Boolean // com.wexpa.liquidglass/GlassInteraction.gel.<get-gel>|<get-gel>(){}[0]
     final val illumination // com.wexpa.liquidglass/GlassInteraction.illumination|{}illumination[0]
         final fun <get-illumination>(): kotlin/Float // com.wexpa.liquidglass/GlassInteraction.illumination.<get-illumination>|<get-illumination>(){}[0]
-    final val pressFlash // com.wexpa.liquidglass/GlassInteraction.pressFlash|{}pressFlash[0]
-        final fun <get-pressFlash>(): kotlin/Boolean // com.wexpa.liquidglass/GlassInteraction.pressFlash.<get-pressFlash>|<get-pressFlash>(){}[0]
     final val pressGrowth // com.wexpa.liquidglass/GlassInteraction.pressGrowth|{}pressGrowth[0]
         final fun <get-pressGrowth>(): androidx.compose.ui.unit/Dp // com.wexpa.liquidglass/GlassInteraction.pressGrowth.<get-pressGrowth>|<get-pressGrowth>(){}[0]
     final val pressLift // com.wexpa.liquidglass/GlassInteraction.pressLift|{}pressLift[0]
@@ -156,8 +154,6 @@ final class com.wexpa.liquidglass/GlassInteraction { // com.wexpa.liquidglass/Gl
         final fun <get-releaseStiffness>(): kotlin/Float // com.wexpa.liquidglass/GlassInteraction.releaseStiffness.<get-releaseStiffness>|<get-releaseStiffness>(){}[0]
     final val response // com.wexpa.liquidglass/GlassInteraction.response|{}response[0]
         final fun <get-response>(): com.wexpa.liquidglass/GlassResponse // com.wexpa.liquidglass/GlassInteraction.response.<get-response>|<get-response>(){}[0]
-    final val uprightPull // com.wexpa.liquidglass/GlassInteraction.uprightPull|{}uprightPull[0]
-        final fun <get-uprightPull>(): kotlin/Boolean // com.wexpa.liquidglass/GlassInteraction.uprightPull.<get-uprightPull>|<get-uprightPull>(){}[0]
 
     final fun component1(): kotlin/Float // com.wexpa.liquidglass/GlassInteraction.component1|component1(){}[0]
     final fun component10(): kotlin/Float // com.wexpa.liquidglass/GlassInteraction.component10|component10(){}[0]
@@ -169,9 +165,7 @@ final class com.wexpa.liquidglass/GlassInteraction { // com.wexpa.liquidglass/Gl
     final fun component16(): kotlin/Float // com.wexpa.liquidglass/GlassInteraction.component16|component16(){}[0]
     final fun component17(): kotlin/Float // com.wexpa.liquidglass/GlassInteraction.component17|component17(){}[0]
     final fun component18(): kotlin/Float // com.wexpa.liquidglass/GlassInteraction.component18|component18(){}[0]
-    final fun component19(): kotlin/Boolean // com.wexpa.liquidglass/GlassInteraction.component19|component19(){}[0]
     final fun component2(): kotlin/Float // com.wexpa.liquidglass/GlassInteraction.component2|component2(){}[0]
-    final fun component20(): kotlin/Boolean // com.wexpa.liquidglass/GlassInteraction.component20|component20(){}[0]
     final fun component3(): kotlin/Boolean // com.wexpa.liquidglass/GlassInteraction.component3|component3(){}[0]
     final fun component4(): androidx.compose.ui.unit/Dp // com.wexpa.liquidglass/GlassInteraction.component4|component4(){}[0]
     final fun component5(): kotlin/Float // com.wexpa.liquidglass/GlassInteraction.component5|component5(){}[0]
@@ -179,7 +173,7 @@ final class com.wexpa.liquidglass/GlassInteraction { // com.wexpa.liquidglass/Gl
     final fun component7(): kotlin/Float // com.wexpa.liquidglass/GlassInteraction.component7|component7(){}[0]
     final fun component8(): kotlin/Float // com.wexpa.liquidglass/GlassInteraction.component8|component8(){}[0]
     final fun component9(): kotlin/Float // com.wexpa.liquidglass/GlassInteraction.component9|component9(){}[0]
-    final fun copy(kotlin/Float = ..., kotlin/Float = ..., kotlin/Boolean = ..., androidx.compose.ui.unit/Dp = ..., kotlin/Float = ..., kotlin/Boolean = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., com.wexpa.liquidglass/GlassResponse = ..., com.wexpa.liquidglass/GlassPullShape = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Boolean = ..., kotlin/Boolean = ...): com.wexpa.liquidglass/GlassInteraction // com.wexpa.liquidglass/GlassInteraction.copy|copy(kotlin.Float;kotlin.Float;kotlin.Boolean;androidx.compose.ui.unit.Dp;kotlin.Float;kotlin.Boolean;kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Float;com.wexpa.liquidglass.GlassResponse;com.wexpa.liquidglass.GlassPullShape;kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Boolean;kotlin.Boolean){}[0]
+    final fun copy(kotlin/Float = ..., kotlin/Float = ..., kotlin/Boolean = ..., androidx.compose.ui.unit/Dp = ..., kotlin/Float = ..., kotlin/Boolean = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., com.wexpa.liquidglass/GlassResponse = ..., com.wexpa.liquidglass/GlassPullShape = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ...): com.wexpa.liquidglass/GlassInteraction // com.wexpa.liquidglass/GlassInteraction.copy|copy(kotlin.Float;kotlin.Float;kotlin.Boolean;androidx.compose.ui.unit.Dp;kotlin.Float;kotlin.Boolean;kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Float;com.wexpa.liquidglass.GlassResponse;com.wexpa.liquidglass.GlassPullShape;kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Float){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // com.wexpa.liquidglass/GlassInteraction.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // com.wexpa.liquidglass/GlassInteraction.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // com.wexpa.liquidglass/GlassInteraction.toString|toString(){}[0]
@@ -220,9 +214,6 @@ final class com.wexpa.liquidglass/GlassLight { // com.wexpa.liquidglass/GlassLig
 final class com.wexpa.liquidglass/GlassNamespace // com.wexpa.liquidglass/GlassNamespace|null[0]
 
 final class com.wexpa.liquidglass/GlassPressSource { // com.wexpa.liquidglass/GlassPressSource|null[0]
-    final var pressCount // com.wexpa.liquidglass/GlassPressSource.pressCount|{}pressCount[0]
-        final fun <get-pressCount>(): kotlin/Int // com.wexpa.liquidglass/GlassPressSource.pressCount.<get-pressCount>|<get-pressCount>(){}[0]
-
     final fun press(androidx.compose.ui.geometry/Offset, androidx.compose.ui.geometry/Offset = ...) // com.wexpa.liquidglass/GlassPressSource.press|press(androidx.compose.ui.geometry.Offset;androidx.compose.ui.geometry.Offset){}[0]
     final fun release() // com.wexpa.liquidglass/GlassPressSource.release|release(){}[0]
 }

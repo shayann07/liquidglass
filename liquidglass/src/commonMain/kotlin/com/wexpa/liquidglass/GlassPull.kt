@@ -104,11 +104,15 @@ internal fun glassPullDeformation(
     val extension = (along - 1f) * extentPx.coerceAtLeast(1f)
     val across = (1f - widthRatio * extension / acrossExtentPx.coerceAtLeast(1f)).coerceAtLeast(0.5f)
     val rawAngle = atan2(pullY, pullX) * (180f / kotlin.math.PI.toFloat())
-    val angle = if (upright) kotlin.math.round(rawAngle / 90f) * 90f else rawAngle
+    // Project the directional stretch onto the screen axes, removing shear continuously.
+    // Rounding its angle swaps width and height at each diagonal. Projection keeps the
+    // measured axial responses and is an authored interpolation between those recordings.
+    val nx2 = pullX * pullX / (length * length)
+    val ny2 = pullY * pullY / (length * length)
     return GlassPullDeformation(
-        along = along,
-        across = across,
-        angleDegrees = angle,
+        along = if (upright) along * ny2 + across * nx2 else along,
+        across = if (upright) along * nx2 + across * ny2 else across,
+        angleDegrees = if (upright) -90f else rawAngle,
         translationX = follow * pullX,
         translationY = follow * pullY,
     )

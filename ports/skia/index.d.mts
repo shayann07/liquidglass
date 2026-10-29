@@ -62,8 +62,6 @@ export interface FreeButtonOptions {
   pullFollow?: number; pullElongation?: number; pullWidthRatio?: number; pullLimit?: number; pullLiftShare?: number;
   /** Release damping along x (Compose `GlassInteraction.pullReleaseDampingX`), 0.3; y keeps 0.45. */
   pullReleaseDampingX?: number;
-  /** Snaps pull deformation angle to cardinal axes (0°, 90°, 180°, -90°). Compose `GlassInteraction.uprightPull`. */
-  uprightPull?: boolean;
 }
 export interface FreeButtonTransform {
   /** Press scale (both axes), then a stretch along and across `angle` (degrees), then the offset. */

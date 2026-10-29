@@ -153,16 +153,6 @@ data class GlassInteraction(
      * [Pullable] uses 0.3, fitted on iOS's sideways releases.
      */
     val pullReleaseDampingX: Float = Float.NaN,
-    /**
-     * Touch-down flash: magnifier or icon content briefly dims to ~120-133 (alpha ~0.50) on contact
-     * and recovers over 50 ms. Opt-in; [Pullable] enables this for reference parity (item 147).
-     */
-    val pressFlash: Boolean = false,
-    /**
-     * Upright pull: constrains the drag deformation angle to cardinal axes (0°, 90°, 180°, -90°),
-     * preventing diagonal pull vectors from tilting the button oval and shearing the glyph (item 148).
-     */
-    val uprightPull: Boolean = false,
 ) {
     companion object {
         val Default = GlassInteraction()
@@ -189,8 +179,6 @@ data class GlassInteraction(
             // 19-34 s, three releases: glyph +6 px against our +2 at 0.45; 18 October): x damping 0.3 scores
             // centre 2.3 px rms (2.6), half-width 2.2 (2.7) and its narrowest 83 px (86; iOS 78).
             pullReleaseDampingX = 0.3f,
-            pressFlash = true,
-            uprightPull = true,
         )
         /**
          * What Apple's Reduce Motion asks for: "decreases the intensity of some effects and
@@ -200,6 +188,10 @@ data class GlassInteraction(
         val ReducedMotion = GlassInteraction(pressScale = 1f, illumination = 0.5f, pressLift = 0f, gel = false, pull = false)
     }
 }
+
+/** Internal corrections for the existing free-button role; no constructor or copy ABI changes. */
+internal val GlassInteraction.pressFlash: Boolean get() = pull && pullShape == GlassPullShape.Free
+internal val GlassInteraction.uprightPull: Boolean get() = pull && pullShape == GlassPullShape.Free
 
 /** Springs and timings for the press, kept together so the three channels cannot drift apart. */
 internal object GlassMotion {
@@ -288,7 +280,7 @@ class GlassPressSource internal constructor() {
     internal var dragging by mutableStateOf(false)
     /** A caller's critically damped press-down stiffness for a Calm response; zero keeps [GlassMotion.CalmDown]. */
     internal var downStiffness: Float = 0f
-    var pressCount by mutableIntStateOf(0)
+    internal var pressCount by mutableIntStateOf(0)
         internal set
 
     /** Call on every pointer move as well as on down, so the glow tracks rather than jumps. */

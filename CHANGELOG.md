@@ -47,8 +47,8 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   [Evidence](review/atlas/scrub-flattening-2026-10-27/README.md).
 - Free buttons / search accessory: press flash, upright pull, and see-through overlap (#125).
   Touch-down on the search button dims the glyph to ~0.50 alpha for 1 frame (16–33 ms) and recovers
-  over 50 ms (`GlassInteraction.pressFlash`, on in `Pullable`). Diagonal pulls preserve an upright
-  oval without tilting the body 20° or shearing the glyph (`GlassInteraction.uprightPull`, on in `Pullable`;
+  over 50 ms (internal free-button feedback). Diagonal pulls preserve an upright
+  oval without tilting the body 20° or shearing the glyph (internal free-button deformation;
   shear term strictly zero). When pushed against the tab bar, the bar end shows through the button's
   translucent glass with a moving contact shadow, eliminating the dark ghost at rest.
   [Evidence](review/atlas/search-button-2026-10-28/README.md).

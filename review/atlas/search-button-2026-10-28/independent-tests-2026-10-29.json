@@ -1,0 +1,14 @@
+{
+  "kotlin_focused_tests": 9,
+  "kotlin_focused_failures": 0,
+  "api": "checkKotlinAbi passed against unchanged main API dumps",
+  "portable_interaction_tests": 11,
+  "portable_failures": 0,
+  "dotnet_checks": 16,
+  "dotnet_all_passed": true,
+  "synthetic_diagonal_width_jump_px": {
+    "before": 68.49805534730316,
+    "after": 0.023910331454828793
+  },
+  "limits": "Uncommitted candidate; full JVM suite and fresh original-recording replay scoring pending"
+}

@@ -13,6 +13,23 @@ import kotlin.test.assertTrue
 class GlassFreePullTest {
     private val free = GlassInteraction.Pullable.copy(pullShape = GlassPullShape.Free)
 
+    @Test fun diagonalPullRemainsContinuousAcrossEqualAxes() {
+        fun horizontalScale(degrees: Float): Float {
+            val radians = degrees * (kotlin.math.PI.toFloat() / 180f)
+            val d = glassPullDeformation(300f * cos(radians), 300f * sin(radians),
+                186f, .124f, 1f, .2f, upright = true)
+            val angle = d.angleDegrees * (kotlin.math.PI.toFloat() / 180f)
+            return kotlin.math.sqrt(d.along * d.along * cos(angle) * cos(angle) +
+                d.across * d.across * sin(angle) * sin(angle))
+        }
+        // A 0.02 degree change in finger direction must not swap a stretched button's
+        // width and height. This measures the transform, independently of its angle representation.
+        for (diagonal in listOf(-135f, -45f, 45f, 135f)) {
+            assertEquals(horizontalScale(diagonal - .01f), horizontalScale(diagonal + .01f),
+                .001f, "continuous horizontal extent around $diagonal degrees")
+        }
+    }
+
     @Test fun aFreeBodyFollowsTheFingerWhileAdaptiveStaysAnchored() {
         // A 62 dp button at 3 px/dp, pressed 1.258, pulled 550 px up (resisted): IMG_6756's 110 px rise
         // at Pullable's follow of 0.2 (0.35 before 18 October reached it at 314 px).
@@ -67,12 +84,12 @@ class GlassFreePullTest {
 
     @Test fun aDiagonalPullConstrainsToUprightOvalWithZeroShear() {
         // A diagonal pull vector (pullX = 180f, pullY = -500f) produces an angle of ~-70.2 degrees (20 deg tilt).
-        // Under Pullable's uprightPull constraint, the deformation angle snaps to -90f (upright oval),
+        // The Free role projects deformation onto the screen axes at -90f (upright oval),
         // preventing diagonal button tilt and preventing glyph shear (shear term cos(a)*sin(a) = 0).
         val args = floatArrayOf(186f, 186f, 93f, 3f, 1.258f, 1.258f, 180f, -500f, 117f)
         val d = glassMaterialPull(args[0], args[1], args[2], args[3], args[4], args[5],
             args[6], args[7], args[8], free)
-        assertEquals(-90f, d.angleDegrees, 0.01f, "diagonal pull angle snaps to upright -90°")
+        assertEquals(-90f, d.angleDegrees, 0.01f, "diagonal pull uses an upright axis representation")
         assertEquals(36f, d.translationX, 0.5f, "translationX follows 2D travel (0.2 * 180px)")
         assertEquals(-100f, d.translationY, 0.5f, "translationY follows 2D travel (0.2 * -500px)")
         val rad = d.angleDegrees * (kotlin.math.PI.toFloat() / 180f)
@@ -80,13 +97,13 @@ class GlassFreePullTest {
         assertEquals(0f, shearTerm, 1e-5f, "shear on glyph is strictly zero")
     }
 
-    @Test fun pressFlashAndUprightPullDefaultsAndPullable() {
+    @Test fun internalFeedbackBelongsToEnabledFreeRole() {
         val defaultInteraction = GlassInteraction()
         assertEquals(false, defaultInteraction.pressFlash)
         assertEquals(false, defaultInteraction.uprightPull)
 
-        assertTrue(GlassInteraction.Pullable.pressFlash)
-        assertTrue(GlassInteraction.Pullable.uprightPull)
+        assertTrue(free.pressFlash)
+        assertTrue(free.uprightPull)
     }
 
     @Test fun pressSourceTracksTouchDownCount() {
@@ -102,13 +119,13 @@ class GlassFreePullTest {
         assertEquals(2, source.pressCount)
     }
 
-    @Test fun uprightPullOptInPreservesFreeAngleWhenFalse() {
-        val freeNonUpright = GlassInteraction(pullShape = GlassPullShape.Free, uprightPull = false)
+    @Test fun internalCorrectionDoesNotApplyToDisabledPull() {
+        val freeNonUpright = GlassInteraction(pullShape = GlassPullShape.Free, pull = false)
         val args = floatArrayOf(186f, 186f, 93f, 3f, 1.258f, 1.258f, 180f, -500f, 117f)
         val d = glassMaterialPull(args[0], args[1], args[2], args[3], args[4], args[5],
             args[6], args[7], args[8], freeNonUpright)
         val rawAngle = kotlin.math.atan2(-500f, 180f) * (180f / kotlin.math.PI.toFloat())
-        assertEquals(rawAngle, d.angleDegrees, 0.01f, "diagonal pull angle is preserved when uprightPull is false")
+        assertEquals(rawAngle, d.angleDegrees, 0.01f, "disabled pull does not opt into the free-button correction")
     }
 
     @Test fun accessoryLinkSharesBarStateWithLinkedButton() {

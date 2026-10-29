@@ -178,6 +178,19 @@ test('settled geometry preserves the existing portable contract for controls, pi
 });
 
 import {createFreeButton} from './interaction.mjs';
+
+test('free-button width is continuous across diagonal pull directions', () => {
+  const width = degrees => {
+    const button = createFreeButton({size:186,density:3});
+    const r = degrees * Math.PI / 180;
+    button.down(0);
+    button.move(.5, 300 * Math.cos(r), 300 * Math.sin(r));
+    const d = button.sample(1), angle = d.angle * Math.PI / 180;
+    return 186 * d.pressScale * Math.hypot(d.along * Math.cos(angle), d.across * Math.sin(angle));
+  };
+  for (const diagonal of [-135,-45,45,135])
+    near(width(diagonal - .01), width(diagonal + .01), .1);
+});
 import {readFileSync} from 'node:fs';
 
 test('free button: every frame of the Kotlin-exported trajectories is reproduced', () => {

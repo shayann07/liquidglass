@@ -1,3 +1,17 @@
+## Independent repair in progress — 29 October
+
+The owner requires preserving the existing public API. New Kotlin constructor/copy parameters,
+public press counter, .NET constructor parameter and TypeScript option are removed from the
+candidate; behavior belongs internally to the existing Free button role. `checkKotlinAbi` passes against the unchanged main API dumps.
+
+Cardinal angle rounding caused an independently reproduced width discontinuity: at 300 px
+pull and 186 px body size (density 3), changing direction by 0.02 degrees around each diagonal
+changed the rendered transform width by 68.498 px. Continuous screen-axis projection reduces
+this to 0.02391 px. This is an authored interpolation preserving axial responses, not a new
+measured iOS constant. Nine focused Kotlin pull tests, eleven portable interaction tests, the exported motion fixture
+and all .NET executable checks pass. [Independent results](independent-tests-2026-10-29.json).
+Full JVM suite and source-recording scoring remain pending. Earlier snapshots/claims below are historical.
+
 # Search button optics: press flash, upright pull and see-through overlap — 28 October 2026
 
 Parity items 147 and 148 / Issue #125.

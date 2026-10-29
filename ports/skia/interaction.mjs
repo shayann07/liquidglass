@@ -290,7 +290,8 @@ function animated(initial) {
  */
 export function createFreeButton({size, density = 1, pressScale = 1.26, pressGrowth = 8, pressLift = .2,
   pullFollow = .2, pullElongation = .124, pullWidthRatio = 1, pullLimit = .5, pullLiftShare = .65,
-  pullReleaseDampingX = .3, uprightPull = false} = {}) {
+  pullReleaseDampingX = .3} = {}) {
+  const uprightPull = true; // Internal correction for the existing free-button role.
   if (!(size > 0) || !(density > 0)) throw new RangeError('Positive size and density required');
   const growth = pressGrowth * density, radius = size / 2;
   const balloon = Math.min(1 + 2 * growth / size, pressScale);
@@ -357,9 +358,11 @@ export function createFreeButton({size, density = 1, pressScale = 1.26, pressGro
         const e = extent(scale, scale, x, y), across = extent(scale, scale, -y, x);
         const along = Math.min(1 + pullElongation * len / Math.max(e, 1), 1.6);
         const extension = (along - 1) * Math.max(e, 1);
-        const raw = Math.atan2(y, x) * 180 / Math.PI;
-        d = {along, across: Math.max(1 - pullWidthRatio * extension / Math.max(across, 1), .5),
-          angle: uprightPull ? snapCardinal(raw) : raw, tx: pullFollow * x, ty: pullFollow * y};
+        const narrow = Math.max(1 - pullWidthRatio * extension / Math.max(across, 1), .5);
+        const nx2 = x * x / (len * len), ny2 = y * y / (len * len);
+        // Continuous screen-axis projection, matching glassPullDeformation.
+        d = {along: along * ny2 + narrow * nx2, across: along * nx2 + narrow * ny2,
+          angle: -90, tx: pullFollow * x, ty: pullFollow * y};
       }
       d = landing(d);
       const g = glow.value(time);

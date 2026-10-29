@@ -40,9 +40,9 @@ research remains available; this page identifies which later changes supersede i
   Rapid reversals decay accumulated strainDrive and suppress the scrub target (#119).
   [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/scrub-flattening-2026-10-27/README.md).
 - 28 October: the search button press flash, upright pull, and see-through overlap (#125).
-  Magnifier glyph dims to ~0.50 alpha for 1 frame on touch-down and recovers over 50 ms (`GlassInteraction.pressFlash`,
+  Magnifier glyph dims to ~0.50 alpha for 1 frame on touch-down and recovers over 50 ms (internal free-button feedback,
   opted in on `Pullable`). Diagonal pulls constrain to cardinal axes, preventing 20° tilt and eliminating glyph
-  shear (`GlassInteraction.uprightPull`, opted in on `Pullable`). Leftward pulls into the tab bar show the bar end
+  shear (internal free-button deformation). Leftward pulls into the tab bar show the bar end
   through translucent glass and soft shadow, eliminating the resting dark ghost.
   [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/search-button-2026-10-28/README.md).
 - 26 October: the held lens's outline is a squircle (a .7 blend toward n = 3, the exponent iOS's lens fits),
