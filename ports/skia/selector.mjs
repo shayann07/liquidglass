@@ -12,7 +12,7 @@ const clamp = (x, lo, hi) => Math.min(Math.max(x, lo), hi);
 
 /** Authored presets; see GlassPoseSpec in the Compose library for every value's provenance. */
 const DEFAULT_SPEC = Object.freeze({
-  centreOmega: 40, tapCentreOmega: 0, centreZeta: 1, spineOmega: 90, spineZeta: 1,
+  centreOmega: 40, centreZeta: 1, spineOmega: 90, spineZeta: 1,
   tapSpineOmega: 36, tapSpineZeta: .43, tapElongationSlots: .36, tapReferenceSpeed: 15,
   spineReleaseOmega: 32, shapeOmega: 32, shapeZeta: .72, pressureOmega: 45, pressureZeta: 1,
   tapPressureOmega: 0, pressureFallOmega: 14, formRiseOmega: 60, heldFormRiseOmega: 0,
@@ -41,13 +41,13 @@ const DEFAULT_SPEC = Object.freeze({
 /** GlassPoseSpec.Calm: CalmIndependent -> CalmVolume -> CalmEndpoint -> CalmImpact -> CalmFreeLanding -> Calm. */
 export const CALM_SELECTOR_SPEC = Object.freeze({
   ...DEFAULT_SPEC,
-  centreOmega: 24, tapCentreOmega: 44, spineOmega: 30, spineZeta: .78, tapSpineOmega: 36, tapSpineZeta: .45,
+  centreOmega: 24, spineOmega: 30, spineZeta: .78, tapSpineOmega: 26, tapSpineZeta: .45,
   tapElongationSlots: .36, tapReferenceSpeed: 10, spineReleaseOmega: 22, pressureOmega: 22,
   pressureFallOmega: 14, formRiseOmega: 75, formFromMovement: 1, tapPressureOmega: 45, heldHeightRatio: 1.2,
   heldReferenceSpeed: 8, elongationSlots: .28, squeeze: .47, pullStrainPerDp: 0,
   pullPressurePerDp: 0, pullFollow: 0, endTravelCapRatio: .025, maxAccommodationSlots: .15,
   travelOnly: true, releaseTravel: true, tapRecoilArea: true, heldTravelPressureOmega: 60,
-  tapSpineLimitSlots: .45, tapAreaGain: .51, tapShortTripRate: 1, tapAppearanceArea: .44,
+  tapSpineLimitSlots: .45, tapAreaGain: .51, tapShortTripRate: .75, tapAppearanceArea: .44,
   tapAppearanceSpine: .13, tapAppearanceFallOmega: 45, releaseFormationSpeed: 3,
   graspOmega: 120, heldFormRiseOmega: 50, releaseTrailingEdge: true, releaseRecoveryOmega: 13,
   releaseTrailingInOmega: 9, releaseTrailingInZeta: .3, releaseTrailingCarry: .1, releaseWallGive: .35,
@@ -754,8 +754,7 @@ export class CalmSelectorController {
       const tx = centreOf(bar, this.restIndex), ty = bar.height / 2;
       if (!this.motionEnabled) { pose.cx = tx; pose.cy = ty; vel.cx = 0; vel.cy = 0; }
       else {
-        const baseOmega = (s.tapCentreOmega > 0 && (this.mode === 'tap' || this.mode === 'pending')) ? s.tapCentreOmega : s.centreOmega;
-        const co = baseOmega * tapClock;
+        const co = s.centreOmega * tapClock;
         [pose.cx, vel.cx] = this.stepState(dt, pose.cx, vel.cx, tx, co, s.centreZeta);
         [pose.cy, vel.cy] = this.stepState(dt, pose.cy, vel.cy, ty, co, s.centreZeta);
       }

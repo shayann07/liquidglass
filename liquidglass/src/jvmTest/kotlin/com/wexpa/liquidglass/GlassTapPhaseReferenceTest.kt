@@ -11,7 +11,7 @@ import java.io.File
 class GlassTapPhaseReferenceTest {
     @Test fun arrivalCompressionExchangesWidthForHeight() {
         val bar = referenceBar()
-        val controller = GlassPoseController(GlassPoseSpec.CalmVolume)
+        val controller = GlassPoseController(GlassPoseSpec.Calm)
         controller.attach(bar, null, null)
         controller.snapToRest(0)
         controller.retarget(4)
@@ -57,7 +57,7 @@ class GlassTapPhaseReferenceTest {
     @Test fun recoilSurvivesReversedTravelAndPresentationCadence() {
         val bar = referenceBar()
         fun trace(start: Int, target: Int, hz: Int, motion: Boolean = true): List<FloatArray> {
-            val controller = GlassPoseController(GlassPoseSpec.CalmVolume)
+            val controller = GlassPoseController(GlassPoseSpec.Calm)
             controller.attach(bar, null, null)
             controller.motionEnabled = motion
             controller.snapToRest(start)
@@ -102,7 +102,7 @@ class GlassTapPhaseReferenceTest {
         // not Atlas's five-slot example with its different width and labels.
         val bar = GlassSelectorBar(1044f, 186f, 27f, 5, 93f, 115f, 81f, 90f,
             150f, 112.5f, 3f, 700f)
-        val controller = GlassPoseController(GlassPoseSpec.CalmVolume)
+        val controller = GlassPoseController(GlassPoseSpec.Calm)
         controller.attach(bar, null, null); controller.snapToRest(0); controller.retarget(4)
         val extent = GlassPoseExtents()
         var best = Float.POSITIVE_INFINITY

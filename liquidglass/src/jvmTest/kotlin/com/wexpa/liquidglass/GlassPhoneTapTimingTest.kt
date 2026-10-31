@@ -58,8 +58,8 @@ class GlassPhoneTapTimingTest {
             }*.0001f
             return source.map { (relative,x) -> at(shift+relative)-x }.toFloatArray()
         }
-        val model=trace(GlassPoseSpec.CalmImpact)
-        val old=trace(GlassPoseSpec.CalmImpact.copy(tapShortTripRate=1f))
+        val model=trace(GlassPoseSpec.Calm)
+        val old=trace(GlassPoseSpec.Calm.copy(tapShortTripRate=1f))
         for ((episode, source) in episodes.withIndex()) {
             val error=errors(model,source); val oldError=errors(old,source)
             val rms=sqrt(error.map { it*it }.average())
@@ -69,48 +69,6 @@ class GlassPhoneTapTimingTest {
             assertTrue(rms<4.5,"episode$episode RMS$rms")
             assertTrue(oldRms>12,"the unchanged response should still fail this evidence gate")
         }
-    }
-
-    /**
-     * Reconciled iOS 27 tap timing metrics (#123, audit section T):
-     * - Touch-down: pointerDown event at t = 0.000 s. Finger release (pointerUp) at nominal t = 0.040 s.
-     * - Onset of visible motion: first displacement exceeding 1 px (|v| >= 10 px/s) at t ~ 10-20 ms.
-     * - Target arrival: selector centre enters within 10 px of target tab centre.
-     *   1-slot arrives in 70-100 ms; 2-slot arrives in 100-130 ms.
-     * - Settled rest: selector centre settled within 0.5 px of target centre with |v| <= 10 px/s.
-     *   1-slot settles by 100-130 ms (iOS 116-130 ms); 2-slot settles by 130-160 ms.
-     */
-    @Test fun calmTapTravelsToTargetWithinIOS27ArrivalWindow() {
-        data class TapTimingResult(val onsetTime: Float, val arrivalTime: Float, val settledTime: Float)
-        fun measureTiming(start: Int, target: Int): TapTimingResult {
-            val c = GlassPoseController(GlassPoseSpec.Calm)
-            c.attach(bar, null, null); c.snapToRest(start)
-            val startX = bar.centreOf(start)
-            val targetX = bar.centreOf(target)
-            c.pointerDown(targetX, bar.centreY, 0.0, true); c.retarget(target)
-            var released = false
-            var onset = -1f
-            var arrival = -1f
-            var settled = -1f
-            for (i in 0..960) {
-                val t = i / 960f
-                if (!released && t >= .04f) { c.advanceTo(.04f); c.pointerUp(target); released = true }
-                c.advanceTo(t)
-                if (onset < 0f && abs(c.centreX - startX) >= 1f) onset = t
-                if (arrival < 0f && abs(c.centreX - targetX) <= 10f) arrival = t
-                if (settled < 0f && abs(c.centreX - targetX) <= 0.5f && abs(c.centreVelocityX) <= 10f) settled = t
-            }
-            return TapTimingResult(onset, arrival, settled)
-        }
-        val t1 = measureTiming(2, 1)
-        val t2 = measureTiming(0, 2)
-        println("CALM_IOS27_TAP_TIMING 1-slot: onset=${t1.onsetTime} arrival=${t1.arrivalTime} settled=${t1.settledTime}")
-        println("CALM_IOS27_TAP_TIMING 2-slot: onset=${t2.onsetTime} arrival=${t2.arrivalTime} settled=${t2.settledTime}")
-        assertTrue(t1.onsetTime in 0.001f..0.030f, "1-slot onset ${t1.onsetTime} not in 1..30 ms")
-        assertTrue(t1.arrivalTime in 0.070f..0.130f, "1-slot arrival ${t1.arrivalTime} not in 70..130 ms")
-        assertTrue(t1.settledTime in 0.150f..0.250f, "1-slot settled ${t1.settledTime} not in 150..250 ms")
-        assertTrue(t2.arrivalTime in 0.100f..0.150f, "2-slot arrival ${t2.arrivalTime} not in 100..150 ms")
-        assertTrue(t2.settledTime in 0.150f..0.260f, "2-slot settled ${t2.settledTime} not in 150..260 ms")
     }
 
     @Test fun longTripKeepsItsVerifiedTrajectoryAndShape() {
@@ -143,7 +101,7 @@ class GlassPhoneTapTimingTest {
         for(hz in listOf(30,60,90,120)) for(scale in listOf(.5f,1f,2f)) for(reverse in listOf(false,true)) {
             val current=samples(hz,scale,reverse)
             for(i in current.indices) for(axis in 0..2)
-                assertEquals(reference[i][axis],current[i][axis],1.2f,"$hz Hz scale$scale reverse$reverse at$i/$axis")
+                assertEquals(reference[i][axis],current[i][axis],.8f,"$hz Hz scale$scale reverse$reverse at$i/$axis")
         }
     }
 

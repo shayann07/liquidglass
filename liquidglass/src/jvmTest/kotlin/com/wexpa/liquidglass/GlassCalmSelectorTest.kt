@@ -8,7 +8,7 @@ import java.io.File
  * Dynamics rates are authored; the 1.23 bar-height bound is an observed envelope. */
 class GlassCalmSelectorTest {
     private val bar = GlassSelectorBar(360f, 64f, 6f, 4, 32f, 39f, 29f, 29f, 40f, 55f, 1f, 260f)
-    private fun controller(spec: GlassPoseSpec = GlassPoseSpec.Calm): GlassPoseController = GlassPoseController(spec).also {
+    private fun controller(): GlassPoseController = GlassPoseController(GlassPoseSpec.Calm).also {
         it.attach(bar, FloatArray(8) { i -> bar.centreOf(i / 2) + if (i % 2 == 0) -20f else 20f },
             FloatArray(4) { i -> bar.centreOf(i) }, 18f)
         it.snapToRest(1)
@@ -36,8 +36,8 @@ class GlassCalmSelectorTest {
         assertTrue(abs(GlassPoseExtents().also(c::extents).height - 58f) < .5f)
     }
     @Test fun longerTravelDeformsMoreAndReturnsToItsRestingSize() {
-        fun trace(target: Int, spec: GlassPoseSpec = GlassPoseSpec.CalmWallLanding): Float {
-            val c = controller(spec); c.retarget(target)
+        fun trace(target: Int): Float {
+            val c = controller(); c.retarget(target)
             var maximum = 0f
             for (i in 1..180) {
                 c.advanceTo(i / 120f)
@@ -52,18 +52,10 @@ class GlassCalmSelectorTest {
             assertTrue(abs(settled.width - 78f) < .5f)
             return maximum
         }
-        val shortWall = trace(2, GlassPoseSpec.CalmWallLanding)
-        val longWall = trace(3, GlassPoseSpec.CalmWallLanding)
-        assertTrue(longWall > shortWall + 5f, "distance did not affect shape on CalmWallLanding: $shortWall $longWall")
-        assertTrue(shortWall > 88f, "selector remained rigid on CalmWallLanding: $shortWall")
-        println("CALM_TRAVEL wall short=$shortWall long=$longWall rest=78")
-
-        // Direct Calm preset coverage (#123, #120):
-        val shortCalm = trace(2, GlassPoseSpec.Calm)
-        val longCalm = trace(3, GlassPoseSpec.Calm)
-        assertTrue(longCalm > shortCalm + 2f, "Calm distance did not affect shape: $shortCalm $longCalm")
-        assertTrue(shortCalm > 80f, "Calm selector remained rigid: $shortCalm")
-        println("CALM_TRAVEL calm short=$shortCalm long=$longCalm rest=78")
+        val short = trace(2); val long = trace(3)
+        assertTrue(long > short + 5f, "distance did not affect shape: $short $long")
+        assertTrue(short > 88f, "selector remained rigid: $short")
+        println("CALM_TRAVEL short=$short long=$long rest=78")
     }
 
     @Test fun movementBeyondAnEndAnchorDoesNotInventSelectorTravel() {

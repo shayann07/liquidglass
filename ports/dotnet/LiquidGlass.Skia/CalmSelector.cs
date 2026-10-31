@@ -8,7 +8,7 @@ namespace LiquidGlass.Skia;
 /// <summary>Authored presets; see GlassPoseSpec in the Compose library for every value's provenance.</summary>
 public sealed record CalmSelectorSpec
 {
-    public double CentreOmega { get; init; } = 40; public double TapCentreOmega { get; init; } = 0; public double CentreZeta { get; init; } = 1;
+    public double CentreOmega { get; init; } = 40; public double CentreZeta { get; init; } = 1;
     public double SpineOmega { get; init; } = 90; public double SpineZeta { get; init; } = 1;
     public double TapSpineOmega { get; init; } = 36; public double TapSpineZeta { get; init; } = .43;
     public double TapElongationSlots { get; init; } = .36; public double TapReferenceSpeed { get; init; } = 15;
@@ -57,13 +57,13 @@ public sealed record CalmSelectorSpec
     /// <summary>GlassPoseSpec.Calm.</summary>
     public static CalmSelectorSpec Calm { get; } = new()
     {
-        CentreOmega = 24, TapCentreOmega = 44, SpineOmega = 30, SpineZeta = .78, TapSpineOmega = 36, TapSpineZeta = .45,
+        CentreOmega = 24, SpineOmega = 30, SpineZeta = .78, TapSpineOmega = 26, TapSpineZeta = .45,
         TapElongationSlots = .36, TapReferenceSpeed = 10, SpineReleaseOmega = 22, PressureOmega = 22,
         PressureFallOmega = 14, FormRiseOmega = 75, FormFromMovement = 1, TapPressureOmega = 45, HeldHeightRatio = 1.2,
         HeldReferenceSpeed = 8, ElongationSlots = .28, Squeeze = .47, PullStrainPerDp = 0,
         PullPressurePerDp = 0, PullFollow = 0, EndTravelCapRatio = .025, MaxAccommodationSlots = .15,
         TravelOnly = true, ReleaseTravel = true, TapRecoilArea = true, HeldTravelPressureOmega = 60,
-        TapSpineLimitSlots = .45, TapAreaGain = .51, TapShortTripRate = 1, TapAppearanceArea = .44,
+        TapSpineLimitSlots = .45, TapAreaGain = .51, TapShortTripRate = .75, TapAppearanceArea = .44,
         TapAppearanceSpine = .13, TapAppearanceFallOmega = 45, ReleaseFormationSpeed = 3,
         GraspOmega = 120, HeldFormRiseOmega = 50, ReleaseTrailingEdge = true, ReleaseRecoveryOmega = 13,
         ReleaseTrailingInOmega = 9, ReleaseTrailingInZeta = .3, ReleaseTrailingCarry = .1, ReleaseWallGive = .35,
@@ -783,8 +783,7 @@ public sealed class CalmSelectorController
             if (!MotionEnabled) { pose.Cx = tx; pose.Cy = ty; velocity.Cx = 0; velocity.Cy = 0; }
             else
             {
-                var baseOmega = s.TapCentreOmega > 0 && (Mode == CalmSelectorMode.TapTransit || Mode == CalmSelectorMode.PressPending) ? s.TapCentreOmega : s.CentreOmega;
-                var co = baseOmega * tapClock;
+                var co = s.CentreOmega * tapClock;
                 (pose.Cx, velocity.Cx) = StepState(dt, pose.Cx, velocity.Cx, tx, co, s.CentreZeta);
                 (pose.Cy, velocity.Cy) = StepState(dt, pose.Cy, velocity.Cy, ty, co, s.CentreZeta);
             }

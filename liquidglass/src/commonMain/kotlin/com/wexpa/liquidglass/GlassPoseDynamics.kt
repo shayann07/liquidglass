@@ -36,12 +36,6 @@ internal data class GlassPoseSpec(
     val centreOmega: Float = 40f,
     val centreZeta: Float = 1f,
     /**
-     * Stiffer centre spring scoped specifically to tap transits (e.g. 44/s for iOS 27 tap parity,
-     * #123), decoupling tap arrival speed from general drag-and-release edge recovery and throw landing.
-     * Nonpositive uses [centreOmega].
-     */
-    val tapCentreOmega: Float = 0f,
-    /**
      * The spine: elongation along the motion. Fast, so it tracks the speed that drives it; the
      * pill in the recording is longest about 25 ms after the centre is fastest and has contracted
      * again two frames after the centre arrives.
@@ -457,12 +451,12 @@ internal data class GlassPoseSpec(
          * 27.5 to 7.1 px rms against iOS (4.5 px below the first 2 px); a full blend (1) gives
          * 9.2 / 8.9, n = 2.5 or 3.5 are worse. Replays: .local/sxs/sqfit.sh, sqscore.py.
          *
-         * iOS 27 tap parity (#123, #120): centre spring frequency 44/s, tap spine recovery 36/s,
-         * full-speed short trips (1.0 vs 0.75), transit formation target 1.0 (peaks at ~0.85-0.95),
-         * and form rise rate 50/s. Tap travel arrives in ~70-130 ms and rises into a full glass lens. */
+         * Tap lens formation (#120, 1 November): a moving unheld selector forms fully (formFromMovement 1,
+         * rising at 75/s) so a tap rises toward iOS 27's lens. Scored by replay against JGEY2190 and docs/1:
+         * tap arrival stays within 51 ms rms of iOS (main 39); the 44/s tap spring and full-rate short
+         * trips of the first candidate arrived 30-135 ms early (104 ms rms) and were dropped. */
         val Calm = CalmWallLanding.copy(heldTravelStrain = .6f, heldTravelStrainOmega = 10f,
-            heldReferenceSpeed = 8f, heldSquircle = .7f, tapCentreOmega = 44f, tapSpineOmega = 36f,
-            tapShortTripRate = 1f, formFromMovement = 1f, formRiseOmega = 75f)
+            heldReferenceSpeed = 8f, heldSquircle = .7f, formFromMovement = 1f, formRiseOmega = 75f)
     }
 }
 
@@ -1466,12 +1460,7 @@ internal class GlassPoseController(
                 pose.cx = targetX; pose.cy = targetY
                 velocity.cx = 0f; velocity.cy = 0f
             } else {
-                val springOmega = if (spec.tapCentreOmega > 0f && (mode == GlassPoseMode.TapTransit || mode == GlassPoseMode.PressPending)) {
-                    spec.tapCentreOmega
-                } else {
-                    spec.centreOmega
-                }
-                val co = springOmega * tapClock
+                val co = spec.centreOmega * tapClock
                 val cz = spec.centreZeta
                 stepState(dt, pose.cx, velocity.cx, targetX, co, cz).let { pose.cx = it[0]; velocity.cx = it[1] }
                 stepState(dt, pose.cy, velocity.cy, targetY, co, cz).let { pose.cy = it[0]; velocity.cy = it[1] }
