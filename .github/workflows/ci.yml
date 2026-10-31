@@ -366,6 +366,10 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
+      # Some runner images also carry a newer SDK (10.0.403+), which dotnet would pick over the pin above;
+      # a global.json makes the pinned SDK binding for this job.
+      - name: Use the pinned SDK
+        run: dotnet new globaljson --sdk-version 10.0.402 --roll-forward disable --force
       - name: Install the MAUI workloads (Android, Windows)
         run: dotnet workload install maui-android maui-windows
       - name: Build LiquidGlass.Maui (net10.0, Android, Windows) and the Android demo app
