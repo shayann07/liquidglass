@@ -364,6 +364,11 @@ internal data class GlassPoseSpec(
      * lens loses its glass; after a throw the travel keeps it formed anyway. Authored.
      */
     val releaseStillHoldSeconds: Float = 0f,
+    /**
+     * Opt-in, with [releaseStillHoldSeconds]: the rate at which a still-released lens's formation
+     * falls once its hold expires. Zero uses [formOmega]. Authored against IMG_6756 (iOS 27).
+     */
+    val releaseStillFadeOmega: Float = 0f,
 ) {
     internal val spineLimitSlots: Float get() = max(elongationSlots, tapSpineLimitSlots)
 
@@ -458,7 +463,9 @@ internal data class GlassPoseSpec(
          * tap arrival stays within 51 ms rms of iOS (main 39); the 44/s tap spring and full-rate short
          * trips of the first candidate arrived 30-135 ms early (104 ms rms) and were dropped. */
         val Calm = CalmWallLanding.copy(heldTravelStrain = .6f, heldTravelStrainOmega = 10f,
-            heldReferenceSpeed = 8f, heldSquircle = .7f, formFromMovement = 1f, formRiseOmega = 75f)
+            heldReferenceSpeed = 8f, heldSquircle = .7f, formFromMovement = 1f, formRiseOmega = 75f,
+            pressFormation = 0f, holdThresholdSeconds = .110f, heldFormRiseOmega = 26f,
+            releaseStillHoldSeconds = .035f, releaseStillFadeOmega = 100f)
     }
 }
 
@@ -1126,7 +1133,10 @@ internal class GlassPoseController(
         }
         form.target = formTarget
         val riseOmega = if (heldNow && spec.heldFormRiseOmega > 0f) spec.heldFormRiseOmega else spec.formRiseOmega
-        form.step(dt, if (formTarget > form.value) riseOmega else spec.formOmega, spec.formZeta)
+        val fallOmega = if (mode == GlassPoseMode.Released && releasedStill && spec.releaseStillFadeOmega > 0f) {
+            spec.releaseStillFadeOmega
+        } else spec.formOmega
+        form.step(dt, if (formTarget > form.value) riseOmega else fallOmega, spec.formZeta)
 
         // ---- equilibria
         // Trace-free strain and taper: kept in the state for the shader contract, both zero.
@@ -1981,7 +1991,7 @@ internal class GlassPoseController(
      * yet, but the formation still has to fall, so the frame loop must not sleep. */
     private val holdingStill: Boolean
         get() = mode == GlassPoseMode.Released && releasedFromHold && releasedStill && form.value > .01f &&
-            now - releasedAt < spec.releaseStillHoldSeconds + .05f
+            now - releasedAt < spec.releaseStillHoldSeconds + .15f
 
     private var quietSteps: Int = 0
     private val lastPublished = GlassPose()
