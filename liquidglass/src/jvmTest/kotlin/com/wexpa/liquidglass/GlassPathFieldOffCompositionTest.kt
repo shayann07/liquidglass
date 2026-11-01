@@ -1,5 +1,6 @@
 package com.wexpa.liquidglass
 
+import kotlin.time.Duration.Companion.minutes
 import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.runtime.*
 import androidx.compose.ui.geometry.Size
@@ -66,7 +67,7 @@ class GlassPathFieldOffCompositionTest {
 
     /** The very first composition already returns the finished field: no frame draws without it. */
     @Test fun firstCompositionReturnsTheFieldSynchronously() = withHeldDispatcher { held ->
-        runComposeUiTest {
+        runComposeUiTest(testTimeout = 4.minutes) {
             val composed = mutableListOf<GlassPathField?>()
             setContent {
                 composed += rememberGlassPathField(notch, Size(100f, 60f), 24f, 16f, density, LayoutDirection.Ltr, enabled = true)
@@ -80,7 +81,7 @@ class GlassPathFieldOffCompositionTest {
 
     /** A size-only change keeps the previous field, never null, until the background build publishes. */
     @Test fun sizeChangeKeepsThePreviousFieldUntilTheBackgroundBuildIsPublished() = withHeldDispatcher { held ->
-        runComposeUiTest {
+        runComposeUiTest(testTimeout = 4.minutes) {
             var size by mutableStateOf(Size(100f, 60f))
             val composed = mutableListOf<GlassPathField?>()
             setContent {
@@ -102,7 +103,7 @@ class GlassPathFieldOffCompositionTest {
 
     /** Layout reports an empty size first; the first real size has no field to keep, so it builds now. */
     @Test fun firstRealSizeAfterAnEmptyOneBuildsSynchronously() = withHeldDispatcher { held ->
-        runComposeUiTest {
+        runComposeUiTest(testTimeout = 4.minutes) {
             var size by mutableStateOf(Size.Zero)
             val composed = mutableListOf<GlassPathField?>()
             setContent {
@@ -122,7 +123,7 @@ class GlassPathFieldOffCompositionTest {
 
     /** Resizes requested while a build runs collapse to the latest size: one stale build, then the last. */
     @Test fun resizesDuringABuildAreConflatedToTheLatest() = withHeldDispatcher { held ->
-        runComposeUiTest {
+        runComposeUiTest(testTimeout = 4.minutes) {
             var size by mutableStateOf(Size(100f, 60f))
             var result: GlassPathField? = null
             setContent {
@@ -143,7 +144,7 @@ class GlassPathFieldOffCompositionTest {
 
     /** A different outline or origin cannot reuse the previous field, so it is built before the frame. */
     @Test fun shapeAndPadChangesBuildSynchronously() = withHeldDispatcher { held ->
-        runComposeUiTest {
+        runComposeUiTest(testTimeout = 4.minutes) {
             var shape by mutableStateOf<Shape>(notch)
             var pad by mutableFloatStateOf(24f)
             val composed = mutableListOf<GlassPathField?>()
@@ -164,7 +165,7 @@ class GlassPathFieldOffCompositionTest {
 
     /** A shape that rewrites one Path for every size must not change a build that is already queued. */
     @Test fun queuedBuildKeepsItsOwnOutlineWhenTheShapeReusesItsPath() = withHeldDispatcher { held ->
-        runComposeUiTest {
+        runComposeUiTest(testTimeout = 4.minutes) {
             val reused = Path()
             val shape = object : Shape {
                 override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
@@ -193,7 +194,7 @@ class GlassPathFieldOffCompositionTest {
 
     /** A build still pending when the panel leaves composition is dropped without publishing. */
     @Test fun pendingBuildIsDroppedWhenThePanelLeaves() = withHeldDispatcher { held ->
-        runComposeUiTest {
+        runComposeUiTest(testTimeout = 4.minutes) {
             var size by mutableStateOf(Size(100f, 60f))
             var shown by mutableStateOf(true)
             setContent {

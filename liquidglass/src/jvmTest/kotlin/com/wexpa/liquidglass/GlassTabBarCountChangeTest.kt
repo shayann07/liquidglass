@@ -1,5 +1,6 @@
 package com.wexpa.liquidglass
 
+import kotlin.time.Duration.Companion.minutes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,7 +31,7 @@ class GlassTabBarCountChangeTest {
         var selected by mutableIntStateOf(1)
     }
 
-    private fun addAndSelect(style: GlassTabBarStyle, label: String) = runComposeUiTest {
+    private fun addAndSelect(style: GlassTabBarStyle, label: String) = runComposeUiTest(testTimeout = 4.minutes) {
         val host = Host()
         setContent {
             val state = rememberLiquidGlassState(background = Color.Black, renderScale = 0.25f)

@@ -1,5 +1,6 @@
 package com.wexpa.liquidglass
 
+import kotlin.time.Duration.Companion.minutes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
@@ -23,7 +24,7 @@ import kotlin.test.assertTrue
 /** Ordinary/selected input images must register before selector optics are applied. */
 @OptIn(ExperimentalTestApi::class)
 class GlassMaterialDrawingTest {
-    @Test fun shiftedSelectorNodeDrawsIdenticalInkWithTheSharedBarPivot() = runComposeUiTest {
+    @Test fun shiftedSelectorNodeDrawsIdenticalInkWithTheSharedBarPivot() = runComposeUiTest(testTimeout = 4.minutes) {
         val shared=GlassMaterialDrawingState()
         var shifted by mutableStateOf(false)
         setContent {

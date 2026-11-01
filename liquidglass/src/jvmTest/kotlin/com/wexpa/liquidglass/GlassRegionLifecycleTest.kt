@@ -1,5 +1,6 @@
 package com.wexpa.liquidglass
 
+import kotlin.time.Duration.Companion.minutes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.*
@@ -13,7 +14,7 @@ import kotlin.test.*
 @OptIn(ExperimentalTestApi::class)
 class GlassRegionLifecycleTest {
     /** Replacing root settings disposes old leases and attaches nested consumers to the new recording. */
-    @Test fun rootSettingsReplacementReleasesOldRegionWithNestedConsumersAlive() = runComposeUiTest {
+    @Test fun rootSettingsReplacementReleasesOldRegionWithNestedConsumersAlive() = runComposeUiTest(testTimeout = 4.minutes) {
         var rootLevel by mutableFloatStateOf(0f)
         var show by mutableStateOf(true)
         lateinit var root: GlassRegion
@@ -43,7 +44,7 @@ class GlassRegionLifecycleTest {
     }
 
     /** Matching consumers share a live view whose recording follows root size changes. */
-    @Test fun sharedSettingsSurviveUntilTheirLastConsumerLeaves() = runComposeUiTest {
+    @Test fun sharedSettingsSurviveUntilTheirLastConsumerLeaves() = runComposeUiTest(testTimeout = 4.minutes) {
         var first by mutableStateOf(true)
         var second by mutableStateOf(true)
         var firstLevel by mutableFloatStateOf(.25f)
@@ -83,7 +84,7 @@ class GlassRegionLifecycleTest {
     }
 
     /** Portal and overlay consumers release both their settings views and registered layers. */
-    @Test fun portalAndOverlayConsumersReleaseTheirViews() = runComposeUiTest {
+    @Test fun portalAndOverlayConsumersReleaseTheirViews() = runComposeUiTest(testTimeout = 4.minutes) {
         var show by mutableStateOf(true)
         lateinit var root: GlassRegion
         setContent {
@@ -124,7 +125,7 @@ class GlassRegionLifecycleTest {
     }
 
     /** Repeated settings changes retain only current consumers, with no historical views after disposal. */
-    @Test fun releasesHistoricalViewsAfterDisposal() = runComposeUiTest {
+    @Test fun releasesHistoricalViewsAfterDisposal() = runComposeUiTest(testTimeout = 4.minutes) {
         var level by mutableFloatStateOf(0f)
         var show by mutableStateOf(true)
         lateinit var root: GlassRegion

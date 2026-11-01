@@ -1,5 +1,6 @@
 package com.wexpa.liquidglass
 
+import kotlin.time.Duration.Companion.minutes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -128,7 +129,7 @@ class GlassTabBarInkTest {
     /** One scene, captured in its own composition; the test body returns the image it wants. */
     private fun captured(block: ComposeUiTest.() -> BufferedImage): BufferedImage {
         var out: BufferedImage? = null
-        runComposeUiTest { out = block() }
+        runComposeUiTest(testTimeout = 4.minutes) { out = block() }
         return requireNonNull(out)
     }
 

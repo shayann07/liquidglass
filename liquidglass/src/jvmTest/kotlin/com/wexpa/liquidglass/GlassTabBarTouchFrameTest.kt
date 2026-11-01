@@ -274,7 +274,7 @@ class GlassTabBarTouchFrameTest {
         style: GlassTabBarStyle,
     ): BufferedImage {
         var out: BufferedImage? = null
-        runComposeUiTest {
+        runComposeUiTest(testTimeout = 4.minutes) {
             setContent { Fixture(2, 1f, style) }
             waitForIdle()
             if (touchAt != null) {

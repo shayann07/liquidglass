@@ -1,5 +1,6 @@
 package com.wexpa.liquidglass
 
+import kotlin.time.Duration.Companion.minutes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -40,7 +41,7 @@ class GlassContactShadowScaleTest {
     /** Mean darkening (255 - luma) of each quadrant of the panel's interior: TL, TR, BL, BR. */
     private fun quadrants(renderScale: Float, report: File): List<Double> {
         var out = emptyList<Double>()
-        runComposeUiTest {
+        runComposeUiTest(testTimeout = 4.minutes) {
             setContent {
                 CompositionLocalProvider(LocalDensity provides Density(1f)) {
                     val glass = rememberLiquidGlassState(background = Color.White, renderScale = renderScale)

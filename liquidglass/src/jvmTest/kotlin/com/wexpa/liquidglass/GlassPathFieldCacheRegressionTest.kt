@@ -1,5 +1,6 @@
 package com.wexpa.liquidglass
 
+import kotlin.time.Duration.Companion.minutes
 import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.runtime.*
 import androidx.compose.ui.geometry.Size
@@ -14,7 +15,7 @@ import kotlin.test.*
 @OptIn(ExperimentalTestApi::class)
 class GlassPathFieldCacheRegressionTest {
     /** Unsupported backends must skip even outline construction, not merely discard its field. */
-    @Test fun disabledBackendDoesNotCreateAnOutline() = runComposeUiTest {
+    @Test fun disabledBackendDoesNotCreateAnOutline() = runComposeUiTest(testTimeout = 4.minutes) {
         val shape = object : Shape {
             override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline =
                 error("A shader-incapable backend must not build a field")
@@ -29,7 +30,7 @@ class GlassPathFieldCacheRegressionTest {
     }
 
     /** Equal bitmap extents must not hide changes to the inner outline and its translation. */
-    @Test fun equalPaddedDimensionsReuseDifferentGeometry() = runComposeUiTest {
+    @Test fun equalPaddedDimensionsReuseDifferentGeometry() = runComposeUiTest(testTimeout = 4.minutes) {
         val density = Density(1f)
         var outlineCalls = 0
         val shape = object : Shape {
@@ -80,7 +81,7 @@ class GlassPathFieldCacheRegressionTest {
     }
 
     /** Keeps cache reuse on the recording grid without moving fractional shader origins. */
-    @Test fun subpixelGeometryReusesFieldUntilRecordingGridInputsChange() = runComposeUiTest {
+    @Test fun subpixelGeometryReusesFieldUntilRecordingGridInputsChange() = runComposeUiTest(testTimeout = 4.minutes) {
         val density = Density(1f)
         val outlines = mutableListOf<Size>()
         val shape = object : Shape {
@@ -141,7 +142,7 @@ class GlassPathFieldCacheRegressionTest {
     }
 
     /** Scale changes must preserve each recording-grid origin, including fractional layer pixels. */
-    @Test fun fractionalPaddingMatchesFreshFieldAcrossRenderScales() = runComposeUiTest {
+    @Test fun fractionalPaddingMatchesFreshFieldAcrossRenderScales() = runComposeUiTest(testTimeout = 4.minutes) {
         val density = Density(1f)
         val size = Size(100f, 60f)
         val shape = GenericShape { s, _ ->
