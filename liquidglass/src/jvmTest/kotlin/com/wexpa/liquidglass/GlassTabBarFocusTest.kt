@@ -27,10 +27,13 @@ import kotlin.time.Duration.Companion.minutes
 /** #117: a keyboard user can see which tab has focus; a pointer click does not leave a ring. */
 @OptIn(ExperimentalTestApi::class)
 class GlassTabBarFocusTest {
-    private fun ComposeUiTest.ringPixels(): Int {
+    /** Ring-coloured pixels in the scene, or only within [within] (scene px) when given. */
+    private fun ComposeUiTest.ringPixels(within: androidx.compose.ui.geometry.Rect? = null): Int {
         val map = onNodeWithTag("scene").captureToImage().toPixelMap()
         var n = 0
-        for (y in 0 until map.height) for (x in 0 until map.width) {
+        val xs = within?.let { it.left.toInt().coerceAtLeast(0) until it.right.toInt().coerceAtMost(map.width) } ?: 0 until map.width
+        val ys = within?.let { it.top.toInt().coerceAtLeast(0) until it.bottom.toInt().coerceAtMost(map.height) } ?: 0 until map.height
+        for (y in ys) for (x in xs) {
             val c = map[x, y]
             if (abs(c.red - GlassFocusRingColor.red) < .03f && abs(c.green - GlassFocusRingColor.green) < .03f &&
                 abs(c.blue - GlassFocusRingColor.blue) < .03f) n++
@@ -43,7 +46,8 @@ class GlassTabBarFocusTest {
             val state = rememberLiquidGlassState(Color.Black, renderScale = .25f)
             Box(Modifier.size(500.dp, 120.dp).testTag("scene")) {
                 Box(Modifier.fillMaxSize().background(Color.DarkGray).liquidGlassSource(state))
-                GlassTabBar(state, 5, 0, {}, Modifier.offset(0.dp, 29.dp).width(500.dp)) { _, _ ->
+                // The public overload's default style.
+                GlassTabBar(state, 5, 0, {}, Modifier.offset(0.dp, 29.dp).width(500.dp), style = GlassTabBarStyle.Calm()) { _, _ ->
                     Box(Modifier.size(20.dp).background(Color.White))
                 }
             }
@@ -65,7 +69,11 @@ class GlassTabBarFocusTest {
         bar(); waitForIdle()
         onAllNodes(tab)[0].requestFocus()
         waitForIdle()
-        assertTrue(ringPixels() > 200, "the selected tab's ring is hidden: ${ringPixels()}")
+        // Counted within the selected tab's own bounds, so a ring round another tab cannot pass.
+        val cell = onAllNodes(tab)[0].fetchSemanticsNode().boundsInRoot
+        val inside = ringPixels(cell)
+        assertTrue(inside > 200, "the selected tab's ring is hidden: $inside of ${ringPixels()}")
+        assertEquals(ringPixels(), inside, "ring pixels outside the selected tab")
         // Evidence for review/atlas/tab-focus-ring-2026-11-01 (desktop JVM software render, 500 x 120 dp at density 1).
         val image = onNodeWithTag("scene").captureToImage().toAwtImage()
         java.io.File("build/reports/atlas").apply { mkdirs() }.resolve("tab-focus-ring.png")

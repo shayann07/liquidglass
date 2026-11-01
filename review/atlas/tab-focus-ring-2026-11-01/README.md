@@ -1,8 +1,8 @@
 # Tab bar keyboard focus ring (#117)
 
-![The selected tab, focused from the keyboard, with its ring drawn over the selector](tab-focus-ring.png)
+![Desktop JVM software-renderer capture (GlassTabBarFocusTest): the selected tab, focused from the keyboard, with its ring drawn over the Calm selector](tab-focus-ring.png)
 
-- **Source:** branch `fix/117-tab-focus-ring`, `GlassTabBar` with its default style.
+- **Source:** branch `fix/117-tab-focus-ring`, `GlassTabBar` with `GlassTabBarStyle.Calm()`, the public overload's default.
 - **Capture:** `GlassTabBarFocusTest.theSelectedTabsRingIsDrawnOverTheSelector`, desktop JVM software renderer. The scene
   is 500 x 120 dp at density 1, with a dark-grey source behind the bar and white squares as tab content. Focus is
   moved to the selected tab (index 0) with `requestFocus()`.
