@@ -9,6 +9,10 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
 - Tab bar (Calm): a tap across two tabs reaches its tab sooner: within 6 ms of iOS on docs/1 (was 39 ms late); JGEY2190
   is still 65 ms late (was 98). One-tab taps are unchanged. The pill's level through the tap is not closer to iOS's
   overall (#70 stays open). [Evidence](review/atlas/two-tab-tap-2026-11-02/README.md).
+- New, opt-in: `LocalGlassAdaptiveQuality`. Provide `true` above `LiquidGlassTheme` and, on Android, the theme renders its
+  glass at a lower resolution while frames are being missed (×0.75 a step, floor 0.5 of its `renderScale`), and returns
+  after 3 s without a missed frame. A step waits for the glass to be still, so it never cancels a gesture. Off by default;
+  the desktop and web do not adapt yet (#118). [Evidence](review/atlas/adaptive-quality-2026-11-02/README.md).
 - Tab bar (Calm): beside an accessory that yields to the lens (`GlassTabBarAccessory.yieldsToLens`), the held lens on the
   next tab leans toward it and grows into it, as iOS 27's does, instead of stopping short with a neck and a gap (IMG_6756
   35.5 s: left edge 602 against iOS 605, main 585). The sample drops its lens-to-button neck. No public API change (#107).
