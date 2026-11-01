@@ -50,7 +50,8 @@ data class PhonePalette(
             divider = Color(0xFF2A2A2A), avatar = Color(0xFF514C61), button = Color(0xFF0F0F0F),
             // Selected ink (#99, 26 October): iOS 27 reads (7-8, 151, 255) in display colours on IMG_6756 and
             // LOLL8185, iOS 26 (docs/1) (34, 151, 254); this was (54, 156, 254).
-            accent = Color(0xFF0897FF), ink = Color.White, call = Color(0xFF177F2F),
+            // Unselected ink (#110 item 120): iOS's white glyphs average 247 on IMG_6756, ours 251-253 at pure white.
+            accent = Color(0xFF0897FF), ink = Color(0xFFF9F9F9), call = Color(0xFF177F2F),
             avatarEnd = Color(0xFF342C4A), key = Color(0xFF202020), missed = Color(0xFFF74E53),
         )
         /** iOS's light system colours (label, secondaryLabel, separator, systemBlue/Green/Red, the
@@ -58,7 +59,9 @@ data class PhonePalette(
         val Light = PhonePalette(
             page = Color.White, primary = Color.Black, secondary = Color(0xFF8A8A8E),
             divider = Color(0xFFC6C6C8), avatar = Color(0xFFA5ABB8), button = Color(0xFFF2F2F7),
-            accent = Color(0xFF007AFF), ink = Color.Black, call = Color(0xFF34C759),
+            // IMG_7048 38.5 s (#110 items 121, 122): iOS 27's light accent at rest reads (0, 132, 250), and its
+            // unselected glyphs are dark grey (icons 29, labels 32-33), not black.
+            accent = Color(0xFF0084FA), ink = Color(0xFF1D1D1D), call = Color(0xFF34C759),
             avatarEnd = Color(0xFF858994), key = Color(0xFFE5E5EA), missed = Color(0xFFFF3B30),
         )
     }
@@ -109,6 +112,9 @@ fun PhoneScene(
     // 24 dp since 26 October (#93): IMG_6756 35.5 s and docs/2 30 s show the lens joining the button
     // with a shallow notch top and bottom; 12 dp pinched a waist, 40 dp lost the notch.
     lensFusion: androidx.compose.ui.unit.Dp = 24.dp,
+    // The red count badge on Calls (#99 item 72). IMG_6756 shows "2" and docs/2 none, so it is off by default
+    // and the replay asks for it ("+badge").
+    callsBadge: Int = 0,
 ) {
     LiquidGlassTheme(background = palette.page, renderScale = renderScale) {
     Box(modifier.size(PhoneGeometry.width, PhoneGeometry.height).background(palette.page)) {
@@ -129,27 +135,41 @@ fun PhoneScene(
             trailingAccessory = GlassTabBarAccessory(PhoneGeometry.barHeight,
                 gap = PhoneGeometry.searchLeft - PhoneGeometry.barLeft - PhoneGeometry.barWidth, yieldsToLens = true,
                 lensFusion = lensFusion, link = searchLink),
-        ) { index, isSelected -> PhoneTab(index, if (isSelected) palette.accent else palette.ink) }
+        ) { index, isSelected -> PhoneTab(index, if (isSelected) palette.accent else palette.ink, if (index == 0) callsBadge else 0) }
         Box(
             Modifier.offset(PhoneGeometry.searchLeft, barTop).size(PhoneGeometry.barHeight)
                 .glassEffect(Glass(style.bar, light = style.light).let { if (search != null) it.interactive(response = search) else it },
                     CircleShape, link = searchLink),
             contentAlignment = Alignment.Center,
         ) {
-            Canvas(Modifier.size(26.dp)) { searchGlyph(palette.ink) }
+            // #110 item 119: iOS's magnifier is 68 x 68 px with 1183 ink px; at 26 dp ours was 72 x 72 with 1486.
+            Canvas(Modifier.size(24.5.dp)) { searchGlyph(palette.ink) }
         }
     }
     }
 }
 
 @Composable
-private fun PhoneTab(index: Int, color: Color) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Canvas(Modifier.size(23.dp)) {
-            when (index) {
-                0 -> clockGlyph(color)
-                1 -> personGlyph(color)
-                else -> keypadGlyph(color)
+private fun PhoneTab(index: Int, color: Color, badge: Int = 0) {
+    // #110 item 118: on IMG_6756 34.2 s iOS's icons centre 3-4 px and its labels 2-3 px lower than ours.
+    Column(Modifier.offset(y = 1.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(Modifier.size(23.dp)) {
+            Canvas(Modifier.fillMaxSize()) {
+                when (index) {
+                    0 -> clockGlyph(color)
+                    1 -> personGlyph(color)
+                    else -> keypadGlyph(color)
+                }
+            }
+            // IMG_6756 34.4 s: a 69 px (23 pt) disc, (255, 66, 69), whose top-left is 62 px right of and 19 px above
+            // the clock's (at 3 px/pt; the clock disc sits at the top of this 23 dp box). The count is white.
+            if (badge > 0) Box(
+                // 23 dp is the minimum: at large font scales the count grows the badge instead of clipping.
+                Modifier.wrapContentSize(Alignment.TopStart, unbounded = true).offset(20.dp, (-6.3).dp)
+                    .defaultMinSize(23.dp, 23.dp).background(Color(0xFFFF4245), CircleShape).padding(horizontal = 4.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                BasicText("$badge", style = TextStyle(color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold))
             }
         }
         Spacer(Modifier.height(3.dp))
@@ -252,7 +272,7 @@ private fun DrawScope.handsetGlyph(color: Color) {
 private fun DrawScope.searchGlyph(color: Color) {
     val r = size.minDimension * .32f
     val c = Offset(size.width * .42f, size.height * .42f)
-    drawCircle(color, r, c, style = Stroke(size.minDimension * .1f))
+    drawCircle(color, r, c, style = Stroke(size.minDimension * .089f))
     drawLine(color, Offset(c.x + r * .72f, c.y + r * .72f), Offset(size.width * .92f, size.height * .92f),
-        size.minDimension * .11f, StrokeCap.Round)
+        size.minDimension * .098f, StrokeCap.Round)
 }

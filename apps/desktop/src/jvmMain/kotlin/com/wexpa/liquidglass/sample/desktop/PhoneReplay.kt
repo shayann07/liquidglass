@@ -57,6 +57,8 @@ private fun replay(args: Array<String>) {
     val script = File(args[0])
     val out = File(args[1]).apply { mkdirs() }
     val variant = args.getOrElse(2) { "calm" }
+    // The style and palette name, without the "+" options ("calm-recorded+badge" is calm-recorded with a badge).
+    val baseVariant = variant.substringBefore('+')
     // "+squircle=<amount>[,<exponent>]": the held lens's superellipse outline (#93).
     variant.substringAfter("+squircle=", "").substringBefore('+').split(',').mapNotNull { it.toFloatOrNull() }
         .takeIf { it.isNotEmpty() }?.let { @OptIn(com.wexpa.liquidglass.LiquidGlassDiagnosticApi::class) run { com.wexpa.liquidglass.LiquidGlassDiagnostics.lensSquircle = it.toFloatArray() } }
@@ -73,7 +75,7 @@ private fun replay(args: Array<String>) {
     val atlas = variant.startsWith("atlas")
     val sceneWidth = if (atlas) 1800 else 1170
     val sceneHeight = if (atlas) 1125 else 702
-    val style = when (variant) {
+    val style = when (baseVariant) {
         "v3" -> GlassTabBarStyle.V3().copy(height = PhoneGeometry.barHeight)
         // The 2026-10-13 scene geometry (slot-wide pill, 6 dp ends), for before/after renders.
         "calm-slot" -> GlassTabBarStyle.Calm().copy(height = PhoneGeometry.barHeight)
@@ -82,8 +84,8 @@ private fun replay(args: Array<String>) {
         // Light appearance (authored): "calm-light", "whatsapp-light", "appstore-light".
         "calm-light" -> PhoneGeometry.style(GlassTabBarStyle.Calm(dark = false))
         // The clearer bar of WhatsApp and the App Store ("whatsapp-clear", "appstore-clear").
-        else -> if ("-clear" in variant) PhoneGeometry.style(GlassTabBarStyle.CalmClear(dark = "light" !in variant))
-            else PhoneGeometry.style(GlassTabBarStyle.Calm(dark = "light" !in variant))
+        else -> if ("-clear" in baseVariant) PhoneGeometry.style(GlassTabBarStyle.CalmClear(dark = "light" !in baseVariant))
+            else PhoneGeometry.style(GlassTabBarStyle.Calm(dark = "light" !in baseVariant))
     }.let { base ->
         // "calm+lens=<alpha>,<grey 0-255>[,<rawShare>[,<lift /255>[,<fineShare>[,<wide dp>[,<heldGlow>[,<glowFloor>[,<glowReach dp>[,<blur dp>[,<rawBlur dp>[,<refraction depth dp>[,<innerShadow>[,<edge tone /255>]]]]]]]]]]]]": a lens candidate, for fitting by replay.
         val lens = variant.substringAfter("+lens=", "").substringBefore('+').split(',').mapNotNull { it.toFloatOrNull() }
@@ -174,8 +176,8 @@ private fun replay(args: Array<String>) {
     }
     // Display colours measured on the correctly decoded recordings; "-recorded" reproduces the
     // passes that compared against the recordings decoded as sRGB (2026-10-15).
-    val palette = if (variant.endsWith("recorded")) PhonePalette.Recorded
-        else if ("light" in variant) PhonePalette.Light else PhonePalette.Natural
+    val palette = if (baseVariant.endsWith("recorded")) PhonePalette.Recorded
+        else if ("light" in baseVariant) PhonePalette.Light else PhonePalette.Natural
 
     lateinit var scene: ImageComposeScene
     lateinit var composeScene: ComposeScene
@@ -199,6 +201,7 @@ private fun replay(args: Array<String>) {
                 else if (variant.startsWith("whatsapp")) WhatsAppScene(selected, { selected = it },
                     style = WhatsAppGeometry.style(style), card = "+plain" !in variant, light = "light" in variant)
                 else PhoneScene(selected, { selected = it }, palette = palette, style = style,
+                    callsBadge = if ("+badge" in variant) 2 else 0,
                     lensFusion = androidx.compose.ui.unit.Dp(variant.substringAfter("+lfuse=", "").substringBefore('+').toFloatOrNull() ?: 24f),
                     search = if ("+passive" in variant) null else com.wexpa.liquidglass.GlassInteraction.Pullable.copy(
                         pullShape = com.wexpa.liquidglass.GlassPullShape.Free, pullLiftShare = 0.65f).let { base ->

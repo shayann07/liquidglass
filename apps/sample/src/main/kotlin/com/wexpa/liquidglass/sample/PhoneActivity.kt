@@ -37,7 +37,8 @@ class PhoneActivity : ComponentActivity() {
             val palette = if (light) PhonePalette.Light else if (natural) PhonePalette.Natural else PhonePalette.Recorded
             Box(Modifier.fillMaxSize().background(palette.page), contentAlignment = Alignment.BottomCenter) {
                 PhoneScene(selected, { selected = it }, Modifier.navigationBarsPadding().testTag("phone-scene"), palette = palette,
-                    style = PhoneGeometry.style(GlassTabBarStyle.Calm(dark = !light)), renderScale = renderScale)
+                    style = PhoneGeometry.style(GlassTabBarStyle.Calm(dark = !light)), renderScale = renderScale,
+                    callsBadge = 2)
             }
         }
     }
