@@ -1,5 +1,7 @@
 package com.wexpa.liquidglass
 
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.input.InputMode
@@ -195,6 +197,45 @@ internal fun GlassTabBar(
     BoxWithConstraints(
         modifier = modifier.height(style.height)
             .onGloballyPositioned { focusRing.bar = it }
+            // A pointer press anywhere on the bar hides the ring until the next key: the desktop stays in keyboard
+            // input mode under touch and synthetic presses, which focus the tab they press (#143 regression in replays).
+            .pointerInput(Unit) {
+                kotlinx.coroutines.coroutineScope {
+                    val watcher = this
+                    var cleanup: kotlinx.coroutines.Job? = null
+                    awaitPointerEventScope {
+                        while (true) {
+                            val e = awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
+                            // A press, not a held pointer moving: a key pressed mid-hold must still bring the ring back.
+                            if (e.changes.any { it.pressed && !it.previousPressed }) {
+                                // A new press supersedes the last release's pending check.
+                                cleanup?.cancel()
+                                focusRing.pointerSinceKey = true
+                                focusRing.pointerSinceBlur = true
+                            }
+                            // A press that ends with no tab focused (the row's padding) leaves nothing to suppress: clear
+                            // it two frames on, after any tab the press clicked has taken focus.
+                            if (e.changes.none { it.pressed } && e.changes.any { it.previousPressed }) cleanup = watcher.launch {
+                                androidx.compose.runtime.withFrameNanos { }
+                                androidx.compose.runtime.withFrameNanos { }
+                                if (!focusRing.barFocused) {
+                                    focusRing.pointerSinceKey = false
+                                    focusRing.pointerSinceBlur = false
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            .onPreviewKeyEvent { focusRing.pointerSinceKey = false; false }
+            // Focus that comes back with no pointer press on the bar since it left came from the keyboard (a Tab from a
+            // text field, whose key the bar never sees) or from code: show the ring again. A pointer's own press
+            // reaches this bar (Initial pass) before the tab it presses takes focus.
+            .onFocusChanged {
+                focusRing.barFocused = it.hasFocus
+                if (!it.hasFocus) focusRing.pointerSinceBlur = false
+                else if (!focusRing.pointerSinceBlur) focusRing.pointerSinceKey = false
+            }
             .drawWithContent {
                 drawContent()
                 // In the bar's own coordinates, so a scaled or rotated ancestor cannot misplace it.
@@ -1370,7 +1411,7 @@ private fun ItemCell(
                     val keyboard = LocalInputModeManager.current.inputMode == InputMode.Keyboard
                     val ring = LocalGlassFocusRing.current
                     var cell by remember { mutableStateOf<androidx.compose.ui.layout.LayoutCoordinates?>(null) }
-                    val showRing = focused && keyboard
+                    val showRing = focused && keyboard && ring?.pointerSinceKey != true
                     androidx.compose.runtime.SideEffect {
                         val target = ring?.target ?: return@SideEffect
                         val at = cell
@@ -2449,6 +2490,12 @@ internal class GlassFocusRingTarget(val index: Int, val cell: androidx.compose.u
 /** The bar's layout and its keyboard-focused tab, if any (#117). */
 internal class GlassFocusRingState {
     var bar: androidx.compose.ui.layout.LayoutCoordinates? = null
+    /** A pointer pressed the bar since the last key event: the ring stays hidden until the keyboard is used again. */
+    var pointerSinceKey by mutableStateOf(false)
+    /** A pointer pressed the bar since focus last left it: focus that returns without one is not the pointer's. */
+    var pointerSinceBlur = false
+    /** Whether a tab of the bar has focus. */
+    var barFocused = false
     val target = mutableStateOf<GlassFocusRingTarget?>(null)
 }
 

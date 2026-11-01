@@ -45,6 +45,8 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   as iOS's Large Content Viewer does; a tap does not (#145). See [Accessibility](docs/accessibility.md#large-text-the-large-content-viewer).
 - Tab bar: a keyboard-focused tab draws a focus ring (2 dp, system blue, with a dark hairline); pointer input never
   shows it (#117). See [Keyboard focus](docs/tab-bar.md#keyboard-focus).
+- Tab bar: the focus ring no longer appears after a touch or a synthetic press on desktop, where the input mode
+  stays Keyboard: a pointer press hides it until the next key (#117 follow-up; every desktop touch replay showed it).
 - Sample (Phone scene): Calls carries iOS's red count badge, a 23 pt disc measured on IMG_6756 (#99); the replay
   draws it with `+badge` only. The tab content sits 1 dp lower, dark unselected ink is (249,249,249), the search glyph
   is 6 % smaller and lighter, and the light palette takes iOS 27's grey ink and (0,132,250) accent (#110).
