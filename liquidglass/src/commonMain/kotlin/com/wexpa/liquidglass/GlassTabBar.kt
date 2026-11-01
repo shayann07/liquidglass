@@ -1937,12 +1937,13 @@ data class GlassTabBarStyle(
          * compromise with WhatsApp's 236, which [CalmClear] now carries; the App Store's is invisible over
          * white, 255, and its scene sets that).
          * The held lens is clear glass over the bar; its edge is a soft grey band to ~243-246 where dark
-         * Calm's is a 65-level line, so its outline tone is 243/255 and a faint inner band
-         * ([GlassStyle.innerShadow] .08) reads 245 at the rim (iOS 244, but ~4 px wide where iOS's is
-         * ~12); it adds no raw page. It casts a tight shadow offset under itself (iOS: none above the
-         * lens, 242 for ~15 px below it, fading by ~36 px; [GlassStyle.contactShadow] .45 at 6 dp blur,
-         * 5 dp down, half of it inside the lens: profile rms 2.6 levels over the page above, the overhang
-         * and below, against 4.2 without a shadow; IMG_7048 38.5 / 42 s, 18 October). The bar lifts for any touch, page text under
+         * Calm's is a 65-level line, so its outline tone is 243/255; it adds no raw page and, since 1 November,
+         * no inner band ([GlassStyle.innerShadow] 0): the 18 October .08 drew a dark line along the lower
+         * rim (IMG_7049 row 648: 238, iOS 254; #104). It casts a shadow under itself, outside the lens only:
+         * [GlassStyle.contactShadow] .35 at 9 dp blur, 11 dp down (1 November, IMG_7049 39.41-39.87 s held on
+         * Contacts: rows 640-684 3.43 levels rms, was 7.18; iOS stays clear to the lower rim and darkens
+         * gradually below it, deepest ~20 px down). It replaced .45 at 6 dp blur, 5 dp down, half inside the
+         * lens (18 October, IMG_7048 38.5 / 42 s: profile rms 2.6 levels). The bar lifts for any touch, page text under
          * bar and lens is one soft copy, and tap optics follow dark Calm (behaviour, not levels).
          * [CalmRecordedSpace] (false) keeps the light preset this replaced.
          */
