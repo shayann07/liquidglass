@@ -10,6 +10,10 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   now default to the platform's settings: Android's Remove animations and (API 34+) contrast level, and the web's
   `prefers-reduced-motion`, `prefers-reduced-transparency` and `prefers-contrast`. Explicit values still win (#115).
   [Accessibility](docs/accessibility.md).
+- Tab bar (Calm): a tap's moving selector rises into a glass lens (formation about .74, was .25) and returns to
+  the pill on arrival (#120). Tap travel speed is unchanged: re-measured against four iOS taps, main's timing is
+  already the closest (39 ms rms) (#123).
+  [Evidence](review/atlas/tap-transit-2026-10-27/README.md).
 - Tab bar (Calm) and shaders: eliminated green and black comb streaks during tap transits and fixed channel crush at the lens rim. In `GlassContentShaderSource.kt`, chromatic split `delta` scales with `abs(shift)` rather than applying full static band displacement along straight runs, and `glassSelectorMaterial` scales transit ink dispersion by `GlassSelectorInkSplitShare`. Outward chromatic displacement is bounded symmetrically by recorded margin (`-maxOutward`), preventing transit channels from sampling outside the bar while preserving legitimate outward held refraction and exact grayscale neutrality across all channels when dispersion is zero. Port shaders and selector fixtures updated across all platforms (#124, #108).
   [Evidence](review/atlas/comb-streaks-2026-10-27/README.md).
 - Tab bar: a keyboard-focused tab draws a focus ring (2 dp, system blue, with a dark hairline); pointer input never

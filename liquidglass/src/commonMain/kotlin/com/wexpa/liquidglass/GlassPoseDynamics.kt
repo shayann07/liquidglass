@@ -449,9 +449,14 @@ internal data class GlassPoseSpec(
          * The held lens's outline (#93, 2026-10-26): a squircle blend of .7 toward n = 3, authored
          * against IMG_6756 35.5 s. The lens's width at each depth below its crown (0-12 px) moves from
          * 27.5 to 7.1 px rms against iOS (4.5 px below the first 2 px); a full blend (1) gives
-         * 9.2 / 8.9, n = 2.5 or 3.5 are worse. Replays: .local/sxs/sqfit.sh, sqscore.py. */
+         * 9.2 / 8.9, n = 2.5 or 3.5 are worse. Replays: .local/sxs/sqfit.sh, sqscore.py.
+         *
+         * Tap lens formation (#120, 1 November): a moving unheld selector forms fully (formFromMovement 1,
+         * rising at 75/s) so a tap rises toward iOS 27's lens. Scored by replay against JGEY2190 and docs/1:
+         * tap arrival stays within 51 ms rms of iOS (main 39); the 44/s tap spring and full-rate short
+         * trips of the first candidate arrived 30-135 ms early (104 ms rms) and were dropped. */
         val Calm = CalmWallLanding.copy(heldTravelStrain = .6f, heldTravelStrainOmega = 10f,
-            heldReferenceSpeed = 8f, heldSquircle = .7f)
+            heldReferenceSpeed = 8f, heldSquircle = .7f, formFromMovement = 1f, formRiseOmega = 75f)
     }
 }
 

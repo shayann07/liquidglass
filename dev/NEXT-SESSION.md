@@ -48,14 +48,15 @@ Owner authorizes commits/pushes/PRs and measured default corrections; Claude rev
   Then verify any remaining Argon sessions (`.local/gemini/sessions/`; 17-25 spot-checked in audit section U: iOS-only
   targets, 6 of 8 checked sessions accurate, re-measure each value before using it; 17 half answered, 26-30 pending).
 
-## RESUME HERE (27 Oct morning): Task A complete (all 30 Argon sessions verified), fix Task B
+## RESUME HERE (27 Oct morning): Task A complete, Task B #123+#120 addressed, next #119
 
 All 30 Argon sessions are verified on decoded frames against reference replay renders (sessions 01-16 in section T, 17-25 in section U, 26-30 in section V of `review/atlas/ios-audit-2026-10-26/README.md`). Confirmed findings filed to issue checklists via `gh issue` on #119, #111, #125.
 PR #130 is open on branch `fix/124-comb-streaks` addressing issue #124, #108, #94.
+PR is open on branch `fix/123-tap-travel-and-lens` addressing issue #123 (tap travel speed ~70–130 ms vs ~300 ms) and #120 (full tap lens formation >= 0.85, held profile >= 0.95, moving fringes 0.14).
 
 **Exact next step on resume**:
-1. Continue Task B fix order: **#123 + #120** (tap travel speed ~300 ms vs iOS ~70–130 ms, tap lens formation, bar spread; branch from `main`).
-2. Then follow the remaining sequence in dev/TODO: #119, #108, #95/#106, #93, #125, #128, #129.
+1. Continue Task B fix order: **#119** (fast scrub flattens lens, strain overshoot).
+2. Then follow the remaining sequence in dev/TODO: #108, #95/#106, #93, #125, #128, #129.
 
 ## 26 October, late night: second video pass verified
 

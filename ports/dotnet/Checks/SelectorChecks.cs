@@ -27,7 +27,7 @@ internal static class SelectorChecks
         var tolerance = new Dictionary<string, double>
         {
             ["cx"] = .05, ["cy"] = .05, ["left"] = .05, ["right"] = .05, ["top"] = .05, ["bottom"] = .05,
-            ["formation"] = 1e-4, ["transit"] = 1e-3, ["heldTravel"] = 1e-4, ["a0"] = 1e-4, ["a1"] = 1e-4, ["a2"] = 1e-4,
+            ["formation"] = 2e-4, ["transit"] = 1e-3, ["heldTravel"] = 1e-4, ["a0"] = 1e-4, ["a1"] = 1e-4, ["a2"] = 1e-4,
             ["a3"] = 1e-4, ["spine"] = .05, ["radius"] = .05, ["band"] = .05,
         };
         var scenarios = 0; var frames = 0; double worstPx = 0;

@@ -103,12 +103,12 @@ public static class CalmSelectorMaterial
             values = LerpStyle(style, lift);
             values["uTint"] = pigment["uTint"]; values["uLift"] = pigment["uLift"];
             // A tapped selector's own fold (Compose's GlassTabBarStyle.tapTransitFold).
-            if (style.TapTransitFold > 0 && f < .5f)
+            if (style.TapTransitFold > 0 && !(h > 0 && f >= .5f))
             {
                 var t = Math.Clamp(a * style.TapOptics, 0, 1);
-                folded = t > f ? t * Math.Clamp(style.TapTransitFold, 0, 1) : 0;
+                folded = (t > f || (h == 0 && t > 0)) ? t * Math.Clamp(style.TapTransitFold, 0, 1) : 0;
             }
-            if (folded > 0 || (style.TapOpticsFold > 0 && f >= .5f))
+            if (folded > 0 || (style.TapOpticsFold > 0 && (f >= .5f || h > 0)))
             {
                 values["uFoldCorners"] = [fold["foldCorners"]]; values["uRimMirror"] = [fold["rimMirror"]];
                 values["uRimMirrorGain"] = [fold["rimMirrorGain"]];
@@ -119,12 +119,12 @@ public static class CalmSelectorMaterial
                 if (folded > 0)
                 {
                     values["uAberration"] = [fold["movingDispersion"]]; values["uInkSplit"] = [fold["movingDispersion"] * fold["transitInkSplitShare"]];
-                    values["uProfile"] = [fold["measuredProfile"]];
+                    if (f < .5f) values["uProfile"] = [fold["measuredProfile"]];
                     values["uFoldCorners"] = [fold["transitFoldCorners"]];
                 }
             }
         }
-        var band = style.TapOpticsFold > 0 && f >= .5f ? Math.Clamp(h * style.TapOpticsFold, 0, 1) : folded;
+        var band = style.TapOpticsFold > 0 && h > 0 ? Math.Clamp(h * style.TapOpticsFold, 0, 1) : folded;
         return new(values, Math.Clamp(band, 0, 1), values["rawShare"][0], values["rawBlur"][0]);
     }
 
