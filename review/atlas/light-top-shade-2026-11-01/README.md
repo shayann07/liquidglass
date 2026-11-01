@@ -27,8 +27,8 @@ changed here.
 
 ## The change (light Calm only)
 
-New `GlassStyle.topShade` and `topShadeReach`, both off by default (opt-in, AGENTS rule 8). The material darkens by
-`topShade` over the top `topShadeReach`: evenly over the first half, easing out by its end, kept off the lit rim (the
+An internal top shade (`GlassTopShade`), passed by the tab bar for light `Calm()`'s own bar only (opt-in by preset, AGENTS
+rule 8; no public API change, so 1.0's binary API is kept). The material darkens by its strength over the top of its reach: evenly over the first half, easing out by its end, kept off the lit rim (the
 bevel), and only on long shapes. It applies before the final clamp, so over a white page part of it is spent above white:
 0.02 and 0.025 changed nothing, 0.065 read 7 levels deep. Light `Calm()`'s bar uses 0.056 over 28 dp, fitted to the two
 frames above. Dark Calm, the pill and the lens are unchanged. Not yet checked on a device.

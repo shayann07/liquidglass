@@ -8,7 +8,7 @@ research remains available; this page identifies which later changes supersede i
 ## Main after 1.0 (24 October)
 
 - 1 November: the light Calm bar's top is shaded as iOS's is (240-241 over its top ~45 px, 245 below; 0.85 levels rms,
-  was 3.15) through the new opt-in `GlassStyle.topShade` (#128). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/light-top-shade-2026-11-01/README.md).
+  was 3.15) (internal to light `Calm()`'s bar; no public API change) (#128). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/light-top-shade-2026-11-01/README.md).
 - 1 November: a thrown lens no longer cuts the label under it (docs/2 8.6 s); the regression came from the 26 October
   band widening and is fixed where the rim faces down only (#94). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/label-band-2026-11-01/README.md).
 - 1 November: glass follows the platform's accessibility settings by default (#115):
@@ -38,6 +38,8 @@ research remains available; this page identifies which later changes supersede i
   [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/glyph-cutouts-2026-11-01/README.md).
 - 1 November: a perfectly still hold forms its lens again: since #133 the frame loop could sleep before the lens
   started to form (found replaying docs/2 5.4 s; a finger's jitter hid it on devices).
+- 1 November: the resting dark Calm bar's rim dims through its caps as iOS's does (3.1 levels rms, was 8.4; #109). The cap
+  outline itself is unchanged. [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/cap-rim-fade-2026-11-01/README.md).
 - 1 November: the focus ring no longer shows after a touch or synthetic press on desktop (every desktop touch replay
   showed it since #143); a pointer press hides it until the next key. Test: `aTouchedTabShowsNoRing`.
 - 1 November: keyboard users can see which tab has focus: the focused tab draws a ring over the selector, in keyboard

@@ -12,7 +12,6 @@ import androidx.compose.ui.platform.FrameRecomposer
 import androidx.compose.ui.scene.ComposeScene
 import androidx.compose.ui.scene.ComposeScenePointer
 import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.dp
 import com.wexpa.liquidglass.GlassTabBarStyle
 import com.wexpa.liquidglass.sample.AppStoreGeometry
 import com.wexpa.liquidglass.sample.AppStoreScene
@@ -154,10 +153,6 @@ private fun replay(args: Array<String>) {
         // "+capedge=<c>": the bar's extra edge shadow where its outline faces sideways.
         val ce = variant.substringAfter("+capedge=", "").substringBefore('+').toFloatOrNull()
         if (ce == null) base else base.copy(bar = base.bar.copy(capEdgeShadow = ce))
-    }.let { base ->
-        // "+topshade=<strength>,<reach dp>": the bar's shade along its top (GlassStyle.topShade, #128).
-        val ts = variant.substringAfter("+topshade=", "").substringBefore('+').split(',').mapNotNull { it.toFloatOrNull() }
-        if (ts.size < 2) base else base.copy(bar = base.bar.copy(topShade = ts[0], topShadeReach = ts[1].dp))
     }.let { base ->
         // "+barrest": the bar on the measured resting-corner map (GlassRestMap.Measured).
         if ("+barrest" !in variant) base else base.copy(bar = base.bar.copy(restMap = com.wexpa.liquidglass.GlassRestMap.Measured))

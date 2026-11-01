@@ -83,7 +83,7 @@ uniform float   uCounterLight; // how much of the key light reaches the side fac
 uniform float   uEdgeLight;    // brightness of the outermost line relative to the bevel lobe
 uniform float   uBevelPeak;    // where in the bevel the highlight peaks: 0 at the edge (chamfer), 0.4 inside (bead)
 uniform float   uEdgeShadow;   // dark separating contour at the outermost pixel, 0..1
-uniform float2  uTopShade;     // strength, reach px: a shade along the top (GlassStyle.topShade)
+uniform float2  uTopShade;     // strength, reach px: a shade along the top (GlassTopShade, #128)
 uniform float   uCapEdgeShadow; // the contour times 1 + this x nx^2: darker where it faces sideways (GlassStyle.capEdgeShadow)
 uniform float2  uOuterContour;  // x: the dark contour outside the outline at the unlit sides, y: its share at the lit poles (GlassStyle.outerContour)
 uniform float   uRimSoft;      // px the compressed rim image is smeared along the normal
@@ -734,12 +734,12 @@ half4 main(float2 coord) {
     // the rim. Deliberately weak — see note 5 about outlines.
     float innerLine = max(smoothstep(uBevel * 2.2, 0.0, depth) - bevelBand, 0.0);
     col -= half3(half(innerLine * uInnerShadow * mix(0.9, 1.15, scale) * mat));
-    // The top shade (GlassStyle.topShade, #128): even over the first half of its reach below the top
+    // The top shade (GlassTopShade, #128): even over the first half of its reach below the top
     // edge, easing out by its end, and kept off the lit rim (the bevel). Long shapes only (wider than twice their
     // height), so a round button sharing the material stays even, as iOS's search button does. Zero is off.
     if (uTopShade.x > 0.0 && halfSize.x > 2.0 * halfSize.y) {
         float fromTop = p.y + halfSize.y;
-        col -= half3(half(uTopShade.x * smoothstep(uTopShade.y, uTopShade.y * 0.5, fromTop)
+        col -= half3(half(uTopShade.x * (1.0 - smoothstep(uTopShade.y * 0.5, uTopShade.y, fromTop))
             * smoothstep(0.0, uBevel, fromTop) * mat));
     }
 
@@ -780,10 +780,19 @@ half4 main(float2 coord) {
     float heldGlow = glowAmt * exp(-max(depth - 0.67 * uBevel, 0.0) / glowReach)
         * (max(facing, 0.0) + counterLight * max(-facing, 0.0));
     float glowFloor = clamp(uHeldGlowFloor, 0.0, 1.0);
+    // GlassStyle.capFold's resting bar (#109): iOS's top and bottom rim dims from about 2 cap radii before the
+    // bar's end, through the cap, to about 0.8 at its tip (IMG_6756 5 and 8 s: 99 on the run, 88 / 84 / 59 at
+    // 137 / 97 / 57 px from the end of a 93 px cap). Long capsules only, so a round button keeps its rim and a rounded
+    // rectangle (corners under half its height) its ends. Only where the style draws a specular rim, so a glass without
+    // one (light Calm, uSpecular 0) keeps its held glow at the caps. Authored fit.
+    float minRadius = min(min(uRadii.x, uRadii.y), min(uRadii.z, uRadii.w));
+    float capRimGate = clamp(uFoldCorners - 1.0, 0.0, 1.0) * (1.0 - step(1.5, uProfile)) * step(2.0 * halfSize.y, halfSize.x)
+        * step(0.95 * halfSize.y, minRadius) * step(0.0001, uSpecular);
+    float capRim = 1.0 - 0.2 * capRimGate * clamp((2.0 * halfSize.y - (halfSize.x - abs(p.x))) / (1.6 * halfSize.y), 0.0, 1.0);
     float highlight = ((key + counter) * uSpecular
         + edgeLine * uSpecular * uEdgeLight
         + fresnel * uFresnel * bevelBand
-        + heldGlow * (1.0 - glowFloor)) * mat;
+        + heldGlow * (1.0 - glowFloor)) * mat * capRim;
     col = applyHighlight(col, highlight, uHiChroma);
     // The floor share of the glow lifts only glass darker than it (GlassStyle.heldGlowFloor).
     if (glowFloor > 0.0) col = max(col, half3(half(heldGlow * glowFloor * mat)));

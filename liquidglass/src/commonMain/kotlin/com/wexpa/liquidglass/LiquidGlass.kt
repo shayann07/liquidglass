@@ -316,6 +316,8 @@ internal fun Modifier.liquidGlassCore(
     materialDrawing: GlassMaterialDrawingState? = null,
     /** Navigation inset tint is confined to this underlying material's actual shape. */
     tintWithinThrough: GlassMaterialDrawingState? = null,
+    /** A shade along the top of the glass; null is none (light `GlassTabBarStyle.Calm()`'s bar, #128). */
+    topShade: GlassTopShade? = null,
 ): Modifier = composed {
     val glassLayer = rememberGraphicsLayer()
     val endpointLayer = rememberGraphicsLayer()
@@ -681,8 +683,8 @@ internal fun Modifier.liquidGlassCore(
                         counterLight = style.counterLight,
                         edgeShadow = style.edgeShadow,
                         capEdgeShadow = style.capEdgeShadow,
-                        topShade = style.topShade.coerceIn(0f, 1f),
-                        topShadeReach = style.topShadeReach.toPx().coerceAtLeast(1f),
+                        topShade = topShade?.strength?.coerceIn(0f, 1f) ?: 0f,
+                        topShadeReach = topShade?.reach?.toPx()?.coerceAtLeast(1f) ?: 1f,
                         outerContour = style.outerContour,
                         outerContourFloor = style.outerContourFloor,
                         rimSoft = style.rimSoftness.toPx(),
@@ -1249,6 +1251,14 @@ internal expect fun Shape.cornerRadiiPx(
 internal const val GlassHeldBandBottom = 0.3f
 
 /**
+ * A shade along the top of the glass, below its lit rim (#128): the material darkens by [strength] of full scale,
+ * evenly over the first half of [reach] and easing to nothing at its end, before the final clamp, so over bright ground
+ * part of it is spent above white. Long shapes only (wider than twice their height). Internal: the tab bar passes it
+ * for light `GlassTabBarStyle.Calm()`'s own bar, so no public style changes and every other glass stays even.
+ */
+internal data class GlassTopShade(val strength: Float, val reach: Dp)
+
+/**
  * The same panel described in a smaller coordinate space.
  *
  * The shader runs on the pixels of the recorded layer, so rendering the material at a reduced
@@ -1439,9 +1449,9 @@ internal data class GlassUniforms(
     val edgeShadow: Float,
     /** [GlassStyle.capEdgeShadow]. */
     val capEdgeShadow: Float = 0f,
-    /** [GlassStyle.topShade]. */
+    /** [GlassTopShade.strength]. */
     val topShade: Float = 0f,
-    /** [GlassStyle.topShadeReach], px. */
+    /** [GlassTopShade.reach], px. */
     val topShadeReach: Float = 1f,
     /** [GlassStyle.outerContour] and [GlassStyle.outerContourFloor]. */
     val outerContour: Float = 0f,

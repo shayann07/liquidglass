@@ -187,8 +187,8 @@ The bar's rounded ends darken toward their outermost point as iOS's do (`GlassSt
 is not scored separately.*
 
 Light iOS also shades the bar's top: it reads 240-241 across the top ~45 px and eases to the body's 245 by ~55 px down.
-Light `Calm()`'s bar does the same (`GlassStyle.topShade` 0.056 over 28 dp, 1 November; 0.85 levels rms down the bar
-against IMG_7049, was 3.15 when even). It is kept off the lit rim and off round shapes, so the search button stays even.
+Light `Calm()`'s bar does the same (a top shade of 0.056 over 28 dp, internal to the preset, 1 November; 0.85 levels rms
+down the bar against IMG_7049, was 3.15 when even). It is kept off the lit rim and off round shapes, so the search button stays even.
 [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/light-top-shade-2026-11-01/README.md).
 
 In both appearances iOS draws page text under a tab bar as one soft, legible copy (the owner's

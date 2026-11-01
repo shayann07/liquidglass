@@ -183,13 +183,12 @@ class GlassTabBarStyleTest {
 
     @Test
     fun onlyTheLightCalmBarShadesItsTop() {
-        // #128: an opt-in material term; every other preset keeps an even bar.
-        assertEquals(0f, GlassStyle().topShade)
-        assertEquals(0f, GlassTabBarStyle.Calm(dark = true).bar.topShade)
-        assertEquals(0f, GlassTabBarStyle.Calm(dark = false).pill.topShade)
-        assertEquals(0f, GlassTabBarStyle.Calm(dark = false).lens.topShade)
-        val light = GlassTabBarStyle.Calm(dark = false).bar
-        assertEquals(0.056f, light.topShade)
-        assertEquals(28.dp, light.topShadeReach)
+        // #128: internal and opt-in by preset; no public style carries it, and every other bar stays even.
+        assertEquals(GlassTopShade(0.056f, 28.dp), glassBarTopShade(GlassTabBarStyle.Calm(dark = false)))
+        assertEquals(null, glassBarTopShade(GlassTabBarStyle.Calm(dark = true)))
+        assertEquals(null, glassBarTopShade(GlassTabBarStyle.Dark))
+        // An app's own variation of the light bar keeps an even bar.
+        val custom = GlassTabBarStyle.Calm(dark = false).let { it.copy(bar = it.bar.copy(edgeShadow = .2f)) }
+        assertEquals(null, glassBarTopShade(custom))
     }
 }

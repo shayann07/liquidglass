@@ -525,19 +525,6 @@ data class GlassStyle(
      * travelling lens's caps stretch into long petals reaching the rim).
      */
     val rimMirrorGain: Float = 1f,
-    /**
-     * A shade along the top of the glass, below its lit rim: the material darkens by this share of full
-     * scale, evenly over the first half of [topShadeReach] and easing to nothing at its end. It applies
-     * before the final clamp, so over bright ground part of it is spent above white. Shapes wider than
-     * twice their height only, so a round button sharing the material stays even. Zero, the default, is
-     * off. Measured: iOS's light tab bar reads 240-241 across its top ~45 px and eases to 245 by ~55 px
-     * down, where an even bar reads 245 throughout (#128, IMG_7049 48.85 and 49.2 s). Authored: the curve,
-     * and light `GlassTabBarStyle.Calm()`'s bar values of 0.056 over 28 dp, fitted to those two frames
-     * (0.85 levels rms down the bar, was 3.15).
-     */
-    val topShade: Float = 0f,
-    /** How far down from the top edge [topShade] reaches. */
-    val topShadeReach: Dp = 16.dp,
 ) {
     companion object {
         /** Clear standalone lens. [magnification] is the centre zoom, gradually returning to

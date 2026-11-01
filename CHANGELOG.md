@@ -7,8 +7,8 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
 20 October; later tags publish it from the release workflow.
 
 - Tab bar (light Calm): the bar's top ~45 px read a few levels darker than its body, as iOS's do (IMG_7049: 240-241
-  against 245), instead of evenly bright (0.85 levels rms down the bar against IMG_7049, was 3.15). New `GlassStyle.topShade` and
-  `topShadeReach`, default off; long shapes only, so the search button stays even (#128).
+  against 245), instead of evenly bright (0.85 levels rms down the bar, was 3.15). Light `Calm()`'s own bar only; no public
+  API changes, and the search button and other styles stay even (#128).
   [Evidence](review/atlas/light-top-shade-2026-11-01/README.md).
 - Tab bar (light Calm): the bar's shadow is a faint band straight below it, as iOS 27's is, not a soft halo. The gap to
   the search button stays white (255, as iOS; was 251) (#128). [Evidence](review/atlas/light-bar-shadow-2026-11-01/README.md).
@@ -23,9 +23,9 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   the hold threshold (#133), the frame loop could fall asleep in the step the press became a hold, before the lens
   started to form, leaving the bar swollen and the lens unformed until the finger moved. Fixed in Compose and in
   the Skia and .NET selectors. Found replaying docs/2 5.39-5.80 s.
-- Tab bar (Calm): a thrown lens no longer cuts the label it lands on. The held lens's mirror band narrows where its rim
-  faces down, restoring the label (docs/2: 724 blue label px against 457, iOS 854), with fringes nearer iOS's (#94, #111).
-  [Evidence](review/atlas/label-band-2026-11-01/README.md).
+- Tab bar (dark Calm): the resting bar's rim dims toward and through its rounded ends, as iOS 27's does, instead of
+  running at full brightness into the caps (IMG_6756: 3.1 levels rms against iOS, was 8.4) (#109).
+  [Evidence](review/atlas/cap-rim-fade-2026-11-01/README.md).
 - Accessibility: `LiquidGlassTheme`'s `reduceTransparency` and `increaseContrast`, and `GlassTabBar`'s `motionEnabled`,
   now default to the platform's settings: Android's Remove animations and (API 34+) contrast level, and the web's
   `prefers-reduced-motion`, `prefers-reduced-transparency` and `prefers-contrast`. Explicit values still win (#115).
