@@ -1296,6 +1296,7 @@ internal fun GlassUniforms.scaledBy(s: Float): GlassUniforms =
             // A recovery length in layer pixels, compared against the scaled layer's depth.
             heldEdgeRecovery = heldEdgeRecovery * s,
             heldGlowReach = heldGlowReach * s,
+            topShadeReach = topShadeReach * s,
             fieldRange = fieldRange * s,
             fieldScale = fieldScale / s,
         )
