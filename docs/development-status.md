@@ -7,6 +7,9 @@ research remains available; this page identifies which later changes supersede i
 
 ## Main after 1.0 (24 October)
 
+- 2 November: `LocalGlassAdaptiveQuality` (opt-in, Android): the theme lowers its render scale while frames are missed and
+  restores it after 3 s, stepping only while the glass is still (#118). Checked on a Pixel 7: no step on ordinary taps,
+  forced misses step 1 → 0.5 and back, gestures survive. [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/adaptive-quality-2026-11-02/README.md).
 - 1 November: a thrown lens's formation falls at 12/s once it slows (was 18/s), so it stays milky as it lands as iOS's
   does (#111 item 124). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/landing-lift-2026-11-01/README.md).
 - 1 November: a travelling held lens sweeps icons round its caps (its rim mirror band 1.0 while it moves; taps keep 0.3)

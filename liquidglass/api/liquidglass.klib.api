@@ -739,6 +739,8 @@ final val com.wexpa.liquidglass/CapsuleShape // com.wexpa.liquidglass/CapsuleSha
     final fun <get-CapsuleShape>(): androidx.compose.foundation.shape/RoundedCornerShape // com.wexpa.liquidglass/CapsuleShape.<get-CapsuleShape>|<get-CapsuleShape>(){}[0]
 final val com.wexpa.liquidglass/DefaultSquircleRadius // com.wexpa.liquidglass/DefaultSquircleRadius|{}DefaultSquircleRadius[0]
     final fun <get-DefaultSquircleRadius>(): androidx.compose.ui.unit/Dp // com.wexpa.liquidglass/DefaultSquircleRadius.<get-DefaultSquircleRadius>|<get-DefaultSquircleRadius>(){}[0]
+final val com.wexpa.liquidglass/LocalGlassAdaptiveQuality // com.wexpa.liquidglass/LocalGlassAdaptiveQuality|{}LocalGlassAdaptiveQuality[0]
+    final fun <get-LocalGlassAdaptiveQuality>(): androidx.compose.runtime/ProvidableCompositionLocal<kotlin/Boolean> // com.wexpa.liquidglass/LocalGlassAdaptiveQuality.<get-LocalGlassAdaptiveQuality>|<get-LocalGlassAdaptiveQuality>(){}[0]
 final val com.wexpa.liquidglass/com_wexpa_liquidglass_Glass$stableprop // com.wexpa.liquidglass/com_wexpa_liquidglass_Glass$stableprop|#static{}com_wexpa_liquidglass_Glass$stableprop[0]
 final val com.wexpa.liquidglass/com_wexpa_liquidglass_GlassAccessoryLink$stableprop // com.wexpa.liquidglass/com_wexpa_liquidglass_GlassAccessoryLink$stableprop|#static{}com_wexpa_liquidglass_GlassAccessoryLink$stableprop[0]
 final val com.wexpa.liquidglass/com_wexpa_liquidglass_GlassFuse$stableprop // com.wexpa.liquidglass/com_wexpa_liquidglass_GlassFuse$stableprop|#static{}com_wexpa_liquidglass_GlassFuse$stableprop[0]

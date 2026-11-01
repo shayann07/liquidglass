@@ -1755,12 +1755,23 @@ object LiquidGlassDiagnostics {
     /** When set, the held lens's superellipse blend and exponent (#93), for fitting by replay; null in production. */
     var lensSquircle: FloatArray? = null
 
+    /**
+     * When set, [LocalGlassAdaptiveQuality] counts a frame as missed once it runs past this fraction of its deadline,
+     * so a rig can drive the governor's steps on a device that meets its deadlines (#118); null in production.
+     */
+    var adaptiveDeadlineScale: Float? = null
+
+    /** Called with the new factor whenever [LocalGlassAdaptiveQuality] steps the render scale (#118); null in production. */
+    var adaptiveQualityListener: ((Float) -> Unit)? = null
+
     /** Back to the production defaults: no pad override, no coverage-only rendering, no split override. */
     fun reset() {
         recordPadOverridePx = null
         coverageOnly = false
         selectorFringe = null
         lensSquircle = null
+        adaptiveDeadlineScale = null
+        adaptiveQualityListener = null
     }
 
     /** Runs [block] with these settings and resets them afterwards, whatever [block] does. */

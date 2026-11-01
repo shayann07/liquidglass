@@ -254,6 +254,24 @@ the per-panel layer records, the blur pass on each strip and the render-effect p
 CPU and driver time rather than fill rate. That is the next thing to profile; the knob that
 exists today is `renderScale`.
 
+## Letting the theme lower it by itself
+
+`renderScale` is fixed unless you ask otherwise. Provide `LocalGlassAdaptiveQuality` above the theme and it adapts:
+
+```kotlin
+CompositionLocalProvider(LocalGlassAdaptiveQuality provides true) {
+    LiquidGlassTheme { App() }
+}
+```
+
+On Android the theme reads each rendered frame's deadline from the window's frame metrics. When more than a quarter of
+the frames in a second miss it, the glass renders at 0.75 of its `renderScale`, then 0.75 of that, down to half of it.
+After 3 s without a missed frame it steps back up the same way. Each step rebuilds the glass layers once (4 frames on a
+Pixel 7), and a step waits until nothing has been drawn for 300 ms: a rebuild under a finger would cancel the gesture.
+Nothing is sampled while the screen is idle. A single slow frame never steps: a Pixel 7 tap misses one deadline, its
+first frame, while the GPU clock rises from idle, and the governor ignores it. The desktop and web do not adapt yet.
+[Device check](https://github.com/shayann07/liquidglass/blob/main/review/atlas/adaptive-quality-2026-11-02/README.md).
+
 ## Render scale on a Pixel 7 (26 October)
 
 A tab bar tap on a Pixel 7 at 90 Hz is GPU-bound at full resolution (GPU p50 12-14 ms against an 11.1 ms frame).

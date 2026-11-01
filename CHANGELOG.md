@@ -6,6 +6,10 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- New, opt-in: `LocalGlassAdaptiveQuality`. Provide `true` above `LiquidGlassTheme` and, on Android, the theme renders its
+  glass at a lower resolution while frames are being missed (×0.75 a step, floor 0.5 of its `renderScale`), and returns
+  after 3 s without a missed frame. A step waits for the glass to be still, so it never cancels a gesture. Off by default;
+  the desktop and web do not adapt yet (#118). [Evidence](review/atlas/adaptive-quality-2026-11-02/README.md).
 - Tab bar (Calm): a thrown lens stays milky as it lands, as iOS's does, instead of clearing about 80 ms early (docs/2
   8.62-8.84 s: 5.2 levels rms, was 9.1) (#111). [Evidence](review/atlas/landing-lift-2026-11-01/README.md).
 - Tab bar (Calm): a held lens that travels sweeps the icons it passes round its caps, as iOS's does, instead of carrying

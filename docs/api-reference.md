@@ -61,9 +61,20 @@ Children using the same settings share one view.
 | `background` | The **opaque colour behind the app** wherever it draws nothing. Not decoration: the recording is transparent wherever nothing was painted, and the shader needs this to reconstruct what a viewer sees there. A wrong value shows as a halo around every panel. |
 | `glass` | What `glassEffect` draws when it is given no `Glass`. |
 | `containerSpacing` | `GlassEffectContainer`'s default merge distance. |
-| `renderScale` | 0.25 to 1. The fraction of full resolution the glass renders at. See [Performance](performance.md#rendering-at-reduced-resolution). |
+| `renderScale` | 0.25 to 1. The fraction of full resolution the glass renders at. See [Performance](performance.md#rendering-at-reduced-resolution). With `LocalGlassAdaptiveQuality` on, the theme lowers it while frames are missed. |
 | `reduceTransparency` | 0 to 1. Reduce Transparency: raises the material's opacity. Android has no system setting; drive it from your own. See [Accessibility](accessibility.md). |
 | `increaseContrast` | 0 to 1. Increase Contrast: the material goes predominantly black or white with a contrasting border. |
+
+### `LocalGlassAdaptiveQuality`
+
+```kotlin
+val LocalGlassAdaptiveQuality: ProvidableCompositionLocal<Boolean> // false by default
+```
+
+Provide `true` above `LiquidGlassTheme` to let it lower its `renderScale` while frames are being missed: ×0.75 a step,
+down to half, and back up after 3 s without a missed frame. A step waits until the glass is still, so it never cancels a
+gesture. Android only for now; elsewhere the theme keeps its `renderScale`. See
+[Performance](performance.md#letting-the-theme-lower-it-by-itself).
 
 ### `Modifier.glassEffect`
 
