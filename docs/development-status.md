@@ -1,9 +1,3 @@
-<!-- Development checkpoint: not release acceptance. -->
-
-Transit ink candidate (29 October): preserve blue semantic glyph colour during tap folds;
-material dispersion and held ink remain separate. Four reported neon-proxy windows and
-12 focused checks pass; full suite and broader device/recording qualification remain pending.
-
 # Development status and visual guide
 
 Updated **20 October 2026**. This describes 1.0.0, the first release with a [compatibility promise](compatibility.md).
