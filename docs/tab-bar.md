@@ -255,8 +255,12 @@ Box {
 
 To make the button press and pull as iOS's does, give it the free pull and link it to the bar.
 The button then grows by 8 dp a side and lightens when pressed, joining the bar through a neck.
-Pulled, it leaves its place with the finger, stretching up to about 1.3 times along the pull and
-thinning across it, and its glyph travels with it. On release it springs back, lands squashed
+On touch-down, the glyph dims to ~0.50 alpha for 1 frame (16–33 ms) and recovers over 50 ms
+(internal feedback for the existing free-button role). Pulled, it leaves its place with the finger,
+stretching up to about 1.3 times along the pull and thinning across it, while preserving an upright oval
+orientation without diagonal glyph shear (internal free-button deformation). When
+dragged over the tab bar, the bar end shows through the button's translucent glass and soft contact shadow
+rather than drawing opaque over it, leaving no resting ghost behind. On release it springs back, lands squashed
 against its resting edge and rebounds:
 
 ```kotlin
@@ -436,6 +440,13 @@ slider whose default is its midpoint, so there is no longer a single correct opa
 Below Android 13 the lens is a plain surface (`fallbackSurface`), the items colour themselves —
 `item` is called once per tab with the real selection — and everything about the gesture still
 works.
+
+## Right-to-left layouts
+
+In a right-to-left layout, the first item is drawn on the right, and the selector, press, drag and fling follow the
+drawn tabs. Each item's own content is laid out in your app's direction. A trailing accessory, such as a search button,
+sits at the bar's left end. Bars with fixed slots (`GlassTabBarStyle.slotWidth`) place their items by position and do
+not mirror (#161).
 
 ## Keyboard focus
 

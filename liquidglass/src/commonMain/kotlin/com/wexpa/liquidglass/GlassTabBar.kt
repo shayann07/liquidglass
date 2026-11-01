@@ -70,6 +70,8 @@ import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.semantics.traversalIndex
+import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.SemanticsPropertyKey
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -150,7 +152,7 @@ fun GlassTabBar(
 ) {
     GlassPortal(modifier) { state ->
         GlassTabBar(state, itemCount, selectedIndex, onSelected, Modifier, style, motionEnabled, materialize,
-            trailingAccessory, item)
+            trailingAccessory, item = item)
     }
 }
 
@@ -170,9 +172,31 @@ internal fun GlassTabBar(
     /** A separate glass control beside the bar's trailing end that the bar fuses with while
      * pressed, such as a search button. See [GlassTabBarAccessory]. */
     trailingAccessory: GlassTabBarAccessory? = null,
+    /** Internal: set when an RTL bar with shared-width slots is drawn mirrored in LTR (#161). */
+    mirrored: Boolean = false,
     item: @Composable (index: Int, selected: Boolean) -> Unit,
 ) {
     require(itemCount > 0) { "GlassTabBar needs at least one item" }
+    // #161: shared-width slots are a Row, which mirrors in RTL, while the selector, press, drag and fling all count
+    // slots from the left. So an RTL bar is drawn in LTR with its items in reverse order, the indices mapped at this
+    // boundary, and each item still laid out in the app's own direction. Fixed slots are placed by x and need nothing.
+    val outerDirection = LocalLayoutDirection.current
+    if (!mirrored && outerDirection == LayoutDirection.Rtl && !style.slotWidth.isSpecified) {
+        val last = itemCount - 1
+        androidx.compose.runtime.CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr,
+            LocalGlassTabMirrorCount provides itemCount) {
+            GlassTabBar(state, itemCount, last - selectedIndex, { onSelected(last - it) }, modifier, style, motionEnabled,
+                materialize, trailingAccessory, mirrored = true) { index, selected ->
+                // The app's own content gets its direction back and no mirror count, so a bar nested in it is not
+                // treated as mirrored.
+                androidx.compose.runtime.CompositionLocalProvider(LocalLayoutDirection provides outerDirection,
+                    LocalGlassTabMirrorCount provides -1) {
+                    item(last - index, selected)
+                }
+            }
+        }
+        return
+    }
     val barShape: Shape = style.shape
     // A true capsule at every size the selector passes through between inset and lens.
     val selectorShape = RoundedCornerShape(percent = 50)
@@ -188,6 +212,7 @@ internal fun GlassTabBar(
         frost = state.frost,
         contrast = state.contrast,
     )
+    trailingAccessory?.link?.barState = barState
 
     // The keyboard focus ring (#117) is drawn over everything the bar draws, the selector included:
     // drawn on the interactive row it sat under the pill or lens of the selected tab.
@@ -247,7 +272,8 @@ internal fun GlassTabBar(
             },
     ) {
         val density = LocalDensity.current
-        val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+        // The accessory's side follows the app's direction, also when the bar is drawn mirrored (#161).
+        val rtl = mirrored || LocalLayoutDirection.current == LayoutDirection.Rtl
         val barWidthDp: Dp = maxWidth
         val barHeightDp: Dp = maxHeight
         val barWidthPx = with(density) { barWidthDp.toPx() }
@@ -1379,9 +1405,12 @@ private fun ItemRow(
     // The interactive row is the one accessibility sees: a group of tabs. Every other copy
     // (the lens's refracted row, the V3 selected ink) is decoration and is hidden, or a
     // screen reader would read each label two or three times.
+    // A mirrored RTL bar (#161) orders its tabs with traversal indices; the group keeps those indices to its own tabs.
+    val mirrorCount = LocalGlassTabMirrorCount.current
     val group = Modifier
         .fillMaxSize()
         .then(if (onClick != null) Modifier.selectableGroup() else Modifier.clearAndSetSemantics {})
+        .then(if (onClick != null && mirrorCount > 0) Modifier.semantics { isTraversalGroup = true } else Modifier)
     val fixed = geometry?.takeIf { it.fixed }
     if (fixed != null) {
         // Fixed slots (GlassTabBarStyle.slotWidth): each item centred on its slot centre, its
@@ -1407,7 +1436,11 @@ private fun ItemRow(
         horizontalArrangement = Arrangement.SpaceEvenly,
     ) {
         repeat(count) { index ->
-            ItemCell(index, Modifier.weight(1f), false, selectedFor, onClick, item, emphasisIndex, emphasis, onMeasured, semanticSelected)
+            // Keyed by the app's own tab, so a mirrored bar (#161) whose item count changes keeps each tab's state
+            // and focus with that tab, not with the slot it was drawn in.
+            androidx.compose.runtime.key(if (mirrorCount > 0) mirrorCount - 1 - index else index) {
+                ItemCell(index, Modifier.weight(1f), false, selectedFor, onClick, item, emphasisIndex, emphasis, onMeasured, semanticSelected)
+            }
         }
     }
 }
@@ -1449,8 +1482,11 @@ private fun ItemCell(
                     androidx.compose.runtime.DisposableEffect(ring) {
                         onDispose { if (ring?.target?.value?.index == index) ring.target.value = null }
                     }
+                    // A mirrored RTL bar (#161) keeps screen readers on the logical order, not the drawn one.
+                    val mirrorCount = LocalGlassTabMirrorCount.current
                     Modifier
                         .onGloballyPositioned { cell = it }
+                        .then(if (mirrorCount > 0) Modifier.semantics { traversalIndex = (mirrorCount - 1 - index).toFloat() } else Modifier)
                         .selectable(
                             selected = index == semanticSelected,
                             interactionSource = interactions,
@@ -2539,6 +2575,9 @@ internal class GlassFocusRingState {
     var barFocused = false
     val target = mutableStateOf<GlassFocusRingTarget?>(null)
 }
+
+/** The item count of an RTL bar drawn mirrored in LTR (#161), or -1. */
+internal val LocalGlassTabMirrorCount = androidx.compose.runtime.staticCompositionLocalOf { -1 }
 
 /** Set by [GlassTabBar] so its interactive tabs can report keyboard focus to the bar, which draws the ring. */
 internal val LocalGlassFocusRing = androidx.compose.runtime.staticCompositionLocalOf<GlassFocusRingState?> { null }

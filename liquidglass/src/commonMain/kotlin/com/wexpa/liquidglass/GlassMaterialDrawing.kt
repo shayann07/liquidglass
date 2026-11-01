@@ -53,6 +53,7 @@ internal class GlassMaterialDrawingState {
 @Stable
 class GlassAccessoryLink internal constructor() {
     internal val drawing = GlassMaterialDrawingState()
+    internal var barState: LiquidGlassState? by mutableStateOf(null)
 }
 
 /** A [GlassAccessoryLink] that survives recomposition. */

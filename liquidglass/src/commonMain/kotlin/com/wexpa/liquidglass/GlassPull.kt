@@ -43,8 +43,10 @@ internal fun glassMaterialPull(
     }
     val extent = glassPullExtent(width, height, radius, pressX, pressY, pullX, pullY)
     val across = glassPullExtent(width, height, radius, pressX, pressY, -pullY, pullX)
+    val upright = interaction.uprightPull
     val raw = glassPullDeformation(pullX, pullY, extent, interaction.pullElongation,
-        interaction.pullWidthRatio, interaction.pullFollow, acrossExtentPx = across)
+        interaction.pullWidthRatio, interaction.pullFollow, acrossExtentPx = across,
+        upright = upright)
     // A free button keeps the measured travel: the body leaves its place with the finger.
     if (interaction.pullShape == GlassPullShape.Free) return raw
     return glassAnchoredMaterialPull(glassSurfacePull(raw, width, height, density, extent), width, height)
@@ -91,6 +93,7 @@ internal fun glassPullDeformation(
     follow: Float,
     maxAlong: Float = 1.6f,
     acrossExtentPx: Float = extentPx,
+    upright: Boolean = false,
 ): GlassPullDeformation {
     val length = sqrt(pullX * pullX + pullY * pullY)
     if (length < 1e-3f) return GlassPullDeformation.None
@@ -100,14 +103,28 @@ internal fun glassPullDeformation(
     // height gain could remove 300px of width. Normalize each axis by its own support width.
     val extension = (along - 1f) * extentPx.coerceAtLeast(1f)
     val across = (1f - widthRatio * extension / acrossExtentPx.coerceAtLeast(1f)).coerceAtLeast(0.5f)
-    val angle = atan2(pullY, pullX) * (180f / kotlin.math.PI.toFloat())
+    val rawAngle = atan2(pullY, pullX) * (180f / kotlin.math.PI.toFloat())
+    // Project the directional stretch onto the screen axes, removing shear continuously.
+    // Rounding its angle swaps width and height at each diagonal. Projection keeps the
+    // measured axial responses and is an authored interpolation between those recordings.
+    val nx2 = pullX * pullX / (length * length)
+    val ny2 = pullY * pullY / (length * length)
     return GlassPullDeformation(
-        along = along,
-        across = across,
-        angleDegrees = angle,
+        along = if (upright) along * ny2 + across * nx2 else along,
+        across = if (upright) along * nx2 + across * ny2 else across,
+        angleDegrees = if (upright) -90f else rawAngle,
         translationX = follow * pullX,
         translationY = follow * pullY,
     )
+}
+
+/** Keep the free button upright through landing as well as pulling, without axis snapping. */
+internal fun glassUprightPull(pull: GlassPullDeformation): GlassPullDeformation {
+    val angle = pull.angleDegrees * (kotlin.math.PI.toFloat() / 180f)
+    val nx2 = cos(angle) * cos(angle)
+    val ny2 = sin(angle) * sin(angle)
+    return pull.copy(along = pull.along * ny2 + pull.across * nx2,
+        across = pull.along * nx2 + pull.across * ny2, angleDegrees = -90f)
 }
 
 /**
