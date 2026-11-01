@@ -73,14 +73,14 @@ class GlassPhoneMaterialReferenceTest {
         assertEquals(-10f / 255f, light.pill.tintLift, 1e-6f)
         assertEquals(0f, light.lens.tint.alpha)
         assertEquals(0f, light.lens.rawShare)
-        assertEquals(243f / 255f, light.lens.heldEdgeTone, 1e-6f)
         // #128 (1 November): the held outline as dark as iOS's (top rim 227 against 226; 243 read 245).
         assertEquals(217f / 255f, light.lens.heldEdgeTone, 1e-6f)
-        assertEquals(0.08f, light.lens.innerShadow)
-        assertEquals(0.45f, light.lens.contactShadow)
-        assertEquals(0.5f, light.lens.contactShadowInside)
-        assertEquals(6.dp, light.lens.contactShadowBlur)
-        assertEquals(5.dp, light.lens.contactShadowOffset)
+        // #104 (1 November): no inner thickness line, and a lower, softer shadow outside the lens only.
+        assertEquals(0f, light.lens.innerShadow)
+        assertEquals(0.35f, light.lens.contactShadow)
+        assertEquals(0f, light.lens.contactShadowInside)
+        assertEquals(9.dp, light.lens.contactShadowBlur)
+        assertEquals(11.dp, light.lens.contactShadowOffset)
         // The light preset it replaced stays reachable.
         assertEquals(false, GlassTabBarStyle.CalmRecordedSpace(dark = false).touchLift)
     }
