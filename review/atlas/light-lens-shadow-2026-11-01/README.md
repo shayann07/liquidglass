@@ -21,7 +21,14 @@ Luma down the lens's lower half and the shadow below it (x 427-433 and 527-533),
 Light `Calm()`'s held lens casts its contact shadow 8.5 dp down with an 8 dp blur, was 5 dp and 6 dp. Fitted to the three
 frames above; no public API change; dark Calm unchanged.
 
+## Also: the inner thickness line
+
+Our lens drew two dark lines along its lower rim (rows 648 and 656: 238 / 238) where iOS's stays clear (254 / 250). The
+first is the inner thickness line (`innerShadow` 0.08): with none, row 648 reads 248 and rows 640-684 go from 7.18 to 5.71
+levels rms. Light `Calm()`'s lens now draws none; its top rim is the outline's (`heldEdgeTone`). Drawing the outline on the top
+rim only changed neither row, so the outline is not the cause.
+
 ## Not changed
 
-Rows 648 and 656 still read 237-238 where iOS reads 250-254: our lens draws a dark line at its lower rim that iOS does not.
-That is the outline's geometry, not the shadow, and stays open on #104 and #128. Not yet checked on a device.
+Row 656 still reads 238 against iOS 250: a second line, most likely the edge step (`edgeShadow`), left for its own fit. Not
+yet checked on a device.
