@@ -36,7 +36,7 @@ No public API change.
 iOS draws its lens over the button, and the button shows through the lens, because the lens refracts the button's glass.
 Ours keeps the button above the lens, since our lens samples the page and the bar but not the button: drawn on top, it
 covered the button and its glyph. Drawing the lens's outline across the button needs the lens to sample the accessory's
-glass, which is a separate change. Not yet checked on a device.
+glass, which is a separate change. Checked on a Pixel 7 below.
 
 ## On a device
 
