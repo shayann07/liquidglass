@@ -1961,8 +1961,10 @@ data class GlassTabBarStyle(
             itemsFollowBarPress = false,
             tapTransitFold = 0f,
             pill = recorded.pill.copy(tint = Color.Transparent, tintLift = -10f / 255f),
+            // The held lens's outline grey (#128, 1 November): iOS's top rim reads 226 over the light bar; 243 read 245 there,
+            // 217 reads 227-228 (IMG_7049 39.4-39.9 s, held on Contacts). Fitted to those frames.
             lens = recorded.lens.copy(tint = Color.Transparent, rawShare = 0f, rawBlur = 0.dp, tintLift = 0f,
-                softDetail = 1f, heldEdgeTone = 243f / 255f, innerShadow = 0.08f, contactShadow = 0.45f, bodyBandScale = GlassCalmLensBand,
+                softDetail = 1f, heldEdgeTone = 217f / 255f, innerShadow = 0.08f, contactShadow = 0.45f, bodyBandScale = GlassCalmLensBand,
                 contactShadowInside = 0.5f, contactShadowBlur = 6.dp, contactShadowOffset = 5.dp),
             tapTintFade = 1f, tapSelectedScale = 1.15f, tapOptics = 1f, tapOpticsFold = 1f,
         )
