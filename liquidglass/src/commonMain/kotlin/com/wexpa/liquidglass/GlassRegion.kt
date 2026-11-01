@@ -61,8 +61,9 @@ import kotlin.math.roundToInt
  * @param glass what [glassEffect] draws when it is given no [Glass].
  * @param containerSpacing [GlassEffectContainer]'s default merge distance.
  * @param renderScale the fraction of full resolution glass renders at, 0.25 to 1. 1 by default.
- * @param reduceTransparency Reduce Transparency, 0 to 1: raises the material's opacity. Follows the
- *   platform's setting by default (1 when it is on; web and Android, see the accessibility guide).
+ * @param reduceTransparency Reduce Transparency, 0 to 1: raises the material's opacity. On the web it
+ *   follows `prefers-reduced-transparency` by default; Android and the desktop have no such setting, so
+ *   drive it from an in-app control there (see the accessibility guide).
  * @param increaseContrast Increase Contrast, 0 to 1: high-contrast material and border. Follows the
  *   platform's setting by default.
  */
