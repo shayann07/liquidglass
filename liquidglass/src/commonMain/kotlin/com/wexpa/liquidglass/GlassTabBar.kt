@@ -650,6 +650,8 @@ internal fun GlassTabBar(
                         poseHandle?.controller?.protrusion() ?: handle?.controller?.protrusion() ?: 0f
                     this[GlassTabBarSemantics.Dragging] = dragging
                     this[GlassTabBarSemantics.DragIndex] = dragIndex
+                    this[GlassTabBarSemantics.HoverIndex] = focusRing.hovered.intValue
+                    this[GlassTabBarSemantics.HoverScale] = focusRing.hoverScale
                     if (handle != null) {
                         this[GlassTabBarSemantics.NodeLeft] = handle.nodeLeft().toFloat()
                         this[GlassTabBarSemantics.NodeTop] = -handle.overflowTop
@@ -1572,6 +1574,9 @@ internal object GlassTabBarSemantics {
     val Held = SemanticsPropertyKey<Boolean>("GlassTabBarHeld")
     val Dragging = SemanticsPropertyKey<Boolean>("GlassTabBarDragging")
     val DragIndex = SemanticsPropertyKey<Int>("GlassTabBarDragIndex")
+    /** The tab under a hovering pointer, or -1, and the scale it lifts to (#117). */
+    val HoverIndex = SemanticsPropertyKey<Int>("GlassTabBarHoverIndex")
+    val HoverScale = SemanticsPropertyKey<Float>("GlassTabBarHoverScale")
     /** V3 only: how far the held lens has formed, the body's width and end asymmetry, in px. */
     val Formation = SemanticsPropertyKey<Float>("GlassTabBarFormation")
     val BodyWidth = SemanticsPropertyKey<Float>("GlassTabBarBodyWidth")

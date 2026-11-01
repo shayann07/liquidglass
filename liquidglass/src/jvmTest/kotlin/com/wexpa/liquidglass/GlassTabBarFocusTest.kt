@@ -118,7 +118,11 @@ class GlassTabBarFocusTest {
         onAllNodes(tab)[2].performMouseInput { moveTo(center) }
         waitForIdle()
         val hovered = whitePixels(cell)
-        assertTrue(hovered > rest * 1.08f, "hover did not lift the tab: $rest -> $hovered")
+        val bar = onNodeWithTag(GlassTabBarSemantics.TAG, useUnmergedTree = true).fetchSemanticsNode().config
+        val index = bar.getOrElse(GlassTabBarSemantics.HoverIndex) { -9 }
+        val scale = bar.getOrElse(GlassTabBarSemantics.HoverScale) { -9f }
+        assertEquals(2, index, "the bar did not see the hover (scale $scale)")
+        assertTrue(hovered > rest * 1.08f, "hover did not lift the tab: $rest -> $hovered (index $index, scale $scale)")
         // No focus ring for a hover.
         assertEquals(0, ringPixels(), "hover drew a focus ring")
         onAllNodes(tab)[2].performMouseInput { exit() }
