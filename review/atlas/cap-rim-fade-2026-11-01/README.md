@@ -25,7 +25,8 @@ Top-rim peak luma (rows 440-470, max over rows, 9 px column mean), mean of 5 and
 On a resting bar with `GlassStyle.capFold` (dark Calm), the rim highlight is scaled by
 `1 - 0.2 · clamp((2r - s) / 1.6r, 0, 1)`, where `r` is the cap radius (half the bar's height) and `s` is the distance from
 the bar's end. It applies to long capsules only (width more than twice the height), so the round search button keeps
-its rim, and never to the held lens. Light Calm has no specular, so nothing changes there.
+its rim, and never to the held lens. It is gated on a specular rim (`uSpecular > 0`), so light Calm, which has none,
+keeps its held glow at the caps unchanged.
 
 Not changed: the cap outline itself. iOS's ends ease in over about 20 px more than ours (issue comment, 1 Nov), so a
 softer cap shape is the other half of #109. Not yet checked on a device.
