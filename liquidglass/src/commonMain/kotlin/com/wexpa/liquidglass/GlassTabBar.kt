@@ -675,7 +675,10 @@ internal fun GlassTabBar(
                             if (c.type != androidx.compose.ui.input.pointer.PointerType.Mouse) continue
                             focusRing.hovered.intValue =
                                 if (e.type == androidx.compose.ui.input.pointer.PointerEventType.Exit || c.pressed) -1
-                                else geometry.nearestIndex(c.position.x)
+                                else geometry.nearestIndex(c.position.x).let {
+                                    // Shared-width slots are a Row, which mirrors in RTL; fixed slots are placed by x.
+                                    if (rtl && !geometry.fixed) itemCount - 1 - it else it
+                                }
                         }
                     }
                 }
