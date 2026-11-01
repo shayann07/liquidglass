@@ -124,6 +124,7 @@ class GlassTabBarFocusTest {
         val scale = bar.getOrElse(GlassTabBarSemantics.HoverScale) { -9f }
         assertEquals(2, index, "the bar did not see the hover (scale $scale)")
         assertEquals(GlassPoseSpec.Calm.hoverScale, scale, "Calm's hover scale")
+        assertTrue(rest > 0, "no tab drawn in the captured frame")
         // The white square's area grows with the square of the scale (1.06 -> 1.124); 2% allows for edge rounding.
         val expected = rest * scale * scale
         assertTrue(kotlin.math.abs(hovered - expected) <= expected * .02f,
