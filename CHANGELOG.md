@@ -17,7 +17,7 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   the hold threshold (#133), the frame loop could fall asleep in the step the press became a hold, before the lens
   started to form, leaving the bar swollen and the lens unformed until the finger moved. Fixed in Compose and in
   the Skia and .NET selectors. Found replaying docs/2 5.39-5.80 s.
-- Tab bar (Calm): the resting bar's rim dims toward and through its rounded ends, as iOS 27's does, instead of
+- Tab bar (dark Calm): the resting bar's rim dims toward and through its rounded ends, as iOS 27's does, instead of
   running at full brightness into the caps (IMG_6756: 3.1 levels rms against iOS, was 8.4) (#109).
   [Evidence](review/atlas/cap-rim-fade-2026-11-01/README.md).
 - Accessibility: `LiquidGlassTheme`'s `reduceTransparency` and `increaseContrast`, and `GlassTabBar`'s `motionEnabled`,
