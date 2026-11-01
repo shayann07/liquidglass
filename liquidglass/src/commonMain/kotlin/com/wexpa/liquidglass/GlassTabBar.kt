@@ -2458,7 +2458,8 @@ internal fun glassSelectorMaterial(style: GlassTabBarStyle, formation: Float, tr
     // at its caps as it travels ([glassSelectorFormation] carries the travel amount).
     else if (style.tapOpticsFold > 0f && (formation >= 0.5f || heldTravel > 0f)) {
         val split = still + (heldMoving - still) * heldTravel.coerceIn(0f, 1f)
-        val heldMirror = fringe?.getOrNull(8) ?: GlassSelectorHeldRimMirror
+        // The held lens's own band only while it travels; a still held lens keeps the tap's.
+        val heldMirror = if (heldTravel > 0f) fringe?.getOrNull(8) ?: GlassSelectorHeldRimMirror else rimMirror
         material.copy(foldAtCorners = 1f, rimMirror = heldMirror, rimMirrorGain = rimGain, dispersion = split, inkDispersion = split * GlassSelectorInkSplitShare)
     }
     else material

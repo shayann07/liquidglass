@@ -73,7 +73,7 @@ export function calmSelectorMaterial({dark = true, formation = 0, transit = 0, h
       uFoldCorners: DATA.fold.transitFoldCorners, uProfile: (formation >= .5 ? values.uProfile : DATA.fold.measuredProfile)};
     // A held lens as it travels keeps its own, wider mirror band (#121).
     else if (style.tapOpticsFold > 0 && (formation >= .5 || heldTravel > 0)) values = {...values, ...mirror,
-      uRimMirror: DATA.fold.heldRimMirror ?? DATA.fold.rimMirror, uAberration: split, uInkSplit: split * DATA.fold.inkSplitShare};
+      uRimMirror: heldTravel > 0 ? (DATA.fold.heldRimMirror ?? DATA.fold.rimMirror) : DATA.fold.rimMirror, uAberration: split, uInkSplit: split * DATA.fold.inkSplitShare};
   }
   const uFormation = style.tapOpticsFold > 0 && heldTravel > 0
     ? clamp(heldTravel * style.tapOpticsFold, 0, 1) : fold;
