@@ -2003,12 +2003,14 @@ internal class GlassPoseController(
      * the target it is pulled toward, so a distance rule would never fire at all.
      *
      * A press whose hold timer has not expired is never idle: that threshold is the only thing
-     * that will fire it.
+     * that will fire it. Nor is a formation still on its way to its target: a still press that
+     * becomes a hold starts forming from rest, and its first steps move less than the quiet
+     * threshold, so a perfectly still hold (a mouse, a replay) slept with its lens unformed.
      */
     val isIdle: Boolean
         get() = mode != GlassPoseMode.PressPending && !tapAreaActive &&
             transitAppearance < .0001f && heldTravel < .0001f && quietSteps >= QUIET_STEPS && !holdingStill &&
-            strainDrive.value == 0f
+            strainDrive.value == 0f && abs(form.target - form.value) < .001f
 
     /** A still release keeping its glass ([GlassPoseSpec.releaseStillHoldSeconds]): nothing moves
      * yet, but the formation still has to fall, so the frame loop must not sleep. */

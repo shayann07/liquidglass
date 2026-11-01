@@ -6,6 +6,10 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Tab bar (Calm): a perfectly still hold, such as a held mouse button or a replayed press, forms its lens again. Since
+  the hold threshold (#133), the frame loop could fall asleep in the step the press became a hold, before the lens
+  started to form, leaving the bar swollen and the lens unformed until the finger moved. Fixed in Compose and in
+  the Skia and .NET selectors. Found replaying docs/2 5.39-5.80 s.
 - Accessibility: `LiquidGlassTheme`'s `reduceTransparency` and `increaseContrast`, and `GlassTabBar`'s `motionEnabled`,
   now default to the platform's settings: Android's Remove animations and (API 34+) contrast level, and the web's
   `prefers-reduced-motion`, `prefers-reduced-transparency` and `prefers-contrast`. Explicit values still win (#115).

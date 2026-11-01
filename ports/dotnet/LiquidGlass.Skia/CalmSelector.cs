@@ -338,6 +338,8 @@ public sealed class CalmSelectorController
     public CalmSelectorBar Bar => bar ?? throw new InvalidOperationException("Attach a bar first");
     public bool IsIdle => Mode != CalmSelectorMode.PressPending && !tapAreaActive && TransitAppearance < 1e-4 &&
         HeldTravel < 1e-4 && quietSteps >= QuietSteps && strainDrive.Value == 0 &&
+        // A formation on its way to its target: a still hold's first steps are below the quiet threshold.
+        Math.Abs(form.Target - form.Value) < .001 &&
         // A still release keeping its glass: nothing moves yet, but the formation still has to fall.
         !(Mode == CalmSelectorMode.Released && releasedFromHold && releasedStill && form.Value > .01 &&
           now - releasedAt < Spec.ReleaseStillHoldSeconds + .15);
