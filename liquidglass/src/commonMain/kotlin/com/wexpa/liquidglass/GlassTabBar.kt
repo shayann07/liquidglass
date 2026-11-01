@@ -149,7 +149,7 @@ fun GlassTabBar(
 ) {
     GlassPortal(modifier) { state ->
         GlassTabBar(state, itemCount, selectedIndex, onSelected, Modifier, style, motionEnabled, materialize,
-            trailingAccessory, item)
+            trailingAccessory, item = item)
     }
 }
 
