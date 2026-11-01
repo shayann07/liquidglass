@@ -73,6 +73,11 @@ val materializeSpec = if (reduceMotion) GlassMotion.MaterializeReduced else Glas
 survives, the elasticity does not — which is what the setting asks for, rather than removing the
 response altogether.
 
+## Keyboard focus
+
+`GlassTabBar`'s tabs draw a focus ring when focused from the keyboard, so a keyboard user can see where focus is.
+Pointer input never shows it. Other glass controls take your own `indication` as ordinary Compose controls do.
+
 ## What is not covered
 
 There is no Android equivalent of iOS 26.1's system-level Clear/Tinted "preferred look for

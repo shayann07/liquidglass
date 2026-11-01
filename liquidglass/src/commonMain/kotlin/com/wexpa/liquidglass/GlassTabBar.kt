@@ -1,5 +1,11 @@
 package com.wexpa.liquidglass
 
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.input.InputMode
+import androidx.compose.ui.platform.LocalInputModeManager
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.animateFloatAsState
@@ -176,8 +182,24 @@ internal fun GlassTabBar(
         contrast = state.contrast,
     )
 
+    // The keyboard focus ring (#117) is drawn over everything the bar draws, the selector included:
+    // drawn on the interactive row it sat under the pill or lens of the selected tab.
+    val focusRing = remember { GlassFocusRingState() }
+    androidx.compose.runtime.CompositionLocalProvider(LocalGlassFocusRing provides focusRing) {
     // Nothing here clips: the lens stands proud of the bar while it is held.
-    BoxWithConstraints(modifier = modifier.height(style.height)) {
+    BoxWithConstraints(
+        modifier = modifier.height(style.height)
+            .onGloballyPositioned { focusRing.bar = it }
+            .drawWithContent {
+                drawContent()
+                // In the bar's own coordinates, so a scaled or rotated ancestor cannot misplace it.
+                val target = focusRing.target.value
+                val bar = focusRing.bar
+                if (target != null && bar != null && bar.isAttached && target.cell.isAttached) {
+                    drawGlassFocusRing(bar.localBoundingBoxOf(target.cell, clipBounds = false))
+                }
+            },
+    ) {
         val density = LocalDensity.current
         val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
         val barWidthDp: Dp = maxWidth
@@ -1200,6 +1222,7 @@ internal fun GlassTabBar(
             }
         }
     }
+    }
 }
 
 @Composable
@@ -1277,12 +1300,33 @@ private fun ItemCell(
             .fillMaxHeight()
             .then(
                 if (onClick != null) {
-                    Modifier.selectable(
-                        selected = index == semanticSelected,
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        role = Role.Tab,
-                    ) { onClick(index) }
+                    val interactions = remember { MutableInteractionSource() }
+                    // A keyboard user has to see which tab has focus (#117). The lens is the
+                    // touch indication, so nothing else is drawn for a press.
+                    val focused by interactions.collectIsFocusedAsState()
+                    // Only for keyboard navigation: a pointer that focuses a tab shows the lens.
+                    val keyboard = LocalInputModeManager.current.inputMode == InputMode.Keyboard
+                    val ring = LocalGlassFocusRing.current
+                    var cell by remember { mutableStateOf<androidx.compose.ui.layout.LayoutCoordinates?>(null) }
+                    val showRing = focused && keyboard
+                    androidx.compose.runtime.SideEffect {
+                        val target = ring?.target ?: return@SideEffect
+                        val at = cell
+                        if (showRing && at != null) target.value = GlassFocusRingTarget(index, at)
+                        else if (target.value?.index == index) target.value = null
+                    }
+                    // A focused tab removed from the bar (a smaller itemCount) takes its ring with it.
+                    androidx.compose.runtime.DisposableEffect(ring) {
+                        onDispose { if (ring?.target?.value?.index == index) ring.target.value = null }
+                    }
+                    Modifier
+                        .onGloballyPositioned { cell = it }
+                        .selectable(
+                            selected = index == semanticSelected,
+                            interactionSource = interactions,
+                            indication = null,
+                            role = Role.Tab,
+                        ) { onClick(index) }
                 } else {
                     Modifier
                 },
@@ -2334,3 +2378,33 @@ internal fun glassSelectorFold(style: GlassTabBarStyle, formation: Float, transi
 /** The gesture's own pointer has lifted: a tap, as opposed to a pointer taken by another node. */
 private fun AwaitPointerEventScope.liftedWithoutDrag(id: PointerId): Boolean =
     currentEvent.changes.firstOrNull { it.id == id }?.pressed == false
+
+/** The keyboard-focused tab and its layout (#117). */
+internal class GlassFocusRingTarget(val index: Int, val cell: androidx.compose.ui.layout.LayoutCoordinates)
+
+/** The bar's layout and its keyboard-focused tab, if any (#117). */
+internal class GlassFocusRingState {
+    var bar: androidx.compose.ui.layout.LayoutCoordinates? = null
+    val target = mutableStateOf<GlassFocusRingTarget?>(null)
+}
+
+/** Set by [GlassTabBar] so its interactive tabs can report keyboard focus to the bar, which draws the ring. */
+internal val LocalGlassFocusRing = androidx.compose.runtime.staticCompositionLocalOf<GlassFocusRingState?> { null }
+
+/** The focus ring for a keyboard-focused tab (#117), around [cell]: a 2 dp capsule, inset 3 dp, in the system
+ * accent blue with a dark hairline outside it, so it reads over a light or a dark bar. */
+internal fun androidx.compose.ui.graphics.drawscope.DrawScope.drawGlassFocusRing(cell: androidx.compose.ui.geometry.Rect) {
+    val inset = 3.dp.toPx()
+    val stroke = 2.dp.toPx()
+    val w = cell.width - 2f * inset
+    val h = cell.height - 2f * inset
+    if (w <= 0f || h <= 0f) return
+    val r = androidx.compose.ui.geometry.CornerRadius(h / 2f)
+    drawRoundRect(Color.Black.copy(alpha = .45f), androidx.compose.ui.geometry.Offset(cell.left + inset - 1f, cell.top + inset - 1f),
+        androidx.compose.ui.geometry.Size(w + 2f, h + 2f), r, style = androidx.compose.ui.graphics.drawscope.Stroke(1f))
+    drawRoundRect(GlassFocusRingColor, androidx.compose.ui.geometry.Offset(cell.left + inset + stroke / 2f, cell.top + inset + stroke / 2f),
+        androidx.compose.ui.geometry.Size(w - stroke, h - stroke), r, style = androidx.compose.ui.graphics.drawscope.Stroke(stroke))
+}
+
+/** iOS's keyboard focus ring colour (system blue, dark appearance). */
+internal val GlassFocusRingColor = Color(0xFF0A84FF)
