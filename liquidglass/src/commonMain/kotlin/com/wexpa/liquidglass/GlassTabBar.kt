@@ -1,5 +1,6 @@
 package com.wexpa.liquidglass
 
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.positionInRoot
@@ -202,12 +203,19 @@ internal fun GlassTabBar(
                 awaitPointerEventScope {
                     while (true) {
                         val e = awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
+                        if (e.changes.any { it.pressed || it.previousPressed }) focusRing.lastPointer = kotlin.time.TimeSource.Monotonic.markNow()
                         // A press, not a held pointer moving: a key pressed mid-hold must still bring the ring back.
                         if (e.changes.any { it.pressed && !it.previousPressed }) focusRing.pointerSinceKey = true
                     }
                 }
             }
             .onPreviewKeyEvent { focusRing.pointerSinceKey = false; false }
+            // Focus arriving from outside the bar with no pointer on it lately came from the keyboard (a Tab from a
+            // text field, say), whose key the bar never saw: show the ring again.
+            .onFocusChanged {
+                val pointer = focusRing.lastPointer
+                if (it.hasFocus && (pointer == null || pointer.elapsedNow() > GlassFocusPointerWindow)) focusRing.pointerSinceKey = false
+            }
             .drawWithContent {
                 drawContent()
                 // In the bar's own coordinates, so a scaled or rotated ancestor cannot misplace it.
@@ -2446,8 +2454,13 @@ internal class GlassFocusRingState {
     var bar: androidx.compose.ui.layout.LayoutCoordinates? = null
     /** A pointer pressed the bar since the last key event: the ring stays hidden until the keyboard is used again. */
     var pointerSinceKey by mutableStateOf(false)
+    /** When a pressed pointer last touched the bar, to tell a pointer's focus from a keyboard's. */
+    var lastPointer: kotlin.time.TimeMark? = null
     val target = mutableStateOf<GlassFocusRingTarget?>(null)
 }
+
+/** Focus gained this long after the bar's last pointer press is the keyboard's (#157). Authored. */
+internal val GlassFocusPointerWindow = kotlin.time.Duration.parse("500ms")
 
 /** Set by [GlassTabBar] so its interactive tabs can report keyboard focus to the bar, which draws the ring. */
 internal val LocalGlassFocusRing = androidx.compose.runtime.staticCompositionLocalOf<GlassFocusRingState?> { null }
