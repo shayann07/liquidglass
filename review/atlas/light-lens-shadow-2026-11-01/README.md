@@ -32,3 +32,19 @@ changed neither line. The values are fitted to the three frames above; no public
 ## Not changed
 
 Row 656 still reads 241 against iOS 250: our shadow begins a little darker right under the rim. Not yet checked on a device.
+
+## On a device
+
+![Pixel 7: the light held lens on Contacts, main (left) with a dark line inside its lower rim and this change (right) clear to the rim with a soft shadow below](device-pixel7.png)
+
+Our frames only: Pixel 7 (Android 17, 90 Hz), release builds of the sample's `PhoneActivity` (`--ez light true`), captured 2 November with `adb exec-out screencap` 1.4 s into a 2.6 s `input swipe` hold on Contacts; crop y 2080-2330. Main is `95c5b6e`, captured twice with identical numbers.
+
+Median luma over x 380-520 down the lens's lower edge (rows 2285-2320, every 5 px):
+
+| row | 2285 | 2290 | 2295 | 2300 | 2305 | 2310 | 2315 | 2320 |
+| :-- | --: | --: | --: | --: | --: | --: | --: | --: |
+| main | 254 | 238 | 249 | 240 | 243 | 247 | 251 | 253 |
+| this change | 254 | 254 | 250 | 241 | 243 | 244 | 246 | 247 |
+
+The line inside the lower rim (238) is gone, and the shadow darkens gradually below the lens and reaches further down, as
+the replay showed against iOS (clear to the rim, deepest ~20 px down).
