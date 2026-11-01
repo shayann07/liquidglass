@@ -1,5 +1,6 @@
 package com.wexpa.liquidglass
 
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -50,6 +51,8 @@ class GlassTabBarFocusTest {
                 GlassTabBar(state, 5, 0, {}, Modifier.offset(0.dp, 29.dp).width(500.dp), style = GlassTabBarStyle.Calm()) { _, _ ->
                     Box(Modifier.size(20.dp).background(Color.White))
                 }
+                // A focusable sibling outside the bar, as a text field beside it would be.
+                Box(Modifier.size(10.dp).focusable().testTag("other"))
             }
         }
     }
@@ -96,5 +99,28 @@ class GlassTabBarFocusTest {
         onAllNodes(tab)[3].performMouseInput { click(center) }
         waitForIdle()
         assertEquals(0, ringPixels(), "a mouse click left a focus ring")
+    }
+
+    /** A touch press focuses the tab on the desktop, where the input mode stays Keyboard: no ring (seen in every
+     * desktop touch replay after #143). */
+    @Test fun aTouchedTabShowsNoRing() = runComposeUiTest(testTimeout = 4.minutes) {
+        bar(); waitForIdle()
+        onAllNodes(tab)[3].performTouchInput { click(center) }
+        waitForIdle()
+        assertEquals(0, ringPixels(), "a touch left a focus ring")
+    }
+
+    /** Touch a tab, move focus out of the bar, then back without a pointer (a Tab from a text field, whose key the
+     * bar never sees): the ring shows again, however soon it happens. */
+    @Test fun focusReturningWithoutAPointerShowsTheRing() = runComposeUiTest(testTimeout = 4.minutes) {
+        bar(); waitForIdle()
+        onAllNodes(tab)[3].performTouchInput { click(center) }
+        waitForIdle()
+        assertEquals(0, ringPixels(), "a touch left a focus ring")
+        onNodeWithTag("other").requestFocus()
+        waitForIdle()
+        onAllNodes(tab)[1].requestFocus()
+        waitForIdle()
+        assertTrue(ringPixels() > 200, "focus returning without a pointer showed no ring: ${ringPixels()}")
     }
 }

@@ -28,12 +28,18 @@ research remains available; this page identifies which later changes supersede i
   earlier than iOS's. [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/press-release-timing-2026-11-01/README.md).
 - 27 October: eliminated green/black comb streaks during tap transits (#124) and channel crush at the lens rim (#108). In `GlassContentShaderSource.kt`, chromatic split `delta` scales with `abs(shift)` instead of a static band split, and transit ink dispersion is scaled by `GlassSelectorInkSplitShare`. Outward displacement is clamped to `max(shift - delta, 0.0)` in both shaders, preventing rim channels from sampling past the glass boundary.
   [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/comb-streaks-2026-10-27/README.md).
+- 1 November: the light Calm bar's shadow no longer bridges the gap to the search button (255 there, as iOS; was 251;
+  #128). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/light-bar-shadow-2026-11-01/README.md).
+- 1 November: at large text sizes (font scale 1.5+), holding a tab shows it magnified in a centred viewer, as
+  iOS's Large Content Viewer does (#145). Authored threshold and size.
 - 1 November: the sample's Calls and Contacts glyph figures are cut out, not painted (#129, sample only).
   [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/glyph-cutouts-2026-11-01/README.md).
 - 1 November: a perfectly still hold forms its lens again: since #133 the frame loop could sleep before the lens
   started to form (found replaying docs/2 5.4 s; a finger's jitter hid it on devices).
 - 1 November: the resting dark Calm bar's rim dims through its caps as iOS's does (3.1 levels rms, was 8.4; #109). The cap
   outline itself is unchanged. [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/cap-rim-fade-2026-11-01/README.md).
+- 1 November: the focus ring no longer shows after a touch or synthetic press on desktop (every desktop touch replay
+  showed it since #143); a pointer press hides it until the next key. Test: `aTouchedTabShowsNoRing`.
 - 1 November: keyboard users can see which tab has focus: the focused tab draws a ring over the selector, in keyboard
   mode only (#117). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/tab-focus-ring-2026-11-01/README.md).
 - 1 November: the sample matches iOS's Calls badge, icon position, glyph levels and search glyph to within a pixel or a
