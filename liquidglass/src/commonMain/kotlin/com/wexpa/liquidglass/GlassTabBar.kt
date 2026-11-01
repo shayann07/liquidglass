@@ -324,8 +324,11 @@ internal fun GlassTabBar(
         LaunchedEffect(wantsViewer) {
             viewerReady = false
             if (!wantsViewer) return@LaunchedEffect
+            // Counted from the press: a controller raises `held` only after its own hold threshold.
+            val threshold = poseHandle?.controller?.spec?.holdThresholdSeconds ?: handle?.controller?.spec?.holdThresholdSeconds ?: 0f
+            val wait = ((GlassLargeContentHoldSeconds - threshold).coerceAtLeast(0f) * 1e9f).toLong()
             val start = withFrameNanos { it }
-            while (withFrameNanos { it } - start < (GlassLargeContentHoldSeconds * 1e9f).toLong()) Unit
+            while (withFrameNanos { it } - start < wait) Unit
             viewerReady = true
         }
         if (wantsViewer && viewerReady && activeIndex in 0 until itemCount) {

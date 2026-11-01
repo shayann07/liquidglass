@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntOffset
@@ -57,7 +58,7 @@ internal fun GlassLargeContentViewer(dark: Boolean, content: @Composable () -> U
         Box(
             Modifier
                 // Only its tag, for tests: the tab itself is what accessibility services announce.
-                .clearAndSetSemantics { testTag = GlassLargeContentViewerTag }
+                .clearAndSetSemantics { testTag = GlassLargeContentViewerTag; hideFromAccessibility() }
                 .defaultMinSize(160.dp, 160.dp)
                 // iOS's HUD is the system's thick material: light grey in light appearance, dark grey in dark.
                 .background(if (dark) Color(0xF02C2C2E) else Color(0xF0F2F2F7), RoundedCornerShape(28.dp))
