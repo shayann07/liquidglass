@@ -26,22 +26,29 @@ or closed. Claude merges; no tag or release. Merged to main, in order:
 | #162 | #128 | Light Calm bar shadow is a faint band below it, not a halo: gap 255 (iOS 255, was 251). Calm light recalibrated |
 | #163 | — | README: accessible by default |
 | #159 | #109 | The resting dark Calm bar's rim dims through its caps (IMG_6756 3.1 levels rms, was 8.4); #109 reopened for the button rim |
+| #164 | #161 | Right-to-left tab bars: shared-width slots mirror; press, drag, fling and the selector land on the drawn tab |
+| #135 | #125 | Search button: a one-frame press flash and an upright pull without shear (internal options; no API change) |
+| #153 | #117 | The Calm tab bar lifts the tab under a hovering mouse or trackpad (6%, authored); tab bar only |
 
 #127 (Android XML interop) was closed for its public API size; #140 describes the acceptable scope. #137 was
 answered and closed (no .NET Framework target; a caller-owned SKCanvas works). Split out: #145 (Large Content
 Viewer) and #149 (release rebound). CI: the build job has 90 min, and every runComposeUiTest has a 4 min timeout.
 
-In flight at this writing (late evening):
-- Open PRs: #164 (#161, right-to-left tab bars: the selector and gestures follow the mirrored tabs; review fixes
-  in), #135 (#125, search button optics; full suite green locally), #153 (#117, pointer hover lift: the failing
-  test counted only near-white pixels, so a 0.6 px edge lift never showed; coverage-weighted area now reads +49.5
-  px against +49.4), #166 (#128, light Calm bar top shade, opt-in `GlassStyle.topShade`: 0.85 levels rms down
-  the bar, was 3.15).
-- Waiting on a decision: #107 (the held lens should draw over the search button, which needs the button as a tab
-  bar slot: public API).
-- #128 stays open for items 2-4 (the light bar's top 40 px are darker on iOS: 240-243 against 245).
+In flight at this writing (night):
+- Open PRs: #166 (#128, the light Calm bar's top shade: internal to light `Calm()`'s own bar, 0.85 levels rms down the
+  bar, was 3.15; ports carry it), #167 (#121, a travelling held lens mirrors its whole cap band and sweeps icons round
+  its caps; the docs/2 landing label improves to 825 px against main 546, iOS 854), #168 (#107, the held lens beside a
+  yielding accessory leans and grows into it: left edge 602 against iOS 605, main 585; no neck), #169 (README:
+  right-to-left and hover).
+- Decided, not yet done: #107's draw-over-button part (iOS shows the button through its lens; ours needs the lens to
+  refract the accessory's glass first), #118 (opt-in `LocalGlassAdaptiveQuality`, a governor that samples only while
+  glass animates; waits on #100's Pixel 7 timings).
+- No public API has changed since v1.0.0: review findings asking for public style flags were declined on that basis
+  (recalibrations of `Calm()` itself, as #151 and #162 were).
+- #128 stays open for its pill gradient and held outline items; #109 for the search button rim (items 115, 116) and
+  the cap outline.
 
-Measured and recorded on the issues tonight: #149 (per-frame release heights; a lower release conflicts with the
+Measured and recorded on the issues tonight: #121 (the vertical cut is weak side-cap refraction, not a clip), #72 and #96 item 40 (the selector over content passes too little page: n = 1 and 3, needs more holds), #70 (two-tab taps ~40 ms late), #149 (per-frame release heights; a lower release conflicts with the
 IMG_6756 still-release fit, branch dropped), #110 closed (item 117 not reproduced), #122 item 3 not reproduced,
 #108 item 110 (navy rows 5-7 against iOS 1-3), #111 item 125 (label low row 607-615 against iOS 618-627), #70 on
 current main (the plateau now holds through 183 ms; a +10 bump at 150-167 ms and a fall about 30 ms late remain).
