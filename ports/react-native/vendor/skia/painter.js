@@ -185,7 +185,7 @@ export function createGlassPainter(kit, sources = glassShaderSources) {
       Object.assign(uniforms,{
         uFormation,uBodyKind:2,uPoseA:pose.a,uPoseAInv:pose.aInv,uPoseD:pose.d,uPoseE:pose.e??[0,3,0,0],
         // GlassStyle.bodyBandScale: the lens refracts over this share of the body's own band.
-        uPoseC:[cx-width/2,cy-height/2,bx,by],uRefractBand:pose.d[3]*Math.min(Math.max(values.bodyBandScale??1,.25),4),
+        uPoseC:[cx-width/2,cy-height/2,bx,by],uRefractBand:pose.d[3]*Math.min(Math.max(values.bodyBandScale??1,.25),4),uBandBottom:(values.bodyBandScale??1)>1?.3:0,
         uRadii:Array(4).fill(Math.min(nodeW,nodeH)/2),uScale:sizeFactor(nodeW,nodeH,density),
         uMaterialize:materialize,uFrost:reducedTransparency,uContrast:increasedContrast,
       });
@@ -248,7 +248,7 @@ export function createGlassPainter(kit, sources = glassShaderSources) {
       const [cx,cy,bx,by]=pose.c;
       Object.assign(material,px,{
         uFormation,uBodyKind:2,uPoseA:pose.a,uPoseAInv:pose.aInv,uPoseD:pose.d,uPoseE:pose.e??[0,3,0,0],
-        uPoseC:[cx-width/2,cy-height/2,bx,by],uRefractBand:pose.d[3]*Math.min(Math.max(values.bodyBandScale??1,.25),4),
+        uPoseC:[cx-width/2,cy-height/2,bx,by],uRefractBand:pose.d[3]*Math.min(Math.max(values.bodyBandScale??1,.25),4),uBandBottom:(values.bodyBandScale??1)>1?.3:0,
         uRadii:Array(4).fill(Math.min(nodeW,nodeH)/2),uScale:sizeFactor(nodeW,nodeH,density),uMaterialize:materialize,
       });
       // The content pass shares the material's geometry and optics; it emits the ink premultiplied
