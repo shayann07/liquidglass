@@ -380,6 +380,12 @@ internal data class GlassPoseSpec(
      */
     val releaseStillFadeOmega: Float = 0f,
     /**
+     * Opt-in, with [releaseFormationSpeed]: the rate at which a lens released while moving loses its formation once it slows
+     * (#111 item 124). Zero uses [formOmega]. iOS's thrown lens stays milky about 80 ms longer as it lands (docs/2 8.76 s:
+     * 46 against 28 at [formOmega]). Calm uses 12: 5.2 levels rms over docs/2 8.62-8.84 s, was 9.1 (9 gave 7.4). Authored.
+     */
+    val releaseMovingFadeOmega: Float = 0f,
+    /**
      * Opt-in: light added to the ink seen through a held lens (#105). iOS 27 brightens the selected
      * ink from (7,151,255) to about (26,174,255) under a held lens (IMG_6756 34.9-36.1 s; JGEY2190,
      * LOLL8185, docs/2 alike; light IMG_7048 (0,132,250) to (23,146,255)), +18-23 levels a channel,
@@ -493,7 +499,7 @@ internal data class GlassPoseSpec(
         val Calm = CalmWallLanding.copy(heldTravelStrain = .6f, heldTravelStrainOmega = 10f,
             heldReferenceSpeed = 8f, heldSquircle = .7f, formFromMovement = 1f, formRiseOmega = 75f,
             pressFormation = 0f, holdThresholdSeconds = .110f, heldFormRiseOmega = 26f,
-            releaseStillHoldSeconds = .035f, releaseStillFadeOmega = 100f, barPressDelaySeconds = .075f, barPressStiffness = 1700f, heldInkLift = 22f / 255f, selectionHaptics = true, hoverScale = 1.06f)
+            releaseStillHoldSeconds = .035f, releaseStillFadeOmega = 100f, releaseMovingFadeOmega = 12f, barPressDelaySeconds = .075f, barPressStiffness = 1700f, heldInkLift = 22f / 255f, selectionHaptics = true, hoverScale = 1.06f)
     }
 }
 
@@ -1166,6 +1172,8 @@ internal class GlassPoseController(
         val riseOmega = if (heldNow && spec.heldFormRiseOmega > 0f) spec.heldFormRiseOmega else spec.formRiseOmega
         val fallOmega = if (mode == GlassPoseMode.Released && releasedStill && spec.releaseStillFadeOmega > 0f) {
             spec.releaseStillFadeOmega
+        } else if (mode == GlassPoseMode.Released && !releasedStill && spec.releaseMovingFadeOmega > 0f) {
+            spec.releaseMovingFadeOmega
         } else spec.formOmega
         form.step(dt, if (formTarget > form.value) riseOmega else fallOmega, spec.formZeta)
 

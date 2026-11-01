@@ -34,21 +34,22 @@ or closed. Claude merges; no tag or release. Merged to main, in order:
 answered and closed (no .NET Framework target; a caller-owned SKCanvas works). Split out: #145 (Large Content
 Viewer) and #149 (release rebound). CI: the build job has 90 min, and every runComposeUiTest has a 4 min timeout.
 
-In flight at this writing (night):
-- Open PRs: #166 (#128, the light Calm bar's top shade: internal to light `Calm()`'s own bar, 0.85 levels rms down the
-  bar, was 3.15; ports carry it), #167 (#121, a travelling held lens mirrors its whole cap band and sweeps icons round
-  its caps; the docs/2 landing label improves to 825 px against main 546, iOS 854), #168 (#107, the held lens beside a
-  yielding accessory leans and grows into it: left edge 602 against iOS 605, main 585; no neck), #169 (README:
-  right-to-left and hover).
-- Decided, not yet done: #107's draw-over-button part (iOS shows the button through its lens; ours needs the lens to
-  refract the accessory's glass first), #118 (opt-in `LocalGlassAdaptiveQuality`, a governor that samples only while
-  glass animates; waits on #100's Pixel 7 timings).
-- No public API has changed since v1.0.0: review findings asking for public style flags were declined on that basis
-  (recalibrations of `Calm()` itself, as #151 and #162 were).
-- #128 stays open for its pill gradient and held outline items; #109 for the search button rim (items 115, 116) and
-  the cap outline.
+In flight at this writing (2 November, after midnight):
+- Merged since the last record: #166 (light Calm bar top shade, internal), #169 (README: right-to-left and hover), #170 (these
+  records).
+- Open PRs, all with review threads answered: #167 (#121, a travelling held lens sweeps icons round its caps; the held band
+  follows the lens's own travel, not the tap's speed), #168 (#107, the held lens beside a yielding accessory leans and
+  grows into it: left edge 602 against iOS 605), #171 (#128 item 4, the light held outline: top rim 227 against iOS 226),
+  #172 (#104, the light held lens clear to its lower rim with its shadow outside, lower and lighter: 3.43 levels rms below
+  it, was 7.18), #173 (#111 item 124, a thrown lens stays milky as it lands: 5.2 levels rms, was 9.1).
+- #171 and #172 change the same `calmLight` lens line: the second to merge keeps both (`heldEdgeTone` 217; `innerShadow` 0
+  and the new shadow).
+- Decided, not yet done: #107's draw-over-button part (the lens must refract the accessory's glass first), #118 (opt-in
+  adaptive quality; waits on #100's Pixel 7 timings).
+- No public API has changed since v1.0.0; review requests for public style flags were declined on that basis (preset
+  recalibrations of `Calm()` itself).
 
-Measured and recorded on the issues tonight: #121 (the vertical cut is weak side-cap refraction, not a clip), #72 and #96 item 40 (the selector over content passes too little page: n = 1 and 3, needs more holds), #70 (two-tab taps ~40 ms late), #149 (per-frame release heights; a lower release conflicts with the
+Measured and recorded on the issues tonight: #104 (the lower-rim lines: the inner line and the inside shadow, not the outline or the edge step), #111 item 124 (the landing lift ~80 ms short), #121 (the vertical cut is weak side-cap refraction, not a clip), #72 and #96 item 40 (the selector over content passes too little page: n = 1 and 3, needs more holds), #70 (two-tab taps ~40 ms late), #149 (per-frame release heights; a lower release conflicts with the
 IMG_6756 still-release fit, branch dropped), #110 closed (item 117 not reproduced), #122 item 3 not reproduced,
 #108 item 110 (navy rows 5-7 against iOS 1-3), #111 item 125 (label low row 607-615 against iOS 618-627), #70 on
 current main (the plateau now holds through 183 ms; a +10 bump at 150-167 ms and a fall about 30 ms late remain).

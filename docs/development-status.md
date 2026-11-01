@@ -10,6 +10,8 @@ research remains available; this page identifies which later changes supersede i
 - 1 November: the held lens beside the search button leans and grows into it as iOS's does (#107). iOS also draws the
   lens's outline over the button, seen through the lens; ours keeps the button on top (the lens does not refract the
   button yet). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/lens-over-search-2026-11-01/README.md).
+- 1 November: a thrown lens's formation falls at 12/s once it slows (was 18/s), so it stays milky as it lands as iOS's
+  does (#111 item 124). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/landing-lift-2026-11-01/README.md).
 - 1 November: a travelling held lens sweeps icons round its caps (its rim mirror band 1.0 while it moves; taps keep 0.3)
   (#121). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/held-cap-mirror-2026-11-01/README.md).
 - 1 November: the light Calm bar's top is shaded as iOS's is (240-241 over its top ~45 px, 245 below; 0.85 levels rms,
