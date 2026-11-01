@@ -10,6 +10,9 @@ research remains available; this page identifies which later changes supersede i
 - 2 November: `LocalGlassAdaptiveQuality` (opt-in, Android): the theme lowers its render scale while frames are missed and
   restores it after 3 s, stepping only while the glass is still (#118). Checked on a Pixel 7: no step on ordinary taps,
   forced misses step 1 → 0.5 and back, gestures survive. [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/adaptive-quality-2026-11-02/README.md).
+- 1 November: the light held lens is clear to its lower rim (no inner line) and its shadow is outside it only, 0.35, 11 dp
+  down with a 9 dp blur (was 0.45, half inside, 5 dp and 6 dp): 3.43 levels rms below it, was 7.18 (#104).
+  [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/light-lens-shadow-2026-11-01/README.md).
 - 1 November: the light held-lens outline reads 227 against iOS's 226 with `heldEdgeTone` 217/255 (was 245 at 243/255) (#128).
   [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/light-held-outline-2026-11-01/README.md).
 - 1 November: a thrown lens's formation falls at 12/s once it slows (was 18/s), so it stays milky as it lands as iOS's
