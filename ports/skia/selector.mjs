@@ -320,6 +320,8 @@ export class CalmSelectorController {
   get isIdle() {
     return this.mode !== MODE.PressPending && !this.tapAreaActive && this.transitAppearance < 1e-4 &&
       this.heldTravel < 1e-4 && this.quietSteps >= QUIET_STEPS && this.strainDrive.value === 0 &&
+      // A formation on its way to its target: a still hold's first steps are below the quiet threshold.
+      Math.abs(this.form.target - this.form.value) < .001 &&
       // A still release keeping its glass: nothing moves yet, but the formation still has to fall.
       !(this.mode === MODE.Released && this.releasedFromHold && this.releasedStill && this.form.value > .01 &&
         this.now - this.releasedAt < this.spec.releaseStillHoldSeconds + .15);
