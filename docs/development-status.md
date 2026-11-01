@@ -1,14 +1,14 @@
 # Development status and visual guide
 
-Updated **20 October 2026**. This describes 1.0.0, the first release with a [compatibility promise](compatibility.md).
+Updated **2 November 2026**. This describes 1.0.0, the first release with a [compatibility promise](compatibility.md).
 Full iOS parity is not established: the measured differences are open as issues (#70-#73). The owner
 accepted the navigation selector on 20 October. Historical
 research remains available; this page identifies which later changes supersede its implementation.
 
 ## Main after 1.0 (24 October)
 
-- 2 November: Calm's tap clock runs 1.2× for two-tab trips (internal), so they arrive with iOS's on docs/1 (+6 ms, was +39);
-  JGEY2190 gains 33 ms and stays 65 ms late (#70). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/two-tab-tap-2026-11-02/README.md).
+- 2 November: Calm's tap clock runs 1.2× for two-tab trips (internal): they arrive within 6 ms of iOS on docs/1 (was 39 ms
+  late); JGEY2190 gains 33 ms and stays 65 ms late. The pill's level through the tap is no closer overall (#70 open). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/two-tab-tap-2026-11-02/README.md).
 - 1 November: the light held-lens outline reads 227 against iOS's 226 with `heldEdgeTone` 217/255 (was 245 at 243/255) (#128).
   [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/light-held-outline-2026-11-01/README.md).
 - 1 November: a thrown lens's formation falls at 12/s once it slows (was 18/s), so it stays milky as it lands as iOS's

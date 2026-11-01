@@ -44,7 +44,8 @@ one warning. Its default style is `GlassTabBarStyle.Calm(dark)` in the theme's a
 
 `GlassTabBarStyle.Calm(dark = true)` uses the pose controller. It couples projected area and
 spine length so short taps become rounder and longer trips flatten. Adjacent travel uses a
-slower authored rate, blending to the existing rate for longer trips. Tap deformation can
+slower authored rate; a two-tab trip runs 1.2x faster (since 2 November: on docs/1 it reaches its tab within
+6 ms of iOS), and longer trips keep the historical rate. Tap deformation can
 extend beyond the resting bar; this does not grant held-gesture ownership. Off-axis drag
 strain belongs to the whole navigation bar, whose layout and hit targets stay anchored.
 

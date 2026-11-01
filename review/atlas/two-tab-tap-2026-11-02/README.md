@@ -1,4 +1,4 @@
-# Two-tab taps arrive on time (#70) — 2 November 2026
+# Two-tab taps arrive sooner (part of #70) — 2 November 2026
 
 ![Median progress to the destination tab over two-tab taps, iOS against our replay at the historical clock and at Calm's 1.2: on docs/1 the new clock follows iOS from 100 ms; on JGEY2190 it gains but iOS still leads](two-tab-arrival.png)
 
@@ -20,6 +20,21 @@ leaving (`taparrive.py`), median over each recording's taps, ours minus iOS:
 | **1.2 (this change)** | **+6 ms** | **+65 ms** | unchanged |
 
 iOS arrives at 170 ms (docs/1) and 117 ms (JGEY2190); ours at 220 ms on main, 190 and 187 ms with this change.
+
+## The pill's level (what #70 reports)
+
+The travelling pill's level after the ink leaves (`tapprofile.py`: median over every docs/1 tap, rows 470-490, a 120 px
+window on the selected ink), the measure #70 was opened on:
+
+| ms | 100 | 117 | 133 | 150 | 167 | 183 | 200 | 217 | 233 | 250 | 267 | 283 | 300 |
+| :-- | --: | --: | --: | --: | --: | --: | --: | --: | --: | --: | --: | --: | --: |
+| iOS | 53.1 | 53.1 | 51.2 | 53.0 | 52.8 | 51.1 | 46.1 | 41.0 | 38.2 | 30.0 | 26.0 | 23.5 | 21.1 |
+| main | 48.3 | 50.0 | 52.2 | 58.0 | 62.6 | 48.6 | 42.0 | 40.0 | 39.0 | 37.3 | 30.5 | 26.2 | 22.1 |
+| this change | 48.0 | 49.0 | 52.0 | 56.2 | 65.3 | 46.5 | 42.0 | 40.4 | 36.0 | 31.0 | 26.0 | 21.0 | 19.0 |
+
+The tail from 233 ms now follows iOS's, but the bump at 167 ms grows (65.3 against 52.8) and the fall at 183 ms comes
+a little earlier; over 100-300 ms the difference is 4.5 levels rms both before and after. So this change fixes the
+arrival, not the level plateau: #70 stays open for the bump at 150-167 ms.
 
 ## The change (Calm only)
 

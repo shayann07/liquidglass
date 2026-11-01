@@ -334,9 +334,9 @@ internal data class GlassPoseSpec(
      * rate by two slots. Authored output calibration; not an identified Apple spring. */
     val tapShortTripRate: Float = 1f,
     /** Opt-in coupled-tap clock ratio for trips of two slots or more, blending from [tapShortTripRate]'s
-     * rate at one slot and back to the historical clock by three (#70). One keeps the historical clock. Calm: 1.2, fitted on the two-tab taps'
-     * arrival over the whole recordings (median ours - iOS: docs/1 +6 ms, JGEY2190 +65 ms; 1.0 read +39 and +98;
-     * JGEY2190's stays near 187 ms from 1.15 up, so its remainder is not the clock). Authored. */
+     * rate at one slot and back to the historical clock by three (#70). One keeps the historical clock. Calm: 1.2,
+     * authored, chosen against the two-tab taps' arrival in docs/1 and JGEY2190 (scores in
+     * review/atlas/two-tab-tap-2026-11-02). */
     val tapLongTripRate: Float = 1f,
     /** Opt-in tap appearance from excess projected area; zero preserves historical optics.
      * This is separate from held formation and never grants pointer ownership. */

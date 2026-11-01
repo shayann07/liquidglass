@@ -63,7 +63,7 @@ private fun replay(args: Array<String>) {
     variant.substringAfter("+squircle=", "").substringBefore('+').split(',').mapNotNull { it.toFloatOrNull() }
         .takeIf { it.isNotEmpty() }?.let { @OptIn(com.wexpa.liquidglass.LiquidGlassDiagnosticApi::class) run { com.wexpa.liquidglass.LiquidGlassDiagnostics.lensSquircle = it.toFloatArray() } }
     // "+tapl=<rate>": the coupled tap's clock ratio for two-slot trips (#70).
-    variant.substringAfter("+tapl=", "").substringBefore('+').toFloatOrNull()
+    variant.substringAfter("+tapl=", "").substringBefore('+').toFloatOrNull()?.takeIf { it.isFinite() }
         ?.let { @OptIn(com.wexpa.liquidglass.LiquidGlassDiagnosticApi::class) run { com.wexpa.liquidglass.LiquidGlassDiagnostics.tapLongTripRate = it } }
     // "+fringe=<still>,<moving>": the Calm selector's rim split, for fitting by replay (#73).
     variant.substringAfter("+fringe=", "").substringBefore('+').split(',').mapNotNull { it.toFloatOrNull() }
