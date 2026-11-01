@@ -551,7 +551,8 @@ internal fun GlassTabBar(
         // 0.04 through IMG_6756's drag, so the lens's own speed, over 400 dp/s, drives it as well.
         val fringeSpeed = (abs(if (dragging) liveVelocity else settleVelocity) /
             with(density) { GlassSelectorFringeSpeed.toPx() }).coerceIn(0f, 1f)
-        val selectorStyle = glassSelectorMaterial(style, lift, transitAppearance, max(poseHandle?.heldTravel ?: 0f, fringeSpeed))
+        val selectorStyle = glassSelectorMaterial(style, lift, transitAppearance, max(poseHandle?.heldTravel ?: 0f, fringeSpeed),
+            heldLensTravel = poseHandle?.heldTravel ?: 0f)
 
         // The V3 body owns its own centre; offsetX follows it so semantics, the press glow and
         // the diagnostics all read one number.
@@ -1963,16 +1964,11 @@ data class GlassTabBarStyle(
             itemsFollowBarPress = false,
             tapTransitFold = 0f,
             pill = recorded.pill.copy(tint = Color.Transparent, tintLift = -10f / 255f),
+            // The held lens's outline grey (#128, 1 November): iOS's top rim reads 226 over the light bar; 243 read 245 there,
+            // 217 reads 227-228 (IMG_7049 39.4-39.9 s, held on Contacts). Fitted to those frames.
             lens = recorded.lens.copy(tint = Color.Transparent, rawShare = 0f, rawBlur = 0.dp, tintLift = 0f,
-                softDetail = 1f, heldEdgeTone = 243f / 255f, innerShadow = 0f, contactShadow = 0.35f, bodyBandScale = GlassCalmLensBand,
-                // No inner thickness line (#104): it drew a dark line along the lens's lower rim (row 648: 238, iOS 254;
-                // with none 248), and the outline (heldEdgeTone) already draws the top rim.
-                // Its shadow lower, lighter and outside the lens only, against the previous light Calm values (0.45, half of it
-                // inside, 6 dp blur, 5 dp down; #104 item 50). Measured: iOS's light held lens stays clear to its lower rim (rows
-                // 644-648: 255) and its shadow darkens gradually below it, deepest ~20 px down (247 at row 660, 242 at 672; IMG_7049
-                // 39.41-39.87 s, held on Contacts). Authored: 0.35, none inside, 9 dp of blur, 11 dp down, fitted to those
-                // frames; the replay then reads rows 640-684 at 3.43 levels rms (main 7.18).
-                contactShadowInside = 0f, contactShadowBlur = 9.dp, contactShadowOffset = 11.dp),
+                softDetail = 1f, heldEdgeTone = 217f / 255f, innerShadow = 0.08f, contactShadow = 0.45f, bodyBandScale = GlassCalmLensBand,
+                contactShadowInside = 0.5f, contactShadowBlur = 6.dp, contactShadowOffset = 5.dp),
             tapTintFade = 1f, tapSelectedScale = 1.15f, tapOptics = 1f, tapOpticsFold = 1f,
         )
 
@@ -2483,7 +2479,9 @@ internal fun glassAccessoryYield(formation: Float, endEdge: Float, barWidth: Flo
  */
 @OptIn(LiquidGlassDiagnosticApi::class)
 internal fun glassSelectorMaterial(style: GlassTabBarStyle, formation: Float, transitAppearance: Float,
-                                   heldTravel: Float = 0f): GlassStyle {
+                                   heldTravel: Float = 0f,
+                                   /** The held lens's own travel, without the tap's speed signal folded into [heldTravel] (#121). */
+                                   heldLensTravel: Float = heldTravel): GlassStyle {
     val pigment = glassTransitStyle(lerpGlassStyle(style.pill, style.lens, formation), transitAppearance, style.tapTintFade)
     if (style.tapOptics <= 0f) return pigment
     // Optics follow the transit appearance; tint keeps its own measured fade and recovery, so
@@ -2510,7 +2508,9 @@ internal fun glassSelectorMaterial(style: GlassTabBarStyle, formation: Float, tr
     // at its caps as it travels ([glassSelectorFormation] carries the travel amount).
     else if (style.tapOpticsFold > 0f && (formation >= 0.5f || heldTravel > 0f)) {
         val split = still + (heldMoving - still) * heldTravel.coerceIn(0f, 1f)
-        material.copy(foldAtCorners = 1f, rimMirror = rimMirror, rimMirrorGain = rimGain, dispersion = split, inkDispersion = split * GlassSelectorInkSplitShare)
+        // The held lens's own band only while it travels; a still held lens keeps the tap's.
+        val heldMirror = if (heldLensTravel > 0f) fringe?.getOrNull(8) ?: GlassSelectorHeldRimMirror else rimMirror
+        material.copy(foldAtCorners = 1f, rimMirror = heldMirror, rimMirrorGain = rimGain, dispersion = split, inkDispersion = split * GlassSelectorInkSplitShare)
     }
     else material
 }
@@ -2519,6 +2519,11 @@ internal fun glassSelectorMaterial(style: GlassTabBarStyle, formation: Float, tr
  * transit stretches content about 15 px into the rim, docs/1 0.95-1.12 s, where the full band mirrored the
  * label away). */
 internal const val GlassSelectorRimMirror = 0.3f
+/** Rim-mirror band of a held lens as it travels (#121, 1 November): iOS's moving held lens sweeps the icons it passes
+ * round its caps (LOLL8185 21.38-21.50 s: Contacts curls along the left cap, the Keypad dots smear along the right).
+ * At the tap's 0.3 ours kept the icon nearly unbent to a hard edge; 1.0 sweeps it as iOS's does, judged by eye on
+ * that window against 0.3, 0.6 and 0.6 with gain 0.4. Taps keep [GlassSelectorRimMirror], which keeps their labels. Authored. */
+internal const val GlassSelectorHeldRimMirror = 1.0f
 
 /** Light `Calm()`'s bar as the preset builds it: the top shade is for exactly this bar (#128). */
 private val CalmLightBar by lazy { GlassTabBarStyle.Calm(dark = false).bar }

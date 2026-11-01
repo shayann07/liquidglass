@@ -10,6 +10,12 @@ research remains available; this page identifies which later changes supersede i
 - 1 November: the light held lens is clear to its lower rim (no inner line) and its shadow is outside it only, 0.35, 11 dp
   down with a 9 dp blur (was 0.45, half inside, 5 dp and 6 dp): 3.43 levels rms below it, was 7.18 (#104).
   [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/light-lens-shadow-2026-11-01/README.md).
+- 1 November: the light held-lens outline reads 227 against iOS's 226 with `heldEdgeTone` 217/255 (was 245 at 243/255) (#128).
+  [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/light-held-outline-2026-11-01/README.md).
+- 1 November: a thrown lens's formation falls at 12/s once it slows (was 18/s), so it stays milky as it lands as iOS's
+  does (#111 item 124). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/landing-lift-2026-11-01/README.md).
+- 1 November: a travelling held lens sweeps icons round its caps (its rim mirror band 1.0 while it moves; taps keep 0.3)
+  (#121). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/held-cap-mirror-2026-11-01/README.md).
 - 1 November: the light Calm bar's top is shaded as iOS's is (240-241 over its top ~45 px, 245 below; 0.85 levels rms,
   was 3.15) (internal to light `Calm()`'s bar; no public API change) (#128). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/light-top-shade-2026-11-01/README.md).
 - 1 November: a thrown lens no longer cuts the label under it (docs/2 8.6 s); the regression came from the 26 October
