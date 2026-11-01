@@ -595,6 +595,8 @@ internal fun Modifier.liquidGlassCore(
                         },
                         radii = radii,
                         refractBand = bandPx,
+                        // #94: only a band the style widened narrows at the bottom, to what it was before (0.3).
+                        bandBottom = if (style.bodyBandScale > 1f) GlassHeldBandBottom else 0f,
                         refractDepth = style.refractionDepth.toPx(),
                         aberration = style.dispersion,
                         profile = style.profile.uniform,
@@ -1240,6 +1242,10 @@ internal expect fun Shape.cornerRadiiPx(
     density: Density,
 ): FloatArray
 
+/** #94: a widened held-lens band ([GlassStyle.bodyBandScale] > 1) narrows to this share where its rim faces down.
+ * docs/2 8.6 s label 724 px against 457 at the full band (iOS 854); 0.55 gave 532. Authored. */
+internal const val GlassHeldBandBottom = 0.3f
+
 /**
  * The same panel described in a smaller coordinate space.
  *
@@ -1307,6 +1313,8 @@ internal data class GlassUniforms(
     val refractBand: Float,
     val refractDepth: Float,
     val aberration: Float,
+    /** The held lens's band where its rim faces down, as a share of [refractBand]; 0 keeps it (#94). */
+    val bandBottom: Float = 0f,
     /** 0 the legacy Snell bevel, 1 the measured fold lens. */
     val profile: Float = 0f,
     /** Measured lens formation, 0 committed to 1 fully formed. */
@@ -1439,7 +1447,7 @@ internal data class GlassUniforms(
             width == other.width && height == other.height &&
             pad == other.pad && scale == other.scale && flip == other.flip &&
             radii.contentEquals(other.radii) &&
-            refractBand == other.refractBand && refractDepth == other.refractDepth &&
+            refractBand == other.refractBand && refractDepth == other.refractDepth && bandBottom == other.bandBottom &&
             aberration == other.aberration && backdrop.contentEquals(other.backdrop) &&
             ior == other.ior && bevelPower == other.bevelPower && mirror == other.mirror &&
             cornerPower == other.cornerPower && shapeKind == other.shapeKind &&
