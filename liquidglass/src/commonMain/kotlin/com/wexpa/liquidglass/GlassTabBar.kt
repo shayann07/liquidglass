@@ -278,8 +278,9 @@ internal fun GlassTabBar(
         // a held lens crossing a boundary); never for the host's own selection changes.
         val haptics = LocalHapticFeedback.current
         val selectionHaptics = poseHandle?.controller?.spec?.selectionHaptics == true
-        // GlassPoseSpec.hoverScale: the tab under a hovering pointer lifts (Calm); other styles keep 1.
-        focusRing.hoverScale = poseHandle?.controller?.spec?.hoverScale ?: 1f
+        // GlassPoseSpec.hoverScale: the tab under a hovering pointer lifts (Calm); other styles keep 1, and so does
+        // reduced motion, which asks for no such animation.
+        focusRing.hoverScale = if (motionEnabled) poseHandle?.controller?.spec?.hoverScale ?: 1f else 1f
         var tickedIndex by remember { mutableIntStateOf(activeIndex) }
         LaunchedEffect(activeIndex) {
             if (activeIndex != tickedIndex) {
