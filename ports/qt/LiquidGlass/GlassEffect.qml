@@ -32,6 +32,7 @@ ShaderEffect {
     property real uProfile
     property real uFormation
     property real uHeldLens
+    property real uBandBottom
     property real uHeldMagnification
     property real uHeldGlow
     property real uFoldCorners
@@ -112,6 +113,7 @@ ShaderEffect {
         v = values.uProfile; if (v) uProfile = v[0]
         v = values.uFormation; if (v) uFormation = v[0]
         v = values.uHeldLens; if (v) uHeldLens = v[0]
+        v = values.uBandBottom; if (v) uBandBottom = v[0]
         v = values.uHeldMagnification; if (v) uHeldMagnification = v[0]
         v = values.uHeldGlow; if (v) uHeldGlow = v[0]
         v = values.uFoldCorners; if (v) uFoldCorners = v[0]

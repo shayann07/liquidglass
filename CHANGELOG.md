@@ -6,6 +6,20 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Tab bar (Calm): a thrown lens no longer cuts the label it lands on. Where Calm widened the held lens's mirror band
+  (`GlassCalmLensBand`), the band narrows where its rim faces down, restoring the label (docs/2: 724 blue label px against
+  457, iOS 854). Fringes move nearer iOS's on docs/2 and IMG_6756; LOLL8185's long-drag fringes, already below iOS's,
+  weaken further (0.66 to 0.50 of iOS). Other styles keep their band (#94, #111).
+- Sample: the Calls and Contacts glyphs' figures are holes, as iOS's `.fill` symbols are, so the pill or the lens
+  shows through them (IMG_7049 held on Contacts: (208, 234, 255) against iOS (249, 254, 255), was a painted
+  (0, 79, 166)) (#129). [Evidence](review/atlas/glyph-cutouts-2026-11-01/README.md).
+- Tab bar (Calm): a perfectly still hold, such as a held mouse button or a replayed press, forms its lens again. Since
+  the hold threshold (#133), the frame loop could fall asleep in the step the press became a hold, before the lens
+  started to form, leaving the bar swollen and the lens unformed until the finger moved. Fixed in Compose and in
+  the Skia and .NET selectors. Found replaying docs/2 5.39-5.80 s.
+- Tab bar (Calm): a thrown lens no longer cuts the label it lands on. The held lens's mirror band narrows where its rim
+  faces down, restoring the label (docs/2: 724 blue label px against 457, iOS 854), with fringes nearer iOS's (#94, #111).
+  [Evidence](review/atlas/label-band-2026-11-01/README.md).
 - Accessibility: `LiquidGlassTheme`'s `reduceTransparency` and `increaseContrast`, and `GlassTabBar`'s `motionEnabled`,
   now default to the platform's settings: Android's Remove animations and (API 34+) contrast level, and the web's
   `prefers-reduced-motion`, `prefers-reduced-transparency` and `prefers-contrast`. Explicit values still win (#115).
@@ -41,6 +55,12 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   (was ~335 px). In dark appearance, the lens cleanly overlaps the search button without necking or bridging,
   and the soft grey disc on Pixel 7 light is eliminated.
   [Evidence](review/atlas/held-bar-geometry-2026-10-28/README.md).
+- Tab bar (Calm): during fast back-and-forth scrubbing (video 2 18.7–22.0 s), the held lens no longer
+  overshoots its steady-state strain or crushes to half height (103 px against a 590 px flattened width).
+  Rapid direction reversals decay accumulated strainDrive and suppress the scrub target, maintaining a
+  minimum lens height of ~139 px (160 px at 20.0 s vs 102 px previously) and relaxing towards the
+  unstrained ~370 × 186 px full-height travelling capsule (#119).
+  [Evidence](review/atlas/scrub-flattening-2026-10-27/README.md).
 - Tab bar (Calm): the held lens's outline is a squircle, not a capsule: it blends .7 of the way toward a
   superellipse with n = 3, the shape iOS's held lens fits, so its top runs flatter and its shoulders squarer. The
   resting selector stays a capsule. The ports draw the same outline (#93).

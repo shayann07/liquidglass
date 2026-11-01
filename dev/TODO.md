@@ -16,25 +16,31 @@ or closed. Claude merges; no tag or release. Merged to main, in order:
 | #147 | #105 | Ink under a held lens brightens (+22 levels), lets go over .35 s |
 | #148 | #116 | Selection haptic on a tap and per tab a held lens enters |
 | #136 | — | Audit section W: independent verification of the agents' hand-off |
+| #132 | #119 | A fast scrub no longer flattens the held lens to half the bar (min height 139 px, was 102) |
+| #151 | #94, #111 | A thrown lens no longer cuts the label it lands on: docs/2 724 label px (iOS 854, main 457) |
 
 #127 (Android XML interop) was closed for its public API size; #140 describes the acceptable scope. #137 was
 answered and closed (no .NET Framework target; a caller-owned SKCanvas works). Split out: #145 (Large Content
 Viewer) and #149 (release rebound). CI: the build job has 90 min, and every runComposeUiTest has a 4 min timeout.
 
-In flight at this writing:
-- #132 (#119, scrub flattening): rebuilt on main; full suite running.
-- #135 (#125, search button): rebuilt on main; checks pending.
-- #94 label fix (`fix/94-label-band`): the throw-landing label cut is bisected to 51e8b6e's `GlassCalmLensBand` 1.1.
-  Narrowing the band where the rim faces down restores the label: docs/2 724 px (iOS 854, main 457), with fringes
-  nearer iOS on docs/2 and IMG_6756. At factor 0.3, LOLL8185's long-drag fringes weaken (0.66 to 0.50 x iOS), so 0.55
-  is being scored.
+In flight at this writing (evening):
+- Open PRs: #135 (#125, search button; motion fixture regenerated after rebase), #152 (a still hold slept before
+  its lens formed: a bug since #133, found replaying docs/2 5.4 s), #153 (#117, pointer hover lift), #154 (#145,
+  large content viewer). CI runs their suites; local focused tests and renders are queued.
+- Branches with code, waiting for a render or test: `fix/129-glyph-cutouts` (sample glyph cut-outs),
+  `fix/128-light-contact-shadow` (light bar shadow as a band below the bar; iOS's gap 255, ours 251),
+  `fix/149-release-settle` (slow moving release; re-render on top of #152 first, since docs/2's 5.8 s lift is
+  a still release whose lens never formed), `fix/109-cap-rim-fade` (resting rim dims through the caps; baseline 8.4
+  levels rms), `docs/readme-accessibility` (after #153 and #154).
+
+Measured and recorded on the issues tonight: #149 (per-frame release heights), #110 closed (item 117 not
+reproduced: iOS's Keypad dots spread 1.7 levels, as ours do), #122 item 3 not reproduced (iOS switches the page
+at the lift on every JGEY2190 tap but one), #128 cause (the light shadow's 11-22 dp blur, doubled in the gap).
 
 Open, measured, not yet fixed:
-- #109: resting rim at the caps; iOS fades about 50 px before and through each cap. Comment on the issue has the table.
-- #70: re-measure the tap plateau now that #131 is in.
-- #81: bounded-resolution EDT.
-- #118: adaptive quality is a public API decision.
-- The bar's tap contraction (iOS dips 3-4 px) and the remaining items under #92-#113.
+- #108 item 110: navy band rows inside a held lens (iOS 1-2, ours 8-12 on 26 Oct); re-measure on current main.
+- #94 items 23-31, 73, 74 (tap transit); #121 side caps and mirror swirl; #70 tap plateau.
+- #81: bounded-resolution EDT. #118: adaptive quality is a public API decision. #100: needs the Pixel 7.
 
 Resume notes with commands: `.local/sxs/CLAUDE-SESSION-NOTES.md` (private).
 
@@ -81,7 +87,7 @@ scope/API/positioning decisions, one Gradle build per worktree).
   - [ ] Second video pass, verified (26 Oct night): items 145-148. New issues: #123 (tap travel ~300 ms vs iOS ~70-130 ms), #124 (comb streaks during tap transits; corrects section Q), #125 (search button: press flash, upright pull, see-through overlap). Landing collapse 50-80 ms early on #95; harness parking on #122.
   - [x] **#123 / #120 (27 Oct):** tap travel speed ~70–130 ms (was ~300 ms) and transit lens formation brought to iOS 27 parity on branch `fix/123-tap-travel-and-lens` (review/atlas/tap-transit-2026-10-27).
   - [x] **Video-model pass 5, verified (27 Oct morning):** Argon sessions 17-30 verified (audit sections U and V). Confirmed and filed: fast scrub optical bridge to search button (#119, #107), settled selection pill bottom rim chromatic fringes (#111), search button two-stage press onset, trailing-edge pinning, and unlit release flash (#125).
-  - [ ] Video-model pass, verified (26 Oct night): items 139-144. New issues: #119 (fast scrub flattens the lens), #120 (tap transit should form a full lens on iOS 27), #121 (side caps cut content; items 15 and 16 re-homed from the closed #77). Replay-side gaps to fix in the harness: the search episodes are missing from script3, the finger parks on exact tab centres in gen3 scripts, and the sample switches its page on touch-down.
+  - [ ] Video-model pass, verified (26 Oct night): items 139-144. Fixed: #119 (fast scrub flattens the lens; review/atlas/scrub-flattening-2026-10-27/README.md). New issues: #120 (tap transit should form a full lens on iOS 27), #121 (side caps cut content; items 15 and 16 re-homed from the closed #77). Replay-side gaps to fix in the harness: the search episodes are missing from script3, the finger parks on exact tab centres in gen3 scripts, and the sample switches its page on touch-down.
   - [ ] Third pass (26 Oct evening, beyond the pixels): items 130-138, issues #114-#118 (press lighting, system accessibility settings, haptics, hover/focus on desktop and web, automatic quality fallback).
   - [ ] Second pass (26 Oct afternoon): items 103-129, issues #105-#113 (ink lift, press/release timing, lens over the search button, rim colour, rim highlights, glyphs, transit/landing, search mode, Control Center references).
   - [x] #93 item 9, the held lens's outline: squircle blend .7 toward n 3 (lens-squircle-2026-10-26). Pixel 7 check pending.
@@ -91,6 +97,7 @@ scope/API/positioning decisions, one Gradle build per worktree).
 No 1.0.1: the owner decided on 20 Oct to ship these together as 1.1.0 rather than release the Flutter
 description fix alone.
 
+- [x] **#119 Fast scrub flattening and strain overshoot (27 Oct).** Prevented held lens from collapsing to half height during sustained fast scrubbing. Direction reversal decay (0.40x on <0.28s intervals), scrub target suppression, and steady-state strain guard (max 0.80 * maxStrain). 20.0s shape 386.1 × 160.2 px (was 588.6 × 102.2 px, min height 139.0 px vs 102.2 px). Skia port and .NET synchronized; fixture regenerated. review/atlas/scrub-flattening-2026-10-27/README.md.
 - [x] **#80 / #82 and the first part of #81 (itsaqeeldev, 20 Oct), for 1.1.0.** Active-consumer
   view lifetime, matching cache/build geometry (whole-pixel size, exact recording-grid padding),
   shader-capability gating, bounded EDT

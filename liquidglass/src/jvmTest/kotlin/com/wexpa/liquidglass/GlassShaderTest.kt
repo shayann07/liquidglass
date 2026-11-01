@@ -34,7 +34,7 @@ class GlassShaderTest {
 
         val setByHost = setOf(
             "uHeldEdgeRecovery", "uHeldEdgeTone", "uHeldGlowFloor", "uSoftDetail", "uHeldGlowReach", "uFoldCorners", "uRimMirror", "uRimMirrorGain",
-            "uSize", "uRadii", "uRefractBand", "uBackdrop", "uAberration", "uBase", "uBlur", "uIor", "uBevelPower", "uMirror",
+            "uSize", "uRadii", "uRefractBand", "uBandBottom", "uBackdrop", "uAberration", "uBase", "uBlur", "uIor", "uBevelPower", "uMirror",
             "uFresnel", "uHiChroma", "uLegibility", "uCornerPower", "uTouch", "uTouchAmt",
             "uMaterialize", "uFrost", "uContrast", "uDebugCoverage", "uShapeKind", "uFieldRange", "uFieldScale", "uRefractDepth", "uBevel",
             "uLight", "uSpecular", "uSpecularPow", "uTint", "uTintMaskX", "uTintMaskY", "uInnerShadow", "uAdaptive",
@@ -73,7 +73,7 @@ class GlassContentShaderTest {
             .toSet()
         val setByHost = setOf(
             "uSize", "uPad", "uRadii", "uCornerPower", "uShapeKind", "uFieldRange", "uFieldScale",
-            "uRefractBand", "uRefractDepth", "uIor", "uBevelPower", "uAberration", "uScale",
+            "uRefractBand", "uBandBottom", "uRefractDepth", "uIor", "uBevelPower", "uAberration", "uScale",
             "uMaterialize", "uTouch", "uTouchAmt", "uProfile", "uFormation", "uHeldLens", "uHeldMagnification", "uRestMap",
             "uFuse", "uFuseShape",
             "uBody", "uBodyY", "uBodyKind", "uPoseA", "uPoseAInv", "uPoseC", "uPoseD", "uPoseE", "uEndpointAlpha", "uEdgeFold", "uInkSplit", "uHeldInk", "uFoldCorners", "uRimMirror", "uRimMirrorGain",
