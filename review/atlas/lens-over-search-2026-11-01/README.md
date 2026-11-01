@@ -37,3 +37,15 @@ iOS draws its lens over the button, and the button shows through the lens, becau
 Ours keeps the button above the lens, since our lens samples the page and the bar but not the button: drawn on top, it
 covered the button and its glyph. Drawing the lens's outline across the button needs the lens to sample the accessory's
 glass, which is a separate change. Not yet checked on a device.
+
+## On a device
+
+![Pixel 7: the held lens dragged to the search button. Main (left) bulges into a short neck short of the button; with this change (right) it leans and stretches to the button. Light below.](device-pixel7.png)
+
+Our frames only: Pixel 7 (Android 17, 90 Hz), release builds of the sample's `PhoneActivity`, dark and `--ez light true`,
+captured 2 November with `adb exec-out screencap` 2.0 s into a 2.6 s `input swipe` from Keypad (677, 2200) to (790, 2200);
+crop y 2080-2330. Main is `95c5b6e`.
+
+With this change the lens reaches the button in both appearances instead of stopping short. Its end goes under the button:
+drawing the lens over the button (iOS refracts the button through it) is the part of #107 still open. Light keeps its
+24 dp neck by design (IMG_7048 joins the two through one).
