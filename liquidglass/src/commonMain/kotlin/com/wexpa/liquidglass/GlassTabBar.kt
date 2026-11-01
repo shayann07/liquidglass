@@ -53,6 +53,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.Shape
@@ -1396,14 +1397,21 @@ private fun ItemCell(
     ) {
         // Sprung per item, so the growth walks from tab to tab under a drag instead of
         // jumping; both copies of the row animate the same targets on the same clock.
-        // A hovered tab's content lifts by GlassPoseSpec.hoverScale, in every copy of the row alike (the lens's
-        // refracted row reads the same bar state), so the ink under the lens never disagrees with the bar's.
-        val ring = LocalGlassFocusRing.current
-        val hoverScale = if (ring != null && ring.hovered.intValue == index) ring.hoverScale else 1f
         val itemScale by animateFloatAsState(
-            targetValue = (if (index == emphasisIndex) emphasis else 1f) * hoverScale,
+            targetValue = if (index == emphasisIndex) emphasis else 1f,
             animationSpec = spring(dampingRatio = 0.85f, stiffness = 900f),
             label = "glass_tab_bar_item_scale",
+        )
+        // A hovered tab's content lifts by GlassPoseSpec.hoverScale, in every copy of the row alike (the lens's
+        // refracted row reads the same bar state), so the ink under the lens never disagrees with the bar's. Applied
+        // at draw time, not as a layer property: the bar's material records this row, and only a draw-phase read
+        // invalidates that recording (a layer's scale alone left the shader sampling the unscaled row).
+        val ring = LocalGlassFocusRing.current
+        val hoverTarget = if (ring != null && ring.hovered.intValue == index) ring.hoverScale else 1f
+        val hoverScale by animateFloatAsState(
+            targetValue = hoverTarget,
+            animationSpec = spring(dampingRatio = 0.85f, stiffness = 900f),
+            label = "glass_tab_bar_item_hover",
         )
         val measured = if (onMeasured != null) {
             Modifier.onGloballyPositioned { onMeasured(index, it.size.width.toFloat()) }
@@ -1416,6 +1424,10 @@ private fun ItemCell(
         Box(
             modifier = (if (unboundedWidth) Modifier.wrapContentWidth(unbounded = true) else Modifier)
                 .then(measured)
+                .drawWithContent {
+                    if (hoverScale == 1f) drawContent()
+                    else scale(hoverScale) { this@drawWithContent.drawContent() }
+                }
                 .graphicsLayer {
                     scaleX = itemScale
                     scaleY = itemScale
