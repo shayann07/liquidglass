@@ -1,20 +1,42 @@
-## PAUSED at owner request — 29 October 2026
+## 1 November 2026 — PR pass and milestone 1.1.0 work (Claude)
 
-Current local candidate adds transit-only semantic ink share 0 (held ink share remains .3).
-Same-input replays of docs1 and JGEY2190 give zero neon pixels in all four #124 windows;
-previous 5b955d8 repair still peaked at 98-170. Source iOS also has zero in that mask.
-The new blue-ink regression failed before (2 false-green pixels), passes after. All 12
-focused shader/material/export checks, 19 selector tests and 16 .NET checks pass. Fixtures and Skia/npm/React Native copies rebuilt.
+Every PR open on 29 October was reviewed, measured against the recordings, repaired where needed, and merged
+or closed. Claude merges; no tag or release. Merged to main, in order:
 
-IMPORTANT: full-suite 419 passes / 27 skips, 46 Skia and 16 .NET passes belong to prior
-5b955d8, BEFORE this transit-ink change. The final candidate still needs the full suite,
-remaining-recording checks (docs2/IMG_6756/LOLL8185), physical qualification, and #131
-integration checks. It must not be marked merge-ready or claimed full parity.
+| PR | Issues | What changed (measured in the desktop GPU replay unless noted) |
+| :-- | :-- | :-- |
+| #142 | #115 | Glass follows the platform's Reduce Motion, Increase Contrast and Reduce Transparency by default |
+| #130 | #124, #108 | No comb streaks in tap transits (0 green-dominant frames; iOS 2-7 of 8-9, main 6-8) |
+| #143 | #117 | Keyboard focus ring on tabs, drawn over the selector, keyboard input mode only |
+| #144 | #99, #110 | Sample: Calls badge, glyph levels, search glyph, layout within 1 px / 1 level of IMG_6756 |
+| #131 | #120, #123 | Tap lens formation (.74, was .25); tap speed unchanged (main was closest: 39 ms rms) |
+| #134 | #93, #107 | Held lens 1.183 of the bar (219 px vs iOS 217); no lens neck on a dark page |
+| #133 | #106 | Still press forms on the hold; still release collapses at 60-77 ms (iOS 43-93); no bar dip |
+| #146 | #106 | Bar press swell waits 75 ms of frame time: starts ~137 ms (iOS ~120); taps do not swell |
+| #147 | #105 | Ink under a held lens brightens (+22 levels), lets go over .35 s |
+| #148 | #116 | Selection haptic on a tap and per tab a held lens enters |
+| #136 | — | Audit section W: independent verification of the agents' hand-off |
 
-Resume: finish final port checks, run full JVM suite, replay remaining recordings with
-matched scripts and compare held/refraction/fringe/landing behavior. Reuse completed
-replays under `.local/qualification-2026-10-29/replays[-zero]`; do not overwrite them.
-Claude independently reviews and merges. No tag/release. No active Gradle job at pause.
+#127 (Android XML interop) was closed for its public API size; #140 describes the acceptable scope. #137 was
+answered and closed (no .NET Framework target; a caller-owned SKCanvas works). Split out: #145 (Large Content
+Viewer) and #149 (release rebound). CI: the build job has 90 min, and every runComposeUiTest has a 4 min timeout.
+
+In flight at this writing:
+- #132 (#119, scrub flattening): rebuilt on main; full suite running.
+- #135 (#125, search button): rebuilt on main; checks pending.
+- #94 label fix (`fix/94-label-band`): the throw-landing label cut is bisected to 51e8b6e's `GlassCalmLensBand` 1.1.
+  Narrowing the band where the rim faces down restores the label: docs/2 724 px (iOS 854, main 457), with fringes
+  nearer iOS on docs/2 and IMG_6756. At factor 0.3, LOLL8185's long-drag fringes weaken (0.66 to 0.50 x iOS), so 0.55
+  is being scored.
+
+Open, measured, not yet fixed:
+- #109: resting rim at the caps; iOS fades about 50 px before and through each cap. Comment on the issue has the table.
+- #70: re-measure the tap plateau now that #131 is in.
+- #81: bounded-resolution EDT.
+- #118: adaptive quality is a public API decision.
+- The bar's tap contraction (iOS dips 3-4 px) and the remaining items under #92-#113.
+
+Resume notes with commands: `.local/sxs/CLAUDE-SESSION-NOTES.md` (private).
 
 # LiquidGlass / Atlas delivery checklist
 
