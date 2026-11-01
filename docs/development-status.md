@@ -7,7 +7,8 @@ research remains available; this page identifies which later changes supersede i
 
 ## Main after 1.0 (24 October)
 
-- 1 November: the light held-lens shadow is 8.5 dp down with an 8 dp blur (was 5 and 6), as iOS's (#104).
+- 1 November: the light held lens is clear to its lower rim (no inner line) and its shadow is outside it only, 0.35, 11 dp
+  down with a 9 dp blur (was 0.45, half inside, 5 dp and 6 dp): 3.43 levels rms below it, was 7.18 (#104).
   [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/light-lens-shadow-2026-11-01/README.md).
 - 1 November: the light Calm bar's top is shaded as iOS's is (240-241 over its top ~45 px, 245 below; 0.85 levels rms,
   was 3.15) (internal to light `Calm()`'s bar; no public API change) (#128). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/light-top-shade-2026-11-01/README.md).

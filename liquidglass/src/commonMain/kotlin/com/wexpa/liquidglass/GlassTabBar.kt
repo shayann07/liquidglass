@@ -1963,14 +1963,15 @@ data class GlassTabBarStyle(
             tapTransitFold = 0f,
             pill = recorded.pill.copy(tint = Color.Transparent, tintLift = -10f / 255f),
             lens = recorded.lens.copy(tint = Color.Transparent, rawShare = 0f, rawBlur = 0.dp, tintLift = 0f,
-                softDetail = 1f, heldEdgeTone = 243f / 255f, innerShadow = 0f, contactShadow = 0.45f, bodyBandScale = GlassCalmLensBand,
+                softDetail = 1f, heldEdgeTone = 243f / 255f, innerShadow = 0f, contactShadow = 0.35f, bodyBandScale = GlassCalmLensBand,
                 // No inner thickness line (#104): it drew a dark line along the lens's lower rim (row 648: 238, iOS 254;
                 // with none 248), and the outline (heldEdgeTone) already draws the top rim.
-                // Its shadow lower and longer than the previous light Calm values (6 dp blur, 5 dp down; #104 item 50).
-                // Measured: iOS's light held lens darkens rows ~660-680 below its rim (242-246; IMG_7049 39.41-39.87 s, held on
-                // Contacts); ours stopped by ~672. Authored: 8 dp of blur, 8.5 dp down, fitted to those frames; the replay then
-                // reads 242-248 there (rows 664-684: 2.2 levels rms, was 4.9).
-                contactShadowInside = 0.5f, contactShadowBlur = 8.dp, contactShadowOffset = 8.5.dp),
+                // Its shadow lower, lighter and outside the lens only, against the previous light Calm values (0.45, half of it
+                // inside, 6 dp blur, 5 dp down; #104 item 50). Measured: iOS's light held lens stays clear to its lower rim (rows
+                // 644-648: 255) and its shadow darkens gradually below it, deepest ~20 px down (247 at row 660, 242 at 672; IMG_7049
+                // 39.41-39.87 s, held on Contacts). Authored: 0.35, none inside, 9 dp of blur, 11 dp down, fitted to those
+                // frames; the replay then reads rows 640-684 at 3.43 levels rms (main 7.18).
+                contactShadowInside = 0f, contactShadowBlur = 9.dp, contactShadowOffset = 11.dp),
             tapTintFade = 1f, tapSelectedScale = 1.15f, tapOptics = 1f, tapOpticsFold = 1f,
         )
 
