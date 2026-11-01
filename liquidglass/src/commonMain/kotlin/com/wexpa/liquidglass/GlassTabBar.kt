@@ -1,5 +1,9 @@
 package com.wexpa.liquidglass
 
+import androidx.compose.ui.input.InputMode
+import androidx.compose.ui.platform.LocalInputModeManager
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.animateFloatAsState
@@ -1277,12 +1281,20 @@ private fun ItemCell(
             .fillMaxHeight()
             .then(
                 if (onClick != null) {
-                    Modifier.selectable(
-                        selected = index == semanticSelected,
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        role = Role.Tab,
-                    ) { onClick(index) }
+                    val interactions = remember { MutableInteractionSource() }
+                    // A keyboard user has to see which tab has focus (#117). The lens is the
+                    // touch indication, so nothing else is drawn for a press.
+                    val focused by interactions.collectIsFocusedAsState()
+                    // Only for keyboard navigation: a pointer that focuses a tab shows the lens.
+                    val keyboard = LocalInputModeManager.current.inputMode == InputMode.Keyboard
+                    Modifier
+                        .glassFocusRing(focused && keyboard)
+                        .selectable(
+                            selected = index == semanticSelected,
+                            interactionSource = interactions,
+                            indication = null,
+                            role = Role.Tab,
+                        ) { onClick(index) }
                 } else {
                     Modifier
                 },
@@ -2334,3 +2346,22 @@ internal fun glassSelectorFold(style: GlassTabBarStyle, formation: Float, transi
 /** The gesture's own pointer has lifted: a tap, as opposed to a pointer taken by another node. */
 private fun AwaitPointerEventScope.liftedWithoutDrag(id: PointerId): Boolean =
     currentEvent.changes.firstOrNull { it.id == id }?.pressed == false
+
+/** The focus ring for a keyboard-focused tab (#117): a 2 dp capsule, inset 3 dp, in the system accent blue
+ * with a dark hairline outside it, so it reads over a light or a dark bar. */
+internal fun Modifier.glassFocusRing(focused: Boolean): Modifier = if (!focused) this else drawWithContent {
+    drawContent()
+    val inset = 3.dp.toPx()
+    val stroke = 2.dp.toPx()
+    val w = size.width - 2f * inset
+    val h = size.height - 2f * inset
+    if (w <= 0f || h <= 0f) return@drawWithContent
+    val r = androidx.compose.ui.geometry.CornerRadius(h / 2f)
+    drawRoundRect(Color.Black.copy(alpha = .45f), androidx.compose.ui.geometry.Offset(inset - 1f, inset - 1f),
+        androidx.compose.ui.geometry.Size(w + 2f, h + 2f), r, style = androidx.compose.ui.graphics.drawscope.Stroke(1f))
+    drawRoundRect(GlassFocusRingColor, androidx.compose.ui.geometry.Offset(inset + stroke / 2f, inset + stroke / 2f),
+        androidx.compose.ui.geometry.Size(w - stroke, h - stroke), r, style = androidx.compose.ui.graphics.drawscope.Stroke(stroke))
+}
+
+/** iOS's keyboard focus ring colour (system blue, dark appearance). */
+internal val GlassFocusRingColor = Color(0xFF0A84FF)

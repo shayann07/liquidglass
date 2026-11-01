@@ -431,6 +431,13 @@ Below Android 13 the lens is a plain surface (`fallbackSurface`), the items colo
 `item` is called once per tab with the real selection — and everything about the gesture still
 works.
 
+## Keyboard focus
+
+Each tab is focusable (`Role.Tab`, in a selectable group), so the Tab key moves between tabs and Enter or
+Space selects. The focused tab draws a 2 dp ring in the system accent blue, with a dark hairline so it reads on a
+light or a dark bar. The ring appears only in keyboard input mode: a tap or a mouse click shows the lens, never the
+ring (#117).
+
 ## Reduce Motion
 
 `motionEnabled = false` disables the lens, the gel and the fling. Taps and drags still select,
