@@ -9,6 +9,8 @@ research remains available; this page identifies which later changes supersede i
 
 - 1 November: a travelling held lens sweeps icons round its caps (its rim mirror band 1.0 while it moves; taps keep 0.3)
   (#121). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/held-cap-mirror-2026-11-01/README.md).
+- 1 November: the light Calm bar's top is shaded as iOS's is (240-241 over its top ~45 px, 245 below; 0.85 levels rms,
+  was 3.15) (internal to light `Calm()`'s bar; no public API change) (#128). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/light-top-shade-2026-11-01/README.md).
 - 1 November: a thrown lens no longer cuts the label under it (docs/2 8.6 s); the regression came from the 26 October
   band widening and is fixed where the rim faces down only (#94). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/label-band-2026-11-01/README.md).
 - 1 November: glass follows the platform's accessibility settings by default (#115):
@@ -46,6 +48,8 @@ research remains available; this page identifies which later changes supersede i
   showed it since #143); a pointer press hides it until the next key. Test: `aTouchedTabShowsNoRing`.
 - 1 November: keyboard users can see which tab has focus: the focused tab draws a ring over the selector, in keyboard
   mode only (#117). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/tab-focus-ring-2026-11-01/README.md).
+- 1 November: on desktop and web, the tab under a hovering pointer lifts (content 6% larger; authored, no recording
+  measures iPadOS's hover) (#117). Touch paths are unchanged.
 - 1 November: the sample matches iOS's Calls badge, icon position, glyph levels and search glyph to within a pixel or a
   level on IMG_6756 (#99, #110, sample only). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/sample-parity-2026-11-01/README.md).
 - 28 October: held bar growth, overhang h, and search button fusion (#93). The held lens height ratio is

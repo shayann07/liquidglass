@@ -258,7 +258,9 @@ public sealed class GlassPainter : IDisposable
     private static void Apply(Dictionary<string, float[]> v, CalmMaterial calm, GlassSurfaceOptions o)
     {
         foreach (var (key, value) in calm.Values)
-            if (v.ContainsKey(key)) v[key] = CalmSelectorMaterial.DpFields.Contains(key) ? value.Select(x => x * o.Density).ToArray() : value;
+            // The bar's top shade (#128) is [strength, reach dp]: only its reach is a length.
+            if (v.ContainsKey(key)) v[key] = key == "uTopShade" ? [value[0], value[1] * o.Density]
+                : CalmSelectorMaterial.DpFields.Contains(key) ? value.Select(x => x * o.Density).ToArray() : value;
         Set(v, "uMaterialize", o.Materialize); Set(v, "uFrost", o.ReducedTransparency); Set(v, "uContrast", o.IncreasedContrast);
     }
 

@@ -10,6 +10,10 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   them nearly unbent to a hard edge (LOLL8185 21.4 s). Its caps mirror over the full band (1.0) while it moves; taps keep
   0.3. The landing label also holds better (docs/2: 825 label px, main 546, iOS 854) (#121).
   [Evidence](review/atlas/held-cap-mirror-2026-11-01/README.md).
+- Tab bar (light Calm): the bar's top ~45 px read a few levels darker than its body, as iOS's do (IMG_7049: 240-241
+  against 245), instead of evenly bright (0.85 levels rms down the bar, was 3.15). Light `Calm()`'s own bar only; no public
+  API changes, and the search button and other styles stay even (#128).
+  [Evidence](review/atlas/light-top-shade-2026-11-01/README.md).
 - Tab bar (light Calm): the bar's shadow is a faint band straight below it, as iOS 27's is, not a soft halo. The gap to
   the search button stays white (255, as iOS; was 251) (#128). [Evidence](review/atlas/light-bar-shadow-2026-11-01/README.md).
 - Tab bar (Calm): a thrown lens no longer cuts the label it lands on. Where Calm widened the held lens's mirror band
@@ -53,6 +57,8 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   as iOS's Large Content Viewer does; a tap does not (#145). See [Accessibility](docs/accessibility.md#large-text-the-large-content-viewer).
 - Tab bar: a keyboard-focused tab draws a focus ring (2 dp, system blue, with a dark hairline); pointer input never
   shows it (#117). See [Keyboard focus](docs/tab-bar.md#keyboard-focus).
+- Tab bar (Calm): with a mouse or trackpad, the tab under the pointer lifts (its content grows 6%, authored) and settles
+  when the pointer leaves; touch never hovers (#117). See [Pointer hover](docs/tab-bar.md#pointer-hover).
 - Tab bar: the focus ring no longer appears after a touch or a synthetic press on desktop, where the input mode
   stays Keyboard: a pointer press hides it until the next key (#117 follow-up; every desktop touch replay showed it).
 - Sample (Phone scene): Calls carries iOS's red count badge, a 23 pt disc measured on IMG_6756 (#99); the replay
