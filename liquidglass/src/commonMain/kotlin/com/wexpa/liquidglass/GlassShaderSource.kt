@@ -519,7 +519,12 @@ half4 main(float2 coord) {
     float2 pushB = push * (1.0 + split);
     if (measured > 0.5 && uProfile < 2.5) {
         // Inward only. A pixel at depth d shows content from depth s inside the same edge.
-        float W = max(uRefractBand, 0.001);
+        // The held lens's mirror band is GlassCalmLensBand wide, but where its rim faces down it narrows
+        // (#94): a label sitting in a wide bottom band was swapped for mirrored content and cut, where
+        // iOS keeps it and bends its ends along the rim (docs/2 8.6 s). Authored.
+        float heldBottom = step(1.5, uProfile) * (1.0 - step(2.5, uProfile)) * clamp(uHeldLens, 0.0, 1.0)
+            * smoothstep(0.2, 0.8, n.y);
+        float W = max(uRefractBand * mix(1.0, 0.3, heldBottom), 0.001);
         float u = clamp(depth / W, 0.0, 1.0);
         // Chrome at rest lenses at its corner arcs only; a field shape has no runs to exempt.
         float corner = (uBodyKind > 1.5)
