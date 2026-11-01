@@ -56,7 +56,9 @@ class GlassLargeContentViewerTest {
     @Test fun aTapShowsNoViewer() = runComposeUiTest(testTimeout = 4.minutes) {
         bar(fontScale = 2f); waitForIdle()
         val node = onNodeWithTag(GlassTabBarSemantics.TAG, useUnmergedTree = true)
-        // Checked while the finger is still down, and again after the lift.
+        // Checked while the finger is still down, and again after the lift. The clock is driven by hand: with it
+        // auto-advancing, waiting for idle under a held finger would run it past the hold time.
+        mainClock.autoAdvance = false
         node.performTouchInput { down(Offset(geometry.centreOf(3), 31f)) }
         mainClock.advanceTimeBy(100)
         viewer().assertCountEquals(0)
