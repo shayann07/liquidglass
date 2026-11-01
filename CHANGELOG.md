@@ -6,6 +6,8 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Tab bar (Calm): a thrown lens stays milky as it lands, as iOS's does, instead of clearing about 80 ms early (docs/2
+  8.62-8.84 s: 5.2 levels rms, was 9.1) (#111). [Evidence](review/atlas/landing-lift-2026-11-01/README.md).
 - Tab bar (light Calm): the bar's top ~45 px read a few levels darker than its body, as iOS's do (IMG_7049: 240-241
   against 245), instead of evenly bright (0.85 levels rms down the bar, was 3.15). Light `Calm()`'s own bar only; no public
   API changes, and the search button and other styles stay even (#128).
