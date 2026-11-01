@@ -97,4 +97,13 @@ class GlassTabBarFocusTest {
         waitForIdle()
         assertEquals(0, ringPixels(), "a mouse click left a focus ring")
     }
+
+    /** A touch press focuses the tab on the desktop, where the input mode stays Keyboard: no ring (seen in every
+     * desktop touch replay after #143). */
+    @Test fun aTouchedTabShowsNoRing() = runComposeUiTest(testTimeout = 4.minutes) {
+        bar(); waitForIdle()
+        onAllNodes(tab)[3].performTouchInput { click(center) }
+        waitForIdle()
+        assertEquals(0, ringPixels(), "a touch left a focus ring")
+    }
 }
