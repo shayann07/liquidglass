@@ -82,8 +82,9 @@ frame, not per glyph. It is internal since 18 October; choose the appearance wit
 
 Android has none, at any API level, so on Android `LiquidGlassTheme(reduceTransparency = …)` must be driven by
 an in-app control (the web's `prefers-reduced-transparency` is followed by default). Reduce Motion has a real
-analogue and Increase Contrast a partial one (Android 14+), both followed by default; the desktop JVM reads
-none of the three. See [Accessibility](accessibility.md).
+analogue, followed by default by `GlassTabBar` only: other glass controls need the app to pass
+`GlassInteraction.ReducedMotion`. Increase Contrast has a partial one (Android 14+), followed by default by
+`LiquidGlassTheme`. The desktop JVM reads none of the three. See [Accessibility](accessibility.md).
 
 ## The interior blur is grainy at large radii
 
