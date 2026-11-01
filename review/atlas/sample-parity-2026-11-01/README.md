@@ -22,6 +22,7 @@ What changed (all in `PhoneScene.kt`):
 
 Not changed: the Keypad dots' luma spread (item 117) and the search glyph's blue ring (#99 item 102).
 
-![main above, sample parity below](sample-parity-ours.png)
+![Desktop GPU replay, variant calm+badge, IMG_6756 script at 34.2 s: main above, sample parity below](sample-parity-ours.png)
 
-Our frames only, crop x 60-1100, rows 430-620.
+Our frames only, from the desktop GPU replay (`:desktop:phoneReplay`, variant `calm+badge`, IMG_6756 holds script) at
+34.2 s, crop x 60-1100, rows 430-620.

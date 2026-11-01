@@ -164,7 +164,9 @@ private fun PhoneTab(index: Int, color: Color, badge: Int = 0) {
             // IMG_6756 34.4 s: a 69 px (23 pt) disc, (255, 66, 69), whose top-left is 62 px right of and 19 px above
             // the clock's (at 3 px/pt; the clock disc sits at the top of this 23 dp box). The count is white.
             if (badge > 0) Box(
-                Modifier.requiredSize(23.dp).offset(20.dp, (-6.3).dp).background(Color(0xFFFF4245), CircleShape),
+                // 23 dp is the minimum: at large font scales the count grows the badge instead of clipping.
+                Modifier.wrapContentSize(Alignment.TopStart, unbounded = true).offset(20.dp, (-6.3).dp)
+                    .defaultMinSize(23.dp, 23.dp).background(Color(0xFFFF4245), CircleShape).padding(horizontal = 4.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 BasicText("$badge", style = TextStyle(color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold))
