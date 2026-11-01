@@ -108,10 +108,9 @@ fun PhoneScene(
     search: GlassInteraction? = GlassInteraction.Pullable.copy(pullShape = GlassPullShape.Free, pullLiftShare = 0.65f),
     // LiquidGlassTheme.renderScale: the glass layers recorded at this fraction of full resolution.
     renderScale: Float = 1f,
-    // GlassTabBarAccessory.lensFusion: a held lens at the search end reaches the button through a neck.
-    // 24 dp since 26 October (#93): IMG_6756 35.5 s and docs/2 30 s show the lens joining the button
-    // with a shallow notch top and bottom; 12 dp pinched a waist, 40 dp lost the notch.
-    lensFusion: androidx.compose.ui.unit.Dp = 24.dp,
+    // GlassTabBarAccessory.lensFusion: none on a dark page (#93, #107): iOS 27 dark's held lens overlaps the
+    // search button (IMG_6756 35.5 s, docs/2 30 s). The light recording (IMG_7048) joins it through a neck: 24 dp.
+    lensFusion: androidx.compose.ui.unit.Dp = if (palette.page.red > .5f) 24.dp else 0.dp,
     // The red count badge on Calls (#99 item 72). IMG_6756 shows "2" and docs/2 none, so it is off by default
     // and the replay asks for it ("+badge").
     callsBadge: Int = 0,

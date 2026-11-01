@@ -21,6 +21,11 @@ research remains available; this page identifies which later changes supersede i
   mode only (#117). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/tab-focus-ring-2026-11-01/README.md).
 - 1 November: the sample matches iOS's Calls badge, icon position, glyph levels and search glyph to within a pixel or a
   level on IMG_6756 (#99, #110, sample only). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/sample-parity-2026-11-01/README.md).
+- 28 October: held bar growth, overhang h, and search button fusion (#93). The held lens height ratio is
+  calibrated to 1.183 (was 1.20), lowering the crown by 2 px to row 436 (height 220 px) and reducing bottom
+  overhang h from 13.7 px to 12.3 px (matching iOS IMG_6756 measurements); held lens width on Keypad expands
+  towards ~350 px (was ~335 px); search button fusion is disabled in dark appearance so the lens cleanly overlaps
+  without bridging. [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/held-bar-geometry-2026-10-28/README.md).
 - 26 October: the held lens's outline is a squircle (a .7 blend toward n = 3, the exponent iOS's lens fits),
   not a capsule; its width profile against iOS moves from 27.5 to 7.1 px rms.
   [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/lens-squircle-2026-10-26/README.md).

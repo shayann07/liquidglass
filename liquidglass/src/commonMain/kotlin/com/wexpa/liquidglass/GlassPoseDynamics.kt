@@ -177,9 +177,11 @@ internal data class GlassPoseSpec(
      * The inherited 1.28 still ratio used the inset selector as its bar and is rejected. The
      * recording's Phone bar reads (185.5 + 17 + 29) / 185.5 = 1.25 for the g7 hold. The r10
      * optics audit re-read every reference at matched scale: 6717 1.12, LOLL8185 n1380 1.22,
-     * 6756 T01 1.21, T04 1.23, against 1.30-1.37 on the phone. 1.20 sits in that band.
+     * 6756 T01 1.21, T04 1.23, against 1.30-1.37 on the phone. 1.183 (220 px on an 186 px bar, #93)
+     * matches iOS 27 crown top (row 436 instead of 434) and reduces bottom overhang h from
+     * 13.7 px to 12.3 px (IMG_6756).
      */
-    val heldHeightRatio: Float = 1.20f,
+    val heldHeightRatio: Float = 1.183f,
     /**
      * Maximum log contraction under a held drag. Original 6735 reads about .79 bar heights
      * (untimed, so no identifiable finger speed). With calm height 1.20, the inherited .55
@@ -382,7 +384,7 @@ internal data class GlassPoseSpec(
             tapReferenceSpeed = 10f, spineReleaseOmega = 22f,
             pressureOmega = 22f, pressureFallOmega = 14f, formRiseOmega = 30f,
             tapPressureOmega = 45f,
-            heldHeightRatio = 1.20f, heldReferenceSpeed = 12f,
+            heldHeightRatio = 1.183f, heldReferenceSpeed = 12f,
             // IMG6735:314x142 selector inside186px bar. The old .10 contraction could
             // never reach its flattened shape; .45 spine gain simultaneously grew too wide.
             // These gains/rates define a spatial envelope, not measured finger timing.
