@@ -100,7 +100,7 @@ class GlassSelectorPortMaterialTest {
         val text = "{\"dpFields\":${dpFields.joinToString(",", "[", "]") { "\"$it\"" }},\n" +
             "\"fold\":{\"measuredProfile\":${fold.profile.uniform},\"foldCorners\":1.0,\"transitFoldCorners\":$GlassSelectorTransitFoldCorners,\"rimMirror\":$GlassSelectorRimMirror," +
             "\"rimMirrorGain\":$GlassSelectorRimGain,\"dispersion\":$GlassSelectorRimDispersion,\"movingDispersion\":$GlassSelectorRimFringeMoving," +
-            "\"heldMovingDispersion\":$GlassSelectorHeldFringeMoving,\"inkSplitShare\":$GlassSelectorInkSplitShare},\n" +
+            "\"heldMovingDispersion\":$GlassSelectorHeldFringeMoving,\"inkSplitShare\":$GlassSelectorInkSplitShare,\"transitInkSplitShare\":$GlassSelectorTransitInkSplitShare},\n" +
             "\"styles\":{\n$styles},\n\"samples\":[\n${samples.joinToString(",\n")}]}\n"
         val file = File("../ports/skia/fixtures/selector-material.json")
         if (System.getProperty("liquidglass.exportShaders") == "true") { file.parentFile.mkdirs(); file.writeText(text) }

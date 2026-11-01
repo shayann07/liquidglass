@@ -470,3 +470,10 @@ what the preset does about it:
   the library's copies of the row coincide when held still and lag by a frame mid-drag in the
   same way, which is left as it is. The light appearance of the inset and lens was not captured;
   `Measured(dark = false)` uses the dark numbers.
+
+### Transit ink correction under verification
+
+The current development candidate keeps semantic glyph ink unsplit during tap folds while
+retaining material dispersion and the separate held-ink setting. This removes the measured
+neon-green proxy in four reported defect windows. It is an authored correction, with broader
+recording/device qualification pending; it does not establish complete iOS parity.
