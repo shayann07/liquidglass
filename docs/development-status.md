@@ -9,6 +9,8 @@ research remains available; this page identifies which later changes supersede i
 
 - 1 November: the light held-lens outline reads 227 against iOS's 226 with `heldEdgeTone` 217/255 (was 245 at 243/255) (#128).
   [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/light-held-outline-2026-11-01/README.md).
+- 1 November: a travelling held lens sweeps icons round its caps (its rim mirror band 1.0 while it moves; taps keep 0.3)
+  (#121). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/held-cap-mirror-2026-11-01/README.md).
 - 1 November: the light Calm bar's top is shaded as iOS's is (240-241 over its top ~45 px, 245 below; 0.85 levels rms,
   was 3.15) (internal to light `Calm()`'s bar; no public API change) (#128). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/light-top-shade-2026-11-01/README.md).
 - 1 November: a thrown lens no longer cuts the label under it (docs/2 8.6 s); the regression came from the 26 October
