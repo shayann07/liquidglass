@@ -15,6 +15,8 @@ research remains available; this page identifies which later changes supersede i
 - 27 October: eliminated green/black comb streaks during tap transits (#124) and channel crush at the lens rim (#108). In `GlassContentShaderSource.kt`, chromatic split `delta` scales with `abs(shift)` instead of a static band split, and transit ink dispersion is scaled by `GlassSelectorInkSplitShare`. Outward displacement is clamped to `max(shift - delta, 0.0)` in both shaders, preventing rim channels from sampling past the glass boundary.
   [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/comb-streaks-2026-10-27/README.md).
 - 1 November: keyboard users can see which tab has focus: the focused tab draws a ring, in keyboard mode only (#117).
+- 1 November: keyboard users can see which tab has focus: the focused tab draws a ring over the selector, in keyboard
+  mode only (#117). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/tab-focus-ring-2026-11-01/README.md).
 - 26 October: the held lens's outline is a squircle (a .7 blend toward n = 3, the exponent iOS's lens fits),
   not a capsule; its width profile against iOS moves from 27.5 to 7.1 px rms.
   [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/lens-squircle-2026-10-26/README.md).

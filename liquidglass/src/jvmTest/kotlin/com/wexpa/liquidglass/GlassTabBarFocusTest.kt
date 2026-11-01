@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toAwtImage
 import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
@@ -57,6 +58,29 @@ class GlassTabBarFocusTest {
         onAllNodes(tab)[2].requestFocus()
         waitForIdle()
         assertTrue(ringPixels() > 200, "focused tab draws no ring: ${ringPixels()}")
+    }
+
+    /** The selected tab sits under the selector; its ring is drawn above it, not under it. */
+    @Test fun theSelectedTabsRingIsDrawnOverTheSelector() = runComposeUiTest(testTimeout = 4.minutes) {
+        bar(); waitForIdle()
+        onAllNodes(tab)[0].requestFocus()
+        waitForIdle()
+        assertTrue(ringPixels() > 200, "the selected tab's ring is hidden: ${ringPixels()}")
+        // Evidence for review/atlas/tab-focus-ring-2026-11-01 (desktop JVM software render, 500 x 120 dp at density 1).
+        val image = onNodeWithTag("scene").captureToImage().toAwtImage()
+        java.io.File("build/reports/atlas").apply { mkdirs() }.resolve("tab-focus-ring.png")
+            .let { javax.imageio.ImageIO.write(image, "png", it) }
+    }
+
+    /** Keyboard focus, then a mouse click on another tab: no ring stays behind. */
+    @Test fun aClickAfterKeyboardFocusClearsTheRing() = runComposeUiTest(testTimeout = 4.minutes) {
+        bar(); waitForIdle()
+        onAllNodes(tab)[2].requestFocus()
+        waitForIdle()
+        assertTrue(ringPixels() > 200, "no ring after keyboard focus")
+        onAllNodes(tab)[3].performMouseInput { click(center) }
+        waitForIdle()
+        assertEquals(0, ringPixels(), "a ring stayed after the click")
     }
 
     @Test fun aClickedTabShowsNoRing() = runComposeUiTest(testTimeout = 4.minutes) {
