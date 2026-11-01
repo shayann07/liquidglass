@@ -31,7 +31,7 @@ changed neither line. The values are fitted to the three frames above; no public
 
 ## Not changed
 
-Row 656 still reads 241 against iOS 250: our shadow begins a little darker right under the rim. Not yet checked on a device.
+Row 656 still reads 241 against iOS 250: our shadow begins a little darker right under the rim. Checked on a Pixel 7 below.
 
 ## On a device
 
