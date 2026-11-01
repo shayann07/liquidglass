@@ -10,6 +10,8 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   glass at a lower resolution while frames are being missed (×0.75 a step, floor 0.5 of its `renderScale`), and returns
   after 3 s without a missed frame. A step waits for the glass to be still, so it never cancels a gesture. Off by default;
   the desktop and web do not adapt yet (#118). [Evidence](review/atlas/adaptive-quality-2026-11-02/README.md).
+- Tab bar (light Calm): the held lens's outline is a grey line as on iOS (top rim 227 against iOS 226), not a faint
+  near-white one (245) (#128). [Evidence](review/atlas/light-held-outline-2026-11-01/README.md).
 - Tab bar (Calm): a thrown lens stays milky as it lands, as iOS's does, instead of clearing about 80 ms early (docs/2
   8.62-8.84 s: 5.2 levels rms, was 9.1) (#111). [Evidence](review/atlas/landing-lift-2026-11-01/README.md).
 - Tab bar (Calm): a held lens that travels sweeps the icons it passes round its caps, as iOS's does, instead of carrying
