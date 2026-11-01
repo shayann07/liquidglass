@@ -7,6 +7,9 @@ research remains available; this page identifies which later changes supersede i
 
 ## Main after 1.0 (24 October)
 
+- 2 November: `LocalGlassAdaptiveQuality` (opt-in, Android): the theme lowers its render scale while frames are missed and
+  restores it after 3 s, stepping only while the glass is still (#118). Checked on a Pixel 7: no step on ordinary taps,
+  forced misses step 1 → 0.5 and back, gestures survive. [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/adaptive-quality-2026-11-02/README.md).
 - 1 November: the held lens beside the search button leans and grows into it as iOS's does (#107). iOS also draws the
   lens's outline over the button, seen through the lens; ours keeps the button on top (the lens does not refract the
   button yet). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/lens-over-search-2026-11-01/README.md).

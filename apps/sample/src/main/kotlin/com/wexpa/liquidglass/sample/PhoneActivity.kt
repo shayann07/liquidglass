@@ -1,6 +1,11 @@
 package com.wexpa.liquidglass.sample
 
 import android.os.Bundle
+import android.util.Log
+import androidx.compose.runtime.CompositionLocalProvider
+import com.wexpa.liquidglass.LiquidGlassDiagnosticApi
+import com.wexpa.liquidglass.LiquidGlassDiagnostics
+import com.wexpa.liquidglass.LocalGlassAdaptiveQuality
 import androidx.activity.ComponentActivity
 import com.wexpa.liquidglass.GlassTabBarStyle
 import androidx.activity.compose.setContent
@@ -24,6 +29,7 @@ import androidx.compose.ui.platform.testTag
  * `adb shell am start -n com.wexpa.liquidglass.sample/.PhoneActivity [--ez natural true]`
  */
 class PhoneActivity : ComponentActivity() {
+    @OptIn(LiquidGlassDiagnosticApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -32,13 +38,23 @@ class PhoneActivity : ComponentActivity() {
         val light = intent?.getBooleanExtra("light", false) ?: false
         // "renderScale": record the glass at a fraction of full resolution (performance comparisons).
         val renderScale = intent?.getFloatExtra("renderScale", 1f) ?: 1f
+        // "adaptive": LocalGlassAdaptiveQuality on (#118). "adaptiveDeadlineScale": count a frame as missed past this
+        // fraction of its deadline, to drive the governor on a phone that meets its deadlines. Steps are logged
+        // under the tag "GlassAdaptive".
+        val adaptive = intent?.getBooleanExtra("adaptive", false) ?: false
+        if (adaptive) {
+            LiquidGlassDiagnostics.adaptiveDeadlineScale = intent?.getFloatExtra("adaptiveDeadlineScale", 1f)?.takeIf { it != 1f }
+            LiquidGlassDiagnostics.adaptiveQualityListener = { Log.i("GlassAdaptive", "factor $it") }
+        }
         setContent {
             var selected by remember { mutableIntStateOf(0) }
             val palette = if (light) PhonePalette.Light else if (natural) PhonePalette.Natural else PhonePalette.Recorded
+            CompositionLocalProvider(LocalGlassAdaptiveQuality provides adaptive) {
             Box(Modifier.fillMaxSize().background(palette.page), contentAlignment = Alignment.BottomCenter) {
                 PhoneScene(selected, { selected = it }, Modifier.navigationBarsPadding().testTag("phone-scene"), palette = palette,
                     style = PhoneGeometry.style(GlassTabBarStyle.Calm(dark = !light)), renderScale = renderScale,
                     callsBadge = 2)
+            }
             }
         }
     }

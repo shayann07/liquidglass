@@ -6,6 +6,10 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- New, opt-in: `LocalGlassAdaptiveQuality`. Provide `true` above `LiquidGlassTheme` and, on Android, the theme renders its
+  glass at a lower resolution while frames are being missed (×0.75 a step, floor 0.5 of its `renderScale`), and returns
+  after 3 s without a missed frame. A step waits for the glass to be still, so it never cancels a gesture. Off by default;
+  the desktop and web do not adapt yet (#118). [Evidence](review/atlas/adaptive-quality-2026-11-02/README.md).
 - Tab bar (Calm): beside an accessory that yields to the lens (`GlassTabBarAccessory.yieldsToLens`), the held lens on the
   next tab leans toward it and grows into it, as iOS 27's does, instead of stopping short with a neck and a gap (IMG_6756
   35.5 s: left edge 602 against iOS 605, main 585). The sample drops its lens-to-button neck. No public API change (#107).

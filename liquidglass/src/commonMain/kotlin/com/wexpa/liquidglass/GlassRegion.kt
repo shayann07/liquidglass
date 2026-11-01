@@ -10,9 +10,11 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.RememberObserver
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -65,7 +67,8 @@ import kotlin.math.roundToInt
  * @param background the colour behind the app wherever it draws nothing.
  * @param glass what [glassEffect] draws when it is given no [Glass].
  * @param containerSpacing [GlassEffectContainer]'s default merge distance.
- * @param renderScale the fraction of full resolution glass renders at, 0.25 to 1. 1 by default.
+ * @param renderScale the fraction of full resolution glass renders at, 0.25 to 1. 1 by default. With
+ *   [LocalGlassAdaptiveQuality] on, the theme lowers it while frames are being missed.
  * @param reduceTransparency Reduce Transparency, 0 to 1: raises the material's opacity. On the web it
  *   follows `prefers-reduced-transparency` by default; Android and the desktop have no such setting, so
  *   drive it from an in-app control there (see the accessibility guide).
@@ -83,14 +86,21 @@ fun LiquidGlassTheme(
     increaseContrast: Float = if (rememberGlassSystemAccessibility().increaseContrast) 1f else 0f,
     content: @Composable () -> Unit,
 ) {
-    val defaults = GlassDefaults(dark, glass, containerSpacing, reduceTransparency, increaseContrast, renderScale)
     val parent = LocalGlassRegion.current
+    // The outermost theme adapts (#118); a nested one takes the same factor onto its own renderScale.
+    val factor = if (parent == null) rememberGlassAdaptiveFactor(LocalGlassAdaptiveQuality.current) else parent.adaptiveFactor
+    // The renderer's floor is 0.25: an adapted scale below it would rebuild the glass for nothing.
+    val scale = if (factor < 1f) (renderScale * factor).coerceIn(0.25f, 1f) else renderScale
+    val defaults = GlassDefaults(dark, glass, containerSpacing, reduceTransparency, increaseContrast, scale)
     if (parent != null) {
         CompositionLocalProvider(LocalGlassDefaults provides defaults, content = content)
         return
     }
-    val state = rememberLiquidGlassState(background, 0f, reduceTransparency, increaseContrast, renderScale)
+    val state = rememberLiquidGlassState(background, 0f, reduceTransparency, increaseContrast, scale)
     val region = remember(state) { GlassRegion(state) }
+    // Live, not a constructor value: a root already at the renderer's floor keeps its state (and region) through
+    // a step, and its nested themes must still follow the factor.
+    SideEffect { region.adaptiveFactor = factor }
     CompositionLocalProvider(LocalGlassRegion provides region, LocalGlassDefaults provides defaults) {
         Box(Modifier.onGloballyPositioned { region.root = it }, propagateMinConstraints = true) {
             Box(Modifier.liquidGlassSource(state) { region.views.values }, propagateMinConstraints = true) { content() }
@@ -172,6 +182,9 @@ internal val LocalGlassDefaults = staticCompositionLocalOf {
 /** One recording of the screen and the glass drawn over it. */
 @Stable
 internal class GlassRegion(val state: LiquidGlassState) {
+    /** The share of its render scale [LocalGlassAdaptiveQuality] holds this theme at; 1 when it is off. */
+    var adaptiveFactor by mutableFloatStateOf(1f)
+
     var root: LayoutCoordinates? = null
     /** Only settings with live consumers are mirrored into the shared recording. */
     val views = HashMap<Triple<Float, Float, Float>, LiquidGlassState>()

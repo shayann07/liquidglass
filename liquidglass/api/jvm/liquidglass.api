@@ -44,6 +44,10 @@ public final class com/wexpa/liquidglass/GlassAdaptationKt {
 	public static final fun glassShadowAlpha (F)F
 }
 
+public final class com/wexpa/liquidglass/GlassAdaptiveQualityKt {
+	public static final fun getLocalGlassAdaptiveQuality ()Landroidx/compose/runtime/ProvidableCompositionLocal;
+}
+
 public final class com/wexpa/liquidglass/GlassEffectContainerKt {
 	public static final fun GlassEffectContainer-DzVHIIc (Landroidx/compose/ui/Modifier;FLcom/wexpa/liquidglass/Glass;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
 	public static final fun GlassOverlay (Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;I)V
