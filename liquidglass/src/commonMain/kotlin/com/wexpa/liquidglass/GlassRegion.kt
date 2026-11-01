@@ -10,9 +10,11 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.RememberObserver
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -95,7 +97,10 @@ fun LiquidGlassTheme(
         return
     }
     val state = rememberLiquidGlassState(background, 0f, reduceTransparency, increaseContrast, scale)
-    val region = remember(state) { GlassRegion(state, factor) }
+    val region = remember(state) { GlassRegion(state) }
+    // Live, not a constructor value: a root already at the renderer's floor keeps its state (and region) through
+    // a step, and its nested themes must still follow the factor.
+    SideEffect { region.adaptiveFactor = factor }
     CompositionLocalProvider(LocalGlassRegion provides region, LocalGlassDefaults provides defaults) {
         Box(Modifier.onGloballyPositioned { region.root = it }, propagateMinConstraints = true) {
             Box(Modifier.liquidGlassSource(state) { region.views.values }, propagateMinConstraints = true) { content() }
@@ -176,8 +181,10 @@ internal val LocalGlassDefaults = staticCompositionLocalOf {
 
 /** One recording of the screen and the glass drawn over it. */
 @Stable
-/** [adaptiveFactor]: the share of its render scale [LocalGlassAdaptiveQuality] holds this theme at, 1 when it is off. */
-internal class GlassRegion(val state: LiquidGlassState, val adaptiveFactor: Float = 1f) {
+internal class GlassRegion(val state: LiquidGlassState) {
+    /** The share of its render scale [LocalGlassAdaptiveQuality] holds this theme at; 1 when it is off. */
+    var adaptiveFactor by mutableFloatStateOf(1f)
+
     var root: LayoutCoordinates? = null
     /** Only settings with live consumers are mirrored into the shared recording. */
     val views = HashMap<Triple<Float, Float, Float>, LiquidGlassState>()
