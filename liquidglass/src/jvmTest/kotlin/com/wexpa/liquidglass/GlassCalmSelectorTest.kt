@@ -190,4 +190,14 @@ class GlassCalmSelectorTest {
         c.pointerUp(2);advance(c,resumed+.1f,resumed+2f)
         assertEquals(bar.centreOf(2),c.centreX,.5f)
     }
+
+    /** A perfectly still hold forms its lens: the frame loop, which stops stepping once the controller is idle,
+     * must not fall asleep between the hold threshold and the formation (docs/2 5.39-5.80 s replay). */
+    @Test fun aStillHoldFormsWithAnIdleAwareFrameLoop() {
+        val c = controller()
+        c.pointerDown(bar.centreOf(1), 32f, 0.0, true)
+        var t = 0f
+        while (t < .6f) { t += 1f / 120; if (!c.isIdle) c.advanceTo(t) }
+        assertTrue(c.formation > .9f, "a still hold slept unformed: formation ${c.formation}")
+    }
 }

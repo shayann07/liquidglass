@@ -288,7 +288,7 @@ export class CalmSelectorController {
     this.frame = new Frame(); this.reference = new Reference(1, 1); this.bar = null;
     this.mode = MODE.Rest; this.motionEnabled = true; this.started = false;
     this.form = new Spring(); this.transit = new Spring(); this.travel = new Spring(); this.tapArea = new Spring();
-    this.strainDrive = new Spring();
+    this.strainDrive = new Spring(); this.heldTravelDirection = 0; this.reversalInterval = 1;
     this.tapAreaActive = false; this.tapDistance = 0; this.releaseImpactActive = false;
     this.releaseEdge = new Spring(); this.releaseTrail = new Spring(); this.releaseEdgeActive = false; this.trailImpact = false;
     this.releasedAt = 0; this.releasedStill = false;
@@ -320,6 +320,8 @@ export class CalmSelectorController {
   get isIdle() {
     return this.mode !== MODE.PressPending && !this.tapAreaActive && this.transitAppearance < 1e-4 &&
       this.heldTravel < 1e-4 && this.quietSteps >= QUIET_STEPS && this.strainDrive.value === 0 &&
+      // A formation on its way to its target: a still hold's first steps are below the quiet threshold.
+      Math.abs(this.form.target - this.form.value) < .001 &&
       // A still release keeping its glass: nothing moves yet, but the formation still has to fall.
       !(this.mode === MODE.Released && this.releasedFromHold && this.releasedStill && this.form.value > .01 &&
         this.now - this.releasedAt < this.spec.releaseStillHoldSeconds + .15);
@@ -593,11 +595,31 @@ export class CalmSelectorController {
     }
     if (s.heldTravelStrain > 0) {
       // Sustained held travel builds the strain; a short flick releases before it has.
-      this.strainDrive.target = this.mode === MODE.Held && this.motionEnabled ? sv * formation : 0;
+      let scrubSuppression = 1;
+      if (this.mode === MODE.Held && this.motionEnabled) {
+        this.reversalInterval += dt;
+        const dir = Math.abs(nvx) > 0.1 ? (nvx > 0 ? 1 : -1) : 0;
+        if (dir !== 0 && this.heldTravelDirection !== 0 && dir !== this.heldTravelDirection) {
+          const rapid = this.reversalInterval < 0.28;
+          const decay = rapid ? 0.40 : 0.85;
+          this.strainDrive.value *= decay;
+          this.strainDrive.velocity = 0;
+          this.reversalInterval = 0;
+        }
+        if (dir !== 0) this.heldTravelDirection = dir;
+        scrubSuppression = Math.max(0.15, Math.min(1, this.reversalInterval / 0.25));
+      } else {
+        this.heldTravelDirection = 0;
+        this.reversalInterval = 1;
+        scrubSuppression = 1;
+      }
+      this.strainDrive.target = this.mode === MODE.Held && this.motionEnabled ? sv * formation * scrubSuppression : 0;
       this.strainDrive.step(dt, s.heldTravelStrainOmega, 1);
       if (Math.abs(this.strainDrive.value) < 1e-4 && Math.abs(this.strainDrive.velocity) < .002 && this.strainDrive.target === 0) this.strainDrive.snapTo(0);
     }
-    eq.u = gain * (nvx * nvx - .5 * speed2) / denom + pullU + s.heldTravelStrain * this.strainDrive.value;
+    const maxHeldStrain = Math.min(s.heldTravelStrain, s.maxStrain * 0.80);
+    const heldTravelU = Math.max(0, Math.min(s.heldTravelStrain * this.strainDrive.value, maxHeldStrain));
+    eq.u = gain * (nvx * nvx - .5 * speed2) / denom + pullU + heldTravelU;
     eq.v = gain * (nvx * nvy) / denom + pullV;
     const held = heldPressure(s.heldHeightRatio, bar.height, ref.height);
     const squeeze = this.mode === MODE.Held ? s.squeeze * sv : 0;

@@ -227,7 +227,12 @@ half4 main(float2 coord) {
     float2 pushB = push * (1.0 + split);
     if (uProfile >= 0.5 && uProfile < 2.5) {
         // The same inward fold the backdrop goes through; see the panel shader.
-        float W = max(uRefractBand, 0.001);
+        // The held lens's mirror band is GlassCalmLensBand wide, but where its rim faces down it narrows
+        // (#94): a label sitting in a wide bottom band was swapped for mirrored content and cut, where
+        // iOS keeps it and bends its ends along the rim (docs/2 8.6 s). Authored.
+        float heldBottom = step(1.5, uProfile) * (1.0 - step(2.5, uProfile)) * clamp(uHeldLens, 0.0, 1.0)
+            * smoothstep(0.2, 0.8, n.y);
+        float W = max(uRefractBand * mix(1.0, 0.3, heldBottom), 0.001);
         float u = clamp(depth / W, 0.0, 1.0);
         float corner = (uBodyKind > 1.5)
             ? poseCorner(p, uPoseAInv, uPoseC, uPoseD)
