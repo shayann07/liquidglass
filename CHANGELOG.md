@@ -67,6 +67,13 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   minimum lens height of ~139 px (160 px at 20.0 s vs 102 px previously) and relaxing towards the
   unstrained ~370 × 186 px full-height travelling capsule (#119).
   [Evidence](review/atlas/scrub-flattening-2026-10-27/README.md).
+- Free buttons / search accessory: press flash, upright pull, and see-through overlap (#125).
+  Touch-down on the search button dims the glyph to ~0.50 alpha for 1 frame (16–33 ms) and recovers
+  over 50 ms (internal free-button feedback). Diagonal pulls preserve an upright
+  oval without tilting the body 20° or shearing the glyph (internal free-button deformation;
+  shear term strictly zero). When pushed against the tab bar, the bar end shows through the button's
+  translucent glass with a moving contact shadow, eliminating the dark ghost at rest.
+  [Evidence](review/atlas/search-button-2026-10-28/README.md).
 - Tab bar (Calm): the held lens's outline is a squircle, not a capsule: it blends .7 of the way toward a
   superellipse with n = 3, the shape iOS's held lens fits, so its top runs flatter and its shoulders squarer. The
   resting selector stays a capsule. The ports draw the same outline (#93).

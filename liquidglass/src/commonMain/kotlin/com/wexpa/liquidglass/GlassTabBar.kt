@@ -212,6 +212,7 @@ internal fun GlassTabBar(
         frost = state.frost,
         contrast = state.contrast,
     )
+    trailingAccessory?.link?.barState = barState
 
     // The keyboard focus ring (#117) is drawn over everything the bar draws, the selector included:
     // drawn on the interactive row it sat under the pill or lens of the selected tab.

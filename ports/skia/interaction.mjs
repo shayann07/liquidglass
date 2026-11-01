@@ -329,7 +329,10 @@ export function createFreeButton({size, density = 1, pressScale = 1.26, pressGro
     move(time, dx, dy) {
       const len = Math.hypot(dx, dy);
       if (!moved && len > 4 * density) { moved = true; glow.to(time, pullLiftShare, FREE_SPECS.freeGlow); }
-      if (len > 4 * density) anchor = Math.atan2(dy, dx) * 180 / Math.PI;
+      if (len > 4 * density) {
+        const raw = Math.atan2(dy, dx) * 180 / Math.PI;
+        anchor = raw;
+      }
       const travel = len * pullFollow;
       const k = !(len > 1e-5) || pullFollow <= 0 ? 1 : limit * Math.tanh(travel / limit) / travel;
       px.to(time, dx * k, FREE_SPECS.pullFollow); py.to(time, dy * k, FREE_SPECS.pullFollow);
@@ -349,10 +352,16 @@ export function createFreeButton({size, density = 1, pressScale = 1.26, pressGro
         const e = extent(scale, scale, x, y), across = extent(scale, scale, -y, x);
         const along = Math.min(1 + pullElongation * len / Math.max(e, 1), 1.6);
         const extension = (along - 1) * Math.max(e, 1);
-        d = {along, across: Math.max(1 - pullWidthRatio * extension / Math.max(across, 1), .5),
-          angle: Math.atan2(y, x) * 180 / Math.PI, tx: pullFollow * x, ty: pullFollow * y};
+        const narrow = Math.max(1 - pullWidthRatio * extension / Math.max(across, 1), .5);
+        const nx2 = x * x / (len * len), ny2 = y * y / (len * len);
+        // Continuous screen-axis projection, matching glassPullDeformation.
+        d = {along: along * ny2 + narrow * nx2, across: along * nx2 + narrow * ny2,
+          angle: -90, tx: pullFollow * x, ty: pullFollow * y};
       }
       d = landing(d);
+      const a = d.angle * Math.PI / 180, nx2 = Math.cos(a) ** 2, ny2 = Math.sin(a) ** 2;
+      d = {...d, along: d.along * ny2 + d.across * nx2,
+        across: d.along * nx2 + d.across * ny2, angle: -90};
       const g = glow.value(time);
       return {...d, pressScale: scale, glow: g, lift: g * pressLift, pullX: x};
     },

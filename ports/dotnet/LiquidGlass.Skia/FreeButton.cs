@@ -111,7 +111,11 @@ public sealed class FreeButton
     {
         var len = Math.Sqrt(dx * dx + dy * dy);
         if (!moved && len > 4 * density) { moved = true; glow.To(time, liftShare, FreeGlow); }
-        if (len > 4 * density) anchor = Math.Atan2(dy, dx) * 180 / Math.PI;
+        if (len > 4 * density)
+        {
+            var raw = Math.Atan2(dy, dx) * 180 / Math.PI;
+            anchor = raw;
+        }
         var travel = len * follow;
         var k = !(len > 1e-5) || follow <= 0 ? 1 : limit * Math.Tanh(travel / limit) / travel;
         px.To(time, dx * k, PullFollow); py.To(time, dy * k, PullFollow);
@@ -134,9 +138,19 @@ public sealed class FreeButton
             along = Math.Min(1 + elongation * len / Math.Max(e, 1), 1.6);
             var extension = (along - 1) * Math.Max(e, 1);
             across = Math.Max(1 - widthRatio * extension / Math.Max(acrossExtent, 1), .5);
-            angle = Math.Atan2(y, x) * 180 / Math.PI; tx = follow * x; ty = follow * y;
+            var nx2 = x * x / (len * len);
+            var ny2 = y * y / (len * len);
+            // Continuous screen-axis projection, matching glassPullDeformation.
+            (along, across) = (along * ny2 + across * nx2, along * nx2 + across * ny2);
+            angle = -90;
+            tx = follow * x; ty = follow * y;
         }
         (along, across, angle, tx, ty) = Landing(along, across, angle, tx, ty);
+        var landingAngle = angle * Math.PI / 180;
+        var lx2 = Math.Pow(Math.Cos(landingAngle), 2);
+        var ly2 = Math.Pow(Math.Sin(landingAngle), 2);
+        (along, across) = (along * ly2 + across * lx2, along * lx2 + across * ly2);
+        angle = -90;
         var g = glow.Value(time);
         return new(scale, along, across, angle, tx, ty, g, g * pressLift, x);
     }
