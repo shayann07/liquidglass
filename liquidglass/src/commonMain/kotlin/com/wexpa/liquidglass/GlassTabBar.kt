@@ -2519,7 +2519,7 @@ internal const val GlassSelectorRimMirror = 0.3f
 /** Rim-mirror band of a held lens as it travels (#121, 1 November): iOS's moving held lens sweeps the icons it passes
  * round its caps (LOLL8185 21.38-21.50 s: Contacts curls along the left cap, the Keypad dots smear along the right).
  * At the tap's 0.3 ours kept the icon nearly unbent to a hard edge; 1.0 sweeps it as iOS's does, judged by eye on
- * that window against 0.3 and 0.6. Taps keep [GlassSelectorRimMirror], which keeps their labels. Authored. */
+ * that window against 0.3, 0.6 and 0.6 with gain 0.4. Taps keep [GlassSelectorRimMirror], which keeps their labels. Authored. */
 internal const val GlassSelectorHeldRimMirror = 1.0f
 
 /** Light `Calm()`'s bar as the preset builds it: the top shade is for exactly this bar (#128). */
