@@ -6,6 +6,10 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Tab bar (Calm): beside an accessory that yields to the lens (`GlassTabBarAccessory.yieldsToLens`), the held lens on the
+  next tab leans toward it and grows into it, as iOS 27's does, instead of stopping short with a neck and a gap (IMG_6756
+  35.5 s: left edge 602 against iOS 605, main 585). The sample drops its lens-to-button neck. No public API change (#107).
+  [Evidence](review/atlas/lens-over-search-2026-11-01/README.md).
 - Tab bar (light Calm): the held lens is clear to its lower rim and its shadow sits lower, lighter and longer, as iOS's
   (rows 640-684 below the lens: 3.43 levels rms against IMG_7049, was 7.18) (#104). [Evidence](review/atlas/light-lens-shadow-2026-11-01/README.md).
 - Tab bar (light Calm): the held lens's outline is a grey line as on iOS (top rim 227 against iOS 226), not a faint

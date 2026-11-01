@@ -1180,8 +1180,35 @@ internal fun GlassTabBar(
                 // republish when the bar's press moves while the pose loop may be asleep.
                 if (poseHandle != null) {
                     val barFrame = barDrawing
-                    poseHandle.barShift = barFrame?.let { state ->
+                    val pressShift: ((Float) -> Float)? = barFrame?.let { state ->
                         { x: Float -> (state.drawing.contentPoint(x, barHeightPx / 2f).x - x) * (itemShare?.invoke() ?: 1f) }
+                    }
+                    // #107: on the tab beside an accessory that yields to the lens, the formed lens leans toward it,
+                    // past the bar's end and over the accessory's edge (iOS: the same width, 17 px further out).
+                    val leanPx = if (trailingAccessory?.yieldsToLens == true) with(density) { GlassAccessoryLensLean.toPx() } else 0f
+                    poseHandle.barShift = if (leanPx <= 0f) pressShift else {
+                        val endCentre = geometry.centreOf(if (rtl) 0 else itemCount - 1)
+                        val half = geometry.slotWidth / 2f
+                        val controller = poseHandle.controller
+                        val shift: (Float) -> Float = { x ->
+                            // A zero-width slot (a bar narrower than its insets) has no tab to lean from.
+                            val near = if (half > 0f) (1f - abs(x - endCentre) / half).coerceIn(0f, 1f) else 0f
+                            (pressShift?.invoke(x) ?: 0f) +
+                                (if (rtl) -1f else 1f) * leanPx * near * controller.formation.coerceIn(0f, 1f) * heldGate(controller)
+                        }
+                        shift
+                    }
+                    poseHandle.endStretch = if (leanPx <= 0f) null else {
+                        val endCentre = geometry.centreOf(if (rtl) 0 else itemCount - 1)
+                        val half = geometry.slotWidth / 2f
+                        val reachPx = with(density) { GlassAccessoryLensReach.toPx() }
+                        val controller = poseHandle.controller
+                        val stretch: (Float) -> Float = { x ->
+                            // A zero-width slot (a bar narrower than its insets) has no tab to lean from.
+                            val near = if (half > 0f) (1f - abs(x - endCentre) / half).coerceIn(0f, 1f) else 0f
+                            (if (rtl) -1f else 1f) * reachPx * near * controller.formation.coerceIn(0f, 1f) * heldGate(controller)
+                        }
+                        stretch
                     }
                     LaunchedEffect(poseHandle, barFrame) {
                         if (barFrame != null) snapshotFlow { barFrame.drawing }.collect { poseHandle.publish() }
@@ -2532,6 +2559,18 @@ internal const val GlassSelectorRimMirror = 0.3f
  * At the tap's 0.3 ours kept the icon nearly unbent to a hard edge; 1.0 sweeps it as iOS's does, judged by eye on
  * that window against 0.3, 0.6 and 0.6 with gain 0.4. Taps keep [GlassSelectorRimMirror], which keeps their labels. Authored. */
 internal const val GlassSelectorHeldRimMirror = 1.0f
+
+/** How far a formed lens on the tab beside a yielding accessory leans toward it (#107): iOS's held lens on Keypad
+ * spans x 605-920 against ours 585-905, the same width 17 px further out, over the search button's edge
+ * (IMG_6756 35.45-35.55 s, 3x scene px). Measured. */
+internal val GlassAccessoryLensLean = 5.7.dp
+
+/** 1 while the lens is held or released from a hold, else 0: a tap in transit leans and stretches nothing (#107). */
+private fun heldGate(controller: GlassPoseController): Float =
+    if (controller.mode == GlassPoseMode.Held || controller.mode == GlassPoseMode.Released) 1f else 0f
+/** How much longer that lens grows at its accessory end (#107): iOS's spans x 603-955 there, about 32 px wider than
+ * ours, its outline crossing over the search button (IMG_6756 35.5 s, 3x scene px). Measured. */
+internal val GlassAccessoryLensReach = 10.7.dp
 
 /** Light `Calm()`'s bar as the preset builds it: the top shade is for exactly this bar (#128). */
 private val CalmLightBar by lazy { GlassTabBarStyle.Calm(dark = false).bar }

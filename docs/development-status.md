@@ -7,6 +7,9 @@ research remains available; this page identifies which later changes supersede i
 
 ## Main after 1.0 (24 October)
 
+- 1 November: the held lens beside the search button leans and grows into it as iOS's does (#107). iOS also draws the
+  lens's outline over the button, seen through the lens; ours keeps the button on top (the lens does not refract the
+  button yet). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/lens-over-search-2026-11-01/README.md).
 - 1 November: the light held lens is clear to its lower rim (no inner line) and its shadow is outside it only, 0.35, 11 dp
   down with a 9 dp blur (was 0.45, half inside, 5 dp and 6 dp): 3.43 levels rms below it, was 7.18 (#104).
   [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/light-lens-shadow-2026-11-01/README.md).
