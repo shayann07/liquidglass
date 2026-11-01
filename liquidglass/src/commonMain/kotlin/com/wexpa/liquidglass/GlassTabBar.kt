@@ -187,7 +187,10 @@ internal fun GlassTabBar(
             LocalGlassTabMirrorCount provides itemCount) {
             GlassTabBar(state, itemCount, last - selectedIndex, { onSelected(last - it) }, modifier, style, motionEnabled,
                 materialize, trailingAccessory, mirrored = true) { index, selected ->
-                androidx.compose.runtime.CompositionLocalProvider(LocalLayoutDirection provides outerDirection) {
+                // The app's own content gets its direction back and no mirror count, so a bar nested in it is not
+                // treated as mirrored.
+                androidx.compose.runtime.CompositionLocalProvider(LocalLayoutDirection provides outerDirection,
+                    LocalGlassTabMirrorCount provides -1) {
                     item(last - index, selected)
                 }
             }
