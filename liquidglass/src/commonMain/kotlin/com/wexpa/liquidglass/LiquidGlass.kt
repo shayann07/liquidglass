@@ -414,7 +414,10 @@ internal fun Modifier.liquidGlassCore(
             GlassLeadingSpec(androidx.compose.animation.core.spring(dampingRatio = interaction!!.releaseDamping.coerceIn(.05f, 2f),
                 stiffness = interaction.releaseStiffness), GLASS_RELEASE_LEAD_NANOS)
         } else if (interaction?.response == GlassResponse.Calm) {
-            if (pressDown) GlassMotion.CalmDown else GlassMotion.CalmUp
+            if (!pressDown) GlassMotion.CalmUp
+            else pressSource?.downStiffness?.takeIf { it > 0f }?.let {
+                androidx.compose.animation.core.spring<Float>(dampingRatio = 1f, stiffness = it)
+            } ?: GlassMotion.CalmDown
         } else if (pressDown) { if (growthPx > 0f) GlassMotion.BalloonDown else GlassMotion.PressDown } else GlassMotion.PressUp,
         label = "glass_press_scale",
     )

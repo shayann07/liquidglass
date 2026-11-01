@@ -14,6 +14,9 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   the pill on arrival (#120). Tap travel speed is unchanged: re-measured against four iOS taps, main's timing is
   already the closest (39 ms rms) (#123).
   [Evidence](review/atlas/tap-transit-2026-10-27/README.md).
+- Tab bar (Calm): the bar's own press swell waits 75 ms of frame time, so a tap no longer swells the bar and a
+  hold's swell starts and rises within a frame of iOS's (IMG_6756) (#106).
+  [Evidence](review/atlas/bar-press-onset-2026-11-01/README.md).
 - Tab bar (Calm): a still press forms its lens only once it becomes a hold (110 ms), then rises over about 190 ms.
   A still release keeps the lens 35 ms and loses it by about 75 ms, not 330 ms. That also removes the bar's
   6 px dip under the lens. Measured against IMG_6756's three holds (#106).
