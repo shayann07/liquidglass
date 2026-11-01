@@ -551,7 +551,8 @@ internal fun GlassTabBar(
         // 0.04 through IMG_6756's drag, so the lens's own speed, over 400 dp/s, drives it as well.
         val fringeSpeed = (abs(if (dragging) liveVelocity else settleVelocity) /
             with(density) { GlassSelectorFringeSpeed.toPx() }).coerceIn(0f, 1f)
-        val selectorStyle = glassSelectorMaterial(style, lift, transitAppearance, max(poseHandle?.heldTravel ?: 0f, fringeSpeed))
+        val selectorStyle = glassSelectorMaterial(style, lift, transitAppearance, max(poseHandle?.heldTravel ?: 0f, fringeSpeed),
+            heldLensTravel = poseHandle?.heldTravel ?: 0f)
 
         // The V3 body owns its own centre; offsetX follows it so semantics, the press glow and
         // the diagnostics all read one number.
@@ -2475,7 +2476,9 @@ internal fun glassAccessoryYield(formation: Float, endEdge: Float, barWidth: Flo
  */
 @OptIn(LiquidGlassDiagnosticApi::class)
 internal fun glassSelectorMaterial(style: GlassTabBarStyle, formation: Float, transitAppearance: Float,
-                                   heldTravel: Float = 0f): GlassStyle {
+                                   heldTravel: Float = 0f,
+                                   /** The held lens's own travel, without the tap's speed signal folded into [heldTravel] (#121). */
+                                   heldLensTravel: Float = heldTravel): GlassStyle {
     val pigment = glassTransitStyle(lerpGlassStyle(style.pill, style.lens, formation), transitAppearance, style.tapTintFade)
     if (style.tapOptics <= 0f) return pigment
     // Optics follow the transit appearance; tint keeps its own measured fade and recovery, so
@@ -2503,7 +2506,7 @@ internal fun glassSelectorMaterial(style: GlassTabBarStyle, formation: Float, tr
     else if (style.tapOpticsFold > 0f && (formation >= 0.5f || heldTravel > 0f)) {
         val split = still + (heldMoving - still) * heldTravel.coerceIn(0f, 1f)
         // The held lens's own band only while it travels; a still held lens keeps the tap's.
-        val heldMirror = if (heldTravel > 0f) fringe?.getOrNull(8) ?: GlassSelectorHeldRimMirror else rimMirror
+        val heldMirror = if (heldLensTravel > 0f) fringe?.getOrNull(8) ?: GlassSelectorHeldRimMirror else rimMirror
         material.copy(foldAtCorners = 1f, rimMirror = heldMirror, rimMirrorGain = rimGain, dispersion = split, inkDispersion = split * GlassSelectorInkSplitShare)
     }
     else material
