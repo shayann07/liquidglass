@@ -408,7 +408,12 @@ internal class GlassPoseHandle(val controller: GlassPoseController) {
                 // The spine is a canonical length: the pose matrix's first column maps it to rendered px.
                 val ax = r.a[0]; val ay = r.a[2]
                 val n = kotlin.math.sqrt(ax * ax + ay * ay).coerceAtLeast(1e-4f)
+                // The taper bends the body by b * z^2 at its ends (y = z (1 + b.z)); scaling b by the squared
+                // spine ratio keeps that bend, so the anchored end does not drift as the spine grows.
+                val oldSpine = r.d[0]
                 r.d[0] += kotlin.math.abs(stretch) / 2f / n
+                val spineScale = oldSpine / r.d[0]
+                r.c[2] *= spineScale * spineScale
                 r.c[0] += stretch / 2f * ax / n
                 r.c[1] += stretch / 2f * ay / n
                 if (stretch > 0f) right += stretch else left += stretch
