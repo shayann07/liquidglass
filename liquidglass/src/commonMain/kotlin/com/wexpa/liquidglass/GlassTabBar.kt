@@ -1,5 +1,7 @@
 package com.wexpa.liquidglass
 
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.input.InputMode
@@ -196,6 +198,45 @@ internal fun GlassTabBar(
     BoxWithConstraints(
         modifier = modifier.height(style.height)
             .onGloballyPositioned { focusRing.bar = it }
+            // A pointer press anywhere on the bar hides the ring until the next key: the desktop stays in keyboard
+            // input mode under touch and synthetic presses, which focus the tab they press (#143 regression in replays).
+            .pointerInput(Unit) {
+                kotlinx.coroutines.coroutineScope {
+                    val watcher = this
+                    var cleanup: kotlinx.coroutines.Job? = null
+                    awaitPointerEventScope {
+                        while (true) {
+                            val e = awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
+                            // A press, not a held pointer moving: a key pressed mid-hold must still bring the ring back.
+                            if (e.changes.any { it.pressed && !it.previousPressed }) {
+                                // A new press supersedes the last release's pending check.
+                                cleanup?.cancel()
+                                focusRing.pointerSinceKey = true
+                                focusRing.pointerSinceBlur = true
+                            }
+                            // A press that ends with no tab focused (the row's padding) leaves nothing to suppress: clear
+                            // it two frames on, after any tab the press clicked has taken focus.
+                            if (e.changes.none { it.pressed } && e.changes.any { it.previousPressed }) cleanup = watcher.launch {
+                                androidx.compose.runtime.withFrameNanos { }
+                                androidx.compose.runtime.withFrameNanos { }
+                                if (!focusRing.barFocused) {
+                                    focusRing.pointerSinceKey = false
+                                    focusRing.pointerSinceBlur = false
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            .onPreviewKeyEvent { focusRing.pointerSinceKey = false; false }
+            // Focus that comes back with no pointer press on the bar since it left came from the keyboard (a Tab from a
+            // text field, whose key the bar never sees) or from code: show the ring again. A pointer's own press
+            // reaches this bar (Initial pass) before the tab it presses takes focus.
+            .onFocusChanged {
+                focusRing.barFocused = it.hasFocus
+                if (!it.hasFocus) focusRing.pointerSinceBlur = false
+                else if (!focusRing.pointerSinceBlur) focusRing.pointerSinceKey = false
+            }
             .drawWithContent {
                 drawContent()
                 // In the bar's own coordinates, so a scaled or rotated ancestor cannot misplace it.
@@ -317,6 +358,24 @@ internal fun GlassTabBar(
             }
         }
         val held = poseHandle?.held ?: handle?.held ?: v2Held
+        // At accessibility text sizes a held tab shows itself magnified in the middle of the window (#145), once the
+        // press has lasted GlassLargeContentHoldSeconds: some selector paths report `held` from touch-down, and a tap
+        // must never flash the viewer. Counted in frame time, so a test or replay clock drives it.
+        val wantsViewer = held && LocalDensity.current.fontScale >= GlassLargeContentFontScale
+        var viewerReady by remember { mutableStateOf(false) }
+        LaunchedEffect(wantsViewer) {
+            viewerReady = false
+            if (!wantsViewer) return@LaunchedEffect
+            // Counted from the press: a controller raises `held` only after its own hold threshold.
+            val threshold = poseHandle?.controller?.spec?.holdThresholdSeconds ?: handle?.controller?.spec?.holdThresholdSeconds ?: 0f
+            val wait = ((GlassLargeContentHoldSeconds - threshold).coerceAtLeast(0f) * 1e9f).toLong()
+            val start = withFrameNanos { it }
+            while (withFrameNanos { it } - start < wait) Unit
+            viewerReady = true
+        }
+        if (wantsViewer && viewerReady && activeIndex in 0 until itemCount) {
+            GlassLargeContentViewer(LocalGlassDefaults.current.dark) { item(activeIndex, true) }
+        }
         // GlassPoseSpec.heldInkLift: rises within 80 ms of the hold, lets go over about .35 s after the lift.
         val heldInkLift = poseHandle?.controller?.spec?.heldInkLift ?: 0f
         val inkLift by animateFloatAsState(
@@ -1353,7 +1412,7 @@ private fun ItemCell(
                     val keyboard = LocalInputModeManager.current.inputMode == InputMode.Keyboard
                     val ring = LocalGlassFocusRing.current
                     var cell by remember { mutableStateOf<androidx.compose.ui.layout.LayoutCoordinates?>(null) }
-                    val showRing = focused && keyboard
+                    val showRing = focused && keyboard && ring?.pointerSinceKey != true
                     androidx.compose.runtime.SideEffect {
                         val target = ring?.target ?: return@SideEffect
                         val at = cell
@@ -1810,7 +1869,13 @@ data class GlassTabBarStyle(
          */
         private fun calmLight(recorded: GlassTabBarStyle): GlassTabBarStyle = recorded.copy(
             bar = recorded.bar.copy(tint = Color.White.copy(alpha = 0.41f), tintLift = 10f / 255f, softDetail = 1f,
-                edgeShadow = 0.12f, specular = 0f, bevelPeak = 0f, contactShadow = 0.2f, capFold = 1f,
+                edgeShadow = 0.12f, specular = 0f, bevelPeak = 0f, capFold = 1f,
+                // Its shadow is a faint band of its own shape straight below it (#128): iOS reads 253 from
+                // just under the rim to a sharp end ~20 px (7 dp) down, and 255 above and beside it, so the
+                // gap to the search button stays white (IMG_7049 48.9-49.5 s). The default soft shadow
+                // (0.2, 11-22 dp blur, 4 dp down) read 251 in that gap and 252-254 beside the bar's ends.
+                // Read from the frames, not fitted.
+                contactShadow = 0.06f, contactShadowBlur = 1.5.dp, contactShadowOffset = 6.5.dp,
                 // Its rounded ends' outline darker than its runs (GlassStyle.capEdgeShadow, 18 October): iOS
                 // 178-182 at the outermost point, ours 177-186 (was 236-241); left end 12 levels rms (45).
                 capEdgeShadow = 2f),
@@ -2432,6 +2497,12 @@ internal class GlassFocusRingTarget(val index: Int, val cell: androidx.compose.u
 /** The bar's layout and its keyboard-focused tab, if any (#117). */
 internal class GlassFocusRingState {
     var bar: androidx.compose.ui.layout.LayoutCoordinates? = null
+    /** A pointer pressed the bar since the last key event: the ring stays hidden until the keyboard is used again. */
+    var pointerSinceKey by mutableStateOf(false)
+    /** A pointer pressed the bar since focus last left it: focus that returns without one is not the pointer's. */
+    var pointerSinceBlur = false
+    /** Whether a tab of the bar has focus. */
+    var barFocused = false
     val target = mutableStateOf<GlassFocusRingTarget?>(null)
 }
 

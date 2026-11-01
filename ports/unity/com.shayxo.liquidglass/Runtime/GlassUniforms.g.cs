@@ -27,6 +27,7 @@ namespace LiquidGlass
             ("uProfile", 1),
             ("uFormation", 1),
             ("uHeldLens", 1),
+            ("uBandBottom", 1),
             ("uHeldMagnification", 1),
             ("uHeldGlow", 1),
             ("uFoldCorners", 1),
