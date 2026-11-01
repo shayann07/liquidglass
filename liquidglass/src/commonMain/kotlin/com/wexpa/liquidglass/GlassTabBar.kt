@@ -71,6 +71,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.traversalIndex
+import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.SemanticsPropertyKey
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -1373,9 +1374,12 @@ private fun ItemRow(
     // The interactive row is the one accessibility sees: a group of tabs. Every other copy
     // (the lens's refracted row, the V3 selected ink) is decoration and is hidden, or a
     // screen reader would read each label two or three times.
+    // A mirrored RTL bar (#161) orders its tabs with traversal indices; the group keeps those indices to its own tabs.
+    val mirrorCount = LocalGlassTabMirrorCount.current
     val group = Modifier
         .fillMaxSize()
         .then(if (onClick != null) Modifier.selectableGroup() else Modifier.clearAndSetSemantics {})
+        .then(if (onClick != null && mirrorCount > 0) Modifier.semantics { isTraversalGroup = true } else Modifier)
     val fixed = geometry?.takeIf { it.fixed }
     if (fixed != null) {
         // Fixed slots (GlassTabBarStyle.slotWidth): each item centred on its slot centre, its
@@ -1401,7 +1405,11 @@ private fun ItemRow(
         horizontalArrangement = Arrangement.SpaceEvenly,
     ) {
         repeat(count) { index ->
-            ItemCell(index, Modifier.weight(1f), false, selectedFor, onClick, item, emphasisIndex, emphasis, onMeasured, semanticSelected)
+            // Keyed by the app's own tab, so a mirrored bar (#161) whose item count changes keeps each tab's state
+            // and focus with that tab, not with the slot it was drawn in.
+            androidx.compose.runtime.key(if (mirrorCount > 0) mirrorCount - 1 - index else index) {
+                ItemCell(index, Modifier.weight(1f), false, selectedFor, onClick, item, emphasisIndex, emphasis, onMeasured, semanticSelected)
+            }
         }
     }
 }

@@ -64,6 +64,14 @@ class GlassTabBarRtlTest {
         assertEquals(listOf(target), calls, "the tap selected another tab than the one drawn under it")
         val x = onNodeWithTag(GlassTabBarSemantics.TAG, useUnmergedTree = true).fetchSemanticsNode().config[GlassTabBarSemantics.SelectorX]
         assertTrue(abs(x - centres[target].x) < 30f, "selector rests at $x, the tapped tab is at ${centres[target].x}")
+        // The rightmost tab, the one the issue reported: item 0.
+        onNodeWithTag(GlassTabBarSemantics.TAG, useUnmergedTree = true).performTouchInput {
+            down(Offset(centres[0].x, centerY)); advanceEventTime(60); up()
+        }
+        waitForIdle()
+        assertEquals(listOf(target, 0), calls, "a tap on the rightmost tab did not select item 0")
+        val x0 = onNodeWithTag(GlassTabBarSemantics.TAG, useUnmergedTree = true).fetchSemanticsNode().config[GlassTabBarSemantics.SelectorX]
+        assertTrue(abs(x0 - centres[0].x) < 30f, "selector rests at $x0, the rightmost tab is at ${centres[0].x}")
     }
 
     @Test fun calmTapSelectsTheDrawnTab() = check(GlassTabBarStyle.Calm())
