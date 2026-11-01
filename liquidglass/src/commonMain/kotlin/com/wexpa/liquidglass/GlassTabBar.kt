@@ -670,7 +670,8 @@ internal fun GlassTabBar(
                 // #117 item 135: a hovering mouse or trackpad marks the tab under it. This node lies over the
                 // items, so they never see the pointer themselves; it watches without consuming anything.
                 .pointerInput(geometry, rtl, itemCount) {
-                    awaitPointerEventScope {
+                    // A restarted handler (resize, direction, item count) starts with no hovered tab.
+                    try { awaitPointerEventScope {
                         while (true) {
                             val e = awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
                             val c = e.changes.firstOrNull() ?: continue
@@ -682,7 +683,7 @@ internal fun GlassTabBar(
                                     if (rtl && !geometry.fixed) itemCount - 1 - it else it
                                 }
                         }
-                    }
+                    } } finally { focusRing.hovered.intValue = -1 }
                 }
                 .pointerInput(geometry, motionEnabled, handle, poseHandle, style, flingVelocity) {
                     // Read here, outside the restricted gesture scope: whether this pointer-input job is still

@@ -122,7 +122,11 @@ class GlassTabBarFocusTest {
         val index = bar.getOrElse(GlassTabBarSemantics.HoverIndex) { -9 }
         val scale = bar.getOrElse(GlassTabBarSemantics.HoverScale) { -9f }
         assertEquals(2, index, "the bar did not see the hover (scale $scale)")
-        assertTrue(hovered > rest * 1.08f, "hover did not lift the tab: $rest -> $hovered (index $index, scale $scale)")
+        assertEquals(GlassPoseSpec.Calm.hoverScale, scale, "Calm's hover scale")
+        // The white square's area grows with the square of the scale (1.06 -> 1.124); 2% allows for edge rounding.
+        val expected = rest * scale * scale
+        assertTrue(kotlin.math.abs(hovered - expected) <= expected * .02f,
+            "hover did not lift the tab to $scale: $rest -> $hovered px (expected ${expected.toInt()})")
         // No focus ring for a hover.
         assertEquals(0, ringPixels(), "hover drew a focus ring")
         onAllNodes(tab)[2].performMouseInput { exit() }
