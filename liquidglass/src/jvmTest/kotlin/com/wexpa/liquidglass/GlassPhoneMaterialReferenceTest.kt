@@ -73,7 +73,8 @@ class GlassPhoneMaterialReferenceTest {
         assertEquals(-10f / 255f, light.pill.tintLift, 1e-6f)
         assertEquals(0f, light.lens.tint.alpha)
         assertEquals(0f, light.lens.rawShare)
-        assertEquals(243f / 255f, light.lens.heldEdgeTone, 1e-6f)
+        // #128 (1 November): the held outline as dark as iOS's (top rim 227 against 226; 243 read 245).
+        assertEquals(217f / 255f, light.lens.heldEdgeTone, 1e-6f)
         assertEquals(0.08f, light.lens.innerShadow)
         assertEquals(0.45f, light.lens.contactShadow)
         assertEquals(0.5f, light.lens.contactShadowInside)
