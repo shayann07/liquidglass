@@ -437,6 +437,24 @@ Each tab is focusable (`Role.Tab`, in a selectable group), so the Tab key moves 
 Space selects. The focused tab draws a 2 dp ring in the system accent blue, with a dark hairline so it reads on a
 light or a dark bar. The ring appears only in keyboard input mode: a tap or a mouse click shows the lens, never the
 ring (#117).
+## Haptics
+
+The Calm tab bar ticks a selection haptic (`HapticFeedbackType.SegmentTick`) when a finger marks a tab:
+once for a tap, and once for each tab a held lens is dragged into, as iOS 27 does. It does not tick when
+your app changes the selection itself. Haptics go through Compose's `LocalHapticFeedback`. To silence them,
+or route them elsewhere, provide your own:
+
+```kotlin
+CompositionLocalProvider(LocalHapticFeedback provides NoHaptics) {
+    GlassTabBar(state, items.size, selected, onSelected)
+}
+
+object NoHaptics : HapticFeedback {
+    override fun performHapticFeedback(hapticFeedbackType: HapticFeedbackType) = Unit
+}
+```
+
+Desktop and web have no haptic hardware, so the tick does nothing there.
 
 ## Reduce Motion
 
