@@ -440,8 +440,8 @@ ring (#117).
 
 ## Pointer hover
 
-With a mouse or trackpad (desktop and web), the tab under the pointer lifts: its content grows by 6% and settles
-back when the pointer leaves. Touch never hovers, so phones are unaffected. The amount is authored: iPadOS's glass
+With a mouse or trackpad (desktop and web), the Calm tab bar's tab under the pointer lifts: its content grows by 6%
+and settles back when the pointer leaves. Other styles do not change (`GlassPoseSpec.hoverScale`, internal). Touch never hovers, so phones are unaffected. The amount is authored: iPadOS's glass
 responds to a pointer, but no recording here measures it (#117).
 
 ## Haptics

@@ -392,6 +392,11 @@ internal data class GlassPoseSpec(
      * iOS 27 ticks (#116). An app silences it through LocalHapticFeedback.
      */
     val selectionHaptics: Boolean = false,
+    /**
+     * Opt-in: how much a tab's content grows under a hovering mouse or trackpad pointer (#117 item 135); 1 is
+     * off. Authored: iPadOS's glass responds to a pointer, but no recording here measures it. Touch never hovers.
+     */
+    val hoverScale: Float = 1f,
 ) {
     internal val spineLimitSlots: Float get() = max(elongationSlots, tapSpineLimitSlots)
 
@@ -488,7 +493,7 @@ internal data class GlassPoseSpec(
         val Calm = CalmWallLanding.copy(heldTravelStrain = .6f, heldTravelStrainOmega = 10f,
             heldReferenceSpeed = 8f, heldSquircle = .7f, formFromMovement = 1f, formRiseOmega = 75f,
             pressFormation = 0f, holdThresholdSeconds = .110f, heldFormRiseOmega = 26f,
-            releaseStillHoldSeconds = .035f, releaseStillFadeOmega = 100f, barPressDelaySeconds = .075f, barPressStiffness = 1700f, heldInkLift = 22f / 255f, selectionHaptics = true)
+            releaseStillHoldSeconds = .035f, releaseStillFadeOmega = 100f, barPressDelaySeconds = .075f, barPressStiffness = 1700f, heldInkLift = 22f / 255f, selectionHaptics = true, hoverScale = 1.06f)
     }
 }
 

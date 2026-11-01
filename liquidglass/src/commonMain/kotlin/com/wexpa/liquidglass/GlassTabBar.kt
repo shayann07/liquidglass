@@ -278,6 +278,8 @@ internal fun GlassTabBar(
         // a held lens crossing a boundary); never for the host's own selection changes.
         val haptics = LocalHapticFeedback.current
         val selectionHaptics = poseHandle?.controller?.spec?.selectionHaptics == true
+        // GlassPoseSpec.hoverScale: the tab under a hovering pointer lifts (Calm); other styles keep 1.
+        focusRing.hoverScale = poseHandle?.controller?.spec?.hoverScale ?: 1f
         var tickedIndex by remember { mutableIntStateOf(activeIndex) }
         LaunchedEffect(activeIndex) {
             if (activeIndex != tickedIndex) {
@@ -1389,11 +1391,12 @@ private fun ItemCell(
     ) {
         // Sprung per item, so the growth walks from tab to tab under a drag instead of
         // jumping; both copies of the row animate the same targets on the same clock.
-        // A hovered tab's content lifts by GlassTabHoverScale, in every copy of the row alike (the lens's
+        // A hovered tab's content lifts by GlassPoseSpec.hoverScale, in every copy of the row alike (the lens's
         // refracted row reads the same bar state), so the ink under the lens never disagrees with the bar's.
-        val hovered = LocalGlassFocusRing.current?.hovered?.intValue == index
+        val ring = LocalGlassFocusRing.current
+        val hoverScale = if (ring != null && ring.hovered.intValue == index) ring.hoverScale else 1f
         val itemScale by animateFloatAsState(
-            targetValue = (if (index == emphasisIndex) emphasis else 1f) * (if (hovered) GlassTabHoverScale else 1f),
+            targetValue = (if (index == emphasisIndex) emphasis else 1f) * hoverScale,
             animationSpec = spring(dampingRatio = 0.85f, stiffness = 900f),
             label = "glass_tab_bar_item_scale",
         )
@@ -2446,13 +2449,9 @@ internal class GlassFocusRingState {
     var bar: androidx.compose.ui.layout.LayoutCoordinates? = null
     val target = mutableStateOf<GlassFocusRingTarget?>(null)
     val hovered = androidx.compose.runtime.mutableIntStateOf(-1)
+    /** [GlassPoseSpec.hoverScale] of the bar's selector; 1 (off) for every style without it. */
+    var hoverScale by androidx.compose.runtime.mutableFloatStateOf(1f)
 }
-
-/**
- * How much a hovered tab's content grows (#117 item 135). Authored: iPadOS's glass responds to a pointer, but
- * no recording here measures it. Pointer devices only, so every touch-replayed and measured path is unchanged.
- */
-internal const val GlassTabHoverScale = 1.06f
 
 /** Set by [GlassTabBar] so its interactive tabs can report keyboard focus to the bar, which draws the ring. */
 internal val LocalGlassFocusRing = androidx.compose.runtime.staticCompositionLocalOf<GlassFocusRingState?> { null }

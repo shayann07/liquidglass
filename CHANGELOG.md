@@ -29,7 +29,7 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   [Evidence](review/atlas/comb-streaks-2026-10-27/README.md).
 - Tab bar: a keyboard-focused tab draws a focus ring (2 dp, system blue, with a dark hairline); pointer input never
   shows it (#117). See [Keyboard focus](docs/tab-bar.md#keyboard-focus).
-- Tab bar: with a mouse or trackpad, the tab under the pointer lifts (its content grows 6%, authored) and settles
+- Tab bar (Calm): with a mouse or trackpad, the tab under the pointer lifts (its content grows 6%, authored) and settles
   when the pointer leaves; touch never hovers (#117). See [Pointer hover](docs/tab-bar.md#pointer-hover).
 - Sample (Phone scene): Calls carries iOS's red count badge, a 23 pt disc measured on IMG_6756 (#99); the replay
   draws it with `+badge` only. The tab content sits 1 dp lower, dark unselected ink is (249,249,249), the search glyph
