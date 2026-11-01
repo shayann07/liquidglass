@@ -52,7 +52,8 @@ class GlassTabBarRtlTest {
 
     private fun check(style: GlassTabBarStyle) = run(style) { calls ->
         // Items by their logical index, as the app numbers them.
-        val centres = (0 until 5).map { onNodeWithTag("item$it", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot.center }
+        // The first match is the bar's own row; the lens draws a copy of the items too.
+        val centres = (0 until 5).map { onAllNodesWithTag("item$it", useUnmergedTree = true)[0].fetchSemanticsNode().boundsInRoot.center }
         // RTL: the first item is drawn rightmost.
         assertEquals(0, centres.indices.maxBy { centres[it].x }, "item 0 is not drawn rightmost in RTL")
         val target = 3
