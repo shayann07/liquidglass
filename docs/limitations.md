@@ -80,10 +80,10 @@ frame, not per glyph. It is internal since 18 October; choose the appearance wit
 
 ## No Reduce Transparency setting
 
-Android has none, at any API level. `LiquidGlassTheme(reduceTransparency = …)` must be driven by an
-in-app control. Reduce Motion
-has a real analogue; Increase Contrast has a partial one that is about text rather than
-materials.
+Android has none, at any API level, so on Android `LiquidGlassTheme(reduceTransparency = …)` must be driven by
+an in-app control (the web's `prefers-reduced-transparency` is followed by default). Reduce Motion has a real
+analogue and Increase Contrast a partial one (Android 14+), both followed by default; the desktop JVM reads
+none of the three. See [Accessibility](accessibility.md).
 
 ## The interior blur is grainy at large radii
 

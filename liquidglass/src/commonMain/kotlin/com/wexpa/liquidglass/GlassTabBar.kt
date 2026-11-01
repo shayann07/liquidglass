@@ -125,8 +125,9 @@ fun GlassTabBar(
     onSelected: (Int) -> Unit,
     modifier: Modifier = Modifier,
     style: GlassTabBarStyle = GlassTabBarStyle.Calm(LocalGlassDefaults.current.dark),
-    /** False when the user or the system has asked for less motion: no lens, no gel, no fling. */
-    motionEnabled: Boolean = true,
+    /** False when the user or the system has asked for less motion: no lens, no gel, no fling.
+     * Follows the platform's Reduce Motion by default. */
+    motionEnabled: Boolean = !rememberGlassSystemAccessibility().reduceMotion,
     /** 0 to 1, for the bar to materialize in and out. See [glassEffect]. */
     materialize: Float = 1f,
     /** A separate glass control beside the bar's trailing end that the bar fuses with while

@@ -4,6 +4,19 @@ Apple's material honours three system settings. Android has an exact analogue fo
 partial one for another, and **none at all** for the third. That asymmetry is the whole content
 of this page.
 
+Since 1.1 the library reads what the platform offers by itself (#115):
+
+| Setting | Android | Web | Desktop |
+| :-- | :-- | :-- | :-- |
+| Reduce Transparency | none exists | `prefers-reduced-transparency: reduce` | not read |
+| Increase Contrast | system contrast above standard (API 34+) | `prefers-contrast: more` | not read |
+| Reduce Motion | Remove animations (animator duration scale 0) | `prefers-reduced-motion: reduce` | not read |
+
+They are the *defaults* of `LiquidGlassTheme(reduceTransparency, increaseContrast)` and
+`GlassTabBar(motionEnabled)`. Pass your own values, as below, to drive them from your app's settings instead;
+an explicit argument always wins. They are read when the theme or bar enters the composition (on Android
+again after a configuration change), not watched.
+
 ## Reduce Transparency — no Android setting exists
 
 iOS has it. Android does not, at any API level. So `reduceTransparency` is driven by whatever
@@ -23,9 +36,11 @@ you want to offer that.
 
 ## Increase Contrast — a partial analogue
 
-`AccessibilityManager.isHighTextContrastEnabled` is the nearest thing, and it is about *text*
-rather than materials, so treating it as Apple's setting is an approximation rather than the
-same thing. Say so in your settings copy if you surface it.
+From Android 14 the system contrast level (`UiModeManager.getContrast()`, Settings → Accessibility →
+Colour and motion → Contrast) is the nearest thing, and the library follows it by default: any level above
+standard turns `increaseContrast` on. Before Android 14, `AccessibilityManager.isHighTextContrastEnabled` is
+the nearest, and it is about *text* rather than materials, so wire it yourself if you want it and say so in your
+settings copy.
 
 ```kotlin
 LiquidGlassTheme(background = ground, increaseContrast = if (highContrastEnabled) 1f else 0f) { App() }
@@ -40,7 +55,8 @@ than disappearing, so the element keeps its shape and its affordance.
 
 ## Reduce Motion — a real analogue
 
-`Settings.Global.TRANSITION_ANIMATION_SCALE == 0` is a genuine equivalent.
+Android's Remove animations (`Settings.Global.ANIMATOR_DURATION_SCALE == 0`) is a genuine equivalent, and
+`GlassTabBar` follows it by default. Other glass controls take `GlassInteraction.ReducedMotion` from you:
 
 Apple's guidance is that Reduce Motion "decreases the intensity of some effects and disables any
 elastic properties", which maps cleanly:
