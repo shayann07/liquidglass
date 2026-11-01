@@ -36,6 +36,7 @@ const DEFAULT_SPEC = Object.freeze({
   tapShortTripRate: 1, tapAppearanceArea: 0, tapAppearanceSpine: 0,
   tapAppearanceFallOmega: 0, releaseFormationSpeed: 0, releaseStillHoldSeconds: 0,
   releaseStillFadeOmega: 0,
+  releaseMovingFadeOmega: 0,
   heldSquircle: 0, squircleExponent: 3,
 });
 
@@ -53,7 +54,7 @@ export const CALM_SELECTOR_SPEC = Object.freeze({
   graspOmega: 120, heldFormRiseOmega: 26, pressFormation: 0, holdThresholdSeconds: .11,
   releaseTrailingEdge: true, releaseRecoveryOmega: 13,
   releaseTrailingInOmega: 9, releaseTrailingInZeta: .3, releaseTrailingCarry: .1, releaseWallGive: .35,
-  releaseTrailingStiffening: .5, releaseStillHoldSeconds: .035, releaseStillFadeOmega: 100,
+  releaseTrailingStiffening: .5, releaseStillHoldSeconds: .035, releaseStillFadeOmega: 100, releaseMovingFadeOmega: 12,
   heldTravelStrain: .6, heldTravelStrainOmega: 10,
   heldSquircle: .7,
 });
@@ -574,7 +575,8 @@ export class CalmSelectorController {
     this.form.target = formTarget;
     const riseOmega = heldNow && s.heldFormRiseOmega > 0 ? s.heldFormRiseOmega : s.formRiseOmega;
     const fallOmega = this.mode === MODE.Released && this.releasedStill && s.releaseStillFadeOmega > 0
-      ? s.releaseStillFadeOmega : s.formOmega;
+      ? s.releaseStillFadeOmega
+      : this.mode === MODE.Released && !this.releasedStill && s.releaseMovingFadeOmega > 0 ? s.releaseMovingFadeOmega : s.formOmega;
     this.form.step(dt, formTarget > this.form.value ? riseOmega : fallOmega, s.formZeta);
 
     // ---- equilibria
