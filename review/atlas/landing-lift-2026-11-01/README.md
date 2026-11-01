@@ -36,4 +36,4 @@ The replay (desktop JVM GPU, deterministic) from the repository root, with the p
 
 Then the luma median over x 120-320, rows 485-520, of frames `f00517`-`f00530` (8.62-8.84 s at 60 fps) against the
 recording's frames at the same times. The script and the recording stay private (`research/`); this page carries the
-numbers and our frames only. Main is `e596de2`'s parent tree for #173's base; this change is `96262af`.
+numbers and our frames only. "main" in the table is the replay before this change; "this change" is `96262af`.
