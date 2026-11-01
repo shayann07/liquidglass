@@ -158,7 +158,10 @@ description fix alone.
   a 265-286 ms Vulkan pipeline for the glass shader. GlassPadFloor holds the largest pad: first-tap slowest
   frame 326-352 -> 67-91 ms (measure.sh CLEAR=1), cold start medians 135.5 / 136 ms (alternated).
   Baseline profile removed (no measurable gain with or without the fix). review/atlas/first-tap-fix-2026-10-20.
-- [ ] **#70 tap pill plateau ends ~50 ms early.** Scored with `.local/sxs` (main checkout):
+- [ ] **#70 two-tab taps arrive ~40 ms late.** Re-measured 1 Nov on main (docs/1): the plateau now holds through
+  183 ms as iOS's does (the ~50 ms early end of 20 Oct is gone). What remains is a +10 bump at 150-167 ms that comes
+  only from two-tab taps, whose selector arrives ~40 ms after iOS's (220 against 170 ms); one-tab taps line up.
+  A distance-dependent tap duration needs fitting against all recordings (#94 transit). Scored with `.local/sxs` (main checkout):
   rrw.sh renders a replay (WT=worktree), taparrive.py / tapprofile.py score it, run from the repo
   root. A fall-omega change was tried and rejected 20 Oct (review/atlas/reference-replay-2026-10-13
   README). Any change opt-in or scored against all five recordings, reported in that README.
