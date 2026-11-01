@@ -33,6 +33,9 @@ internal const val GlassLargeContentFontScale = 1.5f
 /** How much the viewer magnifies the tab's own content. Authored: iOS's HUD shows the glyph and label about 2x. */
 internal const val GlassLargeContentScale = 2.2f
 
+/** How long a press must last before the viewer shows, so a tap never flashes it. Authored (iOS: a long press). */
+internal const val GlassLargeContentHoldSeconds = .3f
+
 internal const val GlassLargeContentViewerTag = "glass-large-content-viewer"
 
 /** Centred in the window, whatever the anchor. */

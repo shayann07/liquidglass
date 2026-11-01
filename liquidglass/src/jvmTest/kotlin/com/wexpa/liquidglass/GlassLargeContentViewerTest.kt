@@ -55,8 +55,12 @@ class GlassLargeContentViewerTest {
 
     @Test fun aTapShowsNoViewer() = runComposeUiTest(testTimeout = 4.minutes) {
         bar(fontScale = 2f); waitForIdle()
-        onNodeWithTag(GlassTabBarSemantics.TAG, useUnmergedTree = true)
-            .performTouchInput { down(Offset(geometry.centreOf(3), 31f)); advanceEventTime(60); up() }
+        val node = onNodeWithTag(GlassTabBarSemantics.TAG, useUnmergedTree = true)
+        // Checked while the finger is still down, and again after the lift.
+        node.performTouchInput { down(Offset(geometry.centreOf(3), 31f)) }
+        mainClock.advanceTimeBy(100)
+        viewer().assertCountEquals(0)
+        node.performTouchInput { up() }
         mainClock.advanceTimeBy(30)
         viewer().assertCountEquals(0)
     }
