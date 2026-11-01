@@ -71,12 +71,18 @@ class GlassPhoneTapTimingTest {
         }
     }
 
-    @Test fun longTripKeepsItsVerifiedTrajectoryAndShape() {
+    @Test fun longTripRunsAtItsOwnRate() {
         val current=trace(GlassPoseSpec.Calm,0,2)
-        val previous=trace(GlassPoseSpec.Calm.copy(tapShortTripRate=1f),0,2)
+        // The one-slot rate does not reach a two-slot trip.
+        val shortOnly=trace(GlassPoseSpec.Calm.copy(tapShortTripRate=1f),0,2)
         for(i in current.indices) for(axis in 1..3) {
-            assertEquals(previous[i][axis],current[i][axis],0f,"long trip sample$i axis$axis")
+            assertEquals(shortOnly[i][axis],current[i][axis],0f,"long trip sample$i axis$axis")
         }
+        // The two-slot clock (#70): 120 ms in, the trip is clearly nearer its tab than at the historical clock.
+        val historical=trace(GlassPoseSpec.Calm.copy(tapLongTripRate=1f),0,2)
+        val destination=current.last()[1]; val k=115
+        assertTrue(abs(current[k][1]-destination) < abs(historical[k][1]-destination)-5f,
+            "two-slot trip at 120 ms: ${current[k][1]} against the historical ${historical[k][1]}, tab at $destination")
         assertTrue(current.last()[1] > current.first()[1])
     }
 
