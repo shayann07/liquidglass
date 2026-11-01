@@ -38,6 +38,8 @@ research remains available; this page identifies which later changes supersede i
   started to form (found replaying docs/2 5.4 s; a finger's jitter hid it on devices).
 - 1 November: right-to-left tab bars put the selector on the tapped tab (it rested over the mirrored one; #161).
   Test: `GlassTabBarRtlTest`.
+- 1 November: the resting dark Calm bar's rim dims through its caps as iOS's does (3.1 levels rms, was 8.4; #109). The cap
+  outline itself is unchanged. [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/cap-rim-fade-2026-11-01/README.md).
 - 1 November: the focus ring no longer shows after a touch or synthetic press on desktop (every desktop touch replay
   showed it since #143); a pointer press hides it until the next key. Test: `aTouchedTabShowsNoRing`.
 - 1 November: keyboard users can see which tab has focus: the focused tab draws a ring over the selector, in keyboard
