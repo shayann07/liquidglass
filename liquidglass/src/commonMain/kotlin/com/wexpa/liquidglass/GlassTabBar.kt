@@ -1964,7 +1964,10 @@ data class GlassTabBarStyle(
             pill = recorded.pill.copy(tint = Color.Transparent, tintLift = -10f / 255f),
             lens = recorded.lens.copy(tint = Color.Transparent, rawShare = 0f, rawBlur = 0.dp, tintLift = 0f,
                 softDetail = 1f, heldEdgeTone = 243f / 255f, innerShadow = 0.08f, contactShadow = 0.45f, bodyBandScale = GlassCalmLensBand,
-                contactShadowInside = 0.5f, contactShadowBlur = 6.dp, contactShadowOffset = 5.dp),
+                // Its shadow lower and longer than the default (#104 item 50): iOS's light held lens darkens rows ~660-680 below
+                // its rim (242-246), ours stopped by ~672. 8 dp of blur 8.5 dp down reads 242-248 there (rows 664-684: 2.2
+                // levels rms, was 4.9; IMG_7049 39.41-39.87 s, held on Contacts). Fitted to those frames.
+                contactShadowInside = 0.5f, contactShadowBlur = 8.dp, contactShadowOffset = 8.5.dp),
             tapTintFade = 1f, tapSelectedScale = 1.15f, tapOptics = 1f, tapOpticsFold = 1f,
         )
 
