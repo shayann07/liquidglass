@@ -97,4 +97,32 @@ class GlassTabBarFocusTest {
         waitForIdle()
         assertEquals(0, ringPixels(), "a mouse click left a focus ring")
     }
+
+    /** Near-white pixels within [within] (scene px): the tabs' 20 dp white squares. */
+    private fun ComposeUiTest.whitePixels(within: androidx.compose.ui.geometry.Rect): Int {
+        val map = onNodeWithTag("scene").captureToImage().toPixelMap()
+        var n = 0
+        for (y in within.top.toInt().coerceAtLeast(0) until within.bottom.toInt().coerceAtMost(map.height))
+            for (x in within.left.toInt().coerceAtLeast(0) until within.right.toInt().coerceAtMost(map.width)) {
+                val c = map[x, y]
+                if (c.red > .9f && c.green > .9f && c.blue > .9f) n++
+            }
+        return n
+    }
+
+    /** #117 item 135: a hovering pointer lifts the tab under it, and the lift goes when the pointer leaves. */
+    @Test fun aHoveredTabLifts() = runComposeUiTest(testTimeout = 4.minutes) {
+        bar(); waitForIdle()
+        val cell = onAllNodes(tab)[2].fetchSemanticsNode().boundsInRoot
+        val rest = whitePixels(cell)
+        onAllNodes(tab)[2].performMouseInput { moveTo(center) }
+        waitForIdle()
+        val hovered = whitePixels(cell)
+        assertTrue(hovered > rest * 1.08f, "hover did not lift the tab: $rest -> $hovered")
+        // No focus ring for a hover.
+        assertEquals(0, ringPixels(), "hover drew a focus ring")
+        onAllNodes(tab)[2].performMouseInput { exit() }
+        waitForIdle()
+        assertEquals(rest, whitePixels(cell), "the lift stayed after the pointer left")
+    }
 }

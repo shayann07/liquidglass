@@ -5,7 +5,9 @@ import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.animation.core.AnimationSpec
@@ -1353,18 +1355,26 @@ private fun ItemCell(
                     val ring = LocalGlassFocusRing.current
                     var cell by remember { mutableStateOf<androidx.compose.ui.layout.LayoutCoordinates?>(null) }
                     val showRing = focused && keyboard
+                    // A mouse or trackpad over the tab (#117 item 135); touch never hovers.
+                    val hovering by interactions.collectIsHoveredAsState()
                     androidx.compose.runtime.SideEffect {
                         val target = ring?.target ?: return@SideEffect
                         val at = cell
                         if (showRing && at != null) target.value = GlassFocusRingTarget(index, at)
                         else if (target.value?.index == index) target.value = null
+                        if (hovering) ring.hovered.intValue = index
+                        else if (ring.hovered.intValue == index) ring.hovered.intValue = -1
                     }
                     // A focused tab removed from the bar (a smaller itemCount) takes its ring with it.
                     androidx.compose.runtime.DisposableEffect(ring) {
-                        onDispose { if (ring?.target?.value?.index == index) ring.target.value = null }
+                        onDispose {
+                            if (ring?.target?.value?.index == index) ring.target.value = null
+                            if (ring?.hovered?.intValue == index) ring.hovered.intValue = -1
+                        }
                     }
                     Modifier
                         .onGloballyPositioned { cell = it }
+                        .hoverable(interactions)
                         .selectable(
                             selected = index == semanticSelected,
                             interactionSource = interactions,
@@ -1379,8 +1389,11 @@ private fun ItemCell(
     ) {
         // Sprung per item, so the growth walks from tab to tab under a drag instead of
         // jumping; both copies of the row animate the same targets on the same clock.
+        // A hovered tab's content lifts by GlassTabHoverScale, in every copy of the row alike (the lens's
+        // refracted row reads the same bar state), so the ink under the lens never disagrees with the bar's.
+        val hovered = LocalGlassFocusRing.current?.hovered?.intValue == index
         val itemScale by animateFloatAsState(
-            targetValue = if (index == emphasisIndex) emphasis else 1f,
+            targetValue = (if (index == emphasisIndex) emphasis else 1f) * (if (hovered) GlassTabHoverScale else 1f),
             animationSpec = spring(dampingRatio = 0.85f, stiffness = 900f),
             label = "glass_tab_bar_item_scale",
         )
@@ -2428,11 +2441,18 @@ private fun AwaitPointerEventScope.liftedWithoutDrag(id: PointerId): Boolean =
 /** The keyboard-focused tab and its layout (#117). */
 internal class GlassFocusRingTarget(val index: Int, val cell: androidx.compose.ui.layout.LayoutCoordinates)
 
-/** The bar's layout and its keyboard-focused tab, if any (#117). */
+/** The bar's layout, its keyboard-focused tab, if any, and the tab under a hovering pointer, or -1 (#117). */
 internal class GlassFocusRingState {
     var bar: androidx.compose.ui.layout.LayoutCoordinates? = null
     val target = mutableStateOf<GlassFocusRingTarget?>(null)
+    val hovered = androidx.compose.runtime.mutableIntStateOf(-1)
 }
+
+/**
+ * How much a hovered tab's content grows (#117 item 135). Authored: iPadOS's glass responds to a pointer, but
+ * no recording here measures it. Pointer devices only, so every touch-replayed and measured path is unchanged.
+ */
+internal const val GlassTabHoverScale = 1.06f
 
 /** Set by [GlassTabBar] so its interactive tabs can report keyboard focus to the bar, which draws the ring. */
 internal val LocalGlassFocusRing = androidx.compose.runtime.staticCompositionLocalOf<GlassFocusRingState?> { null }
