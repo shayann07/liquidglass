@@ -130,19 +130,15 @@ test('rim map: the measured edge light peaks on the lit edge, both edges lit, si
   assert.ok(column[1] > column[0] && column[1] > column[2] && column[2] > column[3], column.join(' '));
 });
 
-test('free button cardinal angle snapping uses ties-to-even when uprightPull is enabled', () => {
-  const btn = createFreeButton({size: 186, density: 3, uprightPull: true});
-  btn.down(0);
-  // dx = -50, dy = -50 -> atan2(-50, -50) = -135 degrees.
-  // With ties-to-even (-135 / 90 = -1.5 -> -2), anchor and angle snap to -180 degrees.
-  btn.move(0.1, -50, -50);
-  const sample = btn.sample(0.2);
-  assert.equal(sample.angle, -180);
-
-  // Without uprightPull (default false), angles remain continuous.
-  const freeBtn = createFreeButton({size: 186, density: 3});
-  freeBtn.down(0);
-  freeBtn.move(0.1, -50, -50);
-  const freeSample = freeBtn.sample(0.2);
-  assert.equal(freeSample.angle, -135);
+test('free button pull stays upright and projects onto the screen axes (continuous, as glassPullDeformation)', () => {
+  // #125: the pull no longer snaps to a cardinal angle. The body stays upright (-90) and a diagonal pull is
+  // projected continuously onto x and y, so a 45-degree pull stretches both axes alike.
+  for (const options of [{size: 186, density: 3, uprightPull: true}, {size: 186, density: 3}]) {
+    const btn = createFreeButton(options);
+    btn.down(0);
+    btn.move(0.1, -50, -50);
+    const sample = btn.sample(0.2);
+    assert.equal(sample.angle, -90);
+    assert.ok(Math.abs(sample.along - sample.across) < 1e-9, `${sample.along} vs ${sample.across}`);
+  }
 });
