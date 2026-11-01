@@ -66,8 +66,10 @@ travels on for about 0.3 s and passes its rest by about 40 px, scored on every w
 reference recording, and a still-formed lens presses past the bar's end. The moving lens draws the
 content under its caps out toward the rim (`GlassStyle.rimMirrorGain`). Since pass 12 a held
 lens dragged quickly widens and flattens at constant area (`GlassPoseSpec.heldTravelStrain`),
-reaching about 0.75 of the bar's height at iOS's fast reversals; a quick flick releases before the
-strain has built, so wall landings keep their shape. Its outline is a thin grey line
+reaching about 0.75 of the bar's height at iOS's initial reversals; under sustained fast scrubbing
+(rapid reversals within 250–280 ms), accumulated strain decays and the target is suppressed so the
+lens relaxes toward its travelling capsule shape (~370 × 186 px full height) without collapsing to half
+height; a quick flick releases before the strain has built, so wall landings keep their shape. Its outline is a thin grey line
 (`GlassStyle.heldEdgeTone`) rather than a white ring, and a tapped selector's fold also bends what
 lies under its straight top and bottom. Since pass 13 a held lens sits where the bar's press puts
 its tab, as iOS's does, and its inward glow shows only over darker ground (`GlassStyle.heldGlowFloor`). See the
@@ -445,6 +447,8 @@ and settles back when the pointer leaves. Other styles do not change (`GlassPose
 and with `motionEnabled = false` nothing lifts. Touch never hovers, so phones are unaffected. The amount is authored: iPadOS's glass
 responds to a pointer, but no recording here measures it (#117).
 
+ring (#117). On desktop the input mode can stay Keyboard under a touch screen or a synthetic press, so a pointer press
+on the bar also hides the ring until the next key.
 ## Haptics
 
 The Calm tab bar ticks a selection haptic (`HapticFeedbackType.SegmentTick`) when a finger marks a tab:

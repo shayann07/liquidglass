@@ -45,6 +45,7 @@ uniform float   uBlur;         // px radius of the fine interior scatter, taperi
 uniform float   uProfile;      // 0 the legacy Snell bevel, 1 the measured fold lens (MODEL.md section 5)
 uniform float   uFormation;    // measured lens: 0 a committed pull (small inward offset), 1 the fully formed fold
 uniform float   uHeldLens;     // GlassProfile.Held: how far the tab-bar lens has formed, 0 to 1
+uniform float   uBandBottom;   // the held lens's band where its rim faces down, as a share of uRefractBand; 0 keeps it (GlassStyle.bodyBandScale > 1)
 uniform float   uHeldMagnification; // interior zoom of the held lens at full formation (GlassStyle.heldMagnification)
 uniform float   uHeldGlow;     // share of the held lens inward rim glow that is drawn (GlassStyle.heldGlow)
 uniform float   uFoldCorners;  // 0 folds every edge, 1 only corner arcs (GlassStyle.foldAtCorners); 1 + c also lenses the arcs at rest by c (GlassStyle.capFold)
@@ -970,7 +971,13 @@ vec4 glassMain(vec2 coord) {
     vec2 pushB = push * (1.0 + split);
     if (measured > 0.5 && uProfile < 2.5) {
         // Inward only. A pixel at depth d shows content from depth s inside the same edge.
-        float W = max(uRefractBand, 0.001);
+        // A held lens whose band its style widened (GlassStyle.bodyBandScale > 1, Calm's GlassCalmLensBand) keeps a
+        // narrower band where its rim faces down (#94): a label sitting in a wide bottom band was swapped for mirrored
+        // content and cut, where iOS keeps it and bends its ends along the rim (docs/2 8.6 s). uBandBottom 0 is off,
+        // so every other style keeps its band. Authored.
+        float heldBottom = step(1.5, uProfile) * (1.0 - step(2.5, uProfile)) * clamp(uHeldLens, 0.0, 1.0)
+            * smoothstep(0.2, 0.8, n.y);
+        float W = max(uRefractBand * mix(1.0, (uBandBottom > 0.0) ? uBandBottom : 1.0, heldBottom), 0.001);
         float u = clamp(depth / W, 0.0, 1.0);
         // Chrome at rest lenses at its corner arcs only; a field shape has no runs to exempt.
         float corner = (uBodyKind > 1.5)

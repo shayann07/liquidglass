@@ -78,6 +78,15 @@ response altogether.
 `GlassTabBar`'s tabs draw a focus ring when focused from the keyboard, so a keyboard user can see where focus is.
 Pointer input never shows it. Other glass controls take your own `indication` as ordinary Compose controls do.
 
+## Large text: the large content viewer
+
+Tab labels stop being readable long before a tab bar can grow to fit them. As iOS does, at large text sizes
+(font scale 1.5 and above) holding a `GlassTabBar` tab shows it magnified, about 2.2 times, on a platter in the
+middle of the window. The platter follows the finger from tab to tab and goes away on lift. It draws the tab's
+own `item` content with `selected = true`, so it needs no extra content from you. A tap never shows it. Screen
+readers do not see it, because they already announce the tab (#145). The threshold and the magnification are
+authored, not measured.
+
 ## What is not covered
 
 There is no Android equivalent of iOS 26.1's system-level Clear/Tinted "preferred look for

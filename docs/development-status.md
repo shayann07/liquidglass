@@ -7,6 +7,8 @@ research remains available; this page identifies which later changes supersede i
 
 ## Main after 1.0 (24 October)
 
+- 1 November: a thrown lens no longer cuts the label under it (docs/2 8.6 s); the regression came from the 26 October
+  band widening and is fixed where the rim faces down only (#94). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/label-band-2026-11-01/README.md).
 - 1 November: glass follows the platform's accessibility settings by default (#115):
   - `GlassTabBar` follows Reduce Motion on Android and web. Other glass controls still take
     `GlassInteraction.ReducedMotion` from the app.
@@ -26,6 +28,14 @@ research remains available; this page identifies which later changes supersede i
   earlier than iOS's. [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/press-release-timing-2026-11-01/README.md).
 - 27 October: eliminated green/black comb streaks during tap transits (#124) and channel crush at the lens rim (#108). In `GlassContentShaderSource.kt`, chromatic split `delta` scales with `abs(shift)` instead of a static band split, and transit ink dispersion is scaled by `GlassSelectorInkSplitShare`. Outward displacement is clamped to `max(shift - delta, 0.0)` in both shaders, preventing rim channels from sampling past the glass boundary.
   [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/comb-streaks-2026-10-27/README.md).
+- 1 November: at large text sizes (font scale 1.5+), holding a tab shows it magnified in a centred viewer, as
+  iOS's Large Content Viewer does (#145). Authored threshold and size.
+- 1 November: the sample's Calls and Contacts glyph figures are cut out, not painted (#129, sample only).
+  [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/glyph-cutouts-2026-11-01/README.md).
+- 1 November: a perfectly still hold forms its lens again: since #133 the frame loop could sleep before the lens
+  started to form (found replaying docs/2 5.4 s; a finger's jitter hid it on devices).
+- 1 November: the focus ring no longer shows after a touch or synthetic press on desktop (every desktop touch replay
+  showed it since #143); a pointer press hides it until the next key. Test: `aTouchedTabShowsNoRing`.
 - 1 November: keyboard users can see which tab has focus: the focused tab draws a ring over the selector, in keyboard
   mode only (#117). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/tab-focus-ring-2026-11-01/README.md).
 - 1 November: on desktop and web, the tab under a hovering pointer lifts (content 6% larger; authored, no recording
@@ -37,6 +47,10 @@ research remains available; this page identifies which later changes supersede i
   overhang h from 13.7 px to 12.3 px (matching iOS IMG_6756 measurements); held lens width on Keypad expands
   towards ~350 px (was ~335 px); search button fusion is disabled in dark appearance so the lens cleanly overlaps
   without bridging. [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/held-bar-geometry-2026-10-28/README.md).
+- 27 October: fast scrubbing flattens the held lens within measured bounds without crushing it to half height
+  (minimum height 139 px vs 102 px; 386 × 160 px at 20.0 s vs 589 × 102 px previously, recovering to ~370 × 186 px).
+  Rapid reversals decay accumulated strainDrive and suppress the scrub target (#119).
+  [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/scrub-flattening-2026-10-27/README.md).
 - 26 October: the held lens's outline is a squircle (a .7 blend toward n = 3, the exponent iOS's lens fits),
   not a capsule; its width profile against iOS moves from 27.5 to 7.1 px rms.
   [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/lens-squircle-2026-10-26/README.md).

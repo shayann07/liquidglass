@@ -16,25 +16,31 @@ or closed. Claude merges; no tag or release. Merged to main, in order:
 | #147 | #105 | Ink under a held lens brightens (+22 levels), lets go over .35 s |
 | #148 | #116 | Selection haptic on a tap and per tab a held lens enters |
 | #136 | — | Audit section W: independent verification of the agents' hand-off |
+| #132 | #119 | A fast scrub no longer flattens the held lens to half the bar (min height 139 px, was 102) |
+| #151 | #94, #111 | A thrown lens no longer cuts the label it lands on: docs/2 724 label px (iOS 854, main 457) |
 
 #127 (Android XML interop) was closed for its public API size; #140 describes the acceptable scope. #137 was
 answered and closed (no .NET Framework target; a caller-owned SKCanvas works). Split out: #145 (Large Content
 Viewer) and #149 (release rebound). CI: the build job has 90 min, and every runComposeUiTest has a 4 min timeout.
 
-In flight at this writing:
-- #132 (#119, scrub flattening): rebuilt on main; full suite running.
-- #135 (#125, search button): rebuilt on main; checks pending.
-- #94 label fix (`fix/94-label-band`): the throw-landing label cut is bisected to 51e8b6e's `GlassCalmLensBand` 1.1.
-  Narrowing the band where the rim faces down restores the label: docs/2 724 px (iOS 854, main 457), with fringes
-  nearer iOS on docs/2 and IMG_6756. At factor 0.3, LOLL8185's long-drag fringes weaken (0.66 to 0.50 x iOS), so 0.55
-  is being scored.
+In flight at this writing (evening):
+- Open PRs: #135 (#125, search button; motion fixture regenerated after rebase), #152 (a still hold slept before
+  its lens formed: a bug since #133, found replaying docs/2 5.4 s), #153 (#117, pointer hover lift), #154 (#145,
+  large content viewer). CI runs their suites; local focused tests and renders are queued.
+- Branches with code, waiting for a render or test: `fix/129-glyph-cutouts` (sample glyph cut-outs),
+  `fix/128-light-contact-shadow` (light bar shadow as a band below the bar; iOS's gap 255, ours 251),
+  `fix/149-release-settle` (slow moving release; re-render on top of #152 first, since docs/2's 5.8 s lift is
+  a still release whose lens never formed), `fix/109-cap-rim-fade` (resting rim dims through the caps; baseline 8.4
+  levels rms), `docs/readme-accessibility` (after #153 and #154).
+
+Measured and recorded on the issues tonight: #149 (per-frame release heights), #110 closed (item 117 not
+reproduced: iOS's Keypad dots spread 1.7 levels, as ours do), #122 item 3 not reproduced (iOS switches the page
+at the lift on every JGEY2190 tap but one), #128 cause (the light shadow's 11-22 dp blur, doubled in the gap).
 
 Open, measured, not yet fixed:
-- #109: resting rim at the caps; iOS fades about 50 px before and through each cap. Comment on the issue has the table.
-- #70: re-measure the tap plateau now that #131 is in.
-- #81: bounded-resolution EDT.
-- #118: adaptive quality is a public API decision.
-- The bar's tap contraction (iOS dips 3-4 px) and the remaining items under #92-#113.
+- #108 item 110: navy band rows inside a held lens (iOS 1-2, ours 8-12 on 26 Oct); re-measure on current main.
+- #94 items 23-31, 73, 74 (tap transit); #121 side caps and mirror swirl; #70 tap plateau.
+- #81: bounded-resolution EDT. #118: adaptive quality is a public API decision. #100: needs the Pixel 7.
 
 Resume notes with commands: `.local/sxs/CLAUDE-SESSION-NOTES.md` (private).
 

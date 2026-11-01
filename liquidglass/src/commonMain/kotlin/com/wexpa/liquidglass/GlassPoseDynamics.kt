@@ -570,6 +570,9 @@ internal class GlassPoseController(
     private val tapArea = GlassSpring()
     /** The held travel that drives [GlassPoseSpec.heldTravelStrain], filtered at its own rate. */
     private val strainDrive = GlassSpring()
+    /** Sign of the held lens's last horizontal travel, and the time since it last reversed (#119). */
+    private var heldTravelDirection = 0f
+    private var reversalInterval = 1f
     private var tapAreaActive = false
     private var tapDistance = 0f
     private var releaseImpactActive = false
@@ -1197,11 +1200,37 @@ internal class GlassPoseController(
         }
         if (spec.heldTravelStrain > 0f) {
             // Sustained held travel builds the strain; a short flick releases before it has.
-            strainDrive.target = if (mode == GlassPoseMode.Held && motionEnabled) sv * formation else 0f
+            // A scrub that reverses quickly never builds it (#119): docs/2 18.7-22.0 s sweeps the bar
+            // every ~0.3 s and iOS's lens stays near full height, while the first long swipe (19.0 s)
+            // flattens to 458 x 145. Reversal within .28 s keeps .4 of the drive, a slower one .85, and
+            // the target ramps back over .25 s (floor .15). All authored against that scrub, not measured.
+            val scrubSuppression: Float
+            if (mode == GlassPoseMode.Held && motionEnabled) {
+                reversalInterval += dt
+                val dir = if (abs(nvx) > 0.1f) (if (nvx > 0f) 1f else -1f) else 0f
+                if (dir != 0f && heldTravelDirection != 0f && dir != heldTravelDirection) {
+                    val rapid = reversalInterval < 0.28f
+                    val decay = if (rapid) 0.40f else 0.85f
+                    strainDrive.value *= decay
+                    strainDrive.velocity = 0f
+                    reversalInterval = 0f
+                }
+                if (dir != 0f) heldTravelDirection = dir
+                scrubSuppression = (reversalInterval / 0.25f).coerceIn(0.15f, 1f)
+            } else {
+                heldTravelDirection = 0f
+                reversalInterval = 1f
+                scrubSuppression = 1f
+            }
+            strainDrive.target = if (mode == GlassPoseMode.Held && motionEnabled) sv * formation * scrubSuppression else 0f
             strainDrive.step(dt, spec.heldTravelStrainOmega, 1f)
             if (abs(strainDrive.value) < .0001f && abs(strainDrive.velocity) < .002f && strainDrive.target == 0f) strainDrive.snapTo(0f)
         }
-        equilibrium.u = gain * (nvx * nvx - 0.5f * speed2) / denom + pullU + spec.heldTravelStrain * strainDrive.value
+        // Held travel alone never takes the strain past .8 of maxStrain, so the velocity term cannot
+        // saturate the clamp with it (heldTravelStrain .6 commanded .6 against a .42 limit). Authored.
+        val maxHeldStrain = min(spec.heldTravelStrain, spec.maxStrain * 0.80f)
+        val heldTravelU = (spec.heldTravelStrain * strainDrive.value).coerceIn(0f, maxHeldStrain)
+        equilibrium.u = gain * (nvx * nvx - 0.5f * speed2) / denom + pullU + heldTravelU
         equilibrium.v = gain * (nvx * nvy) / denom + pullV
 
         val heldPressure = poseHeldPressure(spec.heldHeightRatio, bar.height, reference.height)
@@ -2008,12 +2037,14 @@ internal class GlassPoseController(
      * the target it is pulled toward, so a distance rule would never fire at all.
      *
      * A press whose hold timer has not expired is never idle: that threshold is the only thing
-     * that will fire it.
+     * that will fire it. Nor is a formation still on its way to its target: a still press that
+     * becomes a hold starts forming from rest, and its first steps move less than the quiet
+     * threshold, so a perfectly still hold (a mouse, a replay) slept with its lens unformed.
      */
     val isIdle: Boolean
         get() = mode != GlassPoseMode.PressPending && !tapAreaActive &&
             transitAppearance < .0001f && heldTravel < .0001f && quietSteps >= QUIET_STEPS && !holdingStill &&
-            strainDrive.value == 0f
+            strainDrive.value == 0f && abs(form.target - form.value) < .001f
 
     /** A still release keeping its glass ([GlassPoseSpec.releaseStillHoldSeconds]): nothing moves
      * yet, but the formation still has to fall, so the frame loop must not sleep. */

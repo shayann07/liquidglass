@@ -185,7 +185,7 @@ public sealed class GlassPainter : IDisposable
         Set(v, "uBodyKind", 2); Set(v, "uPoseA", pose.A); Set(v, "uPoseAInv", pose.AInv); Set(v, "uPoseD", pose.D); Set(v, "uPoseE", pose.E ?? [0, 3, 0, 0]);
         Set(v, "uPoseC", pose.C[0] - bar.Width / 2, pose.C[1] - bar.Height / 2, pose.C[2], pose.C[3]);
         // GlassStyle.bodyBandScale: the lens refracts over this share of the body's own band.
-        Set(v, "uRefractBand", pose.D[3] * BandScale(calm));
+        Set(v, "uRefractBand", pose.D[3] * BandScale(calm)); Set(v, "uBandBottom", BandScale(calm) > 1 ? .3f : 0f);
         Set(v, "uRadii", Enumerable.Repeat(Math.Min(node.Width, node.Height) / 2, 4).ToArray());
         var size = Math.Clamp((Math.Min(node.Width, node.Height) / options.Density - 56) / 264, 0, 1);
         Set(v, "uScale", size);
@@ -234,7 +234,7 @@ public sealed class GlassPainter : IDisposable
         Set(m, "uFormation", calm.Formation);
         Set(m, "uBodyKind", 2); Set(m, "uPoseA", pose.A); Set(m, "uPoseAInv", pose.AInv); Set(m, "uPoseD", pose.D); Set(m, "uPoseE", pose.E ?? [0, 3, 0, 0]);
         Set(m, "uPoseC", pose.C[0] - bar.Width / 2, pose.C[1] - bar.Height / 2, pose.C[2], pose.C[3]);
-        Set(m, "uRefractBand", pose.D[3] * BandScale(calm));
+        Set(m, "uRefractBand", pose.D[3] * BandScale(calm)); Set(m, "uBandBottom", BandScale(calm) > 1 ? .3f : 0f);
         Set(m, "uRadii", Enumerable.Repeat(Math.Min(node.Width, node.Height) / 2, 4).ToArray());
         Set(m, "uScale", Math.Clamp((Math.Min(node.Width, node.Height) / options.Density - 56) / 264, 0, 1));
         // The content pass shares the material's geometry and optics; it emits the ink premultiplied and
