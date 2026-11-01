@@ -10,6 +10,15 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   (`GlassCalmLensBand`), the band narrows where its rim faces down, restoring the label (docs/2: 724 blue label px against
   457, iOS 854). Fringes move nearer iOS's on docs/2 and IMG_6756; LOLL8185's long-drag fringes, already below iOS's,
   weaken further (0.66 to 0.50 of iOS). Other styles keep their band (#94, #111).
+- Sample: the Calls and Contacts glyphs' figures are holes, as iOS's `.fill` symbols are, so the pill or the lens
+  shows through them (IMG_7049 held on Contacts: (208, 234, 255) against iOS (249, 254, 255), was a painted
+  (0, 79, 166)) (#129). [Evidence](review/atlas/glyph-cutouts-2026-11-01/README.md).
+- Tab bar (Calm): a perfectly still hold, such as a held mouse button or a replayed press, forms its lens again. Since
+  the hold threshold (#133), the frame loop could fall asleep in the step the press became a hold, before the lens
+  started to form, leaving the bar swollen and the lens unformed until the finger moved. Fixed in Compose and in
+  the Skia and .NET selectors. Found replaying docs/2 5.39-5.80 s.
+- Tab bar (Calm): a thrown lens no longer cuts the label it lands on. The held lens's mirror band narrows where its rim
+  faces down, restoring the label (docs/2: 724 blue label px against 457, iOS 854), with fringes nearer iOS's (#94, #111).
   [Evidence](review/atlas/label-band-2026-11-01/README.md).
 - Accessibility: `LiquidGlassTheme`'s `reduceTransparency` and `increaseContrast`, and `GlassTabBar`'s `motionEnabled`,
   now default to the platform's settings: Android's Remove animations and (API 34+) contrast level, and the web's
