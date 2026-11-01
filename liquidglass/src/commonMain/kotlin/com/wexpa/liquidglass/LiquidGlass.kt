@@ -681,6 +681,8 @@ internal fun Modifier.liquidGlassCore(
                         counterLight = style.counterLight,
                         edgeShadow = style.edgeShadow,
                         capEdgeShadow = style.capEdgeShadow,
+                        topShade = style.topShade.coerceIn(0f, 1f),
+                        topShadeReach = style.topShadeReach.toPx().coerceAtLeast(1f),
                         outerContour = style.outerContour,
                         outerContourFloor = style.outerContourFloor,
                         rimSoft = style.rimSoftness.toPx(),
@@ -1436,6 +1438,10 @@ internal data class GlassUniforms(
     val edgeShadow: Float,
     /** [GlassStyle.capEdgeShadow]. */
     val capEdgeShadow: Float = 0f,
+    /** [GlassStyle.topShade]. */
+    val topShade: Float = 0f,
+    /** [GlassStyle.topShadeReach], px. */
+    val topShadeReach: Float = 1f,
     /** [GlassStyle.outerContour] and [GlassStyle.outerContourFloor]. */
     val outerContour: Float = 0f,
     val outerContourFloor: Float = 0f,
@@ -1467,6 +1473,7 @@ internal data class GlassUniforms(
             backdropBlur == other.backdropBlur &&
             counterLight == other.counterLight && edgeLight == other.edgeLight &&
             bevelPeak == other.bevelPeak && edgeShadow == other.edgeShadow && capEdgeShadow == other.capEdgeShadow &&
+            topShade == other.topShade && topShadeReach == other.topShadeReach &&
             outerContour == other.outerContour && outerContourFloor == other.outerContourFloor &&
             rimSoft == other.rimSoft && tintAbsorb == other.tintAbsorb &&
             profile == other.profile && formation == other.formation && heldLens == other.heldLens &&

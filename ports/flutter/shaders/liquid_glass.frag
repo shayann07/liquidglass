@@ -72,6 +72,7 @@ uniform float   uCounterLight; // how much of the key light reaches the side fac
 uniform float   uEdgeLight;    // brightness of the outermost line relative to the bevel lobe
 uniform float   uBevelPeak;    // where in the bevel the highlight peaks: 0 at the edge (chamfer), 0.4 inside (bead)
 uniform float   uEdgeShadow;   // dark separating contour at the outermost pixel, 0..1
+uniform vec2  uTopShade;     // strength, reach px: a shade along the top (GlassStyle.topShade)
 uniform float   uCapEdgeShadow; // the contour times 1 + this x nx^2: darker where it faces sideways (GlassStyle.capEdgeShadow)
 uniform vec2  uOuterContour;  // x: the dark contour outside the outline at the unlit sides, y: its share at the lit poles (GlassStyle.outerContour)
 uniform float   uRimSoft;      // px the compressed rim image is smeared along the normal
@@ -1184,6 +1185,14 @@ vec4 glassMain(vec2 coord) {
     // the rim. Deliberately weak — see note 5 about outlines.
     float innerLine = max(smoothstep(uBevel * 2.2, 0.0, depth) - bevelBand, 0.0);
     col -= vec3(float(innerLine * uInnerShadow * mix(0.9, 1.15, scale) * mat));
+    // The top shade (GlassStyle.topShade, #128): even over the first float of its reach below the top
+    // edge, easing out by its end, and kept off the lit rim (the bevel). Long shapes only (wider than twice their
+    // height), so a round button sharing the material stays even, as iOS's search button does. Zero is off.
+    if (uTopShade.x > 0.0 && halfSize.x > 2.0 * halfSize.y) {
+        float fromTop = p.y + halfSize.y;
+        col -= vec3(float(uTopShade.x * smoothstep(uTopShade.y, uTopShade.y * 0.5, fromTop)
+            * smoothstep(0.0, uBevel, fromTop) * mat));
+    }
 
     // Schlick, using the same bevel slope the refraction used, so the rim brightens where it
     // turns away from the viewer. It stands in for an environment we do not have.

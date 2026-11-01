@@ -180,4 +180,16 @@ class GlassTabBarStyleTest {
         assertEquals(0f, style.lensRise.value, "the native reference is centred on the bar")
         assertTrue(style.lensOverflow.value > 0f)
     }
+
+    @Test
+    fun onlyTheLightCalmBarShadesItsTop() {
+        // #128: an opt-in material term; every other preset keeps an even bar.
+        assertEquals(0f, GlassStyle().topShade)
+        assertEquals(0f, GlassTabBarStyle.Calm(dark = true).bar.topShade)
+        assertEquals(0f, GlassTabBarStyle.Calm(dark = false).pill.topShade)
+        assertEquals(0f, GlassTabBarStyle.Calm(dark = false).lens.topShade)
+        val light = GlassTabBarStyle.Calm(dark = false).bar
+        assertEquals(0.056f, light.topShade)
+        assertEquals(28.dp, light.topShadeReach)
+    }
 }

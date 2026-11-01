@@ -1877,7 +1877,11 @@ data class GlassTabBarStyle(
                 contactShadow = 0.06f, contactShadowBlur = 1.5.dp, contactShadowOffset = 6.5.dp,
                 // Its rounded ends' outline darker than its runs (GlassStyle.capEdgeShadow, 18 October): iOS
                 // 178-182 at the outermost point, ours 177-186 (was 236-241); left end 12 levels rms (45).
-                capEdgeShadow = 2f),
+                capEdgeShadow = 2f,
+                // Its top ~45 px a few levels darker than its body (#128): iOS 240-241 there, easing to 245 by
+                // ~row 519 (IMG_7049 48.85 and 49.2 s, beside the Keypad pill); ours was even 245 (3.15 levels
+                // rms down the bar), 0.056 over 28 dp gives 0.85. Fitted to these frames.
+                topShade = 0.056f, topShadeReach = 28.dp),
             touchLift = true,
             itemsFollowBarPress = false,
             tapTransitFold = 0f,

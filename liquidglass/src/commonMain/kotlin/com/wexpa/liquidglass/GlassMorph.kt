@@ -75,6 +75,8 @@ fun lerpGlassStyle(start: GlassStyle, stop: GlassStyle, fraction: Float): GlassS
         counterLight = f(start.counterLight, stop.counterLight),
         edgeShadow = f(start.edgeShadow, stop.edgeShadow),
         capEdgeShadow = f(start.capEdgeShadow, stop.capEdgeShadow),
+        topShade = f(start.topShade, stop.topShade),
+        topShadeReach = d(start.topShadeReach, stop.topShadeReach),
         outerContour = f(start.outerContour, stop.outerContour),
         outerContourFloor = f(start.outerContourFloor, stop.outerContourFloor),
         rimSoftness = d(start.rimSoftness, stop.rimSoftness),
