@@ -22,4 +22,13 @@ The bottom rim sits under the label, which dominates that window (129 on both, i
 
 Light `Calm()`'s held lens draws its outline at `heldEdgeTone` 217/255, was 243/255. The line is 0.9 of that tone over the
 glass, so 217 reads 227-228 over the light bar. Fitted to the three frames above; no public API change. Dark Calm is
-unchanged. Not yet checked on a device.
+unchanged.
+
+## On a device
+
+![Pixel 7: the light held lens on Contacts, main (left) with a faint outline and this change (right) with a grey one](device-pixel7.png)
+
+Our frames only: Pixel 7 (Android 17, 90 Hz), release builds of the sample's `PhoneActivity` (`--ez light true`), captured 2 November with `adb exec-out screencap` 1.4 s into a 2.6 s `input swipe` hold on Contacts; crop y 2080-2330. Main is `95c5b6e`, captured twice with identical numbers.
+
+The darkest luma in the lens's top rim (rows 2095-2125, median over x 380-520): main **244**, this change **229**. The replay
+predicted 227-228 (iOS 226 in the recording); the phone agrees within 2 levels.
