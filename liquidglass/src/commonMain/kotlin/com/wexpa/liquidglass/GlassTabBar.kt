@@ -1083,6 +1083,7 @@ internal fun GlassTabBar(
                             body = null,
                             endpointComposite = false,
                             materialDrawing = barDrawing,
+                            topShade = glassBarTopShade(style),
                         ),
                 )
                 Box(
@@ -2510,6 +2511,18 @@ internal fun glassSelectorMaterial(style: GlassTabBarStyle, formation: Float, tr
  * transit stretches content about 15 px into the rim, docs/1 0.95-1.12 s, where the full band mirrored the
  * label away). */
 internal const val GlassSelectorRimMirror = 0.3f
+
+/** Light `Calm()`'s bar as the preset builds it: the top shade is for exactly this bar (#128). */
+private val CalmLightBar by lazy { GlassTabBarStyle.Calm(dark = false).bar }
+
+/**
+ * The bar's top shade (#128), for light `Calm()`'s own bar only; a style whose bar differs keeps an even bar.
+ * Measured: iOS's light tab bar reads 240-241 across its top ~45 px and eases to 245 by ~55 px down, where an even bar
+ * reads 245 throughout (IMG_7049 48.85 and 49.2 s, beside the Keypad pill). Authored: the curve, and 0.056 over 28 dp,
+ * fitted to those two frames (0.85 levels rms down the bar, was 3.15).
+ */
+internal fun glassBarTopShade(style: GlassTabBarStyle): GlassTopShade? =
+    if (style.bar == CalmLightBar) GlassTopShade(0.056f, 28.dp) else null
 /** Radial draw of the moving selector's mirrored caps (authored, 2026-10-14 second pass; 26 October 0.15,
  * was 0.4: near 0 the rim repeats the band's inner content, a stretch rather than a mirror, as iOS's is). */
 internal const val GlassSelectorRimGain = 0.15f

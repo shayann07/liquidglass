@@ -57,6 +57,7 @@ layout(std140, binding = 0) uniform buf {
     float uEdgeLight;
     float uBevelPeak;
     float uEdgeShadow;
+    vec2 uTopShade;
     float uCapEdgeShadow;
     vec2 uOuterContour;
     float uRimSoft;
@@ -1187,6 +1188,14 @@ vec4 glassMain(vec2 coord) {
     // the rim. Deliberately weak — see note 5 about outlines.
     float innerLine = max(smoothstep(uBevel * 2.2, 0.0, depth) - bevelBand, 0.0);
     col -= vec3(float(innerLine * uInnerShadow * mix(0.9, 1.15, scale) * mat));
+    // The top shade (GlassTopShade, #128): even over the first float of its reach below the top
+    // edge, easing out by its end, and kept off the lit rim (the bevel, by the outline's depth, so the curved caps' rim too). Long shapes only (wider than twice their
+    // height), so a round button sharing the material stays even, as iOS's search button does. Zero is off.
+    if (uTopShade.x > 0.0 && halfSize.x > 2.0 * halfSize.y) {
+        float fromTop = p.y + halfSize.y;
+        col -= vec3(float(uTopShade.x * (1.0 - smoothstep(uTopShade.y * 0.5, uTopShade.y, fromTop))
+            * smoothstep(0.0, uBevel, depth) * mat));
+    }
 
     // Schlick, using the same bevel slope the refraction used, so the rim brightens where it
     // turns away from the viewer. It stands in for an environment we do not have.
