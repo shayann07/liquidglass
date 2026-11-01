@@ -1194,7 +1194,7 @@ internal fun GlassTabBar(
                             // A zero-width slot (a bar narrower than its insets) has no tab to lean from.
                             val near = if (half > 0f) (1f - abs(x - endCentre) / half).coerceIn(0f, 1f) else 0f
                             (pressShift?.invoke(x) ?: 0f) +
-                                (if (rtl) -1f else 1f) * leanPx * near * controller.formation.coerceIn(0f, 1f)
+                                (if (rtl) -1f else 1f) * leanPx * near * controller.formation.coerceIn(0f, 1f) * heldGate(controller)
                         }
                         shift
                     }
@@ -1206,7 +1206,7 @@ internal fun GlassTabBar(
                         val stretch: (Float) -> Float = { x ->
                             // A zero-width slot (a bar narrower than its insets) has no tab to lean from.
                             val near = if (half > 0f) (1f - abs(x - endCentre) / half).coerceIn(0f, 1f) else 0f
-                            (if (rtl) -1f else 1f) * reachPx * near * controller.formation.coerceIn(0f, 1f)
+                            (if (rtl) -1f else 1f) * reachPx * near * controller.formation.coerceIn(0f, 1f) * heldGate(controller)
                         }
                         stretch
                     }
@@ -2553,6 +2553,10 @@ internal const val GlassSelectorHeldRimMirror = 1.0f
  * spans x 605-920 against ours 585-905, the same width 17 px further out, over the search button's edge
  * (IMG_6756 35.45-35.55 s, 3x scene px). Measured. */
 internal val GlassAccessoryLensLean = 5.7.dp
+
+/** 1 while the lens is held or released from a hold, else 0: a tap in transit leans and stretches nothing (#107). */
+private fun heldGate(controller: GlassPoseController): Float =
+    if (controller.mode == GlassPoseMode.Held || controller.mode == GlassPoseMode.Released) 1f else 0f
 /** How much longer that lens grows at its accessory end (#107): iOS's spans x 603-955 there, about 32 px wider than
  * ours, its outline crossing over the search button (IMG_6756 35.5 s, 3x scene px). Measured. */
 internal val GlassAccessoryLensReach = 10.7.dp
