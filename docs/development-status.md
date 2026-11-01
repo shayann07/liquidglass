@@ -7,6 +7,11 @@ research remains available; this page identifies which later changes supersede i
 
 ## Main after 1.0 (24 October)
 
+- 1 November: glass follows the platform's accessibility settings by default (#115):
+  - `GlassTabBar` follows Reduce Motion on Android and web. Other glass controls still take
+    `GlassInteraction.ReducedMotion` from the app.
+  - `LiquidGlassTheme` follows Increase Contrast on Android 14+ and web, and Reduce Transparency on web (Android has none).
+  [Accessibility](accessibility.md).
 - 26 October: the held lens's outline is a squircle (a .7 blend toward n = 3, the exponent iOS's lens fits),
   not a capsule; its width profile against iOS moves from 27.5 to 7.1 px rms.
   [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/lens-squircle-2026-10-26/README.md).

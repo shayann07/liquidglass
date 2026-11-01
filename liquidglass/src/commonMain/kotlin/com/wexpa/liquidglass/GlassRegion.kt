@@ -61,8 +61,11 @@ import kotlin.math.roundToInt
  * @param glass what [glassEffect] draws when it is given no [Glass].
  * @param containerSpacing [GlassEffectContainer]'s default merge distance.
  * @param renderScale the fraction of full resolution glass renders at, 0.25 to 1. 1 by default.
- * @param reduceTransparency Reduce Transparency, 0 to 1: raises the material's opacity.
- * @param increaseContrast Increase Contrast, 0 to 1: high-contrast material and border.
+ * @param reduceTransparency Reduce Transparency, 0 to 1: raises the material's opacity. On the web it
+ *   follows `prefers-reduced-transparency` by default; Android and the desktop have no such setting, so
+ *   drive it from an in-app control there (see the accessibility guide).
+ * @param increaseContrast Increase Contrast, 0 to 1: high-contrast material and border. Follows the
+ *   platform's setting by default.
  */
 @Composable
 fun LiquidGlassTheme(
@@ -71,8 +74,8 @@ fun LiquidGlassTheme(
     glass: Glass = Glass.Regular,
     containerSpacing: Dp = 20.dp,
     renderScale: Float = 1f,
-    reduceTransparency: Float = 0f,
-    increaseContrast: Float = 0f,
+    reduceTransparency: Float = if (rememberGlassSystemAccessibility().reduceTransparency) 1f else 0f,
+    increaseContrast: Float = if (rememberGlassSystemAccessibility().increaseContrast) 1f else 0f,
     content: @Composable () -> Unit,
 ) {
     val defaults = GlassDefaults(dark, glass, containerSpacing, reduceTransparency, increaseContrast, renderScale)
