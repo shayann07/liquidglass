@@ -1,5 +1,32 @@
 # Tap transit speed and lens formation against iOS 27 — 27 October 2026
 
+## Correction, 1 November 2026: what shipped
+
+The faster tap spring proposed below (`tapCentreOmega` 44, Calm `tapSpineOmega` 36, `tapShortTripRate` 1)
+was **not** merged. Re-measured in the desktop GPU replay against the recordings, it moved taps further from
+iOS, not closer. Tap arrival is in ms after iOS's own motion starts; the selector is "arrived" when its ink
+centre is within 10 px of the target.
+
+| tap | iOS | main | 44/s (as proposed) | omega 24 | omega 30 | formation change only |
+| :-- | :-- | :-- | :-- | :-- | :-- | :-- |
+| JGEY2190 4.55 s | 152 | 182 | 48 | 82 | 65 | 132 |
+| JGEY2190 6.93 s | 200 | 182 | 65 | 148 | 115 | 148 |
+| docs/1 0.75 s | 163 | 150 | 50 | 117 | 100 | 117 |
+| docs/1 3.35 s | 67 | 137 | 37 | 87 | 70 | 137 |
+| **rms error** | | **39** | 104 | 51 | 70 | about 51 |
+
+Main's tap timing was already the closest to iOS, so #123's premise (a ~300 ms tap) does not hold on current
+main. What shipped is the lens formation (#120) only:
+- Calm `formFromMovement` 1 (was .25) and `formRiseOmega` 75 (was 30).
+- The moving tap lens profile and fringes.
+
+The transit lens now peaks at about .74 formation, where main peaked at .25-.28 (item 140). iOS's full oval
+lens is still not reached. `GlassContinuousReplayTest`, `GlassPhoneTapOpticsTest` and `GlassPhoneTapVolumeTest`
+pin the older presets (CalmWallLanding, CalmVolume) where they guard earlier behaviour. The full JVM suite
+passed on the merged change.
+
+The rest of this page is the original 27 October proposal, kept for provenance; its timing claims are superseded.
+
 Addresses issues **#123** (tap travel speed ~300 ms vs iOS ~70–130 ms) and **#120** (tap transit rises into full lens on iOS 27), from the [iOS parity audit](../ios-audit-2026-10-26/README.md).
 
 ## Summary of Findings & Objectives
