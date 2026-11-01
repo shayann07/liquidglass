@@ -130,8 +130,8 @@ open work. <a href="review/atlas/ios-side-by-side-2026-10-20/README.md">Source, 
 **Accessible by default.** Glass follows the platform's Reduce Motion, Increase Contrast and Reduce
 Transparency settings unless you override them. The tab bar ticks a selection haptic, draws a focus ring for
 keyboard users, and at large text sizes shows a held tab magnified, as iOS's Large
-Content Viewer does. In right-to-left layouts it mirrors, and press, drag and the selector follow the tab you
-touch. See [Accessibility](docs/accessibility.md) and [Right-to-left layouts](docs/tab-bar.md#right-to-left-layouts).
+Content Viewer does. In right-to-left layouts its shared-width slots mirror, and press, drag and the selector follow
+the tab you touch (fixed `slotWidth` layouts keep the positions you gave them). See [Accessibility](docs/accessibility.md) and [Right-to-left layouts](docs/tab-bar.md#right-to-left-layouts).
 
 **One material, every stack.** Compose, the web component, React Native, Flutter and .NET all run the
 same production shader, generated from one source and checked against each other in CI.
