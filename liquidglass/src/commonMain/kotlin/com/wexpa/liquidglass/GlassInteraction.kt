@@ -10,6 +10,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -58,6 +59,7 @@ internal data class GlassPress(
     val pulling: Boolean = false,
     /** Whether the press now drags something (the tab bar's selector); see [GlassInteraction.dragPressShare]. */
     val dragging: Boolean = false,
+    val pressCount: Int = 0,
 ) {
     companion object {
         /** Far enough off-panel that the Gaussian is zero, so an idle panel costs nothing. */
@@ -187,6 +189,10 @@ data class GlassInteraction(
     }
 }
 
+/** Internal corrections for the existing free-button role; no constructor or copy ABI changes. */
+internal val GlassInteraction.pressFlash: Boolean get() = pull && pullShape == GlassPullShape.Free
+internal val GlassInteraction.uprightPull: Boolean get() = pull && pullShape == GlassPullShape.Free
+
 /** Springs and timings for the press, kept together so the three channels cannot drift apart. */
 internal object GlassMotion {
     val CalmDown = spring<Float>(dampingRatio = 1f, stiffness = 220f)
@@ -274,11 +280,16 @@ class GlassPressSource internal constructor() {
     internal var dragging by mutableStateOf(false)
     /** A caller's critically damped press-down stiffness for a Calm response; zero keeps [GlassMotion.CalmDown]. */
     internal var downStiffness: Float = 0f
+    internal var pressCount by mutableIntStateOf(0)
+        internal set
 
     /** Call on every pointer move as well as on down, so the glow tracks rather than jumps. */
     fun press(localPosition: Offset, pullOffset: Offset = Offset.Zero) {
         require(localPosition.x.isFinite() && localPosition.y.isFinite() &&
             pullOffset.x.isFinite() && pullOffset.y.isFinite()) { "Press coordinates must be finite" }
+        if (!isPressed) {
+            pressCount++
+        }
         this.localPosition = localPosition
         this.pullOffset = pullOffset
         isPressed = true
@@ -323,7 +334,8 @@ internal fun rememberGlassPress(
             label = "glass_press_amount_external",
         )
         return GlassPress(source.localPosition.x, source.localPosition.y, amount,
-            source.pullOffset.x, source.pullOffset.y, pulling = source.isPressed, dragging = source.dragging) to Modifier
+            source.pullOffset.x, source.pullOffset.y, pulling = source.isPressed, dragging = source.dragging,
+            pressCount = source.pressCount) to Modifier
     }
 
     var point by remember { mutableStateOf(Offset.Zero) }
@@ -332,6 +344,7 @@ internal fun rememberGlassPress(
     var pull by remember { mutableStateOf(Offset.Zero) }
     var pulling by remember { mutableStateOf(false) }
     var moved by remember { mutableStateOf(false) }
+    var pressCount by remember { mutableIntStateOf(0) }
     val amount by animateFloatAsState(
         targetValue = if (!down) 0f else if (moved) pullLiftShare.coerceIn(0f, 1f) else 1f,
         animationSpec = when {
@@ -352,6 +365,7 @@ internal fun rememberGlassPress(
             moved = false
             down = true
             pulling = true
+            pressCount++
             try {
                 while (true) {
                     val change = awaitPointerEvent().changes.firstOrNull { it.id == first.id } ?: break
@@ -367,5 +381,5 @@ internal fun rememberGlassPress(
         }
     }
 
-    return GlassPress(point.x, point.y, amount, pull.x, pull.y, pulling) to modifier
+    return GlassPress(point.x, point.y, amount, pull.x, pull.y, pulling, pressCount = pressCount) to modifier
 }

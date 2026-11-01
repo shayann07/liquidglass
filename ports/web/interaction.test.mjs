@@ -178,6 +178,36 @@ test('settled geometry preserves the existing portable contract for controls, pi
 });
 
 import {createFreeButton} from './interaction.mjs';
+
+test('free-button release remains continuous across diagonal anchor directions', () => {
+  const trace = degrees => {
+    const button = createFreeButton({size:186,density:3});
+    const angle = degrees * Math.PI / 180;
+    button.down(0); button.move(.5, 300*Math.cos(angle), 300*Math.sin(angle)); button.up(1);
+    return Array.from({length:121}, (_,i) => {
+      const d = button.sample(1+i/120), a = d.angle*Math.PI/180;
+      return [186*d.pressScale*Math.hypot(d.along*Math.cos(a),d.across*Math.sin(a)),d.tx,d.ty];
+    });
+  };
+  for (const diagonal of [-135,-45,45,135]) {
+    const before = trace(diagonal-.01), after = trace(diagonal+.01);
+    for (let i=0;i<before.length;i++) for (let axis=0;axis<3;axis++)
+      near(before[i][axis],after[i][axis],.1);
+  }
+});
+
+test('free-button width is continuous across diagonal pull directions', () => {
+  const width = degrees => {
+    const button = createFreeButton({size:186,density:3});
+    const r = degrees * Math.PI / 180;
+    button.down(0);
+    button.move(.5, 300 * Math.cos(r), 300 * Math.sin(r));
+    const d = button.sample(1), angle = d.angle * Math.PI / 180;
+    return 186 * d.pressScale * Math.hypot(d.along * Math.cos(angle), d.across * Math.sin(angle));
+  };
+  for (const diagonal of [-135,-45,45,135])
+    near(width(diagonal - .01), width(diagonal + .01), .1);
+});
 import {readFileSync} from 'node:fs';
 
 test('free button: every frame of the Kotlin-exported trajectories is reproduced', () => {
@@ -187,7 +217,8 @@ test('free button: every frame of the Kotlin-exported trajectories is reproduced
   for (const s of fixture.scenarios) {
     const button = createFreeButton({size: b.size, density: b.density, pressScale: b.pressScale,
       pressGrowth: b.pressGrowth, pressLift: b.pressLift, pullFollow: b.pullFollow, pullElongation: b.pullElongation,
-      pullWidthRatio: b.pullWidthRatio, pullLimit: b.pullLimit, pullLiftShare: b.pullLiftShare});
+      pullWidthRatio: b.pullWidthRatio, pullLimit: b.pullLimit, pullLiftShare: b.pullLiftShare,
+      pullReleaseDampingX: b.pullReleaseDampingX ?? .3, uprightPull: b.uprightPull ?? true});
     let next = 0;
     for (const [t, glow, pressScale, along, across, angle, tx, ty, pullX] of s.frames) {
       while (next < s.calls.length && s.calls[next][0] <= t + 1e-9) {
@@ -198,6 +229,12 @@ test('free button: every frame of the Kotlin-exported trajectories is reproduced
       for (const [a, e] of [[o.tx, tx], [o.ty, ty], [o.pullX, pullX]]) worstPx = Math.max(worstPx, Math.abs(a - e));
       for (const [a, e] of [[o.glow, glow], [o.pressScale, pressScale], [o.along, along], [o.across, across]])
         worstScalar = Math.max(worstScalar, Math.abs(a - e));
+      const matrix = (u,v,degrees) => {
+        const c=Math.cos(degrees*Math.PI/180),s=Math.sin(degrees*Math.PI/180);
+        return [u*c*c+v*s*s,(u-v)*c*s,u*s*s+v*c*c];
+      };
+      const actual=matrix(o.along,o.across,o.angle),expected=matrix(along,across,angle);
+      for(let i=0;i<3;i++) worstScalar=Math.max(worstScalar,Math.abs(actual[i]-expected[i]));
     }
   }
   assert.ok(worstPx < .1, `offset or pull differs by ${worstPx} px`);
