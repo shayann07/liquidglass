@@ -35,3 +35,18 @@ ports' Calm selectors. No public API change.
 - The one-tab gap (+172 ms against iOS's ink) compares ink that stops at a tab with a lens that presses on; it is not
   a like-for-like timing and is not changed here.
 - Desktop replay only; the arrival is a timing in the shared pose model, which Android runs unchanged.
+
+## On a device
+
+Pixel 7 (Android 17, 90 Hz), release builds of the sample's `PhoneActivity` (dark), 2 November: ten two-tab taps
+alternating Keypad (677, 2200) and Calls (218, 2200), 1.4 s apart, recorded with `adb shell screenrecord` (~38 fps).
+On the phone the selected ink is blue and the lens re-inks what it covers, so the blue centroid in the bar follows the
+lens. Time from it leaving its start tab (> 25 px) to within 20 px of the other tab:
+
+| build | taps | arrival (ms) | median |
+| :-- | --: | :-- | --: |
+| main | 10 | 134 133 136 145 132 134 144 133 132 122 | 134 |
+| this change | 10 | 111 111 122 122 111 110 110 112 112 111 | 111 |
+
+About 23 ms sooner, as on the replay. This measures the ink's travel, which starts after the selector's, so its
+absolute times are shorter than the replay's selector arrival; the difference is what the change makes.
