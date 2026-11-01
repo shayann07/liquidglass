@@ -433,6 +433,13 @@ Below Android 13 the lens is a plain surface (`fallbackSurface`), the items colo
 `item` is called once per tab with the real selection — and everything about the gesture still
 works.
 
+## Right-to-left layouts
+
+In a right-to-left layout, the first item is drawn on the right, and the selector, press, drag and fling follow the
+drawn tabs. Each item's own content is laid out in your app's direction. A trailing accessory, such as a search button,
+sits at the bar's left end. Bars with fixed slots (`GlassTabBarStyle.slotWidth`) place their items by position and do
+not mirror (#161).
+
 ## Keyboard focus
 
 Each tab is focusable (`Role.Tab`, in a selectable group), so the Tab key moves between tabs and Enter or
