@@ -32,6 +32,8 @@ research remains available; this page identifies which later changes supersede i
   [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/glyph-cutouts-2026-11-01/README.md).
 - 1 November: a perfectly still hold forms its lens again: since #133 the frame loop could sleep before the lens
   started to form (found replaying docs/2 5.4 s; a finger's jitter hid it on devices).
+- 1 November: the resting Calm bar's rim dims through its caps as iOS's does (3.1 levels rms, was 8.4; #109). The cap
+  outline itself is unchanged. [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/cap-rim-fade-2026-11-01/README.md).
 - 1 November: keyboard users can see which tab has focus: the focused tab draws a ring over the selector, in keyboard
   mode only (#117). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/tab-focus-ring-2026-11-01/README.md).
 - 1 November: the sample matches iOS's Calls badge, icon position, glyph levels and search glyph to within a pixel or a
