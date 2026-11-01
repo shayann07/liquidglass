@@ -41,9 +41,9 @@ class GlassTabBarFocusTest {
         return n
     }
 
-    private fun ComposeUiTest.bar() = setContent {
+    private fun ComposeUiTest.bar(renderScale: Float = .25f) = setContent {
         CompositionLocalProvider(LocalDensity provides Density(1f)) {
-            val state = rememberLiquidGlassState(Color.Black, renderScale = .25f)
+            val state = rememberLiquidGlassState(Color.Black, renderScale = renderScale)
             Box(Modifier.size(500.dp, 120.dp).testTag("scene")) {
                 Box(Modifier.fillMaxSize().background(Color.DarkGray).liquidGlassSource(state))
                 // The public overload's default style.
@@ -112,7 +112,8 @@ class GlassTabBarFocusTest {
 
     /** #117 item 135: a hovering pointer lifts the tab under it, and the lift goes when the pointer leaves. */
     @Test fun aHoveredTabLifts() = runComposeUiTest(testTimeout = 4.minutes) {
-        bar(); waitForIdle()
+        // Full resolution: at the suite's quarter scale the 20 px square is recorded at 5 px, and a 6% lift rounds away.
+        bar(renderScale = 1f); waitForIdle()
         val cell = onAllNodes(tab)[2].fetchSemanticsNode().boundsInRoot
         val rest = whitePixels(cell)
         onAllNodes(tab)[2].performMouseInput { moveTo(center) }
