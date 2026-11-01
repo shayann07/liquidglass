@@ -71,7 +71,7 @@ public sealed record CalmSelectorSpec
         GraspOmega = 120, HeldFormRiseOmega = 26, PressFormation = 0, HoldThresholdSeconds = .11,
         ReleaseTrailingEdge = true, ReleaseRecoveryOmega = 13,
         ReleaseTrailingInOmega = 9, ReleaseTrailingInZeta = .3, ReleaseTrailingCarry = .1, ReleaseWallGive = .35,
-        ReleaseTrailingStiffening = .5, ReleaseStillHoldSeconds = .035, ReleaseStillFadeOmega = 100, ReleaseMovingFadeOmega = 12, TapLongTripRate = 1.15,
+        ReleaseTrailingStiffening = .5, ReleaseStillHoldSeconds = .035, ReleaseStillFadeOmega = 100, ReleaseMovingFadeOmega = 12, TapLongTripRate = 1.2,
         HeldTravelStrain = .6, HeldTravelStrainOmega = 10,
         HeldSquircle = .7,
     };

@@ -54,7 +54,7 @@ export const CALM_SELECTOR_SPEC = Object.freeze({
   graspOmega: 120, heldFormRiseOmega: 26, pressFormation: 0, holdThresholdSeconds: .11,
   releaseTrailingEdge: true, releaseRecoveryOmega: 13,
   releaseTrailingInOmega: 9, releaseTrailingInZeta: .3, releaseTrailingCarry: .1, releaseWallGive: .35,
-  releaseTrailingStiffening: .5, releaseStillHoldSeconds: .035, releaseStillFadeOmega: 100, releaseMovingFadeOmega: 12, tapLongTripRate: 1.15,
+  releaseTrailingStiffening: .5, releaseStillHoldSeconds: .035, releaseStillFadeOmega: 100, releaseMovingFadeOmega: 12, tapLongTripRate: 1.2,
   heldTravelStrain: .6, heldTravelStrainOmega: 10,
   heldSquircle: .7,
 });

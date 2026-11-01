@@ -334,8 +334,9 @@ internal data class GlassPoseSpec(
      * rate by two slots. Authored output calibration; not an identified Apple spring. */
     val tapShortTripRate: Float = 1f,
     /** Opt-in coupled-tap clock ratio for trips of two slots or more, blending from [tapShortTripRate]'s
-     * rate at one slot and back to the historical clock by three (#70). One keeps the historical clock. Calm: 1.15, fitted on the two-tab taps'
-     * arrival (median ours - iOS: docs/1 -13 ms, JGEY2190 +15 ms; 1.0 read +20 and +32). Authored. */
+     * rate at one slot and back to the historical clock by three (#70). One keeps the historical clock. Calm: 1.2, fitted on the two-tab taps'
+     * arrival over the whole recordings (median ours - iOS: docs/1 +6 ms, JGEY2190 +65 ms; 1.0 read +39 and +98;
+     * JGEY2190's stays near 187 ms from 1.15 up, so its remainder is not the clock). Authored. */
     val tapLongTripRate: Float = 1f,
     /** Opt-in tap appearance from excess projected area; zero preserves historical optics.
      * This is separate from held formation and never grants pointer ownership. */
@@ -503,7 +504,7 @@ internal data class GlassPoseSpec(
         val Calm = CalmWallLanding.copy(heldTravelStrain = .6f, heldTravelStrainOmega = 10f,
             heldReferenceSpeed = 8f, heldSquircle = .7f, formFromMovement = 1f, formRiseOmega = 75f,
             pressFormation = 0f, holdThresholdSeconds = .110f, heldFormRiseOmega = 26f,
-            releaseStillHoldSeconds = .035f, releaseStillFadeOmega = 100f, releaseMovingFadeOmega = 12f, tapLongTripRate = 1.15f, barPressDelaySeconds = .075f, barPressStiffness = 1700f, heldInkLift = 22f / 255f, selectionHaptics = true, hoverScale = 1.06f)
+            releaseStillHoldSeconds = .035f, releaseStillFadeOmega = 100f, releaseMovingFadeOmega = 12f, tapLongTripRate = 1.2f, barPressDelaySeconds = .075f, barPressStiffness = 1700f, heldInkLift = 22f / 255f, selectionHaptics = true, hoverScale = 1.06f)
     }
 }
 

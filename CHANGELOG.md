@@ -6,6 +6,8 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Tab bar (Calm): a tap across two tabs reaches its tab as iOS's does, not ~40 ms late (docs/1: +6 ms against iOS, was
+  +39; JGEY2190 +65, was +98). One-tab taps are unchanged (#70). [Evidence](review/atlas/two-tab-tap-2026-11-02/README.md).
 - Tab bar (light Calm): the held lens's outline is a grey line as on iOS (top rim 227 against iOS 226), not a faint
   near-white one (245) (#128). [Evidence](review/atlas/light-held-outline-2026-11-01/README.md).
 - Tab bar (Calm): a thrown lens stays milky as it lands, as iOS's does, instead of clearing about 80 ms early (docs/2
