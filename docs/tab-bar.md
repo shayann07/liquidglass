@@ -299,7 +299,11 @@ a `fusion` under twice the `gap` keeps them apart at rest. Reduced motion disabl
 With `GlassTabBarAccessory(..., yieldsToLens = true)` a formed selector pressing into the
 accessory's end takes the neck's place, so the bar and the button part as the lens arrives rather
 than when the finger lifts, as on iOS. It is off by default; the Phone comparison scene and Atlas
-Studio use it.
+Studio use it. The held lens on the tab beside such an accessory also leans toward it (5.7 dp) and
+grows into it (10.7 dp at that end), as iOS 27's does, instead of stopping short of the bar's end
+(#107, measured on IMG_6756 35.5 s). The accessory stays drawn above the lens: iOS shows the button
+through its lens, which ours cannot refract yet.
+[Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/lens-over-search-2026-11-01/README.md).
 
 ## Historical horizontal selector
 

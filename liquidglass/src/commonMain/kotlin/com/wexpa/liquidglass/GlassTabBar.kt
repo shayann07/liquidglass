@@ -1180,8 +1180,35 @@ internal fun GlassTabBar(
                 // republish when the bar's press moves while the pose loop may be asleep.
                 if (poseHandle != null) {
                     val barFrame = barDrawing
-                    poseHandle.barShift = barFrame?.let { state ->
+                    val pressShift: ((Float) -> Float)? = barFrame?.let { state ->
                         { x: Float -> (state.drawing.contentPoint(x, barHeightPx / 2f).x - x) * (itemShare?.invoke() ?: 1f) }
+                    }
+                    // #107: on the tab beside an accessory that yields to the lens, the formed lens leans toward it,
+                    // past the bar's end and over the accessory's edge (iOS: the same width, 17 px further out).
+                    val leanPx = if (trailingAccessory?.yieldsToLens == true) with(density) { GlassAccessoryLensLean.toPx() } else 0f
+                    poseHandle.barShift = if (leanPx <= 0f) pressShift else {
+                        val endCentre = geometry.centreOf(if (rtl) 0 else itemCount - 1)
+                        val half = geometry.slotWidth / 2f
+                        val controller = poseHandle.controller
+                        val shift: (Float) -> Float = { x ->
+                            // A zero-width slot (a bar narrower than its insets) has no tab to lean from.
+                            val near = if (half > 0f) (1f - abs(x - endCentre) / half).coerceIn(0f, 1f) else 0f
+                            (pressShift?.invoke(x) ?: 0f) +
+                                (if (rtl) -1f else 1f) * leanPx * near * controller.formation.coerceIn(0f, 1f) * heldGate(controller)
+                        }
+                        shift
+                    }
+                    poseHandle.endStretch = if (leanPx <= 0f) null else {
+                        val endCentre = geometry.centreOf(if (rtl) 0 else itemCount - 1)
+                        val half = geometry.slotWidth / 2f
+                        val reachPx = with(density) { GlassAccessoryLensReach.toPx() }
+                        val controller = poseHandle.controller
+                        val stretch: (Float) -> Float = { x ->
+                            // A zero-width slot (a bar narrower than its insets) has no tab to lean from.
+                            val near = if (half > 0f) (1f - abs(x - endCentre) / half).coerceIn(0f, 1f) else 0f
+                            (if (rtl) -1f else 1f) * reachPx * near * controller.formation.coerceIn(0f, 1f) * heldGate(controller)
+                        }
+                        stretch
                     }
                     LaunchedEffect(poseHandle, barFrame) {
                         if (barFrame != null) snapshotFlow { barFrame.drawing }.collect { poseHandle.publish() }
@@ -1938,12 +1965,14 @@ data class GlassTabBarStyle(
          * compromise with WhatsApp's 236, which [CalmClear] now carries; the App Store's is invisible over
          * white, 255, and its scene sets that).
          * The held lens is clear glass over the bar; its edge is a soft grey band to ~243-246 where dark
-         * Calm's is a 65-level line, so its outline tone is 243/255 and a faint inner band
-         * ([GlassStyle.innerShadow] .08) reads 245 at the rim (iOS 244, but ~4 px wide where iOS's is
-         * ~12); it adds no raw page. It casts a tight shadow offset under itself (iOS: none above the
-         * lens, 242 for ~15 px below it, fading by ~36 px; [GlassStyle.contactShadow] .45 at 6 dp blur,
-         * 5 dp down, half of it inside the lens: profile rms 2.6 levels over the page above, the overhang
-         * and below, against 4.2 without a shadow; IMG_7048 38.5 / 42 s, 18 October). The bar lifts for any touch, page text under
+         * Calm's is a 65-level line; its outline tone is 217/255 (1 November, #128: top rim 227 against iOS 226; 243
+         * read 245). It adds no raw page and, since 1 November,
+         * no inner band ([GlassStyle.innerShadow] 0): the 18 October .08 drew a dark line along the lower
+         * rim (IMG_7049 row 648: 238, iOS 254; #104). It casts a shadow under itself, outside the lens only:
+         * [GlassStyle.contactShadow] .35 at 9 dp blur, 11 dp down (1 November, IMG_7049 39.41-39.87 s held on
+         * Contacts: rows 640-684 3.43 levels rms, was 7.18; iOS stays clear to the lower rim and darkens
+         * gradually below it, deepest ~20 px down). It replaced .45 at 6 dp blur, 5 dp down, half inside the
+         * lens (18 October, IMG_7048 38.5 / 42 s: profile rms 2.6 levels). The bar lifts for any touch, page text under
          * bar and lens is one soft copy, and tap optics follow dark Calm (behaviour, not levels).
          * [CalmRecordedSpace] (false) keeps the light preset this replaced.
          */
@@ -1966,8 +1995,15 @@ data class GlassTabBarStyle(
             // The held lens's outline grey (#128, 1 November): iOS's top rim reads 226 over the light bar; 243 read 245 there,
             // 217 reads 227-228 (IMG_7049 39.4-39.9 s, held on Contacts). Fitted to those frames.
             lens = recorded.lens.copy(tint = Color.Transparent, rawShare = 0f, rawBlur = 0.dp, tintLift = 0f,
-                softDetail = 1f, heldEdgeTone = 217f / 255f, innerShadow = 0.08f, contactShadow = 0.45f, bodyBandScale = GlassCalmLensBand,
-                contactShadowInside = 0.5f, contactShadowBlur = 6.dp, contactShadowOffset = 5.dp),
+                softDetail = 1f, heldEdgeTone = 217f / 255f, innerShadow = 0f, contactShadow = 0.35f, bodyBandScale = GlassCalmLensBand,
+                // No inner thickness line (#104): it drew a dark line along the lens's lower rim (row 648: 238, iOS 254;
+                // with none 248), and the outline (heldEdgeTone) already draws the top rim.
+                // Its shadow lower, lighter and outside the lens only, against the previous light Calm values (0.45, half of it
+                // inside, 6 dp blur, 5 dp down; #104 item 50). Measured: iOS's light held lens stays clear to its lower rim (rows
+                // 644-648: 255) and its shadow darkens gradually below it, deepest ~20 px down (247 at row 660, 242 at 672; IMG_7049
+                // 39.41-39.87 s, held on Contacts). Authored: 0.35, none inside, 9 dp of blur, 11 dp down, fitted to those
+                // frames; the replay then reads rows 640-684 at 3.43 levels rms (main 7.18).
+                contactShadowInside = 0f, contactShadowBlur = 9.dp, contactShadowOffset = 11.dp),
             tapTintFade = 1f, tapSelectedScale = 1.15f, tapOptics = 1f, tapOpticsFold = 1f,
         )
 
@@ -2523,6 +2559,18 @@ internal const val GlassSelectorRimMirror = 0.3f
  * At the tap's 0.3 ours kept the icon nearly unbent to a hard edge; 1.0 sweeps it as iOS's does, judged by eye on
  * that window against 0.3, 0.6 and 0.6 with gain 0.4. Taps keep [GlassSelectorRimMirror], which keeps their labels. Authored. */
 internal const val GlassSelectorHeldRimMirror = 1.0f
+
+/** How far a formed lens on the tab beside a yielding accessory leans toward it (#107): iOS's held lens on Keypad
+ * spans x 605-920 against ours 585-905, the same width 17 px further out, over the search button's edge
+ * (IMG_6756 35.45-35.55 s, 3x scene px). Measured. */
+internal val GlassAccessoryLensLean = 5.7.dp
+
+/** 1 while the lens is held or released from a hold, else 0: a tap in transit leans and stretches nothing (#107). */
+private fun heldGate(controller: GlassPoseController): Float =
+    if (controller.mode == GlassPoseMode.Held || controller.mode == GlassPoseMode.Released) 1f else 0f
+/** How much longer that lens grows at its accessory end (#107): iOS's spans x 603-955 there, about 32 px wider than
+ * ours, its outline crossing over the search button (IMG_6756 35.5 s, 3x scene px). Measured. */
+internal val GlassAccessoryLensReach = 10.7.dp
 
 /** Light `Calm()`'s bar as the preset builds it: the top shade is for exactly this bar (#128). */
 private val CalmLightBar by lazy { GlassTabBarStyle.Calm(dark = false).bar }
