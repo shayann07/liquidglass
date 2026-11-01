@@ -379,6 +379,13 @@ internal data class GlassPoseSpec(
      * falls once its hold expires. Zero uses [formOmega]. Authored against IMG_6756 (iOS 27).
      */
     val releaseStillFadeOmega: Float = 0f,
+    /**
+     * Opt-in: light added to the ink seen through a held lens (#105). iOS 27 brightens the selected
+     * ink from (7,151,255) to about (26,174,255) under a held lens (IMG_6756 34.9-36.1 s; JGEY2190,
+     * LOLL8185, docs/2 alike; light IMG_7048 (0,132,250) to (23,146,255)), +18-23 levels a channel,
+     * and lets it go over about .35 s after the lift. Measured; one level for all channels is authored.
+     */
+    val heldInkLift: Float = 0f,
 ) {
     internal val spineLimitSlots: Float get() = max(elongationSlots, tapSpineLimitSlots)
 
@@ -475,7 +482,7 @@ internal data class GlassPoseSpec(
         val Calm = CalmWallLanding.copy(heldTravelStrain = .6f, heldTravelStrainOmega = 10f,
             heldReferenceSpeed = 8f, heldSquircle = .7f, formFromMovement = 1f, formRiseOmega = 75f,
             pressFormation = 0f, holdThresholdSeconds = .110f, heldFormRiseOmega = 26f,
-            releaseStillHoldSeconds = .035f, releaseStillFadeOmega = 100f, barPressDelaySeconds = .075f, barPressStiffness = 1700f)
+            releaseStillHoldSeconds = .035f, releaseStillFadeOmega = 100f, barPressDelaySeconds = .075f, barPressStiffness = 1700f, heldInkLift = 22f / 255f)
     }
 }
 
