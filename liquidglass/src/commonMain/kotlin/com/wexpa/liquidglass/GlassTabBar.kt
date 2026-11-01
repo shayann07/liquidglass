@@ -202,7 +202,8 @@ internal fun GlassTabBar(
                 awaitPointerEventScope {
                     while (true) {
                         val e = awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
-                        if (e.changes.any { it.pressed }) focusRing.pointerSinceKey = true
+                        // A press, not a held pointer moving: a key pressed mid-hold must still bring the ring back.
+                        if (e.changes.any { it.pressed && !it.previousPressed }) focusRing.pointerSinceKey = true
                     }
                 }
             }
