@@ -1127,8 +1127,33 @@ internal fun GlassTabBar(
                 // republish when the bar's press moves while the pose loop may be asleep.
                 if (poseHandle != null) {
                     val barFrame = barDrawing
-                    poseHandle.barShift = barFrame?.let { state ->
+                    val pressShift: ((Float) -> Float)? = barFrame?.let { state ->
                         { x: Float -> (state.drawing.contentPoint(x, barHeightPx / 2f).x - x) * (itemShare?.invoke() ?: 1f) }
+                    }
+                    // #107: on the tab beside an accessory that yields to the lens, the formed lens leans toward it,
+                    // past the bar's end and over the accessory's edge (iOS: the same width, 17 px further out).
+                    val leanPx = if (trailingAccessory?.yieldsToLens == true) with(density) { GlassAccessoryLensLean.toPx() } else 0f
+                    poseHandle.barShift = if (leanPx <= 0f) pressShift else {
+                        val endCentre = geometry.centreOf(if (rtl) 0 else itemCount - 1)
+                        val half = geometry.slotWidth / 2f
+                        val controller = poseHandle.controller
+                        val shift: (Float) -> Float = { x ->
+                            val near = (1f - abs(x - endCentre) / half).coerceIn(0f, 1f)
+                            (pressShift?.invoke(x) ?: 0f) +
+                                (if (rtl) -1f else 1f) * leanPx * near * controller.formation.coerceIn(0f, 1f)
+                        }
+                        shift
+                    }
+                    poseHandle.endStretch = if (leanPx <= 0f) null else {
+                        val endCentre = geometry.centreOf(if (rtl) 0 else itemCount - 1)
+                        val half = geometry.slotWidth / 2f
+                        val reachPx = with(density) { GlassAccessoryLensReach.toPx() }
+                        val controller = poseHandle.controller
+                        val stretch: (Float) -> Float = { x ->
+                            val near = (1f - abs(x - endCentre) / half).coerceIn(0f, 1f)
+                            (if (rtl) -1f else 1f) * reachPx * near * controller.formation.coerceIn(0f, 1f)
+                        }
+                        stretch
                     }
                     LaunchedEffect(poseHandle, barFrame) {
                         if (barFrame != null) snapshotFlow { barFrame.drawing }.collect { poseHandle.publish() }
@@ -2431,6 +2456,14 @@ internal fun glassSelectorMaterial(style: GlassTabBarStyle, formation: Float, tr
  * transit stretches content about 15 px into the rim, docs/1 0.95-1.12 s, where the full band mirrored the
  * label away). */
 internal const val GlassSelectorRimMirror = 0.3f
+
+/** How far a formed lens on the tab beside a yielding accessory leans toward it (#107): iOS's held lens on Keypad
+ * spans x 605-920 against ours 585-905, the same width 17 px further out, over the search button's edge
+ * (IMG_6756 35.45-35.55 s, 3x scene px). Measured. */
+internal val GlassAccessoryLensLean = 5.7.dp
+/** How much longer that lens grows at its accessory end (#107): iOS's spans x 603-955 there, about 32 px wider than
+ * ours, its outline crossing over the search button (IMG_6756 35.5 s, 3x scene px). Measured. */
+internal val GlassAccessoryLensReach = 10.7.dp
 /** Radial draw of the moving selector's mirrored caps (authored, 2026-10-14 second pass; 26 October 0.15,
  * was 0.4: near 0 the rim repeats the band's inner content, a stretch rather than a mirror, as iOS's is). */
 internal const val GlassSelectorRimGain = 0.15f

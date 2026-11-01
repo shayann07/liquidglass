@@ -352,6 +352,12 @@ internal class GlassPoseHandle(val controller: GlassPoseController) {
      * 2026-10-15 pass 13). Navigation, touch and selection stay in the controller's frame.
      */
     var barShift: ((Float) -> Float)? = null
+    /**
+     * How far the drawn body stretches at one end, px, at a bar-local x, or null: positive grows its right end,
+     * negative its left; the other end stays. A held lens beside an accessory that yields to it reaches over the
+     * accessory's edge (#107). Drawing only: navigation, touch and selection stay in the controller's frame.
+     */
+    var endStretch: ((Float) -> Float)? = null
     /** The current [barShift] at the controller's centre, applied by [publish]. */
     var barShiftX: Float = 0f
         private set
@@ -395,7 +401,15 @@ internal class GlassPoseHandle(val controller: GlassPoseController) {
             controller.frame,
             dx = nodeLeft().toFloat() + envelopeWidth / 2f - barShiftX,
             dy = nodeTop().toFloat() + nodeHeight / 2f,
-        )
+        ).also { r ->
+            val stretch = endStretch?.invoke(controller.centreX) ?: 0f
+            if (stretch != 0f) {
+                // Half the stretch lengthens the spine about the centre and half moves the centre, so only one end moves.
+                r.d[0] += kotlin.math.abs(stretch) / 2f
+                r.c[0] += stretch / 2f
+                if (stretch > 0f) right += stretch else left += stretch
+            }
+        }
         resolvePress()
     }
 
