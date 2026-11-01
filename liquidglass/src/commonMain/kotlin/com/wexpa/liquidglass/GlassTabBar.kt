@@ -50,7 +50,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
@@ -301,6 +303,13 @@ internal fun GlassTabBar(
             }
         }
         val held = poseHandle?.held ?: handle?.held ?: v2Held
+        // GlassPoseSpec.heldInkLift: rises within 80 ms of the hold, lets go over about .35 s after the lift.
+        val heldInkLift = poseHandle?.controller?.spec?.heldInkLift ?: 0f
+        val inkLift by animateFloatAsState(
+            targetValue = if (held && heldInkLift > 0f) heldInkLift else 0f,
+            animationSpec = if (held) tween(80) else tween(350),
+            label = "glass_tab_bar_ink_lift",
+        )
 
         fun settleTo(target: Float, initialVelocity: Float, spec: AnimationSpec<Float>) {
             motion?.cancel()
@@ -1154,7 +1163,8 @@ internal fun GlassTabBar(
                                 // everything after it at the bar's size), so the press pivots on
                                 // the bar centre: passing the node origin moved the held ink about
                                 // 17 px left and 10 up of the bar's own icons (video2, 1.8 s).
-                                .glassMaterialForeground(barDrawing, share = itemShare),
+                                .glassMaterialForeground(barDrawing, share = itemShare)
+                                .glassInkLift(inkLift),
                         ) {
                             ItemRow(
                                 count = itemCount,
@@ -2431,3 +2441,15 @@ internal fun androidx.compose.ui.graphics.drawscope.DrawScope.drawGlassFocusRing
 
 /** iOS's keyboard focus ring colour (system blue, dark appearance). */
 internal val GlassFocusRingColor = Color(0xFF0A84FF)
+/** [GlassPoseSpec.heldInkLift]: adds [amount] of light to every channel of the ink drawn here. A
+ * colour filter leaves transparent pixels transparent, so only the ink brightens. */
+private fun Modifier.glassInkLift(amount: Float): Modifier = if (amount <= 0f) this else drawWithContent {
+    drawIntoCanvas { canvas ->
+        val paint = androidx.compose.ui.graphics.Paint().apply {
+            colorFilter = androidx.compose.ui.graphics.ColorFilter.lighting(Color.White, Color(amount, amount, amount))
+        }
+        canvas.saveLayer(androidx.compose.ui.geometry.Rect(androidx.compose.ui.geometry.Offset.Zero, size), paint)
+        drawContent()
+        canvas.restore()
+    }
+}
