@@ -36,6 +36,15 @@ internal static class FreeButtonChecks
                 var o = button.Sample(t);
                 worstPx = Math.Max(worstPx, Math.Max(Math.Abs(o.OffsetX - f[6]), Math.Max(Math.Abs(o.OffsetY - f[7]), Math.Abs(o.PullX - f[8]))));
                 worstScalar = Math.Max(worstScalar, new[] { o.Glow - f[1], o.PressScale - f[2], o.Along - f[3], o.Across - f[4] }.Max(Math.Abs));
+                static double[] Matrix(double u, double v, double degrees)
+                {
+                    var c = Math.Cos(degrees * Math.PI / 180);
+                    var s = Math.Sin(degrees * Math.PI / 180);
+                    return [u*c*c+v*s*s, (u-v)*c*s, u*s*s+v*c*c];
+                }
+                var actual = Matrix(o.Along, o.Across, o.Angle);
+                var expected = Matrix(f[3], f[4], f[5]);
+                for (var axis = 0; axis < 3; axis++) worstScalar = Math.Max(worstScalar, Math.Abs(actual[axis] - expected[axis]));
                 frames++;
             }
         }

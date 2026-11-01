@@ -291,7 +291,6 @@ function animated(initial) {
 export function createFreeButton({size, density = 1, pressScale = 1.26, pressGrowth = 8, pressLift = .2,
   pullFollow = .2, pullElongation = .124, pullWidthRatio = 1, pullLimit = .5, pullLiftShare = .65,
   pullReleaseDampingX = .3} = {}) {
-  const uprightPull = true; // Internal correction for the existing free-button role.
   if (!(size > 0) || !(density > 0)) throw new RangeError('Positive size and density required');
   const growth = pressGrowth * density, radius = size / 2;
   const balloon = Math.min(1 + 2 * growth / size, pressScale);
@@ -321,11 +320,6 @@ export function createFreeButton({size, density = 1, pressScale = 1.26, pressGro
     return {along: axis * k, across: side * (1 + .2 * (1 - k)), angle: anchor,
       tx: centre * nx - perp * ny, ty: centre * ny + perp * nx};
   }
-  const snapCardinal = deg => {
-    const n = deg / 90;
-    const i = Math.floor(n), f = n - i;
-    return (Math.abs(f - 0.5) < 1e-6 ? (Math.abs(i % 2) === 0 ? i : i + 1) : Math.round(n)) * 90;
-  };
   return {
     down(time) {
       moved = false;
@@ -337,7 +331,7 @@ export function createFreeButton({size, density = 1, pressScale = 1.26, pressGro
       if (!moved && len > 4 * density) { moved = true; glow.to(time, pullLiftShare, FREE_SPECS.freeGlow); }
       if (len > 4 * density) {
         const raw = Math.atan2(dy, dx) * 180 / Math.PI;
-        anchor = uprightPull ? snapCardinal(raw) : raw;
+        anchor = raw;
       }
       const travel = len * pullFollow;
       const k = !(len > 1e-5) || pullFollow <= 0 ? 1 : limit * Math.tanh(travel / limit) / travel;
@@ -365,6 +359,9 @@ export function createFreeButton({size, density = 1, pressScale = 1.26, pressGro
           angle: -90, tx: pullFollow * x, ty: pullFollow * y};
       }
       d = landing(d);
+      const a = d.angle * Math.PI / 180, nx2 = Math.cos(a) ** 2, ny2 = Math.sin(a) ** 2;
+      d = {...d, along: d.along * ny2 + d.across * nx2,
+        across: d.along * nx2 + d.across * ny2, angle: -90};
       const g = glow.value(time);
       return {...d, pressScale: scale, glow: g, lift: g * pressLift, pullX: x};
     },

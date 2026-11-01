@@ -294,11 +294,11 @@ private fun GlassOverlay(region: GlassRegion, modifier: Modifier) {
 @Composable
 private fun OverlayGlass(region: GlassRegion, entry: GlassOverlayEntry) {
     val flashAlpha = remember { Animatable(1f) }
-    val lastAnimatedPress = remember { intArrayOf(0) }
-    val isNewPress = entry.press.pressCount != lastAnimatedPress[0] && entry.press.isPressed
+    var lastAnimatedPress by remember { mutableIntStateOf(0) }
+    val isNewPress = entry.press.pressCount != lastAnimatedPress && entry.press.isPressed
     LaunchedEffect(entry.press.pressCount) {
         if (entry.press.pressCount > 0 && entry.interaction?.pressFlash == true) {
-            lastAnimatedPress[0] = entry.press.pressCount
+            lastAnimatedPress = entry.press.pressCount
             flashAlpha.snapTo(128f / 255f)
             flashAlpha.animateTo(1f, animationSpec = tween(durationMillis = 50, easing = LinearEasing))
         }

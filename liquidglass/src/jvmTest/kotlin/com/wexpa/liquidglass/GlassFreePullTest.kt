@@ -13,6 +13,26 @@ import kotlin.test.assertTrue
 class GlassFreePullTest {
     private val free = GlassInteraction.Pullable.copy(pullShape = GlassPullShape.Free)
 
+    @Test fun landingProjectionRemainsContinuousAcrossDiagonalAnchors() {
+        fun landed(degrees: Float, displacement: Float): GlassPullDeformation {
+            val radians = degrees * (kotlin.math.PI.toFloat() / 180f)
+            val raw = glassPullDeformation(displacement * cos(radians), displacement * sin(radians),
+                186f, .124f, 1f, .2f, upright = true)
+            return glassUprightPull(glassFreeLanding(raw, degrees, 93f))
+        }
+        for (diagonal in listOf(-135f, -45f, 45f, 135f)) {
+            for (displacement in listOf(-150f, -80f, -20f, 0f, 20f, 80f, 150f)) {
+                val a = landed(diagonal - .01f, displacement)
+                val b = landed(diagonal + .01f, displacement)
+                assertEquals(a.along, b.along, .001f)
+                assertEquals(a.across, b.across, .001f)
+                assertEquals(a.translationX, b.translationX, .1f)
+                assertEquals(a.translationY, b.translationY, .1f)
+                assertEquals(-90f, a.angleDegrees, .001f)
+            }
+        }
+    }
+
     @Test fun diagonalPullRemainsContinuousAcrossEqualAxes() {
         fun horizontalScale(degrees: Float): Float {
             val radians = degrees * (kotlin.math.PI.toFloat() / 180f)

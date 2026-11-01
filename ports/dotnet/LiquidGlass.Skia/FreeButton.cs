@@ -81,7 +81,6 @@ public sealed class FreeButton
     }
 
     private readonly double size, radius, density, balloon, limit, pressLift, follow, elongation, widthRatio, liftShare;
-    private const bool uprightPull = true;
     private readonly Animated press = new(0), glow = new(0), px = new(0), py = new(0);
     private double anchor = double.NaN;
     private readonly Spec releaseX;
@@ -115,7 +114,7 @@ public sealed class FreeButton
         if (len > 4 * density)
         {
             var raw = Math.Atan2(dy, dx) * 180 / Math.PI;
-            anchor = uprightPull ? Math.Round(raw / 90) * 90 : raw;
+            anchor = raw;
         }
         var travel = len * follow;
         var k = !(len > 1e-5) || follow <= 0 ? 1 : limit * Math.Tanh(travel / limit) / travel;
@@ -147,6 +146,11 @@ public sealed class FreeButton
             tx = follow * x; ty = follow * y;
         }
         (along, across, angle, tx, ty) = Landing(along, across, angle, tx, ty);
+        var landingAngle = angle * Math.PI / 180;
+        var lx2 = Math.Pow(Math.Cos(landingAngle), 2);
+        var ly2 = Math.Pow(Math.Sin(landingAngle), 2);
+        (along, across) = (along * ly2 + across * lx2, along * lx2 + across * ly2);
+        angle = -90;
         var g = glow.Value(time);
         return new(scale, along, across, angle, tx, ty, g, g * pressLift, x);
     }

@@ -65,10 +65,7 @@ class GlassFreePullPortFixtureTest {
                     "move" -> {
                         val len = hypot(c.x, c.y)
                         if (!moved && len > 4f * density) { moved = true; glow.to(c.t, interaction.pullLiftShare, GlassMotion.FreeGlow) }
-                        if (len > 4f * density) anchor = if (interaction.uprightPull)
-                            kotlin.math.round(atan2(c.y, c.x) * (180f / kotlin.math.PI.toFloat()) / 90f) * 90f
-                        else
-                            atan2(c.y, c.x) * (180f / kotlin.math.PI.toFloat())
+                        if (len > 4f * density) anchor = atan2(c.y, c.x) * (180f / kotlin.math.PI.toFloat())
                         val k = glassPullTargetScale(len, interaction.pullFollow, limit)
                         px.to(c.t, c.x * k, GlassMotion.PullFollow); py.to(c.t, c.y * k, GlassMotion.PullFollow)
                     }
@@ -88,7 +85,7 @@ class GlassFreePullPortFixtureTest {
             val raw = glassMaterialPull(size, size, size / 2f, density, pressScale, pressScale,
                 px.value(tf), py.value(tf), limit, interaction)
             val a = anchor * (kotlin.math.PI.toFloat() / 180f)
-            val d = glassFreeLanding(raw, anchor, hypot(size / 2f * cos(a), size / 2f * sin(a)))
+            val d = glassUprightPull(glassFreeLanding(raw, anchor, hypot(size / 2f * cos(a), size / 2f * sin(a))))
             if (frames.isNotEmpty()) frames.append(",")
             frames.append("[%.9f,%.6f,%.6f,%.6f,%.6f,%.6f,%.4f,%.4f,%.4f]".format(java.util.Locale.ROOT,
                 tf, glow.value(tf), pressScale, d.along, d.across, d.angleDegrees, d.translationX, d.translationY,
@@ -116,6 +113,12 @@ class GlassFreePullPortFixtureTest {
         }
         list += scenario("tap", 1.0, listOf(Call(.1, "down"), Call(.22, "up")))
         list += scenario("still-press", 1.8, listOf(Call(.1, "down"), Call(1.0, "up")))
+        // Authored continuity cases: both sides of every diagonal, including full release.
+        for (diagonal in listOf(-135f, -45f, 45f, 135f)) for (offset in listOf(-.01f, .01f)) {
+            val angle = (diagonal + offset) * (kotlin.math.PI.toFloat() / 180f)
+            list += scenario("diagonal-${diagonal + offset}", 2.0,
+                listOf(Call(.1, "down"), Call(.5, "move", 300f * cos(angle), 300f * sin(angle)), Call(1.0, "up")))
+        }
         return list
     }
 

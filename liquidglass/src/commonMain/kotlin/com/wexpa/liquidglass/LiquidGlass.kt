@@ -270,6 +270,7 @@ internal fun Modifier.liquidGlass(
     body = null,
     endpointComposite = false,
     materialDrawing = link?.drawing,
+    clipThroughToBounds = through != null && link?.barState === through,
 )
 
 /**
@@ -316,6 +317,8 @@ internal fun Modifier.liquidGlassCore(
     materialDrawing: GlassMaterialDrawingState? = null,
     /** Navigation inset tint is confined to this underlying material's actual shape. */
     tintWithinThrough: GlassMaterialDrawingState? = null,
+    /** Exclude the linked accessory silhouette from its own sampled bar recording. */
+    clipThroughToBounds: Boolean = false,
 ): Modifier = composed {
     val glassLayer = rememberGraphicsLayer()
     val endpointLayer = rememberGraphicsLayer()
@@ -472,7 +475,7 @@ internal fun Modifier.liquidGlassCore(
     if (pullDown && interaction?.pullShape == GlassPullShape.Free &&
         kotlin.math.hypot(press.pullX, press.pullY) > 4f * density.density) {
         val rawAnchor = kotlin.math.atan2(press.pullY, press.pullX) * (180f / kotlin.math.PI.toFloat())
-        freeAnchor = if (interaction?.uprightPull == true) kotlin.math.round(rawAnchor / 90f) * 90f else rawAnchor
+        freeAnchor = rawAnchor
     }
     val pullDeformation = if (pullEnabled && interaction != null) {
         // The element's extent along the pull, as it is while pressed.
@@ -485,7 +488,7 @@ internal fun Modifier.liquidGlassCore(
                 // The resting half extent along the anchor (a round button: its radius).
                 val a = freeAnchor * (kotlin.math.PI.toFloat() / 180f)
                 glassFreeLanding(it, freeAnchor, kotlin.math.hypot(measured.width / 2f * kotlin.math.cos(a),
-                    measured.height / 2f * kotlin.math.sin(a)))
+                    measured.height / 2f * kotlin.math.sin(a))).let { landed -> if (interaction.uprightPull) glassUprightPull(landed) else landed }
             }
         }.let {
             // Scaling the extra reach about the centre, then moving it toward the finger by half
@@ -794,7 +797,15 @@ internal fun Modifier.liquidGlassCore(
                             scale(wideScale * rs, wideScale * rs, pivot = Offset.Zero) {
                                 translate(-effectiveDelta.x + pad, -effectiveDelta.y + pad) { drawLayer(source) }
                                 if (throughLayer != null && effectiveThroughDelta != null) {
-                                    translate(-effectiveThroughDelta.x + pad, -effectiveThroughDelta.y + pad) { drawLayer(throughLayer) }
+                                    translate(-effectiveThroughDelta.x + pad, -effectiveThroughDelta.y + pad) {
+                                        // The bar recording includes its fused accessory silhouette outside
+                                        // its own bounds. Do not feed that copy back into the accessory.
+                                        if (clipThroughToBounds && through != null) {
+                                            clipRect(0f, 0f, through.sourceSize.width.toFloat(), through.sourceSize.height.toFloat()) {
+                                                drawLayer(throughLayer)
+                                            }
+                                        } else drawLayer(throughLayer)
+                                    }
                                 }
                             }
                         }
@@ -828,7 +839,15 @@ internal fun Modifier.liquidGlassCore(
                         // Whatever sits between this panel and the backdrop goes on top of it,
                         // in this panel's frame, so the rim refracts that too.
                         if (throughLayer != null && effectiveThroughDelta != null) {
-                            translate(-effectiveThroughDelta.x + pad, -effectiveThroughDelta.y + pad) { drawLayer(throughLayer) }
+                            translate(-effectiveThroughDelta.x + pad, -effectiveThroughDelta.y + pad) {
+                                        // The bar recording includes its fused accessory silhouette outside
+                                        // its own bounds. Do not feed that copy back into the accessory.
+                                        if (clipThroughToBounds && through != null) {
+                                            clipRect(0f, 0f, through.sourceSize.width.toFloat(), through.sourceSize.height.toFloat()) {
+                                                drawLayer(throughLayer)
+                                            }
+                                        } else drawLayer(throughLayer)
+                                    }
                             // And a share of the raw backdrop again, added on top (rawShare).
                             if (blurRaw) {
                                 // Recorded at the padded size in device px: undo this layer's scale.

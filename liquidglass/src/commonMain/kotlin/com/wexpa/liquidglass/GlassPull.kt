@@ -118,6 +118,15 @@ internal fun glassPullDeformation(
     )
 }
 
+/** Keep the free button upright through landing as well as pulling, without axis snapping. */
+internal fun glassUprightPull(pull: GlassPullDeformation): GlassPullDeformation {
+    val angle = pull.angleDegrees * (kotlin.math.PI.toFloat() / 180f)
+    val nx2 = cos(angle) * cos(angle)
+    val ny2 = sin(angle) * sin(angle)
+    return pull.copy(along = pull.along * ny2 + pull.across * nx2,
+        across = pull.along * nx2 + pull.across * ny2, angleDegrees = -90f)
+}
+
 /**
  * [GlassPullShape.Free]'s landing: the body's edge on the side away from the pull ([anchorDegrees],
  * the direction it was pulled in) does not pass its resting position, so when the release carries
