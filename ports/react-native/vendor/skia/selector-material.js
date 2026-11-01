@@ -97,7 +97,8 @@ export function calmMaterialUniforms(values, density = 1) {
   const out = {};
   for (const [key, value] of Object.entries(values)) {
     if (HOST.has(key)) continue;
-    out[key] = DATA.dpFields.includes(key) ? value * density : value;
+    // The bar's top shade (#128) is [strength, reach dp]: only its reach is a length.
+    out[key] = key === 'uTopShade' ? [value[0], value[1] * density] : DATA.dpFields.includes(key) ? value * density : value;
   }
   return out;
 }
