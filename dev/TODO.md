@@ -18,28 +18,36 @@ or closed. Claude merges; no tag or release. Merged to main, in order:
 | #136 | — | Audit section W: independent verification of the agents' hand-off |
 | #132 | #119 | A fast scrub no longer flattens the held lens to half the bar (min height 139 px, was 102) |
 | #151 | #94, #111 | A thrown lens no longer cuts the label it lands on: docs/2 724 label px (iOS 854, main 457) |
+| #152 | #149 | A still hold no longer falls asleep before its lens forms (a bug since #133, found replaying docs/2 5.4 s) |
+| #158 | #129 | Sample: Calls and Contacts glyph figures are cut-outs, not painted fills |
+| #156, #160 | #94 | The bottom-band narrowing applies only where the style widened the band (Calm); Flutter fixture regenerated |
+| #154 | #145 | Large Content Viewer for held tabs at text scale 1.5 and above |
+| #157 | #143 | Focus ring hidden after a pointer press until the next key, including after focus leaves and returns |
+| #162 | #128 | Light Calm bar shadow is a faint band below it, not a halo: gap 255 (iOS 255, was 251). Calm light recalibrated |
+| #163 | — | README: accessible by default |
+| #159 | #109 | The resting dark Calm bar's rim dims through its caps (IMG_6756 3.1 levels rms, was 8.4); #109 reopened for the button rim |
 
 #127 (Android XML interop) was closed for its public API size; #140 describes the acceptable scope. #137 was
 answered and closed (no .NET Framework target; a caller-owned SKCanvas works). Split out: #145 (Large Content
 Viewer) and #149 (release rebound). CI: the build job has 90 min, and every runComposeUiTest has a 4 min timeout.
 
-In flight at this writing (evening):
-- Open PRs: #135 (#125, search button; motion fixture regenerated after rebase), #152 (a still hold slept before
-  its lens formed: a bug since #133, found replaying docs/2 5.4 s), #153 (#117, pointer hover lift), #154 (#145,
-  large content viewer). CI runs their suites; local focused tests and renders are queued.
-- Branches with code, waiting for a render or test: `fix/129-glyph-cutouts` (sample glyph cut-outs),
-  `fix/128-light-contact-shadow` (light bar shadow as a band below the bar; iOS's gap 255, ours 251),
-  `fix/149-release-settle` (slow moving release; re-render on top of #152 first, since docs/2's 5.8 s lift is
-  a still release whose lens never formed), `fix/109-cap-rim-fade` (resting rim dims through the caps; baseline 8.4
-  levels rms), `docs/readme-accessibility` (after #153 and #154).
+In flight at this writing (late evening):
+- Open PRs: #164 (#161, right-to-left tab bars: the selector and gestures follow the mirrored tabs; review fixes
+  in), #135 (#125, search button optics; full suite green locally), #153 (#117, pointer hover lift: the failing
+  test counted only near-white pixels, so a 0.6 px edge lift never showed; coverage-weighted area now reads +49.5
+  px against +49.4), #166 (#128, light Calm bar top shade, opt-in `GlassStyle.topShade`: 0.85 levels rms down
+  the bar, was 3.15).
+- Waiting on a decision: #107 (the held lens should draw over the search button, which needs the button as a tab
+  bar slot: public API).
+- #128 stays open for items 2-4 (the light bar's top 40 px are darker on iOS: 240-243 against 245).
 
-Measured and recorded on the issues tonight: #149 (per-frame release heights), #110 closed (item 117 not
-reproduced: iOS's Keypad dots spread 1.7 levels, as ours do), #122 item 3 not reproduced (iOS switches the page
-at the lift on every JGEY2190 tap but one), #128 cause (the light shadow's 11-22 dp blur, doubled in the gap).
+Measured and recorded on the issues tonight: #149 (per-frame release heights; a lower release conflicts with the
+IMG_6756 still-release fit, branch dropped), #110 closed (item 117 not reproduced), #122 item 3 not reproduced,
+#108 item 110 (navy rows 5-7 against iOS 1-3), #111 item 125 (label low row 607-615 against iOS 618-627), #70 on
+current main (the plateau now holds through 183 ms; a +10 bump at 150-167 ms and a fall about 30 ms late remain).
 
 Open, measured, not yet fixed:
-- #108 item 110: navy band rows inside a held lens (iOS 1-2, ours 8-12 on 26 Oct); re-measure on current main.
-- #94 items 23-31, 73, 74 (tap transit); #121 side caps and mirror swirl; #70 tap plateau.
+- #92 rim outline and specular items; #108; #111; #121 side caps and mirror swirl; #94 tap transit items; #70.
 - #81: bounded-resolution EDT. #118: adaptive quality is a public API decision. #100: needs the Pixel 7.
 
 Resume notes with commands: `.local/sxs/CLAUDE-SESSION-NOTES.md` (private).
@@ -154,7 +162,10 @@ description fix alone.
   a 265-286 ms Vulkan pipeline for the glass shader. GlassPadFloor holds the largest pad: first-tap slowest
   frame 326-352 -> 67-91 ms (measure.sh CLEAR=1), cold start medians 135.5 / 136 ms (alternated).
   Baseline profile removed (no measurable gain with or without the fix). review/atlas/first-tap-fix-2026-10-20.
-- [ ] **#70 tap pill plateau ends ~50 ms early.** Scored with `.local/sxs` (main checkout):
+- [ ] **#70 two-tab taps arrive ~40 ms late.** Re-measured 1 Nov on main (docs/1): the plateau now holds through
+  183 ms as iOS's does (the ~50 ms early end of 20 Oct is gone). What remains is a +10 bump at 150-167 ms that comes
+  only from two-tab taps, whose selector arrives ~40 ms after iOS's (220 against 170 ms); one-tab taps line up.
+  A distance-dependent tap duration needs fitting against all recordings (#94 transit). Scored with `.local/sxs` (main checkout):
   rrw.sh renders a replay (WT=worktree), taparrive.py / tapprofile.py score it, run from the repo
   root. A fall-omega change was tried and rejected 20 Oct (review/atlas/reference-replay-2026-10-13
   README). Any change opt-in or scored against all five recordings, reported in that README.
