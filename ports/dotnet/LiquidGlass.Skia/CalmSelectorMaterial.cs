@@ -110,7 +110,9 @@ public static class CalmSelectorMaterial
             }
             if (folded > 0 || (style.TapOpticsFold > 0 && (f >= .5f || h > 0)))
             {
-                values["uFoldCorners"] = [fold["foldCorners"]]; values["uRimMirror"] = [fold["rimMirror"]];
+                // A held lens as it travels keeps its own, wider mirror band (#121); a fold keeps the tap's.
+                values["uFoldCorners"] = [fold["foldCorners"]];
+                values["uRimMirror"] = [folded > 0 || h <= 0 ? fold["rimMirror"] : fold.GetValueOrDefault("heldRimMirror", fold["rimMirror"])];
                 values["uRimMirrorGain"] = [fold["rimMirrorGain"]];
                 // The rim split (Compose glassSelectorMaterial, #73): the moving value in transit; a held
                 // lens's split rises from the still value with its travel, its ink taking a share of it.
