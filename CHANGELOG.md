@@ -39,6 +39,12 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   (was ~335 px). In dark appearance, the lens cleanly overlaps the search button without necking or bridging,
   and the soft grey disc on Pixel 7 light is eliminated.
   [Evidence](review/atlas/held-bar-geometry-2026-10-28/README.md).
+- Tab bar (Calm): during fast back-and-forth scrubbing (video 2 18.7–22.0 s), the held lens no longer
+  overshoots its steady-state strain or crushes to half height (103 px against a 590 px flattened width).
+  Rapid direction reversals decay accumulated strainDrive and suppress the scrub target, maintaining a
+  minimum lens height of ~139 px (160 px at 20.0 s vs 102 px previously) and relaxing towards the
+  unstrained ~370 × 186 px full-height travelling capsule (#119).
+  [Evidence](review/atlas/scrub-flattening-2026-10-27/README.md).
 - Tab bar (Calm): the held lens's outline is a squircle, not a capsule: it blends .7 of the way toward a
   superellipse with n = 3, the shape iOS's held lens fits, so its top runs flatter and its shoulders squarer. The
   resting selector stays a capsule. The ports draw the same outline (#93).

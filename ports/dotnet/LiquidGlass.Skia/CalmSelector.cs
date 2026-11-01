@@ -318,7 +318,8 @@ public sealed class CalmSelectorController
     private double tapDistance, now, pressStart, downX, downY, lastSampleAt, graspQx, graspQy, graspY0, slowFor,
         pointerX, pointerY, pointerVx, pointerVy, lastPointerX, lastPointerY, lastPointerTime, pointerClockOrigin,
         pointerSimulationOrigin, accelX, accelY, lastVx, lastVy, inkHalfHeight, formLast,
-        accommodationGrasp = double.NaN, accommodationGraspY = double.NaN, accommodationPressure = double.NaN, accommodationDemand;
+        accommodationGrasp = double.NaN, accommodationGraspY = double.NaN, accommodationPressure = double.NaN, accommodationDemand,
+        heldTravelDirection, reversalInterval = 1;
     private int requestedIndex, quietSteps, admittedNeighbour = -1;
     private double[] itemLeft = [], itemRight = [], itemCentre = [];
     private double shapeVelX, shapeVelY;
@@ -607,11 +608,35 @@ public sealed class CalmSelectorController
         if (s.HeldTravelStrain > 0)
         {
             // Sustained held travel builds the strain; a short flick releases before it has.
-            strainDrive.Target = Mode == CalmSelectorMode.Held && MotionEnabled ? sv * formation : 0;
+            double scrubSuppression;
+            if (Mode == CalmSelectorMode.Held && MotionEnabled)
+            {
+                reversalInterval += dt;
+                var scrubDir = Math.Abs(nvx) > 0.1 ? (nvx > 0 ? 1.0 : -1.0) : 0.0;
+                if (scrubDir != 0 && heldTravelDirection != 0 && scrubDir != heldTravelDirection)
+                {
+                    var rapid = reversalInterval < 0.28;
+                    var decay = rapid ? 0.40 : 0.85;
+                    strainDrive.Value *= decay;
+                    strainDrive.Velocity = 0;
+                    reversalInterval = 0;
+                }
+                if (scrubDir != 0) heldTravelDirection = scrubDir;
+                scrubSuppression = Math.Clamp(reversalInterval / 0.25, 0.15, 1.0);
+            }
+            else
+            {
+                heldTravelDirection = 0;
+                reversalInterval = 1;
+                scrubSuppression = 1.0;
+            }
+            strainDrive.Target = Mode == CalmSelectorMode.Held && MotionEnabled ? sv * formation * scrubSuppression : 0;
             strainDrive.Step(dt, s.HeldTravelStrainOmega, 1);
             if (Math.Abs(strainDrive.Value) < 1e-4 && Math.Abs(strainDrive.Velocity) < .002 && strainDrive.Target == 0) strainDrive.SnapTo(0);
         }
-        equilibrium.U = gain * (nvx * nvx - .5 * speed2) / denom + pullU + s.HeldTravelStrain * strainDrive.Value;
+        var maxHeldStrain = Math.Min(s.HeldTravelStrain, s.MaxStrain * 0.80);
+        var heldTravelU = Math.Clamp(s.HeldTravelStrain * strainDrive.Value, 0.0, maxHeldStrain);
+        equilibrium.U = gain * (nvx * nvx - .5 * speed2) / denom + pullU + heldTravelU;
         equilibrium.V = gain * (nvx * nvy) / denom + pullV;
         var held = HeldPressure(s.HeldHeightRatio, b.Height, refr.Height);
         var squeeze = Mode == CalmSelectorMode.Held ? s.Squeeze * sv : 0;
