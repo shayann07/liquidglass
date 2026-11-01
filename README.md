@@ -134,8 +134,8 @@ Content Viewer does. In right-to-left layouts its shared-width slots mirror, and
 the tab you touch (fixed `slotWidth` layouts keep the positions you gave them). See [Accessibility](docs/accessibility.md) and [Right-to-left layouts](docs/tab-bar.md#right-to-left-layouts).
 
 **Cost you can bound.** `renderScale` trades the rim's finest detail for fill rate, and on Android
-`LocalGlassAdaptiveQuality` (opt-in) lowers it by itself while frames are being missed and restores it once they are not,
-never in the middle of a gesture. See [Performance](docs/performance.md#letting-the-theme-lower-it-by-itself).
+`LocalGlassAdaptiveQuality` (opt-in) lowers it by itself while frames are being missed and steps it back up, one step at a
+time, after 3 s without a missed frame; no step lands in the middle of a gesture. See [Performance](docs/performance.md#letting-the-theme-lower-it-by-itself).
 
 **One material, every stack.** Compose, the web component, React Native, Flutter and .NET all run the
 same production shader, generated from one source and checked against each other in CI.
