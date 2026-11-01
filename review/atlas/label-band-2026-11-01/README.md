@@ -18,6 +18,12 @@ own. Inside that band the held lens shows a mirrored source, so a label sitting 
 rather than bent. These were ruled out on the way: `heldTravelStrain` 0 (456), the squircle outline (473), #130's split
 fix (481), and #132's scrub fix (473).
 
+![Desktop GPU replay of docs/2's throw landing on Calls at 8.625 and 8.658 s: main (r130) cuts the Calls label's lower half; this change (b94a) keeps it whole](label-landing.png)
+
+Our frames only: desktop JVM GPU replay (`:desktop:phoneReplay`, `calm`, script `to-9.txt`), main at #130 (`r130`)
+above this change (`b94a`), scene px 40-940 × 440-670. The page text is the sample's placeholder content. iOS's frames
+are measured, not reproduced.
+
 ## The change
 
 The held lens's mirror band keeps its full width (1.1, the #77 fringe fit) at the top and sides, and narrows to 0.3 of
