@@ -28,6 +28,8 @@ research remains available; this page identifies which later changes supersede i
   earlier than iOS's. [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/press-release-timing-2026-11-01/README.md).
 - 27 October: eliminated green/black comb streaks during tap transits (#124) and channel crush at the lens rim (#108). In `GlassContentShaderSource.kt`, chromatic split `delta` scales with `abs(shift)` instead of a static band split, and transit ink dispersion is scaled by `GlassSelectorInkSplitShare`. Outward displacement is clamped to `max(shift - delta, 0.0)` in both shaders, preventing rim channels from sampling past the glass boundary.
   [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/comb-streaks-2026-10-27/README.md).
+- 1 November: the light Calm bar's shadow no longer bridges the gap to the search button (255 there, as iOS; was 251;
+  #128). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/light-bar-shadow-2026-11-01/README.md).
 - 1 November: at large text sizes (font scale 1.5+), holding a tab shows it magnified in a centred viewer, as
   iOS's Large Content Viewer does (#145). Authored threshold and size.
 - 1 November: the sample's Calls and Contacts glyph figures are cut out, not painted (#129, sample only).
@@ -36,6 +38,8 @@ research remains available; this page identifies which later changes supersede i
   started to form (found replaying docs/2 5.4 s; a finger's jitter hid it on devices).
 - 1 November: right-to-left tab bars put the selector on the tapped tab (it rested over the mirrored one; #161).
   Test: `GlassTabBarRtlTest`.
+- 1 November: the focus ring no longer shows after a touch or synthetic press on desktop (every desktop touch replay
+  showed it since #143); a pointer press hides it until the next key. Test: `aTouchedTabShowsNoRing`.
 - 1 November: keyboard users can see which tab has focus: the focused tab draws a ring over the selector, in keyboard
   mode only (#117). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/tab-focus-ring-2026-11-01/README.md).
 - 1 November: the sample matches iOS's Calls badge, icon position, glyph levels and search glyph to within a pixel or a

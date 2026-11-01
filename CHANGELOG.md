@@ -6,6 +6,8 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Tab bar (light Calm): the bar's shadow is a faint band straight below it, as iOS 27's is, not a soft halo. The gap to
+  the search button stays white (255, as iOS; was 251) (#128). [Evidence](review/atlas/light-bar-shadow-2026-11-01/README.md).
 - Tab bar (Calm): a thrown lens no longer cuts the label it lands on. Where Calm widened the held lens's mirror band
   (`GlassCalmLensBand`), the band narrows where its rim faces down, restoring the label (docs/2: 724 blue label px against
   457, iOS 854). Fringes move nearer iOS's on docs/2 and IMG_6756; LOLL8185's long-drag fringes, already below iOS's,
@@ -47,6 +49,8 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   as iOS's Large Content Viewer does; a tap does not (#145). See [Accessibility](docs/accessibility.md#large-text-the-large-content-viewer).
 - Tab bar: a keyboard-focused tab draws a focus ring (2 dp, system blue, with a dark hairline); pointer input never
   shows it (#117). See [Keyboard focus](docs/tab-bar.md#keyboard-focus).
+- Tab bar: the focus ring no longer appears after a touch or a synthetic press on desktop, where the input mode
+  stays Keyboard: a pointer press hides it until the next key (#117 follow-up; every desktop touch replay showed it).
 - Sample (Phone scene): Calls carries iOS's red count badge, a 23 pt disc measured on IMG_6756 (#99); the replay
   draws it with `+badge` only. The tab content sits 1 dp lower, dark unselected ink is (249,249,249), the search glyph
   is 6 % smaller and lighter, and the light palette takes iOS 27's grey ink and (0,132,250) accent (#110).
