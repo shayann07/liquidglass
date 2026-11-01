@@ -32,6 +32,7 @@ layout(std140, binding = 0) uniform buf {
     float uProfile;
     float uFormation;
     float uHeldLens;
+    float uBandBottom;
     float uHeldMagnification;
     float uHeldGlow;
     float uFoldCorners;

@@ -10,11 +10,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -153,7 +156,8 @@ private fun PhoneTab(index: Int, color: Color, badge: Int = 0) {
     // #110 item 118: on IMG_6756 34.2 s iOS's icons centre 3-4 px and its labels 2-3 px lower than ours.
     Column(Modifier.offset(y = 1.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Box(Modifier.size(23.dp)) {
-            Canvas(Modifier.fillMaxSize()) {
+            // Offscreen, so the glyphs' cut-outs clear to whatever lies behind the tab (#129).
+            Canvas(Modifier.fillMaxSize().graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)) {
                 when (index) {
                     0 -> clockGlyph(color)
                     1 -> personGlyph(color)
@@ -230,26 +234,26 @@ private fun Keypad(palette: PhonePalette) {
     }
 }
 
-// The cut-outs in a filled glyph: dark on light ink, light on dark ink (light appearance).
-private fun cutOf(color: Color): Color =
-    if (color.red * .299f + color.green * .587f + color.blue * .114f > .35f) Color.Black.copy(alpha = .55f) else Color.White.copy(alpha = .85f)
-
+// The cut-outs in a filled glyph are holes, as in iOS's .fill symbols: the bar, the pill or the lens shows
+// through them (#129: IMG_7049 39.4 s, the held selected Contacts figure is (252, 255, 255) on iOS, the
+// white pill; IMG_6756 34.3 s, the resting unselected one (41, 41, 41), the bar). Painted fills read
+// (0, 57, 120) and (120, 120, 120). Needs an offscreen layer.
 private fun DrawScope.clockGlyph(color: Color) {
     val r = size.minDimension / 2
     drawCircle(color, r)
     val c = center
-    drawLine(cutOf(color), c, Offset(c.x, c.y - r * .55f), r * .16f, StrokeCap.Round)
+    drawLine(Color.Black, c, Offset(c.x, c.y - r * .55f), r * .16f, StrokeCap.Round, blendMode = BlendMode.Clear)
     // iOS's Calls clock reads ten to nine-ish: one hand up, one to the left (video2).
-    drawLine(cutOf(color), c, Offset(c.x - r * .4f, c.y), r * .16f, StrokeCap.Round)
+    drawLine(Color.Black, c, Offset(c.x - r * .4f, c.y), r * .16f, StrokeCap.Round, blendMode = BlendMode.Clear)
 }
 
 private fun DrawScope.personGlyph(color: Color) {
     val r = size.minDimension / 2
     drawCircle(color, r)
     // A filled head and a filled shoulder cut by the circle, as iOS's person.crop.circle.fill.
-    drawCircle(cutOf(color), r * .3f, Offset(center.x, center.y - r * .22f))
-    drawArc(cutOf(color), 200f, 140f, true,
-        Offset(center.x - r * .62f, center.y + r * .22f), Size(r * 1.24f, r * 1.0f))
+    drawCircle(Color.Black, r * .3f, Offset(center.x, center.y - r * .22f), blendMode = BlendMode.Clear)
+    drawArc(Color.Black, 200f, 140f, true,
+        Offset(center.x - r * .62f, center.y + r * .22f), Size(r * 1.24f, r * 1.0f), blendMode = BlendMode.Clear)
 }
 
 private fun DrawScope.keypadGlyph(color: Color) {
