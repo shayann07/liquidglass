@@ -98,7 +98,7 @@ class GlassSelectorPortMaterialTest {
         }
         val fold = GlassStyle().copy(profile = GlassProfile.Measured)
         val text = "{\"dpFields\":${dpFields.joinToString(",", "[", "]") { "\"$it\"" }},\n" +
-            "\"fold\":{\"measuredProfile\":${fold.profile.uniform},\"foldCorners\":1.0,\"transitFoldCorners\":$GlassSelectorTransitFoldCorners,\"rimMirror\":$GlassSelectorRimMirror," +
+            "\"fold\":{\"measuredProfile\":${fold.profile.uniform},\"foldCorners\":1.0,\"transitFoldCorners\":$GlassSelectorTransitFoldCorners,\"rimMirror\":$GlassSelectorRimMirror,\"heldRimMirror\":$GlassSelectorHeldRimMirror," +
             "\"rimMirrorGain\":$GlassSelectorRimGain,\"dispersion\":$GlassSelectorRimDispersion,\"movingDispersion\":$GlassSelectorRimFringeMoving," +
             "\"heldMovingDispersion\":$GlassSelectorHeldFringeMoving,\"inkSplitShare\":$GlassSelectorInkSplitShare,\"transitInkSplitShare\":$GlassSelectorTransitInkSplitShare},\n" +
             "\"styles\":{\n$styles},\n\"samples\":[\n${samples.joinToString(",\n")}]}\n"
