@@ -14,7 +14,7 @@ Lens edges by scene row, iOS at 35.5 s against our replays:
 | :-- | --: | --: | :-- |
 | iOS | 605 | 907 | the lens's outline crosses over the button's edge |
 | main | 585 | 900 | a black gap 900-930 and a neck at the centre row |
-| this change | 595 | 910 | the lens runs on under the button: no gap, no neck |
+| this change | 602 | 910 | the lens runs on under the button: no gap, no neck |
 
 iOS's held lens beside the search button is about 350 px wide (603-955), against ours 320 at the same place. It leans
 toward the button and grows into it.
