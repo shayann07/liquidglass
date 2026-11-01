@@ -16,7 +16,9 @@ jobs:
     # took 36 min where unchanged classes (e.g. GlassTabBarV3GestureTest, 350 s against 183 s
     # in run 38461707949) ran about 1.9x slower. Leave execution/upload headroom; test
     # timeouts and optical tolerances are unchanged.
-    timeout-minutes: 55
+    # The JVM render suite alone takes about 42 min on a hosted runner (1 Nov), so 55 cancelled builds
+    # whose tests had passed.
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
