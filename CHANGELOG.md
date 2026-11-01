@@ -14,6 +14,10 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   [Evidence](review/atlas/comb-streaks-2026-10-27/README.md).
 - Tab bar: a keyboard-focused tab draws a focus ring (2 dp, system blue, with a dark hairline); pointer input never
   shows it (#117). See [Keyboard focus](docs/tab-bar.md#keyboard-focus).
+- Sample (Phone scene): Calls carries iOS's red count badge, a 23 pt disc measured on IMG_6756 (#99); the replay
+  draws it with `+badge` only. The tab content sits 1 dp lower, dark unselected ink is (249,249,249), the search glyph
+  is 6 % smaller and lighter, and the light palette takes iOS 27's grey ink and (0,132,250) accent (#110).
+  [Evidence](review/atlas/sample-parity-2026-11-01/README.md).
 - Tab bar (Calm): the held lens's outline is a squircle, not a capsule: it blends .7 of the way toward a
   superellipse with n = 3, the shape iOS's held lens fits, so its top runs flatter and its shoulders squarer. The
   resting selector stays a capsule. The ports draw the same outline (#93).
