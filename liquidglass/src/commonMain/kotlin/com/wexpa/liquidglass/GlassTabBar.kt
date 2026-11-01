@@ -1138,7 +1138,8 @@ internal fun GlassTabBar(
                         val half = geometry.slotWidth / 2f
                         val controller = poseHandle.controller
                         val shift: (Float) -> Float = { x ->
-                            val near = (1f - abs(x - endCentre) / half).coerceIn(0f, 1f)
+                            // A zero-width slot (a bar narrower than its insets) has no tab to lean from.
+                            val near = if (half > 0f) (1f - abs(x - endCentre) / half).coerceIn(0f, 1f) else 0f
                             (pressShift?.invoke(x) ?: 0f) +
                                 (if (rtl) -1f else 1f) * leanPx * near * controller.formation.coerceIn(0f, 1f)
                         }
@@ -1150,7 +1151,8 @@ internal fun GlassTabBar(
                         val reachPx = with(density) { GlassAccessoryLensReach.toPx() }
                         val controller = poseHandle.controller
                         val stretch: (Float) -> Float = { x ->
-                            val near = (1f - abs(x - endCentre) / half).coerceIn(0f, 1f)
+                            // A zero-width slot (a bar narrower than its insets) has no tab to lean from.
+                            val near = if (half > 0f) (1f - abs(x - endCentre) / half).coerceIn(0f, 1f) else 0f
                             (if (rtl) -1f else 1f) * reachPx * near * controller.formation.coerceIn(0f, 1f)
                         }
                         stretch

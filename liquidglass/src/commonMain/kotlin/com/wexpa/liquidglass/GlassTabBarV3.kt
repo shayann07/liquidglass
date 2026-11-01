@@ -405,8 +405,12 @@ internal class GlassPoseHandle(val controller: GlassPoseController) {
             val stretch = endStretch?.invoke(controller.centreX) ?: 0f
             if (stretch != 0f) {
                 // Half the stretch lengthens the spine about the centre and half moves the centre, so only one end moves.
-                r.d[0] += kotlin.math.abs(stretch) / 2f
-                r.c[0] += stretch / 2f
+                // The spine is a canonical length: the pose matrix's first column maps it to rendered px.
+                val ax = r.a[0]; val ay = r.a[2]
+                val n = kotlin.math.sqrt(ax * ax + ay * ay).coerceAtLeast(1e-4f)
+                r.d[0] += kotlin.math.abs(stretch) / 2f / n
+                r.c[0] += stretch / 2f * ax / n
+                r.c[1] += stretch / 2f * ay / n
                 if (stretch > 0f) right += stretch else left += stretch
             }
         }
