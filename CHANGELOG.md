@@ -6,6 +6,9 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Sample: the Calls and Contacts glyphs' figures are holes, as iOS's `.fill` symbols are, so the pill or the lens
+  shows through them (IMG_7049 held on Contacts: (208, 234, 255) against iOS (249, 254, 255), was a painted
+  (0, 79, 166)) (#129). [Evidence](review/atlas/glyph-cutouts-2026-11-01/README.md).
 - Tab bar (Calm): a perfectly still hold, such as a held mouse button or a replayed press, forms its lens again. Since
   the hold threshold (#133), the frame loop could fall asleep in the step the press became a hold, before the lens
   started to form, leaving the bar swollen and the lens unformed until the finger moved. Fixed in Compose and in
