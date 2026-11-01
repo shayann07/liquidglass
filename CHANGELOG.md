@@ -6,6 +6,9 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Sample: the Calls and Contacts glyphs' figures are holes, as iOS's `.fill` symbols are, so the pill or the lens
+  shows through them (IMG_7049 held on Contacts: (208, 234, 255) against iOS (249, 254, 255), was a painted
+  (0, 79, 166)) (#129). [Evidence](review/atlas/glyph-cutouts-2026-11-01/README.md).
 - Accessibility: `LiquidGlassTheme`'s `reduceTransparency` and `increaseContrast`, and `GlassTabBar`'s `motionEnabled`,
   now default to the platform's settings: Android's Remove animations and (API 34+) contrast level, and the web's
   `prefers-reduced-motion`, `prefers-reduced-transparency` and `prefers-contrast`. Explicit values still win (#115).
