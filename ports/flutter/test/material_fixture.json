@@ -168,6 +168,10 @@
    "uEdgeShadow": [
     0
    ],
+   "uTopShade": [
+    0,
+    0
+   ],
    "uCapEdgeShadow": [
     0
    ],
@@ -456,6 +460,10 @@
     0.25
    ],
    "uEdgeShadow": [
+    0
+   ],
+   "uTopShade": [
+    0,
     0
    ],
    "uCapEdgeShadow": [
@@ -755,6 +763,10 @@
     0.25
    ],
    "uEdgeShadow": [
+    0
+   ],
+   "uTopShade": [
+    0,
     0
    ],
    "uCapEdgeShadow": [

@@ -58,6 +58,7 @@ ShaderEffect {
     property real uEdgeLight
     property real uBevelPeak
     property real uEdgeShadow
+    property point uTopShade
     property real uCapEdgeShadow
     property point uOuterContour
     property real uRimSoft
@@ -139,6 +140,7 @@ ShaderEffect {
         v = values.uEdgeLight; if (v) uEdgeLight = v[0]
         v = values.uBevelPeak; if (v) uBevelPeak = v[0]
         v = values.uEdgeShadow; if (v) uEdgeShadow = v[0]
+        v = values.uTopShade; if (v) uTopShade = Qt.point(v[0], v[1])
         v = values.uCapEdgeShadow; if (v) uCapEdgeShadow = v[0]
         v = values.uOuterContour; if (v) uOuterContour = Qt.point(v[0], v[1])
         v = values.uRimSoft; if (v) uRimSoft = v[0]

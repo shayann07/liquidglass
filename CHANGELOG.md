@@ -8,6 +8,10 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
 
 - Tab bar (light Calm): the held lens's outline is a grey line as on iOS (top rim 227 against iOS 226), not a faint
   near-white one (245) (#128). [Evidence](review/atlas/light-held-outline-2026-11-01/README.md).
+- Tab bar (light Calm): the bar's top ~45 px read a few levels darker than its body, as iOS's do (IMG_7049: 240-241
+  against 245), instead of evenly bright (0.85 levels rms down the bar, was 3.15). Light `Calm()`'s own bar only; no public
+  API changes, and the search button and other styles stay even (#128).
+  [Evidence](review/atlas/light-top-shade-2026-11-01/README.md).
 - Tab bar (light Calm): the bar's shadow is a faint band straight below it, as iOS 27's is, not a soft halo. The gap to
   the search button stays white (255, as iOS; was 251) (#128). [Evidence](review/atlas/light-bar-shadow-2026-11-01/README.md).
 - Tab bar (Calm): a thrown lens no longer cuts the label it lands on. Where Calm widened the held lens's mirror band
