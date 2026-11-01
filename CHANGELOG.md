@@ -19,6 +19,8 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   [Evidence](review/atlas/bar-press-onset-2026-11-01/README.md).
 - Tab bar (Calm): ink seen through a held lens brightens by about 22 levels, as iOS 27's does, and lets go over
   0.35 s after the lift (#105). [Evidence](review/atlas/held-ink-lift-2026-11-01/README.md).
+- Tab bar (Calm): a selection haptic ticks on a tap and for each tab a held lens is dragged into, through
+  Compose's `LocalHapticFeedback` (provide your own to silence it) (#116). See [Haptics](docs/tab-bar.md#haptics).
 - Tab bar (Calm): a still press forms its lens only once it becomes a hold (110 ms), then rises over about 190 ms.
   A still release keeps the lens 35 ms and loses it by about 75 ms, not 330 ms. That also removes the bar's
   6 px dip under the lens. Measured against IMG_6756's three holds (#106).

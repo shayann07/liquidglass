@@ -76,6 +76,8 @@ open class GlassTabBarGestureTest {
     private val barHeightPx = 62f
     internal val geometry = GlassTabBarGeometry(barWidth = barWidthPx, inset = 6f, count = 5)
     internal fun cx(i: Int) = geometry.centreOf(i)
+    /** Replaces LocalHapticFeedback around the bar when set (#116). */
+    internal var haptics: androidx.compose.ui.hapticfeedback.HapticFeedback? = null
     internal val y = barHeightPx / 2f
 
     @Composable
@@ -83,7 +85,8 @@ open class GlassTabBarGestureTest {
         // Quarter-resolution material: the gesture is what is under test, and the CPU shader render per frame
         // is what would otherwise push a settle past the harness's one-minute budget.
         val state = rememberLiquidGlassState(background = Color.Black, renderScale = 0.25f)
-        val bar: @Composable () -> Unit = {
+        val bar: @Composable () -> Unit = { androidx.compose.runtime.CompositionLocalProvider(
+            androidx.compose.ui.platform.LocalHapticFeedback provides (haptics ?: androidx.compose.ui.platform.LocalHapticFeedback.current)) {
             GlassTabBar(
                 state = state,
                 itemCount = 5,
@@ -93,7 +96,7 @@ open class GlassTabBarGestureTest {
                 style = style,
                 motionEnabled = motionEnabled,
             ) { _, _ -> Box(Modifier.size(20.dp)) }
-        }
+        } }
         if (scrollingParent) {
             Column(Modifier.size(500.dp, 400.dp).verticalScroll(rememberScrollState())) {
                 Box(Modifier.width(500.dp).height(300.dp).background(Color.DarkGray).liquidGlassSource(state))

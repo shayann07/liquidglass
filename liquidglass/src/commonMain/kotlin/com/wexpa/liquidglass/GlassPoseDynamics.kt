@@ -386,6 +386,12 @@ internal data class GlassPoseSpec(
      * and lets it go over about .35 s after the lift. Measured; one level for all channels is authored.
      */
     val heldInkLift: Float = 0f,
+    /**
+     * Opt-in: a selection haptic ([androidx.compose.ui.hapticfeedback.HapticFeedbackType.SegmentTick])
+     * when a finger marks a tab: on a tap, and each time a held lens crosses into another tab, as
+     * iOS 27 ticks (#116). An app silences it through LocalHapticFeedback.
+     */
+    val selectionHaptics: Boolean = false,
 ) {
     internal val spineLimitSlots: Float get() = max(elongationSlots, tapSpineLimitSlots)
 
@@ -482,7 +488,7 @@ internal data class GlassPoseSpec(
         val Calm = CalmWallLanding.copy(heldTravelStrain = .6f, heldTravelStrainOmega = 10f,
             heldReferenceSpeed = 8f, heldSquircle = .7f, formFromMovement = 1f, formRiseOmega = 75f,
             pressFormation = 0f, holdThresholdSeconds = .110f, heldFormRiseOmega = 26f,
-            releaseStillHoldSeconds = .035f, releaseStillFadeOmega = 100f, barPressDelaySeconds = .075f, barPressStiffness = 1700f, heldInkLift = 22f / 255f)
+            releaseStillHoldSeconds = .035f, releaseStillFadeOmega = 100f, barPressDelaySeconds = .075f, barPressStiffness = 1700f, heldInkLift = 22f / 255f, selectionHaptics = true)
     }
 }
 

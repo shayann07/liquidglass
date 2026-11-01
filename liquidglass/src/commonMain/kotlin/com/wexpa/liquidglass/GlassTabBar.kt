@@ -6,6 +6,8 @@ import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.animateFloatAsState
@@ -270,6 +272,17 @@ internal fun GlassTabBar(
             null
         }
         val anyHandle = handle != null || poseHandle != null
+        // GlassPoseSpec.selectionHaptics: one tick each time a finger marks another tab (a tap, or
+        // a held lens crossing a boundary); never for the host's own selection changes.
+        val haptics = LocalHapticFeedback.current
+        val selectionHaptics = poseHandle?.controller?.spec?.selectionHaptics == true
+        var tickedIndex by remember { mutableIntStateOf(activeIndex) }
+        LaunchedEffect(activeIndex) {
+            if (activeIndex != tickedIndex) {
+                if (selectionHaptics && dragIndex >= 0) haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                tickedIndex = activeIndex
+            }
+        }
         val barCache = handle?.barCache ?: poseHandle?.barCache
         val selectorBar = if (anyHandle && spec != null) {
             glassSelectorBarOf(

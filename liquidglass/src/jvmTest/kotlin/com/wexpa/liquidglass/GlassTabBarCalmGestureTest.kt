@@ -23,4 +23,37 @@ class GlassTabBarCalmGestureTest : GlassTabBarGestureTest() {
         assertEquals(listOf((under + 1).coerceAtMost(4)), rec.calls)
         assertReleased(node, rec.calls[0], "calm fling")
     }
+
+    private class Ticks : androidx.compose.ui.hapticfeedback.HapticFeedback {
+        val types = mutableListOf<androidx.compose.ui.hapticfeedback.HapticFeedbackType>()
+        override fun performHapticFeedback(hapticFeedbackType: androidx.compose.ui.hapticfeedback.HapticFeedbackType) {
+            types += hapticFeedbackType
+        }
+    }
+
+    /** #116: one selection tick for a tap; none when the host changes the selection itself. */
+    @Test fun aTapTicksOnce() {
+        val ticks = Ticks(); haptics = ticks
+        run { rec, node ->
+            node.performTouchInput { down(Offset(cx(3), y)); advanceEventTime(60); up() }
+            settle()
+            assertEquals(listOf(3), rec.calls)
+            assertEquals(listOf(androidx.compose.ui.hapticfeedback.HapticFeedbackType.SegmentTick), ticks.types)
+        }
+    }
+
+    /** #116: a finger pressing tab 1 (not the selection) marks it, one tick, and dragging the held lens on
+     * to tab 4 ticks once per tab it enters (2, 3, 4). */
+    @Test fun aHeldDragTicksForEachTabItCrosses() {
+        val ticks = Ticks(); haptics = ticks
+        run { _, node ->
+            node.performTouchInput {
+                down(Offset(cx(1), y)); advanceEventTime(300); moveTo(Offset(cx(1), y))
+                for (k in 1..30) { advanceEventTime(16); moveTo(Offset(cx(1) + k * (cx(4) - cx(1)) / 30f, y)) }
+                advanceEventTime(200); up()
+            }
+            settle()
+            assertEquals(4, ticks.types.size, "ticks: ${ticks.types}")
+        }
+    }
 }
