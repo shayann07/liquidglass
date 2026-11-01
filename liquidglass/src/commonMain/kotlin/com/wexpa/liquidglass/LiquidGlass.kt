@@ -1755,10 +1755,9 @@ object LiquidGlassDiagnostics {
     /** When set, the held lens's superellipse blend and exponent (#93), for fitting by replay; null in production. */
     var lensSquircle: FloatArray? = null
 
-<<<<<<< HEAD
     /** When set, [GlassPoseSpec.tapLongTripRate] for fitting tap timing by replay (#70); null in production. */
     var tapLongTripRate: Float? = null
-=======
+
     /**
      * When set, [LocalGlassAdaptiveQuality] counts a frame as missed once it runs past this fraction of its deadline,
      * so a rig can drive the governor's steps on a device that meets its deadlines (#118); null in production.
@@ -1767,7 +1766,6 @@ object LiquidGlassDiagnostics {
 
     /** Called with the new factor whenever [LocalGlassAdaptiveQuality] steps the render scale (#118); null in production. */
     var adaptiveQualityListener: ((Float) -> Unit)? = null
->>>>>>> ea14be39e41e5d341452fd138fd1df9c649f2973
 
     /** Back to the production defaults: no pad override, no coverage-only rendering, no split override. */
     fun reset() {
@@ -1775,12 +1773,9 @@ object LiquidGlassDiagnostics {
         coverageOnly = false
         selectorFringe = null
         lensSquircle = null
-<<<<<<< HEAD
         tapLongTripRate = null
-=======
         adaptiveDeadlineScale = null
         adaptiveQualityListener = null
->>>>>>> ea14be39e41e5d341452fd138fd1df9c649f2973
     }
 
     /** Runs [block] with these settings and resets them afterwards, whatever [block] does. */
