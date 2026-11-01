@@ -1,3 +1,39 @@
+## 2 November 2026 — Pixel 7 night (Claude)
+
+The owner lent the Pixel 7 (Android 17, API 37, 90 Hz) for this one night; no Android device for the following week.
+Everything below that says "device" was measured on it, release builds, `adb` from this machine; scripts under
+`.local/hitch/` (private). Reference screen recordings for the week, dark and light (tap, hold, held drag, throw,
+search press), are in `.local/hitch/lib/int1-*.mp4` (main + #168, #171, #172).
+
+Merged tonight: #173 (#111 landing lift), #171 (#128 light held outline), #172 (#104 light lens shadow), #168 (#107 lens leans into the search button), #175 (#118 adaptive quality, closed), #176 (#70 two-tab taps; #70 stays open).
+
+| Issue | Done tonight |
+| :-- | :-- |
+| #100 | Device timing posted. One deadline miss per tap, always its first frame: the GPU is at its idle clock (251-302 MHz; 23 and 19 ms of GPU), and later frames take 6-10 ms at 700-885 MHz. Render scale 0.75 lowers GPU p90 from 15-18 to 10-12 ms but not the first-frame miss. Item 81 (first tap after install): worst frame 45-61 ms (audit 70-119); AOT compiling does not change it (~21 ms of first-use recomposition, not JIT). Item 82 was the legacy jank counter (deadline misses 1.5-2 %). ADPF GPU `WorkDuration` hint on touch-down: no effect. Item 86: device text under the bar edge/contrast 6.9 % against the replay's 5.1 %, not yet conclusive. |
+| #118 | #175: `LocalGlassAdaptiveQuality` (opt-in, Android). Verified on the device: no step on real taps; forced misses step 1 → 0.5 and back; a step waits for 300 ms of stillness because a rebuild under a finger cancelled the hold (found on the device, fixed, re-verified). Full suite 487/0. |
+| #168, #171, #172 | Device evidence added to each PR (`device-pixel7.png` in its review folder): #171 top rim 229 (main 244, iOS 226); #172 no line inside the lower rim (row 2290: 254, main 238) and a gradual shadow below; #168 the lens reaches the search button in both appearances. |
+| #173 | Device: a thrown lens stays milky 2-3 recorded frames (~60-90 ms) longer as it lands. |
+| #70 | #176: Calm's tap clock runs 1.2× for two-tab trips (internal; Skia and .NET mirrored). docs/1 two-tab arrival +6 ms against iOS (was +39); JGEY2190 +65 (was +98, its remainder is not the clock). Device: blue-ink arrival 134 → 111 ms over 10 taps. The pill's level over 100-300 ms is unchanged (4.5 levels rms), so #70 stays open for the 150-167 ms bump. |
+| #94 | Item 24 (label cut in a tap transit) resolved and ticked: the label stays whole; iOS's 1.6-1.9× larger label is item 23's stretch. |
+| #149 | Measured: docs/2's short holds (0.7-0.8 s) release with a swell and settle ~250 ms; IMG_6756's long holds (1.3-1.5 s) shrink with no swell and settle at 100-150 ms. A recording with both is on #126. |
+| #109 | Item 115 measured: the search button's rim is one lobe (exponent ~4.4) where iOS's is a sharp lobe on a broad tail; no single constant fits. |
+| #122 | Closed: items done, not reproduced or outside the app (swipe-to-home). |
+| #101 | Item 87 half done (light holds and rest are now scored; drags are not). |
+| #128 | Closed: item 3 (pill gradient) re-measured on main with Keypad selected, within 1-2 levels of iOS after #166; item 2 not reproduced; items 1 and 4 fixed (#162, #171). |
+| #108 | Traced: the navy line is the held lens's colour split (every split 0: 0 navy px). Halving the held split gives 784-816 px against iOS 589-678, but #94 needs more fringe, not less: the fix is spreading the split over the spectral rim's hues. Posted; no constant changed. |
+| #121 | Device: icons still split blue/white at the lens outline in a held drag. A wider side band (×1.8, ×2.6) bends more but does not close the gap; iOS's travelling lens is about twice the area. Posted; next is the travelling lens's size and magnification. |
+
+Mistakes, recorded: a `&` launch of a render (third time); a sheet written over two raw captures (recaptured); the
+first #171 × #172 merge resolution had the sides reversed and dropped #172's values (caught before pushing, fixed in
+ce5fb7c).
+
+Final device smoke test on main 4f3321c (tonight's merges before #175 and #176; both were checked on the device as PRs): light held top rim 229, clear lower rim, taps
+one first-frame deadline miss each, GPU p50 ~11 ms: no regression.
+
+Next session: #108 (spread the held split over the spectral rim's hues, score with #94's fringe energy), #121 (the
+travelling lens's size and magnification against LOLL8185), #70's 150-167 ms bump, #81's bounded-resolution field
+(bit-exact gate), #109 item 115 (a second, broad rim term), #149 once the hold-length recording exists.
+
 ## 1 November 2026 — PR pass and milestone 1.1.0 work (Claude)
 
 Every PR open on 29 October was reviewed, measured against the recordings, repaired where needed, and merged
