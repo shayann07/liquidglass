@@ -1755,6 +1755,9 @@ object LiquidGlassDiagnostics {
     /** When set, the held lens's superellipse blend and exponent (#93), for fitting by replay; null in production. */
     var lensSquircle: FloatArray? = null
 
+    /** When set, [GlassPoseSpec.tapLongTripRate] for fitting tap timing by replay (#70); null in production. */
+    var tapLongTripRate: Float? = null
+
     /**
      * When set, [LocalGlassAdaptiveQuality] counts a frame as missed once it runs past this fraction of its deadline,
      * so a rig can drive the governor's steps on a device that meets its deadlines (#118); null in production.
@@ -1770,6 +1773,7 @@ object LiquidGlassDiagnostics {
         coverageOnly = false
         selectorFringe = null
         lensSquircle = null
+        tapLongTripRate = null
         adaptiveDeadlineScale = null
         adaptiveQualityListener = null
     }

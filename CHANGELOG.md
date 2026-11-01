@@ -6,6 +6,9 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Tab bar (Calm): a tap across two tabs reaches its tab sooner: within 6 ms of iOS on docs/1 (was 39 ms late); JGEY2190
+  is still 65 ms late (was 98). One-tab taps are unchanged. The pill's level through the tap is not closer to iOS's
+  overall (#70 stays open). [Evidence](review/atlas/two-tab-tap-2026-11-02/README.md).
 - New, opt-in: `LocalGlassAdaptiveQuality`. Provide `true` above `LiquidGlassTheme` and, on Android, the theme renders its
   glass at a lower resolution while frames are being missed (×0.75 a step, floor 0.5 of its `renderScale`), and returns
   after 3 s without a missed frame. A step waits for the glass to be still, so it never cancels a gesture. Off by default;

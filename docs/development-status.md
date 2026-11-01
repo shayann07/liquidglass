@@ -1,12 +1,14 @@
 # Development status and visual guide
 
-Updated **20 October 2026**. This describes 1.0.0, the first release with a [compatibility promise](compatibility.md).
+Updated **2 November 2026**. This describes 1.0.0, the first release with a [compatibility promise](compatibility.md).
 Full iOS parity is not established: the measured differences are open as issues (#70-#73). The owner
 accepted the navigation selector on 20 October. Historical
 research remains available; this page identifies which later changes supersede its implementation.
 
 ## Main after 1.0 (24 October)
 
+- 2 November: Calm's tap clock runs 1.2× for two-tab trips (internal): they arrive within 6 ms of iOS on docs/1 (was 39 ms
+  late); JGEY2190 gains 33 ms and stays 65 ms late. The pill's level through the tap is no closer overall (#70 open). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/two-tab-tap-2026-11-02/README.md).
 - 2 November: `LocalGlassAdaptiveQuality` (opt-in, Android): the theme lowers its render scale while frames are missed and
   restores it after 3 s, stepping only while the glass is still (#118). Checked on a Pixel 7: no step on ordinary taps,
   forced misses step 1 → 0.5 and back, gestures survive. [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/adaptive-quality-2026-11-02/README.md).

@@ -333,6 +333,11 @@ internal data class GlassPoseSpec(
     /** Opt-in coupled-tap clock ratio for adjacent trips, blending back to the existing
      * rate by two slots. Authored output calibration; not an identified Apple spring. */
     val tapShortTripRate: Float = 1f,
+    /** Opt-in coupled-tap clock ratio for trips of two slots or more, blending from [tapShortTripRate]'s
+     * rate at one slot and back to the historical clock by three (#70). One keeps the historical clock. Calm: 1.2,
+     * authored, chosen against the two-tab taps' arrival in docs/1 and JGEY2190 (scores in
+     * review/atlas/two-tab-tap-2026-11-02). */
+    val tapLongTripRate: Float = 1f,
     /** Opt-in tap appearance from excess projected area; zero preserves historical optics.
      * This is separate from held formation and never grants pointer ownership. */
     val tapAppearanceArea: Float = 0f,
@@ -499,7 +504,7 @@ internal data class GlassPoseSpec(
         val Calm = CalmWallLanding.copy(heldTravelStrain = .6f, heldTravelStrainOmega = 10f,
             heldReferenceSpeed = 8f, heldSquircle = .7f, formFromMovement = 1f, formRiseOmega = 75f,
             pressFormation = 0f, holdThresholdSeconds = .110f, heldFormRiseOmega = 26f,
-            releaseStillHoldSeconds = .035f, releaseStillFadeOmega = 100f, releaseMovingFadeOmega = 12f, barPressDelaySeconds = .075f, barPressStiffness = 1700f, heldInkLift = 22f / 255f, selectionHaptics = true, hoverScale = 1.06f)
+            releaseStillHoldSeconds = .035f, releaseStillFadeOmega = 100f, releaseMovingFadeOmega = 12f, tapLongTripRate = 1.2f, barPressDelaySeconds = .075f, barPressStiffness = 1700f, heldInkLift = 22f / 255f, selectionHaptics = true, hoverScale = 1.06f)
     }
 }
 
@@ -1095,7 +1100,13 @@ internal class GlassPoseController(
             val phase = (tapDistance / slot - 1f).coerceIn(0f, 1f)
             val blend = phase * phase * (3f - 2f * phase)
             val shortRate = spec.tapShortTripRate.coerceIn(.5f, 1f)
-            shortRate + (1f - shortRate) * blend
+            @OptIn(LiquidGlassDiagnosticApi::class)
+            val longRate = (LiquidGlassDiagnostics.tapLongTripRate ?: spec.tapLongTripRate).coerceIn(.5f, 2f)
+            // Fitted on two-slot trips only (the recordings' bars have three tabs): longer ones blend back to the
+            // historical clock by three slots.
+            val far = (tapDistance / slot - 2f).coerceIn(0f, 1f)
+            val back = far * far * (3f - 2f * far)
+            shortRate + (longRate + (1f - longRate) * back - shortRate) * blend
         } else 1f
         val tapShapeVx = vx / tapClock
         val coupleReleaseArea = motionEnabled && releaseImpactActive && mode == GlassPoseMode.Released

@@ -36,7 +36,7 @@ const DEFAULT_SPEC = Object.freeze({
   tapShortTripRate: 1, tapAppearanceArea: 0, tapAppearanceSpine: 0,
   tapAppearanceFallOmega: 0, releaseFormationSpeed: 0, releaseStillHoldSeconds: 0,
   releaseStillFadeOmega: 0,
-  releaseMovingFadeOmega: 0,
+  releaseMovingFadeOmega: 0, tapLongTripRate: 1,
   heldSquircle: 0, squircleExponent: 3,
 });
 
@@ -54,7 +54,7 @@ export const CALM_SELECTOR_SPEC = Object.freeze({
   graspOmega: 120, heldFormRiseOmega: 26, pressFormation: 0, holdThresholdSeconds: .11,
   releaseTrailingEdge: true, releaseRecoveryOmega: 13,
   releaseTrailingInOmega: 9, releaseTrailingInZeta: .3, releaseTrailingCarry: .1, releaseWallGive: .35,
-  releaseTrailingStiffening: .5, releaseStillHoldSeconds: .035, releaseStillFadeOmega: 100, releaseMovingFadeOmega: 12,
+  releaseTrailingStiffening: .5, releaseStillHoldSeconds: .035, releaseStillFadeOmega: 100, releaseMovingFadeOmega: 12, tapLongTripRate: 1.2,
   heldTravelStrain: .6, heldTravelStrainOmega: 10,
   heldSquircle: .7,
 });
@@ -526,7 +526,9 @@ export class CalmSelectorController {
     let tapClock = 1;
     if (coupleTapArea) {
       const phase = clamp(this.tapDistance / slot - 1, 0, 1), blend = phase * phase * (3 - 2 * phase);
-      const shortRate = clamp(s.tapShortTripRate, .5, 1); tapClock = shortRate + (1 - shortRate) * blend;
+      const shortRate = clamp(s.tapShortTripRate, .5, 1), longRate = clamp(s.tapLongTripRate, .5, 2);
+      const far = clamp(this.tapDistance / slot - 2, 0, 1), back = far * far * (3 - 2 * far);
+      tapClock = shortRate + (longRate + (1 - longRate) * back - shortRate) * blend;
     }
     const tapShapeVx = vx / tapClock;
     const coupleReleaseArea = this.motionEnabled && this.releaseImpactActive && this.mode === MODE.Released;
