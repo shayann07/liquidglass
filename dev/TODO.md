@@ -25,16 +25,20 @@ or closed. Claude merges; no tag or release. Merged to main, in order:
 | #157 | #143 | Focus ring hidden after a pointer press until the next key, including after focus leaves and returns |
 | #162 | #128 | Light Calm bar shadow is a faint band below it, not a halo: gap 255 (iOS 255, was 251). Calm light recalibrated |
 | #163 | — | README: accessible by default |
+| #159 | #109 | The resting dark Calm bar's rim dims through its caps (IMG_6756 3.1 levels rms, was 8.4); #109 reopened for the button rim |
 
 #127 (Android XML interop) was closed for its public API size; #140 describes the acceptable scope. #137 was
 answered and closed (no .NET Framework target; a caller-owned SKCanvas works). Split out: #145 (Large Content
 Viewer) and #149 (release rebound). CI: the build job has 90 min, and every runComposeUiTest has a 4 min timeout.
 
 In flight at this writing (late evening):
-- Open PRs: #159 (#109, the resting rim dims through the caps: rim rms against IMG_6756 3.1 levels, was 8.4; dark Calm
-  only, gated on a specular rim after review), #164 (#161, right-to-left tab bars: the selector and gestures follow the
-  mirrored tabs), #135 (#125, search button optics; needs a full suite), #153 (#117, pointer hover lift; its test
-  still sees no lift drawn, shelved with the diagnosis on the PR).
+- Open PRs: #164 (#161, right-to-left tab bars: the selector and gestures follow the mirrored tabs; review fixes
+  in), #135 (#125, search button optics; full suite green locally), #153 (#117, pointer hover lift: the failing
+  test counted only near-white pixels, so a 0.6 px edge lift never showed; coverage-weighted area now reads +49.5
+  px against +49.4), #166 (#128, light Calm bar top shade, opt-in `GlassStyle.topShade`: 0.85 levels rms down
+  the bar, was 3.15).
+- Waiting on a decision: #107 (the held lens should draw over the search button, which needs the button as a tab
+  bar slot: public API).
 - #128 stays open for items 2-4 (the light bar's top 40 px are darker on iOS: 240-243 against 245).
 
 Measured and recorded on the issues tonight: #149 (per-frame release heights; a lower release conflicts with the
