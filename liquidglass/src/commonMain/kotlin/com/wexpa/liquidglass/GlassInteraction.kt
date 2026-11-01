@@ -272,6 +272,8 @@ class GlassPressSource internal constructor() {
     internal var isPressed by mutableStateOf(false)
     /** The press now drags something ([GlassInteraction.dragPressShare]); cleared on release. */
     internal var dragging by mutableStateOf(false)
+    /** A caller's critically damped press-down stiffness for a Calm response; zero keeps [GlassMotion.CalmDown]. */
+    internal var downStiffness: Float = 0f
 
     /** Call on every pointer move as well as on down, so the glow tracks rather than jumps. */
     fun press(localPosition: Offset, pullOffset: Offset = Offset.Zero) {

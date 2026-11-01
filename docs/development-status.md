@@ -15,6 +15,8 @@ research remains available; this page identifies which later changes supersede i
 - 1 November: a tap's moving selector rises into a glass lens (formation about .74, was .25) (#120). The
   faster tap spring proposed for #123 was dropped: it moved arrival further from iOS (104 ms rms, against main's 39).
   [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/tap-transit-2026-10-27/README.md).
+- 1 November: the bar's press swell starts about 120 ms into a still press, as iOS's does, not at touch-down; taps
+  no longer swell the bar (#106). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/bar-press-onset-2026-11-01/README.md).
 - 1 November: a still press forms the lens only once it is a hold. A still release loses the lens about 75 ms after
   the lift, as IMG_6756 does, instead of about 330 ms (#106). The bar's own press swell still starts about 65 ms
   earlier than iOS's. [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/press-release-timing-2026-11-01/README.md).

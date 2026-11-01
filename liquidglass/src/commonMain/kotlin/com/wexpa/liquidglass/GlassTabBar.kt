@@ -42,6 +42,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
@@ -241,6 +242,8 @@ internal fun GlassTabBar(
         }
 
         var barDown by remember { mutableStateOf(Offset.Zero) }
+        // GlassPoseSpec.barPressDelaySeconds: where the finger is while the bar's press waits.
+        var pendingBarPress by remember { mutableStateOf<Offset?>(null) }
         var v2Held by remember { mutableStateOf(false) }
         var dragging by remember { mutableStateOf(false) }
         var liveVelocity by remember { mutableFloatStateOf(0f) }
@@ -326,6 +329,20 @@ internal fun GlassTabBar(
                 poseHandle.wake()
             }
             LaunchedEffect(poseHandle, geometry, motionEnabled) { poseHandle.wake() }
+            barPress.downStiffness = poseHandle.controller.spec.barPressStiffness
+            // GlassPoseSpec.barPressDelaySeconds: a still press reaches the bar after the delay.
+            val barPending = pendingBarPress != null
+            LaunchedEffect(poseHandle, barPending) {
+                if (!barPending) return@LaunchedEffect
+                // On the frame clock, not wall time: a replay renders frames slower than real time.
+                val wait = (poseHandle.controller.spec.barPressDelaySeconds * 1e9f).toLong()
+                val start = withFrameNanos { it }
+                while (withFrameNanos { it } - start < wait) Unit
+                pendingBarPress?.let { p ->
+                    pendingBarPress = null
+                    barPress.press(p, p - barDown)
+                }
+            }
             GlassPoseFrameLoop(
                 handle = poseHandle,
                 barProvider = {
@@ -470,7 +487,10 @@ internal fun GlassTabBar(
 
         /** One pointer entry point for both paths, each in its own declared frame. */
         fun pressAt(x: Float, y: Float) {
-            barPress.press(Offset(x, y), Offset(x, y) - barDown)
+            if (poseHandle != null && poseHandle.controller.spec.barPressDelaySeconds > 0f &&
+                !barPress.dragging && !barPress.isPressed) {
+                pendingBarPress = Offset(x, y)
+            } else barPress.press(Offset(x, y), Offset(x, y) - barDown)
             when {
                 poseHandle != null -> {
                     poseHandle.barPointerX = x
@@ -492,6 +512,7 @@ internal fun GlassTabBar(
             poseHandle?.barPointerX = Float.NaN
             poseHandle?.barPointerY = Float.NaN
             press.release()
+            pendingBarPress = null
             barPress.release()
         }
 

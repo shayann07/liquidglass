@@ -365,6 +365,16 @@ internal data class GlassPoseSpec(
      */
     val releaseStillHoldSeconds: Float = 0f,
     /**
+     * Opt-in: the bar's own press swell waits this long after touch-down (a drag presses at once), as
+     * iOS 27's does. On IMG_6756's still holds iOS's bar starts to rise about 120 ms after touch-down
+     * and reaches 448 px by 220 ms; on a tap (JGEY2190 4.60 s, 60 ms down) it does not swell at all.
+     * Zero (off) presses the bar at touch-down. Onset measured; the delay is authored to land it there.
+     */
+    val barPressDelaySeconds: Float = 0f,
+    /** With [barPressDelaySeconds]: the delayed press's critically damped stiffness (0 keeps the
+     * interaction's own). iOS's bar rises in about 80 ms. Authored. */
+    val barPressStiffness: Float = 0f,
+    /**
      * Opt-in, with [releaseStillHoldSeconds]: the rate at which a still-released lens's formation
      * falls once its hold expires. Zero uses [formOmega]. Authored against IMG_6756 (iOS 27).
      */
@@ -465,7 +475,7 @@ internal data class GlassPoseSpec(
         val Calm = CalmWallLanding.copy(heldTravelStrain = .6f, heldTravelStrainOmega = 10f,
             heldReferenceSpeed = 8f, heldSquircle = .7f, formFromMovement = 1f, formRiseOmega = 75f,
             pressFormation = 0f, holdThresholdSeconds = .110f, heldFormRiseOmega = 26f,
-            releaseStillHoldSeconds = .035f, releaseStillFadeOmega = 100f)
+            releaseStillHoldSeconds = .035f, releaseStillFadeOmega = 100f, barPressDelaySeconds = .075f, barPressStiffness = 1700f)
     }
 }
 
