@@ -41,6 +41,8 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   [Evidence](review/atlas/press-release-timing-2026-11-01/README.md).
 - Tab bar (Calm) and shaders: eliminated green and black comb streaks during tap transits and fixed channel crush at the lens rim. In `GlassContentShaderSource.kt`, chromatic split `delta` scales with `abs(shift)` rather than applying full static band displacement along straight runs, and `glassSelectorMaterial` scales transit ink dispersion by `GlassSelectorInkSplitShare`. Outward chromatic displacement is bounded symmetrically by recorded margin (`-maxOutward`), preventing transit channels from sampling outside the bar while preserving legitimate outward held refraction and exact grayscale neutrality across all channels when dispersion is zero. Port shaders and selector fixtures updated across all platforms (#124, #108).
   [Evidence](review/atlas/comb-streaks-2026-10-27/README.md).
+- Tab bar: at large text sizes (font scale 1.5 and above), holding a tab shows it magnified in a centred platter,
+  as iOS's Large Content Viewer does; a tap does not (#145). See [Accessibility](docs/accessibility.md#large-text-the-large-content-viewer).
 - Tab bar: a keyboard-focused tab draws a focus ring (2 dp, system blue, with a dark hairline); pointer input never
   shows it (#117). See [Keyboard focus](docs/tab-bar.md#keyboard-focus).
 - Sample (Phone scene): Calls carries iOS's red count badge, a 23 pt disc measured on IMG_6756 (#99); the replay
