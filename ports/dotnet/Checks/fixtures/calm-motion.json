@@ -2,7 +2,7 @@
   "provenance": "Portable authored controller; cross-language equivalence, not an Apple motion oracle",
   "sources": {
     "ports/web/core.mjs": "c6c1238aa111b3eb185bab7fb0ff6fe547e1bfa6bb15d503df301bd9efb190e1",
-    "ports/web/interaction.mjs": "ca0b36cdab6e5ab41d70d4ee6696b6504a5feb9815664d2ba7801f9ddc0877d5"
+    "ports/web/interaction.mjs": "1599bdd54057e24cf6cc4348c7a6e445819d9c8e94fe7aab3d3f3ed8d2a00c42"
   },
   "cases": [
     {
