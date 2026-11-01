@@ -65,7 +65,14 @@ internal class GlassQualityGovernor(
     /** Feeds one rendered frame; returns true when [target] changed. */
     fun onFrame(now: Long, missed: Boolean): Boolean {
         lastFrame = now
-        // Frames drawn before a pending step lands say nothing about the scale it moves to.
+        if (target > factor && missed) {
+            // A miss while a step back up waits cancels it: the scale it would leave is still needed.
+            above.addLast(target)
+            target = factor
+            missCount = 0; lastMiss = now
+            return true
+        }
+        // Frames drawn before a pending step down lands say nothing about the scale it moves to.
         if (target != factor) return false
         times.addLast(now); misses.addLast(missed)
         if (missed) { missCount++; lastMiss = now }
@@ -118,9 +125,10 @@ internal expect fun GlassFrameMisses(enabled: Boolean, onFrame: (missed: Boolean
 @OptIn(LiquidGlassDiagnosticApi::class)
 @Composable
 internal fun rememberGlassAdaptiveFactor(enabled: Boolean): Float {
-    val governor = remember { GlassQualityGovernor() }
-    var factor by remember { mutableFloatStateOf(1f) }
-    var pending by remember { mutableFloatStateOf(1f) }
+    // A new enabled period starts from full scale: history from before adaptation was turned off says nothing now.
+    val governor = remember(enabled) { GlassQualityGovernor() }
+    var factor by remember(enabled) { mutableFloatStateOf(1f) }
+    var pending by remember(enabled) { mutableFloatStateOf(1f) }
     GlassFrameMisses(enabled) { missed -> if (governor.onFrame(glassClockNanos(), missed)) pending = governor.target }
     LaunchedEffect(enabled, factor, pending) {
         // Polls while a step is pending or the scale is lowered: a delay requests no frame, so an idle screen stays idle.

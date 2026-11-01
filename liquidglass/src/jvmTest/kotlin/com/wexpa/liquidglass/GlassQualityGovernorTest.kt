@@ -92,6 +92,22 @@ class GlassQualityGovernorTest {
         assertEquals(0.75f, g.factor)
     }
 
+    /** A step back up that has not landed yet is cancelled by a miss, and the next recovery starts over. */
+    @Test fun aMissCancelsAPendingStepUp() {
+        val g = GlassQualityGovernor()
+        val t = g.feed(0, 20, 2)
+        assertEquals(0.75f, g.factor)
+        assertTrue(g.recover(t + 3_000_000_000L))
+        assertEquals(1f, g.target)
+        assertTrue(g.onFrame(t + 3_100_000_000L, true))
+        assertEquals(0.75f, g.target)
+        assertFalse(g.apply(t + 4_000_000_000L))
+        assertEquals(0.75f, g.factor)
+        assertFalse(g.recover(t + 5_000_000_000L))
+        assertTrue(g.recover(t + 6_100_000_000L)); assertTrue(g.apply(t + 6_100_000_000L))
+        assertEquals(1f, g.factor)
+    }
+
     @Test fun aMissDuringRecoveryRestartsTheWait() {
         val g = GlassQualityGovernor()
         val t = g.feed(0, 20, 2)

@@ -87,7 +87,8 @@ fun LiquidGlassTheme(
     val parent = LocalGlassRegion.current
     // The outermost theme adapts (#118); a nested one takes the same factor onto its own renderScale.
     val factor = if (parent == null) rememberGlassAdaptiveFactor(LocalGlassAdaptiveQuality.current) else parent.adaptiveFactor
-    val scale = renderScale * factor
+    // The renderer's floor is 0.25: an adapted scale below it would rebuild the glass for nothing.
+    val scale = if (factor < 1f) (renderScale * factor).coerceIn(0.25f, 1f) else renderScale
     val defaults = GlassDefaults(dark, glass, containerSpacing, reduceTransparency, increaseContrast, scale)
     if (parent != null) {
         CompositionLocalProvider(LocalGlassDefaults provides defaults, content = content)
