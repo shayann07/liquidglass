@@ -449,6 +449,15 @@ not mirror (#161).
 Each tab is focusable (`Role.Tab`, in a selectable group), so the Tab key moves between tabs and Enter or
 Space selects. The focused tab draws a 2 dp ring in the system accent blue, with a dark hairline so it reads on a
 light or a dark bar. The ring appears only in keyboard input mode: a tap or a mouse click shows the lens, never the
+ring (#117).
+
+## Pointer hover
+
+With a mouse or trackpad (desktop and web), the Calm tab bar's tab under the pointer lifts: its content grows by 6%
+and settles back when the pointer leaves. Other styles do not change (`GlassPoseSpec.hoverScale`, internal),
+and with `motionEnabled = false` nothing lifts. Touch never hovers, so phones are unaffected. The amount is authored: iPadOS's glass
+responds to a pointer, but no recording here measures it (#117).
+
 ring (#117). On desktop the input mode can stay Keyboard under a touch screen or a synthetic press, so a pointer press
 on the bar also hides the ring until the next key.
 ## Haptics

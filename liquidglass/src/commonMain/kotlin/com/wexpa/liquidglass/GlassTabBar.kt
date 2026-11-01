@@ -55,6 +55,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.Shape
@@ -343,6 +344,9 @@ internal fun GlassTabBar(
         // a held lens crossing a boundary); never for the host's own selection changes.
         val haptics = LocalHapticFeedback.current
         val selectionHaptics = poseHandle?.controller?.spec?.selectionHaptics == true
+        // GlassPoseSpec.hoverScale: the tab under a hovering pointer lifts (Calm); other styles keep 1, and so does
+        // reduced motion, which asks for no such animation.
+        focusRing.hoverScale = if (motionEnabled) poseHandle?.controller?.spec?.hoverScale ?: 1f else 1f
         var tickedIndex by remember { mutableIntStateOf(activeIndex) }
         LaunchedEffect(activeIndex) {
             if (activeIndex != tickedIndex) {
@@ -731,6 +735,8 @@ internal fun GlassTabBar(
                         poseHandle?.controller?.protrusion() ?: handle?.controller?.protrusion() ?: 0f
                     this[GlassTabBarSemantics.Dragging] = dragging
                     this[GlassTabBarSemantics.DragIndex] = dragIndex
+                    this[GlassTabBarSemantics.HoverIndex] = focusRing.hovered.intValue
+                    this[GlassTabBarSemantics.HoverScale] = focusRing.hoverScale
                     if (handle != null) {
                         this[GlassTabBarSemantics.NodeLeft] = handle.nodeLeft().toFloat()
                         this[GlassTabBarSemantics.NodeTop] = -handle.overflowTop
@@ -745,6 +751,25 @@ internal fun GlassTabBar(
                         this[GlassTabBarSemantics.TouchLocalY] = press.localPosition.y
                         this[GlassTabBarSemantics.SelectorValid] = !poseHandle.controller.solverFailed
                     }
+                }
+                // #117 item 135: a hovering mouse or trackpad marks the tab under it. This node lies over the
+                // items, so they never see the pointer themselves; it watches without consuming anything.
+                .pointerInput(geometry, rtl, itemCount) {
+                    // A restarted handler (resize, direction, item count) starts with no hovered tab.
+                    try { awaitPointerEventScope {
+                        while (true) {
+                            val e = awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
+                            val c = e.changes.firstOrNull() ?: continue
+                            if (c.type != androidx.compose.ui.input.pointer.PointerType.Mouse) continue
+                            focusRing.hovered.intValue =
+                                if (e.type == androidx.compose.ui.input.pointer.PointerEventType.Exit || c.pressed ||
+                                    c.position.x !in 0f..size.width.toFloat() || c.position.y !in 0f..size.height.toFloat()) -1
+                                else geometry.nearestIndex(c.position.x).let {
+                                    // Shared-width slots are a Row, which mirrors in RTL; fixed slots are placed by x.
+                                    if (rtl && !geometry.fixed) itemCount - 1 - it else it
+                                }
+                        }
+                    } } finally { focusRing.hovered.intValue = -1 }
                 }
                 .pointerInput(geometry, motionEnabled, handle, poseHandle, style, flingVelocity) {
                     // Read here, outside the restricted gesture scope: whether this pointer-input job is still
@@ -1479,6 +1504,17 @@ private fun ItemCell(
             animationSpec = spring(dampingRatio = 0.85f, stiffness = 900f),
             label = "glass_tab_bar_item_scale",
         )
+        // A hovered tab's content lifts by GlassPoseSpec.hoverScale, in every copy of the row alike (the lens's
+        // refracted row reads the same bar state), so the ink under the lens never disagrees with the bar's. Applied
+        // at draw time, not as a layer property: the bar's material records this row, and only a draw-phase read
+        // invalidates that recording (a layer's scale alone left the shader sampling the unscaled row).
+        val ring = LocalGlassFocusRing.current
+        val hoverTarget = if (ring != null && ring.hovered.intValue == index) ring.hoverScale else 1f
+        val hoverScale by animateFloatAsState(
+            targetValue = hoverTarget,
+            animationSpec = spring(dampingRatio = 0.85f, stiffness = 900f),
+            label = "glass_tab_bar_item_hover",
+        )
         val measured = if (onMeasured != null) {
             Modifier.onGloballyPositioned { onMeasured(index, it.size.width.toFloat()) }
         } else {
@@ -1490,6 +1526,10 @@ private fun ItemCell(
         Box(
             modifier = (if (unboundedWidth) Modifier.wrapContentWidth(unbounded = true) else Modifier)
                 .then(measured)
+                .drawWithContent {
+                    if (hoverScale == 1f) drawContent()
+                    else scale(hoverScale) { this@drawWithContent.drawContent() }
+                }
                 .graphicsLayer {
                     scaleX = itemScale
                     scaleY = itemScale
@@ -1631,6 +1671,9 @@ internal object GlassTabBarSemantics {
     val Held = SemanticsPropertyKey<Boolean>("GlassTabBarHeld")
     val Dragging = SemanticsPropertyKey<Boolean>("GlassTabBarDragging")
     val DragIndex = SemanticsPropertyKey<Int>("GlassTabBarDragIndex")
+    /** The tab under a hovering pointer, or -1, and the scale it lifts to (#117). */
+    val HoverIndex = SemanticsPropertyKey<Int>("GlassTabBarHoverIndex")
+    val HoverScale = SemanticsPropertyKey<Float>("GlassTabBarHoverScale")
     /** V3 only: how far the held lens has formed, the body's width and end asymmetry, in px. */
     val Formation = SemanticsPropertyKey<Float>("GlassTabBarFormation")
     val BodyWidth = SemanticsPropertyKey<Float>("GlassTabBarBodyWidth")
@@ -2529,7 +2572,7 @@ private fun AwaitPointerEventScope.liftedWithoutDrag(id: PointerId): Boolean =
 /** The keyboard-focused tab and its layout (#117). */
 internal class GlassFocusRingTarget(val index: Int, val cell: androidx.compose.ui.layout.LayoutCoordinates)
 
-/** The bar's layout and its keyboard-focused tab, if any (#117). */
+/** The bar's layout, its keyboard-focused tab, if any, and the tab under a hovering pointer, or -1 (#117). */
 internal class GlassFocusRingState {
     var bar: androidx.compose.ui.layout.LayoutCoordinates? = null
     /** A pointer pressed the bar since the last key event: the ring stays hidden until the keyboard is used again. */
@@ -2539,6 +2582,9 @@ internal class GlassFocusRingState {
     /** Whether a tab of the bar has focus. */
     var barFocused = false
     val target = mutableStateOf<GlassFocusRingTarget?>(null)
+    val hovered = androidx.compose.runtime.mutableIntStateOf(-1)
+    /** [GlassPoseSpec.hoverScale] of the bar's selector; 1 (off) for every style without it. */
+    var hoverScale by androidx.compose.runtime.mutableFloatStateOf(1f)
 }
 
 /** The item count of an RTL bar drawn mirrored in LTR (#161), or -1. */
