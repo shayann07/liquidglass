@@ -31,6 +31,7 @@ layout(std140, binding = 0) uniform buf {
     float uProfile;
     float uFormation;
     float uHeldLens;
+    float uBandBottom;
     float uHeldMagnification;
     float uHeldGlow;
     float uFoldCorners;
@@ -973,12 +974,13 @@ vec4 glassMain(vec2 coord) {
     vec2 pushB = push * (1.0 + split);
     if (measured > 0.5 && uProfile < 2.5) {
         // Inward only. A pixel at depth d shows content from depth s inside the same edge.
-        // The held lens's mirror band is GlassCalmLensBand wide, but where its rim faces down it narrows
-        // (#94): a label sitting in a wide bottom band was swapped for mirrored content and cut, where
-        // iOS keeps it and bends its ends along the rim (docs/2 8.6 s). Authored.
+        // A held lens whose band its style widened (GlassStyle.bodyBandScale > 1, Calm's GlassCalmLensBand) keeps a
+        // narrower band where its rim faces down (#94): a label sitting in a wide bottom band was swapped for mirrored
+        // content and cut, where iOS keeps it and bends its ends along the rim (docs/2 8.6 s). uBandBottom 0 is off,
+        // so every other style keeps its band. Authored.
         float heldBottom = step(1.5, uProfile) * (1.0 - step(2.5, uProfile)) * clamp(uHeldLens, 0.0, 1.0)
             * smoothstep(0.2, 0.8, n.y);
-        float W = max(uRefractBand * mix(1.0, 0.3, heldBottom), 0.001);
+        float W = max(uRefractBand * mix(1.0, (uBandBottom > 0.0) ? uBandBottom : 1.0, heldBottom), 0.001);
         float u = clamp(depth / W, 0.0, 1.0);
         // Chrome at rest lenses at its corner arcs only; a field shape has no runs to exempt.
         float corner = (uBodyKind > 1.5)
