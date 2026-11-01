@@ -68,6 +68,7 @@ import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.semantics.SemanticsPropertyKey
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -168,9 +169,28 @@ internal fun GlassTabBar(
     /** A separate glass control beside the bar's trailing end that the bar fuses with while
      * pressed, such as a search button. See [GlassTabBarAccessory]. */
     trailingAccessory: GlassTabBarAccessory? = null,
+    /** Internal: set when an RTL bar with shared-width slots is drawn mirrored in LTR (#161). */
+    mirrored: Boolean = false,
     item: @Composable (index: Int, selected: Boolean) -> Unit,
 ) {
     require(itemCount > 0) { "GlassTabBar needs at least one item" }
+    // #161: shared-width slots are a Row, which mirrors in RTL, while the selector, press, drag and fling all count
+    // slots from the left. So an RTL bar is drawn in LTR with its items in reverse order, the indices mapped at this
+    // boundary, and each item still laid out in the app's own direction. Fixed slots are placed by x and need nothing.
+    val outerDirection = LocalLayoutDirection.current
+    if (!mirrored && outerDirection == LayoutDirection.Rtl && !style.slotWidth.isSpecified) {
+        val last = itemCount - 1
+        androidx.compose.runtime.CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr,
+            LocalGlassTabMirrorCount provides itemCount) {
+            GlassTabBar(state, itemCount, last - selectedIndex, { onSelected(last - it) }, modifier, style, motionEnabled,
+                materialize, trailingAccessory, mirrored = true) { index, selected ->
+                androidx.compose.runtime.CompositionLocalProvider(LocalLayoutDirection provides outerDirection) {
+                    item(last - index, selected)
+                }
+            }
+        }
+        return
+    }
     val barShape: Shape = style.shape
     // A true capsule at every size the selector passes through between inset and lens.
     val selectorShape = RoundedCornerShape(percent = 50)
@@ -206,7 +226,8 @@ internal fun GlassTabBar(
             },
     ) {
         val density = LocalDensity.current
-        val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+        // The accessory's side follows the app's direction, also when the bar is drawn mirrored (#161).
+        val rtl = mirrored || LocalLayoutDirection.current == LayoutDirection.Rtl
         val barWidthDp: Dp = maxWidth
         val barHeightDp: Dp = maxHeight
         val barWidthPx = with(density) { barWidthDp.toPx() }
@@ -1381,8 +1402,11 @@ private fun ItemCell(
                     androidx.compose.runtime.DisposableEffect(ring) {
                         onDispose { if (ring?.target?.value?.index == index) ring.target.value = null }
                     }
+                    // A mirrored RTL bar (#161) keeps screen readers on the logical order, not the drawn one.
+                    val mirrorCount = LocalGlassTabMirrorCount.current
                     Modifier
                         .onGloballyPositioned { cell = it }
+                        .then(if (mirrorCount > 0) Modifier.semantics { traversalIndex = (mirrorCount - 1 - index).toFloat() } else Modifier)
                         .selectable(
                             selected = index == semanticSelected,
                             interactionSource = interactions,
@@ -2451,6 +2475,9 @@ internal class GlassFocusRingState {
     var bar: androidx.compose.ui.layout.LayoutCoordinates? = null
     val target = mutableStateOf<GlassFocusRingTarget?>(null)
 }
+
+/** The item count of an RTL bar drawn mirrored in LTR (#161), or -1. */
+internal val LocalGlassTabMirrorCount = androidx.compose.runtime.staticCompositionLocalOf { -1 }
 
 /** Set by [GlassTabBar] so its interactive tabs can report keyboard focus to the bar, which draws the ring. */
 internal val LocalGlassFocusRing = androidx.compose.runtime.staticCompositionLocalOf<GlassFocusRingState?> { null }
