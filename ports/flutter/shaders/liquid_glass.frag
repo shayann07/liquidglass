@@ -1222,10 +1222,15 @@ vec4 glassMain(vec2 coord) {
     float heldGlow = glowAmt * exp(-max(depth - 0.67 * uBevel, 0.0) / glowReach)
         * (max(facing, 0.0) + counterLight * max(-facing, 0.0));
     float glowFloor = clamp(uHeldGlowFloor, 0.0, 1.0);
+    // GlassStyle.capFold's resting bar (#109): iOS's top and bottom rim dims from about 2 cap radii before the
+    // bar's end, through the cap, to about 0.8 at its tip (IMG_6756 5 and 8 s: 99 on the run, 88 / 84 / 59 at
+    // 137 / 97 / 57 px from the end of a 93 px cap). Long capsules only, so a round button keeps its rim. Authored fit.
+    float capRimGate = clamp(uFoldCorners - 1.0, 0.0, 1.0) * (1.0 - step(1.5, uProfile)) * step(2.0 * halfSize.y, halfSize.x);
+    float capRim = 1.0 - 0.2 * capRimGate * clamp((2.0 * halfSize.y - (halfSize.x - abs(p.x))) / (1.6 * halfSize.y), 0.0, 1.0);
     float highlight = ((key + counter) * uSpecular
         + edgeLine * uSpecular * uEdgeLight
         + fresnel * uFresnel * bevelBand
-        + heldGlow * (1.0 - glowFloor)) * mat;
+        + heldGlow * (1.0 - glowFloor)) * mat * capRim;
     col = applyHighlight(col, highlight, uHiChroma);
     // The floor share of the glow lifts only glass darker than it (GlassStyle.heldGlowFloor).
     if (glowFloor > 0.0) col = max(col, vec3(float(heldGlow * glowFloor * mat)));
