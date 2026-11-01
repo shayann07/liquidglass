@@ -42,9 +42,9 @@ class GlassTabBarFocusTest {
         return n
     }
 
-    private fun ComposeUiTest.bar() = setContent {
+    private fun ComposeUiTest.bar(renderScale: Float = .25f) = setContent {
         CompositionLocalProvider(LocalDensity provides Density(1f)) {
-            val state = rememberLiquidGlassState(Color.Black, renderScale = .25f)
+            val state = rememberLiquidGlassState(Color.Black, renderScale = renderScale)
             Box(Modifier.size(500.dp, 120.dp).testTag("scene")) {
                 Box(Modifier.fillMaxSize().background(Color.DarkGray).liquidGlassSource(state))
                 // The public overload's default style.
@@ -99,6 +99,52 @@ class GlassTabBarFocusTest {
         onAllNodes(tab)[3].performMouseInput { click(center) }
         waitForIdle()
         assertEquals(0, ringPixels(), "a mouse click left a focus ring")
+    }
+
+    /**
+     * The white area within [within] (scene px), coverage-weighted: each pixel counts by how far it lies between the
+     * window's darkest level (the glass behind the square) and white. A 6% lift moves a 20 px square's edge by 0.6 px,
+     * which a near-white pixel count cannot see (the new edge pixels are ~60% covered).
+     */
+    private fun ComposeUiTest.whiteArea(within: androidx.compose.ui.geometry.Rect): Float {
+        val map = onNodeWithTag("scene").captureToImage().toPixelMap()
+        val ys = within.top.toInt().coerceAtLeast(0) until within.bottom.toInt().coerceAtMost(map.height)
+        val xs = within.left.toInt().coerceAtLeast(0) until within.right.toInt().coerceAtMost(map.width)
+        var floor = 1f
+        for (y in ys) for (x in xs) floor = minOf(floor, map[x, y].red)
+        var area = 0f
+        for (y in ys) for (x in xs) area += ((map[x, y].red - floor) / (1f - floor).coerceAtLeast(.01f)).coerceIn(0f, 1f)
+        return area
+    }
+
+    /** #117 item 135: a hovering pointer lifts the tab under it, and the lift goes when the pointer leaves. */
+    @Test fun aHoveredTabLifts() = runComposeUiTest(testTimeout = 4.minutes) {
+        // Full resolution: at the suite's quarter scale the 20 px square is recorded at 5 px, and a 6% lift rounds away.
+        bar(renderScale = 1f); waitForIdle()
+        // The tab's cell grown by 4 px: the lifted square (21.2 px) reaches past the 20 px cell, so counting inside the
+        // cell alone always read 400.
+        val cell = onAllNodes(tab)[2].fetchSemanticsNode().boundsInRoot.inflate(4f)
+        val rest = whiteArea(cell)
+        onAllNodes(tab)[2].performMouseInput { moveTo(center) }
+        waitForIdle()
+        val hovered = whiteArea(cell)
+        val bar = onNodeWithTag(GlassTabBarSemantics.TAG, useUnmergedTree = true).fetchSemanticsNode().config
+        val index = bar.getOrElse(GlassTabBarSemantics.HoverIndex) { -9 }
+        val scale = bar.getOrElse(GlassTabBarSemantics.HoverScale) { -9f }
+        assertEquals(2, index, "the bar did not see the hover (scale $scale)")
+        assertEquals(GlassPoseSpec.Calm.hoverScale, scale, "Calm's hover scale")
+        assertTrue(rest > 0, "no tab drawn in the captured frame")
+        // The 20 x 20 px square grows by 400 (scale^2 - 1) px (49 at 1.06); the glass around it in the window adds the
+        // same amount before and after, so the increase is compared, within a quarter.
+        val expected = 400f * (scale * scale - 1f)
+        assertTrue(kotlin.math.abs(hovered - rest - expected) <= expected * .25f,
+            "hover did not lift the tab to $scale: $rest -> $hovered px (expected +${expected.toInt()})")
+        // No focus ring for a hover.
+        assertEquals(0, ringPixels(), "hover drew a focus ring")
+        onAllNodes(tab)[2].performMouseInput { exit() }
+        waitForIdle()
+        val after = whiteArea(cell)
+        assertTrue(kotlin.math.abs(after - rest) <= rest * .01f, "the lift stayed after the pointer left: $rest -> $after px")
     }
 
     /** A touch press focuses the tab on the desktop, where the input mode stays Keyboard: no ring (seen in every

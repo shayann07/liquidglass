@@ -186,6 +186,11 @@ The bar's rounded ends darken toward their outermost point as iOS's do (`GlassSt
 `capEdgeShadow` 0, bottom 2. The search button shares the bar's material, so its sides darken too; that
 is not scored separately.*
 
+Light iOS also shades the bar's top: it reads 240-241 across the top ~45 px and eases to the body's 245 by ~55 px down.
+Light `Calm()`'s bar does the same (a top shade of 0.056 over 28 dp, internal to the preset, 1 November; 0.85 levels rms
+down the bar against IMG_7049, was 3.15 when even). It is kept off the lit rim and off round shapes, so the search button stays even.
+[Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/light-top-shade-2026-11-01/README.md).
+
 In both appearances iOS draws page text under a tab bar as one soft, legible copy (the owner's
 Contacts recording, IMG_7049), which is what `softDetail` gives the Calm presets; the toolbar role's
 sharper high-pass, with its ghost copies, does not apply to tab bars.
@@ -453,6 +458,15 @@ not mirror (#161).
 Each tab is focusable (`Role.Tab`, in a selectable group), so the Tab key moves between tabs and Enter or
 Space selects. The focused tab draws a 2 dp ring in the system accent blue, with a dark hairline so it reads on a
 light or a dark bar. The ring appears only in keyboard input mode: a tap or a mouse click shows the lens, never the
+ring (#117).
+
+## Pointer hover
+
+With a mouse or trackpad (desktop and web), the Calm tab bar's tab under the pointer lifts: its content grows by 6%
+and settles back when the pointer leaves. Other styles do not change (`GlassPoseSpec.hoverScale`, internal),
+and with `motionEnabled = false` nothing lifts. Touch never hovers, so phones are unaffected. The amount is authored: iPadOS's glass
+responds to a pointer, but no recording here measures it (#117).
+
 ring (#117). On desktop the input mode can stay Keyboard under a touch screen or a synthetic press, so a pointer press
 on the bar also hides the ring until the next key.
 ## Haptics

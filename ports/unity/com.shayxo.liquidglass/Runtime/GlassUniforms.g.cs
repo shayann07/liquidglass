@@ -53,6 +53,7 @@ namespace LiquidGlass
             ("uEdgeLight", 1),
             ("uBevelPeak", 1),
             ("uEdgeShadow", 1),
+            ("uTopShade", 2),
             ("uCapEdgeShadow", 1),
             ("uOuterContour", 2),
             ("uRimSoft", 1),

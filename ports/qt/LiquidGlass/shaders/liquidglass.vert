@@ -58,6 +58,7 @@ layout(std140, binding = 0) uniform buf {
     float uEdgeLight;
     float uBevelPeak;
     float uEdgeShadow;
+    vec2 uTopShade;
     float uCapEdgeShadow;
     vec2 uOuterContour;
     float uRimSoft;
