@@ -5,9 +5,7 @@ import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
-import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.animation.core.AnimationSpec
@@ -664,6 +662,20 @@ internal fun GlassTabBar(
                         this[GlassTabBarSemantics.TouchLocalX] = press.localPosition.x
                         this[GlassTabBarSemantics.TouchLocalY] = press.localPosition.y
                         this[GlassTabBarSemantics.SelectorValid] = !poseHandle.controller.solverFailed
+                    }
+                }
+                // #117 item 135: a hovering mouse or trackpad marks the tab under it. This node lies over the
+                // items, so they never see the pointer themselves; it watches without consuming anything.
+                .pointerInput(geometry) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            val e = awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
+                            val c = e.changes.firstOrNull() ?: continue
+                            if (c.type != androidx.compose.ui.input.pointer.PointerType.Mouse) continue
+                            focusRing.hovered.intValue =
+                                if (e.type == androidx.compose.ui.input.pointer.PointerEventType.Exit || c.pressed) -1
+                                else geometry.nearestIndex(c.position.x)
+                        }
                     }
                 }
                 .pointerInput(geometry, motionEnabled, handle, poseHandle, style, flingVelocity) {
@@ -1358,26 +1370,18 @@ private fun ItemCell(
                     val ring = LocalGlassFocusRing.current
                     var cell by remember { mutableStateOf<androidx.compose.ui.layout.LayoutCoordinates?>(null) }
                     val showRing = focused && keyboard
-                    // A mouse or trackpad over the tab (#117 item 135); touch never hovers.
-                    val hovering by interactions.collectIsHoveredAsState()
                     androidx.compose.runtime.SideEffect {
                         val target = ring?.target ?: return@SideEffect
                         val at = cell
                         if (showRing && at != null) target.value = GlassFocusRingTarget(index, at)
                         else if (target.value?.index == index) target.value = null
-                        if (hovering) ring.hovered.intValue = index
-                        else if (ring.hovered.intValue == index) ring.hovered.intValue = -1
                     }
                     // A focused tab removed from the bar (a smaller itemCount) takes its ring with it.
                     androidx.compose.runtime.DisposableEffect(ring) {
-                        onDispose {
-                            if (ring?.target?.value?.index == index) ring.target.value = null
-                            if (ring?.hovered?.intValue == index) ring.hovered.intValue = -1
-                        }
+                        onDispose { if (ring?.target?.value?.index == index) ring.target.value = null }
                     }
                     Modifier
                         .onGloballyPositioned { cell = it }
-                        .hoverable(interactions)
                         .selectable(
                             selected = index == semanticSelected,
                             interactionSource = interactions,
