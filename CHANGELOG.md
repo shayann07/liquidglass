@@ -22,6 +22,12 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   draws it with `+badge` only. The tab content sits 1 dp lower, dark unselected ink is (249,249,249), the search glyph
   is 6 % smaller and lighter, and the light palette takes iOS 27's grey ink and (0,132,250) accent (#110).
   [Evidence](review/atlas/sample-parity-2026-11-01/README.md).
+- Tab bar (Calm): held bar growth and lens geometry calibrated against iOS 27 measurements (#93). The held lens
+  height ratio is 1.183 (was 1.20), lowering the crown by 2 px to row 436 (height 220 px) and reducing bottom
+  overhang h from 13.7 px to 12.3 px (matching iOS IMG_6756). Held lens width on Keypad expands towards ~350 px
+  (was ~335 px). In dark appearance, the lens cleanly overlaps the search button without necking or bridging,
+  and the soft grey disc on Pixel 7 light is eliminated.
+  [Evidence](review/atlas/held-bar-geometry-2026-10-28/README.md).
 - Tab bar (Calm): the held lens's outline is a squircle, not a capsule: it blends .7 of the way toward a
   superellipse with n = 3, the shape iOS's held lens fits, so its top runs flatter and its shoulders squarer. The
   resting selector stays a capsule. The ports draw the same outline (#93).
