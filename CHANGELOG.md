@@ -8,6 +8,8 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
 
 - Tab bar (light Calm): the held lens's outline is a grey line as on iOS (top rim 227 against iOS 226), not a faint
   near-white one (245) (#128). [Evidence](review/atlas/light-held-outline-2026-11-01/README.md).
+- Tab bar (Calm): a thrown lens stays milky as it lands, as iOS's does, instead of clearing about 80 ms early (docs/2
+  8.62-8.84 s: 5.2 levels rms, was 9.1) (#111). [Evidence](review/atlas/landing-lift-2026-11-01/README.md).
 - Tab bar (Calm): a held lens that travels sweeps the icons it passes round its caps, as iOS's does, instead of carrying
   them nearly unbent to a hard edge (LOLL8185 21.4 s). Its caps mirror over the full band (1.0) while it moves; taps keep
   0.3. The landing label also holds better (docs/2: 825 label px, main 546, iOS 854) (#121).

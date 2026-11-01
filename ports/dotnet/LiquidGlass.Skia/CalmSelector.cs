@@ -52,6 +52,7 @@ public sealed record CalmSelectorSpec
     public double TapAppearanceFallOmega { get; init; } = 0; public double ReleaseFormationSpeed { get; init; } = 0;
     public double ReleaseStillHoldSeconds { get; init; } = 0;
     public double ReleaseStillFadeOmega { get; init; } = 0;
+    public double ReleaseMovingFadeOmega { get; init; } = 0;
     /// <summary>The held lens's superellipse blend (#93) at full formation, and its exponent.</summary>
     public double HeldSquircle { get; init; } = 0; public double SquircleExponent { get; init; } = 3;
 
@@ -69,7 +70,7 @@ public sealed record CalmSelectorSpec
         GraspOmega = 120, HeldFormRiseOmega = 26, PressFormation = 0, HoldThresholdSeconds = .11,
         ReleaseTrailingEdge = true, ReleaseRecoveryOmega = 13,
         ReleaseTrailingInOmega = 9, ReleaseTrailingInZeta = .3, ReleaseTrailingCarry = .1, ReleaseWallGive = .35,
-        ReleaseTrailingStiffening = .5, ReleaseStillHoldSeconds = .035, ReleaseStillFadeOmega = 100,
+        ReleaseTrailingStiffening = .5, ReleaseStillHoldSeconds = .035, ReleaseStillFadeOmega = 100, ReleaseMovingFadeOmega = 12,
         HeldTravelStrain = .6, HeldTravelStrainOmega = 10,
         HeldSquircle = .7,
     };
@@ -589,7 +590,8 @@ public sealed class CalmSelectorController
         form.Target = formTarget;
         var riseOmega = heldNow && s.HeldFormRiseOmega > 0 ? s.HeldFormRiseOmega : s.FormRiseOmega;
         var fallOmega = Mode == CalmSelectorMode.Released && releasedStill && s.ReleaseStillFadeOmega > 0
-            ? s.ReleaseStillFadeOmega : s.FormOmega;
+            ? s.ReleaseStillFadeOmega
+            : Mode == CalmSelectorMode.Released && !releasedStill && s.ReleaseMovingFadeOmega > 0 ? s.ReleaseMovingFadeOmega : s.FormOmega;
         form.Step(dt, formTarget > form.Value ? riseOmega : fallOmega, s.FormZeta);
 
         var formation = Formation;
