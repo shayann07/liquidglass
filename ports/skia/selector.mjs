@@ -35,6 +35,7 @@ const DEFAULT_SPEC = Object.freeze({
   releaseTrailingStiffening: 0,
   tapShortTripRate: 1, tapAppearanceArea: 0, tapAppearanceSpine: 0,
   tapAppearanceFallOmega: 0, releaseFormationSpeed: 0, releaseStillHoldSeconds: 0,
+  releaseStillFadeOmega: 0,
   heldSquircle: 0, squircleExponent: 3,
 });
 
@@ -49,9 +50,11 @@ export const CALM_SELECTOR_SPEC = Object.freeze({
   travelOnly: true, releaseTravel: true, tapRecoilArea: true, heldTravelPressureOmega: 60,
   tapSpineLimitSlots: .45, tapAreaGain: .51, tapShortTripRate: .75, tapAppearanceArea: .44,
   tapAppearanceSpine: .13, tapAppearanceFallOmega: 45, releaseFormationSpeed: 3,
-  graspOmega: 120, heldFormRiseOmega: 50, releaseTrailingEdge: true, releaseRecoveryOmega: 13,
+  graspOmega: 120, heldFormRiseOmega: 26, pressFormation: 0, holdThresholdSeconds: .11,
+  releaseTrailingEdge: true, releaseRecoveryOmega: 13,
   releaseTrailingInOmega: 9, releaseTrailingInZeta: .3, releaseTrailingCarry: .1, releaseWallGive: .35,
-  releaseTrailingStiffening: .5, releaseStillHoldSeconds: .18, heldTravelStrain: .6, heldTravelStrainOmega: 10,
+  releaseTrailingStiffening: .5, releaseStillHoldSeconds: .035, releaseStillFadeOmega: 100,
+  heldTravelStrain: .6, heldTravelStrainOmega: 10,
   heldSquircle: .7,
 });
 
@@ -319,7 +322,7 @@ export class CalmSelectorController {
       this.heldTravel < 1e-4 && this.quietSteps >= QUIET_STEPS && this.strainDrive.value === 0 &&
       // A still release keeping its glass: nothing moves yet, but the formation still has to fall.
       !(this.mode === MODE.Released && this.releasedFromHold && this.releasedStill && this.form.value > .01 &&
-        this.now - this.releasedAt < this.spec.releaseStillHoldSeconds + .05);
+        this.now - this.releasedAt < this.spec.releaseStillHoldSeconds + .15);
   }
 
   attach(bar, itemBounds = null, itemCentres = null, inkHalfHeight = this.inkHalfHeight) {
@@ -568,7 +571,9 @@ export class CalmSelectorController {
     } else formTarget = 1 - (1 - pressResponse) * (1 - s.formFromMovement * sv);
     this.form.target = formTarget;
     const riseOmega = heldNow && s.heldFormRiseOmega > 0 ? s.heldFormRiseOmega : s.formRiseOmega;
-    this.form.step(dt, formTarget > this.form.value ? riseOmega : s.formOmega, s.formZeta);
+    const fallOmega = this.mode === MODE.Released && this.releasedStill && s.releaseStillFadeOmega > 0
+      ? s.releaseStillFadeOmega : s.formOmega;
+    this.form.step(dt, formTarget > this.form.value ? riseOmega : fallOmega, s.formZeta);
 
     // ---- equilibria
     const formation = this.formation;

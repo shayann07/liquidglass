@@ -15,6 +15,9 @@ research remains available; this page identifies which later changes supersede i
 - 1 November: a tap's moving selector rises into a glass lens (formation about .74, was .25) (#120). The
   faster tap spring proposed for #123 was dropped: it moved arrival further from iOS (104 ms rms, against main's 39).
   [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/tap-transit-2026-10-27/README.md).
+- 1 November: a still press forms the lens only once it is a hold. A still release loses the lens about 75 ms after
+  the lift, as IMG_6756 does, instead of about 330 ms (#106). The bar's own press swell still starts about 65 ms
+  earlier than iOS's. [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/press-release-timing-2026-11-01/README.md).
 - 27 October: eliminated green/black comb streaks during tap transits (#124) and channel crush at the lens rim (#108). In `GlassContentShaderSource.kt`, chromatic split `delta` scales with `abs(shift)` instead of a static band split, and transit ink dispersion is scaled by `GlassSelectorInkSplitShare`. Outward displacement is clamped to `max(shift - delta, 0.0)` in both shaders, preventing rim channels from sampling past the glass boundary.
   [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/comb-streaks-2026-10-27/README.md).
 - 1 November: keyboard users can see which tab has focus: the focused tab draws a ring over the selector, in keyboard

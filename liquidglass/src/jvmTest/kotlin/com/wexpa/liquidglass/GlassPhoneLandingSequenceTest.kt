@@ -256,6 +256,42 @@ class GlassPhoneLandingSequenceTest {
         assertTrue(old.formation < .9f)
     }
 
+    /** #106, audit item 104: IMG_6756's still-released lens (three holds) keeps its outline ~43 ms
+     * after the lift and is flat by ~93 ms. The replay (holds-41) collapses at 60-77 ms; here the
+     * formation has to still be whole at 25 ms and mostly gone by 65 ms. Authored rate. */
+    @Test fun aStillReleaseLosesItsGlassAsQuicklyAsIos27() {
+        val c = GlassPoseController(GlassPoseSpec.Calm)
+        c.attach(phoneBar, null, null); c.snapToRest(0)
+        c.pointerDown(phoneBar.centreOf(0), phoneBar.centreY, 0.0, true)
+        c.advanceTo(.6f, .9f)
+        assertTrue(c.isHeld && c.formation > .99f)
+        c.pointerUp(0)
+        c.advanceFrameTo(.625f)
+        assertTrue(c.formation > .95f, "lost its glass before the hold: ${c.formation}")
+        c.advanceFrameTo(.665f)
+        assertTrue(c.formation < .3f, "still formed 65 ms after the lift: ${c.formation}")
+        c.advanceFrameTo(.71f)
+        assertTrue(c.formation < .02f, "still formed 110 ms after the lift: ${c.formation}")
+    }
+
+    /** #106, audit item 107: a still press forms no lens before it becomes a hold (iOS shows none
+     * before ~100 ms in IMG_6756), then rises at heldFormRiseOmega: about half by 180 ms and nearly
+     * whole by 300 ms, as the replay's lens level follows iOS's from 170 ms on. */
+    @Test fun aStillPressFormsOnlyOnceItIsAHold() {
+        val c = GlassPoseController(GlassPoseSpec.Calm)
+        c.attach(phoneBar, null, null); c.snapToRest(0)
+        c.pointerDown(phoneBar.centreOf(0), phoneBar.centreY, 0.0, true)
+        c.advanceFrameTo(.09f)
+        assertFalse(c.isHeld, "held before the threshold")
+        assertEquals(0f, c.formation, 1e-4f, "formed before the hold")
+        c.advanceFrameTo(.115f)
+        assertTrue(c.isHeld, "not held at 115 ms")
+        c.advanceFrameTo(.182f)
+        assertTrue(c.formation in .4f..0.65f, "formation at 182 ms: ${c.formation}")
+        c.advanceFrameTo(.3f)
+        assertTrue(c.formation > .93f, "not formed by 300 ms: ${c.formation}")
+    }
+
     @Test fun regrabCarriesTheVelocityOfTheShapeAwareCentre() {
         for(reverse in listOf(false,true)) for(time in listOf(.96f,1.05f,1.14f,1.3f)) {
             val c=throwing(reverse)
