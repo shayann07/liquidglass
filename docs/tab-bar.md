@@ -64,7 +64,11 @@ stay flat against the end. Since 14 October a fast landing presses into the bar'
 pill narrows briefly from behind before widening back, as in iOS: after the lift its trailing edge
 travels on for about 0.3 s and passes its rest by about 40 px, scored on every wall landing of the
 reference recording, and a still-formed lens presses past the bar's end. The moving lens draws the
-content under its caps out toward the rim (`GlassStyle.rimMirrorGain`). Since pass 12 a held
+content under its caps out toward the rim (`GlassStyle.rimMirrorGain`). A tapped selector mirrors a narrow band
+(rim mirror 0.3), which keeps its label; a held lens that travels mirrors its whole band (1.0), so it
+sweeps the icons it passes round its caps as iOS's does (#121, 1 November; LOLL8185 21.4 s by eye;
+[evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/held-cap-mirror-2026-11-01/README.md)).
+A still held lens is unchanged. Since pass 12 a held
 lens dragged quickly widens and flattens at constant area (`GlassPoseSpec.heldTravelStrain`),
 reaching about 0.75 of the bar's height at iOS's initial reversals; under sustained fast scrubbing
 (rapid reversals within 250–280 ms), accumulated strain decays and the target is suppressed so the
