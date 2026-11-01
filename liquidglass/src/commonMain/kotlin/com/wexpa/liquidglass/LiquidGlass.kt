@@ -1755,12 +1755,16 @@ object LiquidGlassDiagnostics {
     /** When set, the held lens's superellipse blend and exponent (#93), for fitting by replay; null in production. */
     var lensSquircle: FloatArray? = null
 
+    /** When set, [GlassPoseSpec.tapLongTripRate] for fitting tap timing by replay (#70); null in production. */
+    var tapLongTripRate: Float? = null
+
     /** Back to the production defaults: no pad override, no coverage-only rendering, no split override. */
     fun reset() {
         recordPadOverridePx = null
         coverageOnly = false
         selectorFringe = null
         lensSquircle = null
+        tapLongTripRate = null
     }
 
     /** Runs [block] with these settings and resets them afterwards, whatever [block] does. */

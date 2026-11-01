@@ -53,6 +53,7 @@ public sealed record CalmSelectorSpec
     public double ReleaseStillHoldSeconds { get; init; } = 0;
     public double ReleaseStillFadeOmega { get; init; } = 0;
     public double ReleaseMovingFadeOmega { get; init; } = 0;
+    public double TapLongTripRate { get; init; } = 1;
     /// <summary>The held lens's superellipse blend (#93) at full formation, and its exponent.</summary>
     public double HeldSquircle { get; init; } = 0; public double SquircleExponent { get; init; } = 3;
 
@@ -70,7 +71,7 @@ public sealed record CalmSelectorSpec
         GraspOmega = 120, HeldFormRiseOmega = 26, PressFormation = 0, HoldThresholdSeconds = .11,
         ReleaseTrailingEdge = true, ReleaseRecoveryOmega = 13,
         ReleaseTrailingInOmega = 9, ReleaseTrailingInZeta = .3, ReleaseTrailingCarry = .1, ReleaseWallGive = .35,
-        ReleaseTrailingStiffening = .5, ReleaseStillHoldSeconds = .035, ReleaseStillFadeOmega = 100, ReleaseMovingFadeOmega = 12,
+        ReleaseTrailingStiffening = .5, ReleaseStillHoldSeconds = .035, ReleaseStillFadeOmega = 100, ReleaseMovingFadeOmega = 12, TapLongTripRate = 1.15,
         HeldTravelStrain = .6, HeldTravelStrainOmega = 10,
         HeldSquircle = .7,
     };
@@ -539,7 +540,9 @@ public sealed class CalmSelectorController
         if (coupleTapArea)
         {
             var phase = Math.Clamp(tapDistance / slot - 1, 0, 1); var blend = phase * phase * (3 - 2 * phase);
-            var shortRate = Math.Clamp(s.TapShortTripRate, .5, 1); tapClock = shortRate + (1 - shortRate) * blend;
+            var shortRate = Math.Clamp(s.TapShortTripRate, .5, 1); var longRate = Math.Clamp(s.TapLongTripRate, .5, 2);
+            var far = Math.Clamp(tapDistance / slot - 2, 0, 1); var back = far * far * (3 - 2 * far);
+            tapClock = shortRate + (longRate + (1 - longRate) * back - shortRate) * blend;
         }
         var tapShapeVx = vx / tapClock;
         var coupleReleaseArea = MotionEnabled && releaseImpactActive && Mode == CalmSelectorMode.Released;
