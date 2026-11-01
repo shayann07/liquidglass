@@ -6,6 +6,9 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Tab bar (Calm): a thrown lens no longer cuts the label it lands on. The held lens's mirror band narrows where its rim
+  faces down, restoring the label (docs/2: 724 blue label px against 457, iOS 854), with fringes nearer iOS's (#94, #111).
+  [Evidence](review/atlas/label-band-2026-11-01/README.md).
 - Accessibility: `LiquidGlassTheme`'s `reduceTransparency` and `increaseContrast`, and `GlassTabBar`'s `motionEnabled`,
   now default to the platform's settings: Android's Remove animations and (API 34+) contrast level, and the web's
   `prefers-reduced-motion`, `prefers-reduced-transparency` and `prefers-contrast`. Explicit values still win (#115).
