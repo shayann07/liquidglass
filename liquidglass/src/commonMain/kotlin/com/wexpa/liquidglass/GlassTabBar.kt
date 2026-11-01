@@ -316,6 +316,24 @@ internal fun GlassTabBar(
             }
         }
         val held = poseHandle?.held ?: handle?.held ?: v2Held
+        // At accessibility text sizes a held tab shows itself magnified in the middle of the window (#145), once the
+        // press has lasted GlassLargeContentHoldSeconds: some selector paths report `held` from touch-down, and a tap
+        // must never flash the viewer. Counted in frame time, so a test or replay clock drives it.
+        val wantsViewer = held && LocalDensity.current.fontScale >= GlassLargeContentFontScale
+        var viewerReady by remember { mutableStateOf(false) }
+        LaunchedEffect(wantsViewer) {
+            viewerReady = false
+            if (!wantsViewer) return@LaunchedEffect
+            // Counted from the press: a controller raises `held` only after its own hold threshold.
+            val threshold = poseHandle?.controller?.spec?.holdThresholdSeconds ?: handle?.controller?.spec?.holdThresholdSeconds ?: 0f
+            val wait = ((GlassLargeContentHoldSeconds - threshold).coerceAtLeast(0f) * 1e9f).toLong()
+            val start = withFrameNanos { it }
+            while (withFrameNanos { it } - start < wait) Unit
+            viewerReady = true
+        }
+        if (wantsViewer && viewerReady && activeIndex in 0 until itemCount) {
+            GlassLargeContentViewer(LocalGlassDefaults.current.dark) { item(activeIndex, true) }
+        }
         // GlassPoseSpec.heldInkLift: rises within 80 ms of the hold, lets go over about .35 s after the lift.
         val heldInkLift = poseHandle?.controller?.spec?.heldInkLift ?: 0f
         val inkLift by animateFloatAsState(
