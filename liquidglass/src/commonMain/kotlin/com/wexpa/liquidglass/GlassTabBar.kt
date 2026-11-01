@@ -202,17 +202,20 @@ internal fun GlassTabBar(
             .pointerInput(Unit) {
                 kotlinx.coroutines.coroutineScope {
                     val watcher = this
+                    var cleanup: kotlinx.coroutines.Job? = null
                     awaitPointerEventScope {
                         while (true) {
                             val e = awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
                             // A press, not a held pointer moving: a key pressed mid-hold must still bring the ring back.
                             if (e.changes.any { it.pressed && !it.previousPressed }) {
+                                // A new press supersedes the last release's pending check.
+                                cleanup?.cancel()
                                 focusRing.pointerSinceKey = true
                                 focusRing.pointerSinceBlur = true
                             }
                             // A press that ends with no tab focused (the row's padding) leaves nothing to suppress: clear
                             // it two frames on, after any tab the press clicked has taken focus.
-                            if (e.changes.none { it.pressed } && e.changes.any { it.previousPressed }) watcher.launch {
+                            if (e.changes.none { it.pressed } && e.changes.any { it.previousPressed }) cleanup = watcher.launch {
                                 androidx.compose.runtime.withFrameNanos { }
                                 androidx.compose.runtime.withFrameNanos { }
                                 if (!focusRing.barFocused) {
