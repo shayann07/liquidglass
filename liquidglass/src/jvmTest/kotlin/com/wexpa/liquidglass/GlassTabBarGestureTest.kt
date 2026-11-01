@@ -29,6 +29,7 @@ import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.runComposeUiTest
+import kotlin.time.Duration.Companion.minutes
 import androidx.compose.ui.unit.dp
 import kotlin.math.abs
 import kotlin.test.Test
@@ -134,7 +135,10 @@ open class GlassTabBarGestureTest {
         assertTrue(abs(x - cx(expectedTab)) < 0.5f, "$label: lens at $x, expected tab $expectedTab at ${cx(expectedTab)}")
     }
 
-    internal fun run(scrollingParent: Boolean = false, motionEnabled: Boolean = true, body: androidx.compose.ui.test.ComposeUiTest.(Recorder, SemanticsNodeInteraction) -> Unit) = runComposeUiTest {
+    internal fun run(scrollingParent: Boolean = false, motionEnabled: Boolean = true, body: androidx.compose.ui.test.ComposeUiTest.(Recorder, SemanticsNodeInteraction) -> Unit) =
+        // The default 60 s idle timeout trips on loaded CI runners (UncompletedCoroutinesError); the
+        // other render suites already allow minutes.
+        runComposeUiTest(testTimeout = 4.minutes) {
         val rec = Recorder()
         setContent { Fixture(rec, scrollingParent, motionEnabled) }
         waitForIdle()
