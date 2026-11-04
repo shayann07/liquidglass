@@ -2,5 +2,5 @@
 # theming with no migration path, so an unpinned build would break without a commit here.
 # Upgrade deliberately, and check `mkdocs build --strict` locally first.
 mkdocs==1.6.1
-mkdocs-material==9.7.7
+mkdocs-material==9.8.0
 pymdown-extensions==12.3
