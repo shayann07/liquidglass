@@ -10,10 +10,10 @@ import org.gradle.api.tasks.options.Option
 
 /**
  * `./gradlew liquidGlassAdopt`: switches the project's Material 3 imports to the Liquid Glass versions,
- * once. Explicit `import androidx.compose.material3.Button` lines become
- * `import com.wexpa.liquidglass.material3.Button`; a file with `import androidx.compose.material3.*`
- * gains explicit glass imports for the components it uses, which take precedence over the star.
- * Run with `--dry-run` to see the changes without writing them.
+ * once. Explicit `import androidx.compose.material3.Button` or `import org.jetbrains.compose.material3.Button`
+ * lines become `import com.wexpa.liquidglass.material3.Button`; a file with wildcard imports (`androidx.compose.material3.*`
+ * or `org.jetbrains.compose.material3.*`) gains explicit glass imports for the components it uses, which take precedence
+ * over the star. Run with `--dry-run` to see the changes without writing them.
  */
 abstract class AdoptTask : DefaultTask() {
     @get:InputFiles abstract val sources: ConfigurableFileCollection
@@ -56,18 +56,21 @@ abstract class AdoptTask : DefaultTask() {
             "PermanentDrawerSheet", "NavigationDrawerItem", "DatePicker", "DateRangePicker", "DatePickerDialog",
             "TimePickerDialog", "LeadingIconTab", "PrimaryScrollableTabRow", "SecondaryScrollableTabRow",
         )
-        private const val FROM = "androidx.compose.material3."
+        private val FROM_PREFIXES = listOf("androidx.compose.material3.", "org.jetbrains.compose.material3.")
         private const val TO = "com.wexpa.liquidglass.material3."
 
         fun adoptImports(text: String): Result {
             var changes = 0
             val lines = text.lines().toMutableList()
             for (i in lines.indices) {
-                val m = Regex("""^import\s+androidx\.compose\.material3\.(\w+)\s*$""").find(lines[i]) ?: continue
+                val m = Regex("""^import\s+(?:androidx|org\.jetbrains)\.compose\.material3\.(\w+)\s*$""").find(lines[i]) ?: continue
                 val name = m.groupValues[1]
                 if (name in GLASS) { lines[i] = "import $TO$name"; changes++ }
             }
-            val star = lines.indexOfFirst { it.trim() == "import ${FROM}*" }
+            val star = lines.indexOfFirst { line ->
+                val trimmed = line.trim()
+                FROM_PREFIXES.any { trimmed == "import $it*" }
+            }
             if (star >= 0) {
                 val body = lines.filterNot { it.startsWith("import ") || it.startsWith("package ") }.joinToString("\n")
                 val already = lines.filter { it.startsWith("import $TO") }.map { it.removePrefix("import $TO").trim() }.toSet()

@@ -30,6 +30,31 @@ class AdoptImportsTest {
         assertTrue("import androidx.compose.material3.*" in r.text)
     }
 
+    @Test fun explicitImportsOfComposeMultiplatformGlassComponentsAreSwitched() {
+        val r = AdoptTask.adoptImports("""
+            package app
+            import org.jetbrains.compose.material3.Button
+            import org.jetbrains.compose.material3.Text
+            import org.jetbrains.compose.material3.NavigationBar
+        """.trimIndent())
+        assertEquals(2, r.changes)
+        assertTrue("import com.wexpa.liquidglass.material3.Button" in r.text)
+        assertTrue("import com.wexpa.liquidglass.material3.NavigationBar" in r.text)
+        assertTrue("import org.jetbrains.compose.material3.Text" in r.text, "Text has no glass version and must stay")
+    }
+
+    @Test fun aComposeMultiplatformStarImportGainsExplicitGlassImportsForWhatTheFileUses() {
+        val r = AdoptTask.adoptImports("""
+            package app
+            import org.jetbrains.compose.material3.*
+            fun f() { Scaffold { Card { Text("x") } } }
+        """.trimIndent())
+        assertEquals(2, r.changes)
+        assertTrue("import com.wexpa.liquidglass.material3.Card" in r.text)
+        assertTrue("import com.wexpa.liquidglass.material3.Scaffold" in r.text)
+        assertTrue("import org.jetbrains.compose.material3.*" in r.text)
+    }
+
     @Test fun runningItTwiceChangesNothingMore() {
         val once = AdoptTask.adoptImports("import androidx.compose.material3.*\nfun f() { Button() }").text
         assertEquals(0, AdoptTask.adoptImports(once).changes)

@@ -262,7 +262,7 @@ The ports' surfaces bind `Glass.Regular`'s light, `GlassLight.Default` (-0.35, -
   controls and tab rows use the measured Calm tab bar; the other components' looks are authored, not
   measured against iOS.
 - `liquidglass-bom` (new) and the Gradle plugin `dev.shayxo.liquidglass` (new): one line adds the right
-  artifacts; `liquidGlassAdopt` switches an app's Material 3 imports once. Published in 0.2.0.
+  artifacts; `liquidGlassAdopt` switches an app's Material 3 imports (Android and Compose Multiplatform) once. Published in 0.2.0.
 - Release pipeline (19 October): one tag publishes the library, Material 3, the BOM and the plugin to
   Maven Central (the plugin through its marker, no Plugin Portal account needed), the web component to
   npm and the four .NET packages to NuGet, then creates the GitHub release. Pull requests touching it
