@@ -1,0 +1,23 @@
+
+== h128o: 259 paired frames
+  rest (29 frames)
+    top     rows 448-466: iOS  252.6  ours  254.4  ours-iOS   +1.9  rms  6.51
+    lower   rows 622-646: iOS  251.0  ours  251.4  ours-iOS   +0.4  rms  4.36
+    shadow  rows 650-668: iOS  253.8  ours  254.1  ours-iOS   +0.3  rms  0.67
+    tail    rows 678-694: iOS  253.7  ours  255.0  ours-iOS   +1.3  rms  5.52
+  hold (144 frames)
+    top     rows 448-466: iOS  248.2  ours  254.2  ours-iOS   +6.1  rms 11.84
+    lower   rows 622-646: iOS  253.8  ours  251.8  ours-iOS   -2.0  rms  6.97
+    shadow  rows 650-668: iOS  249.2  ours  241.7  ours-iOS   -7.5  rms 10.63
+    tail    rows 678-694: iOS  251.2  ours  253.9  ours-iOS   +2.7  rms  4.01
+  drag (86 frames)
+    top     rows 448-466: iOS  249.4  ours  253.8  ours-iOS   +4.4  rms 10.51
+    lower   rows 622-646: iOS  254.3  ours  250.9  ours-iOS   -3.4  rms  7.64
+    shadow  rows 650-668: iOS  248.6  ours  242.2  ours-iOS   -6.4  rms  9.84
+    tail    rows 678-694: iOS  251.1  ours  254.2  ours-iOS   +3.1  rms  4.40
+  all frames, all bands: rms 8.39 levels
+  worst: script 4.923 s (hold, finger x 200) band top: iOS 240.5 ours 254.3 rms 23.7
+  worst: script 1.003 s (hold, finger x 478) band top: iOS 239.4 ours 255.0 rms 20.5
+  worst: script 0.753 s (hold, finger x 479) band top: iOS 253.4 ours 247.1 rms 20.3
+  worst: script 4.907 s (hold, finger x 200) band top: iOS 245.0 ours 254.1 rms 18.3
+  worst: script 4.890 s (hold, finger x 200) band lower: iOS 244.5 ours 251.7 rms 17.5

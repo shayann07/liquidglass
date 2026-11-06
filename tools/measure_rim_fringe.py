@@ -40,6 +40,13 @@ import numpy as np
 from PIL import Image
 from scipy import ndimage as ndi
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'reference-replay'))
+import replay_meta
+
+ALLOW_SCRIPT_MISMATCH = False
+CONTENT_SPLIT = False
+LENS_HALF = 165  # px: half the held lens's width (about 330 px in scene pixels), for --content-split
+
 VIDEO = {'docs1': 'docs/1.MP4', 'docs2': 'docs/2.MP4',
          'IMG_6756': 'research/datasets/ios27-phone/bubble/IMG_6756.MP4',
          'JGEY2190': 'research/datasets/ios27-phone/bubble/JGEY2190.MP4',
@@ -92,8 +99,12 @@ def chroma420(x):
     return np.clip(np.stack([r, g, b], -1) + .5, 0, 255).astype(np.uint8)
 
 
+def script_path(name):
+    return os.path.join(REF, {'docs1': 'v1-script.txt', 'docs2': 'v2-script.txt'}.get(name, os.path.join('ref', name, 'script3.txt')))
+
+
 def script(name):
-    p = os.path.join(REF, {'docs1': 'v1-script.txt', 'docs2': 'v2-script.txt'}.get(name, os.path.join('ref', name, 'script3.txt')))
+    p = script_path(name)
     downs, ups, end = [], [], None
     for l in open(p):
         w = l.split()
@@ -132,11 +143,15 @@ def best_shift(pr, pb):
     return abs(i - k + f)
 
 
-def rb_offset(x, rng):
+def rb_offset(x, rng, xr=None, inside=True):
+    """p90 of the R-B shift at strong edges; `xr` = (x0, x1) keeps only edges inside (or outside) that column range."""
     x = x.astype(np.float32); g = x[..., 1]
     gx = np.abs(np.diff(g, axis=1))[:-1]; gy = np.abs(np.diff(g, axis=0))[:, :-1]
     gm = np.maximum(gx, gy); gm[:12] = 0; gm[-12:] = 0; gm[:, :12] = 0; gm[:, -12:] = 0
     ys, xs = np.nonzero(gm > 30)
+    if xr is not None:
+        keep = (xs >= xr[0]) & (xs <= xr[1]) if inside else ~((xs >= xr[0]) & (xs <= xr[1]))
+        ys, xs = ys[keep], xs[keep]
     if len(ys) == 0: return np.nan
     if len(ys) > 400:
         sel = rng.choice(len(ys), 400, replace=False); ys, xs = ys[sel], xs[sel]
@@ -180,12 +195,16 @@ def static_hues(name, eps, end, crop, thr):
     return b | np.roll(b, 1) | np.roll(b, -1)
 
 
-def measure(x, thr, rng, excl=None):
+def measure(x, thr, rng, excl=None, lens=None):
     m, h, c = fringe_mask(x, thr)
     if excl is not None and excl.any():
         m &= ~excl[np.clip((h / 15).astype(int), 0, 23)]
     n = int(m.sum())
-    if n == 0: return dict(n=0, E=0.0, C=0.0, warm=np.nan, width=0.0, rb=rb_offset(x, rng))
+    extra = dict(rb_in=np.nan, rb_out=np.nan) if CONTENT_SPLIT else {}  # every row carries the keys, lens or not
+    if lens is not None:
+        # Content split (#101 item 88): the same R-B shift at the page's own strong edges, under the lens and away from it.
+        extra = dict(rb_in=rb_offset(x, rng, lens, True), rb_out=rb_offset(x, rng, lens, False))
+    if n == 0: return dict(n=0, E=0.0, C=0.0, warm=np.nan, width=0.0, rb=rb_offset(x, rng), **extra)
     cc = c[m]; hh = h[m]
     lab, k = ndi.label(m)
     widths = np.array([]); areas = np.array([])
@@ -198,7 +217,7 @@ def measure(x, thr, rng, excl=None):
         o = np.argsort(widths); cw = np.cumsum(areas[o]); width = float(widths[o][np.searchsorted(cw, cw[-1] / 2)])
     else: width = 0.0
     return dict(n=n, E=float(cc.sum()) / 1000, C=float(cc.mean()), warm=float(((hh < 90) | (hh > 300)).mean()),
-                width=width, rb=rb_offset(x, rng))
+                width=width, rb=rb_offset(x, rng), **extra)
 
 
 def track(name):
@@ -208,6 +227,10 @@ def track(name):
 
 
 def series(name, sub, thr, ours420=False):
+    # Touch times come from this recording's script: a replay rendered from another one would be misaligned (#101, item 98).
+    why = replay_meta.mismatch(os.path.join(REF, 'ref', name, sub), script_path(name))
+    if why and not ALLOW_SCRIPT_MISMATCH:
+        sys.exit(why + ' (--allow-script-mismatch scores it anyway)')
     eps, end = script(name)
     path = VIDEO[name]; _, hh = size(path)
     rng_i, rng_o = np.random.default_rng(1), np.random.default_rng(1)
@@ -231,7 +254,9 @@ def series(name, sub, thr, ours420=False):
         # Hues the page itself shows in this frame (either source) are not counted as fringe: red missed-call
         # names, coloured avatars magnified under a lens would otherwise read as dispersion.
         excl = content_hues(a[:Y0 - 10], thr) | content_hues(b[:Y0 - 10], thr) | static
-        mi = measure(a[Y0:Y1, :X1], thr, rng_i, excl); mo = measure(b[Y0:Y1, :X1], thr, rng_o, excl)
+        lens = None
+        if CONTENT_SPLIT and tr is not None and tr[j, 1] > 0: lens = (int(tr[j, 1] - LENS_HALF), int(tr[j, 1] + LENS_HALF))
+        mi = measure(a[Y0:Y1, :X1], thr, rng_i, excl, lens); mo = measure(b[Y0:Y1, :X1], thr, rng_o, excl, lens)
         rows.append(dict(t=t, v=v, excl=int(excl.sum()), **{'i_' + k: x for k, x in mi.items()}, **{'o_' + k: x for k, x in mo.items()}))
     return rows, eps
 
@@ -282,6 +307,14 @@ def report(name, rows, eps):
         print(f"  {lab} fringed frames {len(a):4d} ({100 * len(a) / len(rows):4.1f}%)  in them: n {q(g('_n'), '.0f')}"
               f"  chroma {q(g('_C'), '.1f')}  warm {q(g('_warm'), '.2f')}  width {q(g('_width'), '.1f')} px"
               f"  R-B p90 {q(g('_rb'), '.2f')} px | all frames R-B {q([r[s + '_rb'] for r in rows], '.2f')}")
+    if rows and 'i_rb_in' in rows[0]:
+        # Frames where the lens is up (iOS fringed beyond its rest level), split by the ink's speed.
+        for lo, hi, lab2 in ((0, 50, 'lens still'), (50, 1e9, 'lens moving')):
+            sel = [r for r in rows if np.isfinite(r['v']) and lo <= r['v'] < hi and r['i_n'] > base['i_thr']]
+            if len(sel) < 5: continue
+            for s, lab in (('i', 'iOS '), ('o', 'ours')):
+                print(f"  {lab} content split R-B p90, {lab2} ({len(sel)} frames): under the lens {q([r[s + '_rb_in'] for r in sel], '.2f')} px, "
+                      f"away from it {q([r[s + '_rb_out'] for r in sel], '.2f')} px")
     v = np.array([r['v'] for r in rows], float)
     if np.isfinite(v).any():
         for lo, hi in ((0, 50), (50, 400), (400, 1500), (1500, 1e9)):
@@ -310,7 +343,9 @@ if __name__ == '__main__':
     ap.add_argument('pairs', nargs='+'); ap.add_argument('--thr', type=float, default=40)
     ap.add_argument('--ref', default=REF); ap.add_argument('--csv', action='store_true')
     ap.add_argument('--ours420', action='store_true', help='control: pass our frames through 4:2:0 chroma sampling')
-    a = ap.parse_args(); REF = a.ref
+    ap.add_argument('--content-split', action='store_true', help='also report the R-B shift at page edges under and away from the lens (#101 item 88); needs track.csv')
+    ap.add_argument('--allow-script-mismatch', action='store_true', help='score a replay rendered from a different script than the recording uses')
+    a = ap.parse_args(); REF = a.ref; ALLOW_SCRIPT_MISMATCH = a.allow_script_mismatch; CONTENT_SPLIT = a.content_split
     for name, sub in zip(a.pairs[::2], a.pairs[1::2]):
         rows, eps = series(name, sub, a.thr, a.ours420)
         if a.csv:
