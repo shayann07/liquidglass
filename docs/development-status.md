@@ -113,6 +113,12 @@ research remains available; this page identifies which later changes supersede i
   brotli (22% smaller) awaits a hosting decision.
   [Measurements](https://github.com/shayann07/liquidglass/blob/main/review/atlas/web-demo-load-2026-10-24/README.md).
 
+- 7 November: on a first visit the wait is shader compilation, not the download: ready after 11-17 s with the
+  download done by 0.6 s, three ~40k-character glass programs taking 85% of the linking (about 3-4 s each); a repeat
+  visit is ready in 1.2 s (Chrome, integrated GPU). The loader now says so after 6 s. Fewer or cheaper programs is
+  open; not measured on Firefox, Safari or a phone.
+  [Measurements](https://github.com/shayann07/liquidglass/blob/main/review/atlas/web-demo-shader-compile-2026-11-07/README.md).
+
 ## First tap after install (20 October, #71)
 
 - The first tab bar tap after install had one 326-352 ms frame on a Pixel 7: the selector's layers were

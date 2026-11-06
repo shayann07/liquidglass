@@ -183,6 +183,11 @@ description fix alone.
   4.53 MB). review/atlas/web-demo-load-2026-10-24.
   Still open: cut the transfer (4.46 MB; brotli or a smaller skiko build), first-visit shader compile
   (~2 s per opening frame), the never-renders root cause (not reproduced), and Firefox/Safari/phone checks.
+  7 Nov (GPU machine, Chrome): first visit ready 11-17 s with the download done by 0.6 s; 49 programs, three ~40k-char
+  glass programs = 85% of 10-13 s linking; repeat visit 1.2 s (shader cache). Loader notice after 6 s landed.
+  NEXT (real fix, needs design + a pixel-identity gate against the desktop renders): make the three ~40k variants one
+  program (Skia child binding: colour-space xform / matrix / decal-clamp differences) or shrink the shader. Unmeasured:
+  Firefox, Safari, phones. review/atlas/web-demo-shader-compile-2026-11-07.
 - [x] **#79 Material 3 polish (itsaqeeldev, 20 Oct).** Slider/RangeSlider tracks now run under the
   thumb's whole travel (they stopped half a thumb short: Material insets the track box by half a
   thumb and the glass track inset again); `GlassSliderTrackTest` failed before, passes after. Showcase:

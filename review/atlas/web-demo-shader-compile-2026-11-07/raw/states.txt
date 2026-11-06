@@ -1,0 +1,6 @@
+no-wasm-gc: {"state":"failed","title":"This browser cannot run the demo.","detail":"It needs WebAssembly garbage collection: current Chrome, Edge or Firefox, or Safari 18.2 or later. Reload"} wasm requests=0 (0 files)
+download-fail: {"state":"failed","title":"The demo stopped while starting.","detail":"Failed to fetch. Reload"} wasm requests=3 (2 files)
+startup-error: {"state":"failed","title":"The demo stopped while starting.","detail":"Uncaught Error: Simulated startup error. Reload"} wasm requests=2 (2 files)
+loading: {"state":"loading","title":"Preparing the glass","detail":"A first visit also compiles the glass shaders for your GPU, which takes a few seconds or more."} wasm requests=2 (2 files)
+slow-start: {"state":"loading","title":"Preparing the glass","detail":"Still compiling the glass shaders for your GPU. This happens once per browser and later visits are much faster. A slow GPU or a phone can take a minute or more."} wasm requests=2 (2 files)
+context-lost: {"state":"failed","title":"The graphics context was lost.","detail":"The GPU was reset or ran out of memory. Reload"} wasm requests=2 (2 files)

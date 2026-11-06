@@ -1,0 +1,21 @@
+visit 1: ready=10876 ms  programs=49  link time=9766 ms
+      2757 ms  fragment  40437 chars  at 854 ms
+      2670 ms  fragment  39086 chars  at 7401 ms
+      2600 ms  fragment  39229 chars  at 3937 ms
+       729 ms  fragment  22116 chars  at 6552 ms
+       620 ms  fragment  22050 chars  at 10087 ms
+        55 ms  fragment   9347 chars  at 10714 ms
+visit 2: ready=1158 ms  programs=49  link time=58 ms
+        18 ms  fragment    376 chars  at 664 ms
+         2 ms  fragment  40437 chars  at 719 ms
+         2 ms  fragment  39086 chars  at 1012 ms
+         2 ms  fragment  39229 chars  at 924 ms
+         1 ms  fragment   3251 chars  at 533 ms
+         1 ms  fragment    360 chars  at 483 ms
+visit 3: ready=1226 ms  programs=49  link time=66 ms
+        25 ms  fragment   1588 chars  at 701 ms
+         2 ms  fragment  39229 chars  at 976 ms
+         2 ms  fragment  40437 chars  at 764 ms
+         2 ms  fragment  39086 chars  at 1073 ms
+         2 ms  fragment   3583 chars  at 798 ms
+         2 ms  fragment  22116 chars  at 994 ms
