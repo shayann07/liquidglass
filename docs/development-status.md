@@ -97,8 +97,12 @@ research remains available; this page identifies which later changes supersede i
 - A resize of a custom-path panel builds its field off composition and keeps the previous field until
   the new one is ready; the first field and any shape or padding change still build synchronously, so
   no frame shows the wrong outline. Bit-identical fields; seven new tests hold the build and check every
-  composed frame. A bounded-resolution build (#81) is still open:
+  composed frame:
   [evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/pathfield-off-composition-2026-10-24/README.md).
+- The custom-path field's distance transform skips the layer's far interior and seed pixels (7 November): 16-41%
+  faster paired builds on the desktop JVM (1080 x 720: 53.1 to 31.2 ms p50), byte-identical to the upstream
+  algorithm on 59 cases (#81). Desktop JVM only, no device timing:
+  [evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/pathfield-bounded-2026-11-07/README.md).
 
 ## Web demo first load (20 October, #78)
 
@@ -135,8 +139,8 @@ Issues #80 and #82 are addressed by active nested-theme view lifetime and matchi
 cache/build geometry: whole-pixel size and exact recording-grid padding, including fractional
 origins at reduced render scales. The first part of #81 adds shader-capability gating and transform-buffer
 reuse capped at 256k retained pixels (~4.25 MiB). Larger fields use temporary storage.
-Size-only rebuilds now run off composition (24 October); bounded-resolution preparation remains open
-under #81. Measurements are desktop allocation evidence, not physical-device frame-time evidence; the
+Size-only rebuilds now run off composition (24 October) and the transform skips the far interior
+(7 November); device timing under #81 remains. Measurements are desktop allocation evidence, not physical-device frame-time evidence; the
 first build and shape changes remain synchronous.
 See [verification and limits](https://github.com/shayann07/liquidglass/blob/main/review/atlas/compose-cache-field-2026-10-20/README.md).
 

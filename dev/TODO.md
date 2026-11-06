@@ -158,7 +158,9 @@ description fix alone.
   CodeRabbit fractional-padding correction passes 21 focused checks and the full suite
   (428 total, 401 passed, 27 opt-in skips, zero failures/errors); Android/Wasm/ABI/docs checks pass.
   Verification and historical results: `review/atlas/compose-cache-field-2026-10-20/README.md`.
-- [ ] **#81 follow-up:** bounded-resolution field preparation and device timing remain. The first
+- [ ] **#81 follow-up:** device timing remains. 7 Nov: bounded transform landed in PR (skips far blocks and seeds; paired
+  p50 vs main 512x256 9.98 -> 8.42, 1080x300 26.4 -> 21.0, 1080x720 53.1 -> 31.2 ms; 59 cases byte-identical to upstream;
+  review/atlas/pathfield-bounded-2026-11-07). Android/Wasm not timed. Earlier note: The first
   build and outline/origin changes are still a synchronous full-resolution EDT; odd-pad and
   field-consumer tests stay gates.
   24 Oct: EDT ~15% faster with bit-identical output (no per-neighbour closure/bounds check, packed

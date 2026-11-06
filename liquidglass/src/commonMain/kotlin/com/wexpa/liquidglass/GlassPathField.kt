@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
+import kotlin.math.ceil
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
@@ -214,6 +215,8 @@ internal object GlassPathFieldBufferPool {
 /**
  * Rasterizes at [pad] in layer coordinates, then encodes the signed distance at half resolution.
  * [buffers] must be exclusive to this call; the returned bitmap retains none of its arrays.
+ * [bounded] false runs the transform over the whole layer; the bytes are identical either way,
+ * and tests use it as the reference.
  */
 internal fun buildPathField(
     path: Path,
@@ -222,6 +225,7 @@ internal fun buildPathField(
     pad: Float,
     band: Float,
     buffers: GlassPathFieldBuffers,
+    bounded: Boolean = true,
 ): GlassPathField? {
     val fw = (layerWidth / FIELD_SCALE).coerceAtLeast(1)
     val fh = (layerHeight / FIELD_SCALE).coerceAtLeast(1)
@@ -254,7 +258,7 @@ internal fun buildPathField(
         }
     }
 
-    val full = signedDistance(inside, layerWidth, layerHeight, buffers)
+    val full = signedDistance(inside, layerWidth, layerHeight, band, buffers, bounded)
     // A texel covers FIELD_SCALE x FIELD_SCALE layer pixels and is sampled at its centre, which
     // is the mean of the pixel centres it covers; distance is smooth, so the mean is the value.
     val distance = FloatArray(fw * fh)
@@ -297,20 +301,149 @@ internal fun buildPathField(
  * inside and once for the outside, then subtracted. Chamfer weights would be a line shorter and
  * are wrong by up to 8% on diagonals, which shows up as a normal that leans the wrong way on
  * exactly the sloped edges a hand-drawn shape is made of.
+ *
+ * With [bounded], blocks of the layer too far from the outline to matter are not visited; see
+ * [activeBlocks]. The field's bytes do not change.
  */
-private fun signedDistance(inside: BooleanArray, w: Int, h: Int, buffers: GlassPathFieldBuffers): FloatArray {
+private fun signedDistance(
+    inside: BooleanArray,
+    w: Int,
+    h: Int,
+    band: Float,
+    buffers: GlassPathFieldBuffers,
+    bounded: Boolean,
+): FloatArray {
     val count = w * h
     val outer = buffers.outer
-    edt(inside, w, h, seedInside = false, buffers).copyInto(outer, endIndex = count)
-    val inner = edt(inside, w, h, seedInside = true, buffers)
-    for (i in 0 until count) outer[i] -= inner[i]
+    fun transform(blocks: ActiveBlocks?): Boolean {
+        if (!edt(inside, w, h, seedInside = false, buffers, blocks)) return false
+        buffers.distance.copyInto(outer, endIndex = count)
+        if (!edt(inside, w, h, seedInside = true, buffers, blocks)) return false
+        val inner = buffers.distance
+        for (i in 0 until count) outer[i] -= inner[i]
+        return true
+    }
+    val blocks = if (bounded) activeBlocks(inside, w, h, band) else null
+    // A bounded pass that leaves a visited pixel unreached falls back to the whole layer.
+    if (blocks == null || !transform(blocks)) transform(null)
     return outer
 }
 
 private const val FAR = 1e9f
 
-/** Overwrites the active scratch rectangle with distances to the selected mask boundary. */
-private fun edt(inside: BooleanArray, w: Int, h: Int, seedInside: Boolean, buffers: GlassPathFieldBuffers): FloatArray {
+/**
+ * Layer blocks are [BLOCK] pixels square. Even, so a field texel (two pixels square, aligned to
+ * the layer's origin) never straddles two blocks.
+ */
+private const val BLOCK = 16
+
+/** Slack beyond the encoded range before a pixel counts as saturated; covers texel averaging. */
+private const val SATURATION_MARGIN = 8f
+
+/** Which blocks of a layer the transform has to visit. [active] is indexed `by * columns + bx`. */
+internal class ActiveBlocks(val columns: Int, val rows: Int, val active: BooleanArray)
+
+/**
+ * The blocks the transform visits, or null to visit them all.
+ *
+ * The encoded field saturates once a pixel is one and a half bands from the outline, so every
+ * pixel much farther than that stores the same byte whatever distance it was given. A block counts
+ * as far when it is wider of every block the outline passes through than that range plus
+ * [SATURATION_MARGIN]. A far block is one colour of mask, so its pixels are either seeds, which the
+ * transform never changes, or pixels whose true distance is past the range; the transform's value
+ * for those is never below the true distance, so it saturates too. Skipping them leaves every pixel
+ * nearer than the range with exactly the state the whole-layer transform gives it: a candidate
+ * offset only grows along its chain back to the seed that supplied it, so nothing a skipped pixel
+ * could have offered would have been accepted by a nearer one.
+ */
+internal fun activeBlocks(inside: BooleanArray, w: Int, h: Int, band: Float): ActiveBlocks? {
+    val columns = (w + BLOCK - 1) / BLOCK
+    val rows = (h + BLOCK - 1) / BLOCK
+    val reach = IntArray(columns * rows) { Int.MAX_VALUE }
+    var anyOutline = false
+    // A block holds the outline when two neighbouring pixels, in it or across its edge, differ.
+    for (y in 0 until h) {
+        val row = y * w
+        val by = y / BLOCK
+        for (x in 0 until w) {
+            val v = inside[row + x]
+            val bx = x / BLOCK
+            if (x + 1 < w && inside[row + x + 1] != v) {
+                reach[by * columns + bx] = 0; reach[by * columns + (x + 1) / BLOCK] = 0; anyOutline = true
+            }
+            if (y + 1 < h && inside[row + w + x] != v) {
+                reach[by * columns + bx] = 0; reach[((y + 1) / BLOCK) * columns + bx] = 0; anyOutline = true
+            }
+        }
+    }
+    // Without an outline the whole-layer transform has no seed to measure from; keep its behaviour.
+    if (!anyOutline) return null
+    // Chebyshev distance to the nearest outline block, in blocks: a forward and a backward sweep.
+    for (by in 0 until rows) for (bx in 0 until columns) {
+        var best = reach[by * columns + bx]
+        if (bx > 0) best = minOf(best, reach[by * columns + bx - 1].plusOne())
+        if (by > 0) {
+            best = minOf(best, reach[(by - 1) * columns + bx].plusOne())
+            if (bx > 0) best = minOf(best, reach[(by - 1) * columns + bx - 1].plusOne())
+            if (bx < columns - 1) best = minOf(best, reach[(by - 1) * columns + bx + 1].plusOne())
+        }
+        reach[by * columns + bx] = best
+    }
+    for (by in rows - 1 downTo 0) for (bx in columns - 1 downTo 0) {
+        var best = reach[by * columns + bx]
+        if (bx < columns - 1) best = minOf(best, reach[by * columns + bx + 1].plusOne())
+        if (by < rows - 1) {
+            best = minOf(best, reach[(by + 1) * columns + bx].plusOne())
+            if (bx < columns - 1) best = minOf(best, reach[(by + 1) * columns + bx + 1].plusOne())
+            if (bx > 0) best = minOf(best, reach[(by + 1) * columns + bx - 1].plusOne())
+        }
+        reach[by * columns + bx] = best
+    }
+    // A pixel d blocks from an outline block is at least (d - 1) * BLOCK - 2 pixels from the outline
+    // (the 2 covers the outline pixel pair sitting at a block's far edge, and the diagonal pair).
+    val farPixels = (band * 1.5f).coerceAtLeast(8f) + SATURATION_MARGIN
+    val farBlocks = ceil((farPixels + 2f) / BLOCK).toInt() + 1
+    val active = BooleanArray(reach.size)
+    var skipped = false
+    for (i in reach.indices) { active[i] = reach[i] < farBlocks; if (!active[i]) skipped = true }
+    return if (skipped) ActiveBlocks(columns, rows, active) else null
+}
+
+private fun Int.plusOne(): Int = if (this == Int.MAX_VALUE) this else this + 1
+
+/**
+ * Fills [runs] with the pixel ranges `[start, end)` of row [y] that lie in active blocks, in
+ * ascending order, and returns how many. Without [blocks] the whole row is one range.
+ */
+private fun rowRuns(blocks: ActiveBlocks?, y: Int, w: Int, runs: IntArray): Int {
+    if (blocks == null) { runs[0] = 0; runs[1] = w; return 1 }
+    val base = (y / BLOCK) * blocks.columns
+    var n = 0
+    var bx = 0
+    while (bx < blocks.columns) {
+        if (!blocks.active[base + bx]) { bx++; continue }
+        val first = bx
+        while (bx < blocks.columns && blocks.active[base + bx]) bx++
+        runs[2 * n] = first * BLOCK
+        runs[2 * n + 1] = minOf(w, bx * BLOCK)
+        n++
+    }
+    return n
+}
+
+/**
+ * Overwrites the active scratch rectangle with distances to the selected mask boundary. Returns
+ * false when a pixel in an active block was never reached, which the caller answers by
+ * transforming the whole layer. Pixels in skipped blocks hold a distance past any range.
+ */
+private fun edt(
+    inside: BooleanArray,
+    w: Int,
+    h: Int,
+    seedInside: Boolean,
+    buffers: GlassPathFieldBuffers,
+    blocks: ActiveBlocks?,
+): Boolean {
     val dx = buffers.dx
     val dy = buffers.dy
     val d = buffers.distance
@@ -324,12 +457,16 @@ private fun edt(inside: BooleanArray, w: Int, h: Int, seedInside: Boolean, buffe
         }
     }
 
+    val runs = IntArray(2 * (blocks?.columns ?: 0) + 2)
     // Every neighbour below is inside the grid by its row/column guard, so [relax] needs no bounds
-    // check; the visiting order and the comparison are unchanged, so the result is bit-identical.
+    // check. A seed (distance 0) is never improved, so the sweeps pass over it; the visiting order
+    // and the comparison are otherwise unchanged, so the result is bit-identical.
     for (y in 0 until h) {
         val row = y * w
-        for (x in 0 until w) {
+        val n = rowRuns(blocks, y, w, runs)
+        for (r in 0 until n) for (x in runs[2 * r] until runs[2 * r + 1]) {
             val i = row + x
+            if (d[i] == 0f) continue
             if (x > 0) relax(dx, dy, d, i, i - 1, 1f, 0f)
             if (y > 0) {
                 relax(dx, dy, d, i, i - w, 0f, 1f)
@@ -337,15 +474,18 @@ private fun edt(inside: BooleanArray, w: Int, h: Int, seedInside: Boolean, buffe
                 if (x < w - 1) relax(dx, dy, d, i, i - w + 1, 1f, 1f)
             }
         }
-        for (x in w - 2 downTo 0) {
+        for (r in n - 1 downTo 0) for (x in minOf(runs[2 * r + 1] - 1, w - 2) downTo runs[2 * r]) {
             val i = row + x
+            if (d[i] == 0f) continue
             relax(dx, dy, d, i, i + 1, 1f, 0f)
         }
     }
     for (y in h - 1 downTo 0) {
         val row = y * w
-        for (x in w - 1 downTo 0) {
+        val n = rowRuns(blocks, y, w, runs)
+        for (r in n - 1 downTo 0) for (x in runs[2 * r + 1] - 1 downTo runs[2 * r]) {
             val i = row + x
+            if (d[i] == 0f) continue
             if (x < w - 1) relax(dx, dy, d, i, i + 1, 1f, 0f)
             if (y < h - 1) {
                 relax(dx, dy, d, i, i + w, 0f, 1f)
@@ -353,14 +493,25 @@ private fun edt(inside: BooleanArray, w: Int, h: Int, seedInside: Boolean, buffe
                 if (x > 0) relax(dx, dy, d, i, i + w - 1, 1f, 1f)
             }
         }
-        for (x in 1 until w) {
+        for (r in 0 until n) for (x in maxOf(runs[2 * r], 1) until runs[2 * r + 1]) {
             val i = row + x
+            if (d[i] == 0f) continue
             relax(dx, dy, d, i, i - 1, 1f, 0f)
         }
     }
 
-    for (i in 0 until w * h) if (d[i] >= FAR) d[i] = min(w, h).toFloat()
-    return d
+    if (blocks == null) {
+        for (i in 0 until w * h) if (d[i] >= FAR) d[i] = min(w, h).toFloat()
+        return true
+    }
+    for (y in 0 until h) {
+        val n = rowRuns(blocks, y, w, runs)
+        for (r in 0 until n) for (x in runs[2 * r] until runs[2 * r + 1]) if (d[y * w + x] >= FAR) return false
+    }
+    // What is left unreached lies in skipped blocks, farther from the outline than any range.
+    val beyond = (w + h).toFloat()
+    for (i in 0 until w * h) if (d[i] >= FAR) d[i] = beyond
+    return true
 }
 
 /** Takes the neighbour [n]'s nearest-seed offset, one step further, when it improves pixel [i]. */
