@@ -117,6 +117,13 @@ research remains available; this page identifies which later changes supersede i
   brotli (22% smaller) awaits a hosting decision.
   [Measurements](https://github.com/shayann07/liquidglass/blob/main/review/atlas/web-demo-load-2026-10-24/README.md).
 
+- 7 November (#101, tooling): light holds and drags now have a score (`tools/measure_light_hold.py`): against IMG_7049 the
+  held and dragged lens dims the bar's upper rim band 5-6.5 levels more than ours and its shadow is 6 lighter; the
+  replay and the recording align at 35.7 s, not the 36.0 s the script was cut with. Replays record which script they came
+  from and the fringe scorer refuses a mismatch; `--content-split` adds a first page-edge colour-split figure under the lens
+  (ours 3.7 px, iOS 0.6; not yet separated from the lens's own rim). Desktop replay, no optics changed:
+  [record](https://github.com/shayann07/liquidglass/blob/main/review/atlas/scoring-tools-2026-11-07/README.md).
+
 ## First tap after install (20 October, #71)
 
 - The first tab bar tap after install had one 326-352 ms frame on a Pixel 7: the selector's layers were
