@@ -62,17 +62,31 @@ const hook = () => {
 try {
     for (let visit = 1; visit <= Number(visitsArg); visit++) {
         const context = await chromium.launchPersistentContext(profile, { channel: 'chrome', headless: true, viewport: { width: 1280, height: 800 } })
-        const page = await context.newPage()
-        await page.addInitScript(hook)
-        const t0 = Date.now()
-        await page.goto(url)
-        const ready = await page.waitForFunction(() => document.getElementById('loader')?.dataset.state === 'ready', null, { timeout: 180_000 })
-            .then(() => Date.now() - t0).catch(() => null)
-        const links = (await page.evaluate(() => window.__links.map(({ p, ...r }) => r))).map(l => ({ ...l, ms: l.call + (l.wait ?? 0) }))
-        const total = links.reduce((a, l) => a + l.ms, 0)
-        console.log(`visit ${visit}: ready=${ready ?? 'never'} ms  programs=${links.length}  link time=${total.toFixed(0)} ms`)
-        for (const l of links.sort((a, b) => b.ms - a.ms).slice(0, 6)) console.log(`    ${l.ms.toFixed(0).padStart(6)} ms  fragment ${String(l.chars).padStart(6)} chars  at ${l.at} ms`)
-        await context.close()
+        // Closed before the profile is removed below, whether the visit finished or threw.
+        try {
+            const page = await context.newPage()
+            await page.addInitScript(hook)
+            const t0 = Date.now()
+            await page.goto(url)
+            // Either terminal state ends the wait: a demo that failed says why at once and does not run out the timeout.
+            const state = await page.waitForFunction(() => {
+                const s = document.getElementById('loader')?.dataset.state
+                return s === 'ready' || s === 'failed' ? s : null
+            }, null, { timeout: 180_000 }).then(h => h.jsonValue()).catch(() => 'timeout')
+            const elapsed = Date.now() - t0
+            if (state === 'failed') {
+                const why = await page.evaluate(() => `${document.getElementById('loader-title')?.textContent}: ${document.getElementById('loader-detail')?.textContent}`)
+                console.log(`visit ${visit}: FAILED after ${elapsed} ms  ${why}`)
+                process.exitCode = 1
+                continue
+            }
+            const links = (await page.evaluate(() => window.__links.map(({ p, ...r }) => r))).map(l => ({ ...l, ms: l.call + (l.wait ?? 0) }))
+            const total = links.reduce((a, l) => a + l.ms, 0)
+            console.log(`visit ${visit}: ready=${state === 'ready' ? elapsed : 'never'} ms  programs=${links.length}  link time=${total.toFixed(0)} ms`)
+            for (const l of links.sort((a, b) => b.ms - a.ms).slice(0, 6)) console.log(`    ${l.ms.toFixed(0).padStart(6)} ms  fragment ${String(l.chars).padStart(6)} chars  at ${l.at} ms`)
+        } finally {
+            await context.close()
+        }
     }
 } finally {
     server.close()

@@ -1,7 +1,8 @@
 // web_demo_states.mjs <dist> <outdir>: forces each of the web demo's loader states in Playwright's Chromium
 // and screenshots it (#78): loading, no WebAssembly GC (`WebAssembly.validate` stubbed), a failed download
 // (every .wasm request aborted), an uncaught error while starting, a lost WebGL context, and a slow start
-// (atlas.js held for 8 s, so the loader's "still compiling" notice shows). Prints the
+// before the app has started (atlas.js held for 20 s: the loader's notice says it is still downloading, not compiling)
+// and after it (the same hold with the loader marked started, as Main.kt does: "still compiling"). Prints the
 // loader's state and text and how many .wasm requests each made (none, for a browser that cannot run it).
 //   node tools/web_demo_states.mjs apps/web/build/dist/wasmJs/productionExecutable /tmp/states
 // Playwright comes from ports/web (npm ci there), else from a global `playwright` install. It uses Playwright's own
@@ -28,13 +29,13 @@ const server = http.createServer((req, res) => {
 await new Promise(r => server.listen(0, '127.0.0.1', r))
 const url = `http://127.0.0.1:${server.address().port}/#material3`
 
-async function scenario(name, setup, after) {
+async function scenario(name, setup, after, goto = {}) {
     const browser = await chromium.launch({ channel: process.env.MEASURE_CHANNEL || undefined })
     const page = await browser.newPage({ viewport: { width: 960, height: 600 } })
     const wasm = []
     page.on('request', r => { if (r.url().endsWith('.wasm')) wasm.push(r.url().split('/').pop()) })
     await setup?.(page)
-    await page.goto(url)
+    await page.goto(url, goto)
     const state = await after(page)
     const loader = await page.evaluate(() => {
         const l = document.getElementById('loader')
@@ -54,8 +55,16 @@ await scenario('startup-error', p => p.addInitScript(() => {
     addEventListener('DOMContentLoaded', () => setTimeout(() => { throw new Error('Simulated startup error') }, 300))
 }), waitState('failed'))
 await scenario('loading', null, async p => { await p.waitForTimeout(300); return '' })
-await scenario('slow-start', p => p.route(/atlas\.js$/, async r => { await new Promise(x => setTimeout(x, 8000)); await r.continue() }),
-    p => p.waitForFunction(() => document.getElementById('loader-detail').textContent.startsWith('Still compiling'), null, { timeout: 30_000 }).then(() => '').catch(() => '(no notice)'))
+// atlas.js is held for 20 s and the page is read as soon as the document commits: `goto` would otherwise wait for the
+// script (the load event), and the notice would have moved on by the time it returned.
+const holdAtlas = p => p.route(/atlas\.js$/, async r => { await new Promise(x => setTimeout(x, 20000)); await r.continue() })
+const waitNotice = prefix => p => p.waitForFunction(t => document.getElementById('loader-detail').textContent.startsWith(t), prefix, { timeout: 30_000 }).then(() => '').catch(() => '(no notice)')
+await scenario('slow-download', holdAtlas, waitNotice('Still downloading'), { waitUntil: 'commit' })
+await scenario('slow-compile', async p => {
+    await holdAtlas(p)
+    // What Main.kt does when the Wasm has started, done by hand so the notice can be seen without a slow GPU.
+    await p.addInitScript(() => addEventListener('DOMContentLoaded', () => { document.getElementById('loader').dataset.stage = 'started' }))
+}, waitNotice('Still compiling'), { waitUntil: 'commit' })
 await scenario('context-lost', null, async p => {
     // Lose the app's WebGL context once Skia has made it.
     await p.waitForFunction(() => [...document.querySelectorAll('*')].some(e => e.shadowRoot?.querySelector('canvas')), null, { timeout: 120_000 })

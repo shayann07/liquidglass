@@ -3,7 +3,7 @@
 Source: branch `perf/78-web-demo-load` from `main` 13ec13b, a production `wasmJsBrowserDistribution` build.
 Installed Chrome (headless, ANGLE/D3D11) on an AMD integrated GPU, Windows 11; the page served from localhost
 without compression. **Chrome on one machine.** Firefox, Safari, phones and other GPUs are not measured.
-Screenshots are the demo's own loader (`slow-start.png` and the other states, from `tools/web_demo_states.mjs`).
+Screenshots are the demo's own loader (`slow-download.png`, `slow-compile.png` and the other states, from `tools/web_demo_states.mjs`).
 
 ## Finding
 
@@ -40,13 +40,20 @@ every time**. The `raw/` folder holds the probe's output.
 
 ## What changed
 
-- **The loader says what it is waiting for.** After 6 s without the app being ready, its detail line reads "Still
-  compiling the glass shaders for your GPU. This happens once per browser and later visits are much faster. A
-  slow GPU or a phone can take a minute or more." The first line (before 6 s) now says "takes a few seconds or
-  more" (it said "can take a few seconds"). Nothing else in the loader or the failure states moved
-  (`raw/states.txt`: no-wasm-gc 0 downloads, download-fail, startup-error, context-lost unchanged; the new
-  `slow-start` state holds `atlas.js` for 8 s to show the notice, `slow-start.png`).
-- **Tooling:** `tools/measure_web_demo_shaders.mjs` (above) and the `slow-start` scenario and
+- **The loader says what it is waiting for.** Its first text now carries the whole story, because a shader link that
+  blocks the main thread also blocks any timer: "A first visit downloads the demo and compiles the glass shaders for
+  your GPU: a few seconds on a laptop, a minute or more on a slow connection, GPU or phone. Later visits are much
+  faster." After 6 s without the app being ready, the detail line is re-read every 6 s and names the wait only once
+  the app has started (`Main.kt` sets `data-stage="started"` on the loader when the Wasm runs): before that it says
+  "Still downloading the demo. A slow connection can take a minute or more; later visits are much faster."; after it,
+  "Still compiling the glass shaders for your GPU. This happens once per browser and later visits are much faster. A
+  slow GPU or a phone can take a minute or more." (The first version named shaders whenever 6 s had passed, even
+  while `atlas.js` was still downloading: CodeRabbit's review of #186.) Nothing else in the loader or the failure
+  states moved (`raw/states.txt`: no-wasm-gc 0 downloads, download-fail, startup-error, context-lost unchanged). The
+  two new states hold `atlas.js` for 20 s and read the page at the document's commit: `slow-download` is what a
+  slow connection shows (`slow-download.png`); `slow-compile` marks the loader started by hand, as `Main.kt` does, so
+  the compile notice shows without a slow GPU (`slow-compile.png`; simulated, not a measured slow GPU).
+- **Tooling:** `tools/measure_web_demo_shaders.mjs` (above) and the `slow-download` / `slow-compile` scenarios and
   `MEASURE_CHANNEL` in `tools/web_demo_states.mjs`.
 - Nothing about shaders, optics or the download changed.
 

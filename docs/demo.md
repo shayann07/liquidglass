@@ -34,7 +34,7 @@ may start early). Both WebAssembly files start downloading with the page rather 
 has loaded: on an emulated 4G connection Skia's runtime was loaded and drawing (its first WebGL context)
 about 0.3 s sooner. The time until the app is usable was not measured. Browsers that cannot run the
 demo download nothing.
-After 6 s the loader says that it is compiling shaders and that later visits are faster. Measurements:
+The loader's first text says a first visit downloads and compiles and later visits are faster; after 6 s it names the wait: downloading, or (once the app has started) compiling shaders. Measurements:
 [where the time goes](https://github.com/shayann07/liquidglass/blob/main/review/atlas/web-demo-shader-compile-2026-11-07/README.md),
 [loader and failures](https://github.com/shayann07/liquidglass/blob/main/review/atlas/web-demo-load-2026-10-20/README.md),
 [preloading](https://github.com/shayann07/liquidglass/blob/main/review/atlas/web-demo-load-2026-10-24/README.md).

@@ -21,15 +21,29 @@ def sha256(path):
     return h.hexdigest()
 
 
+class MetaError(Exception):
+    """replay-meta.json exists but cannot be read: the replay says something, and it cannot be checked."""
+
+
 def read(replay_dir):
-    """The replay's metadata, or None for one rendered before this existed (nothing is claimed about it)."""
+    """The replay's metadata, or None for one rendered before this existed (nothing is claimed about it).
+    Raises MetaError for a file that is there but truncated or not JSON."""
     p = os.path.join(replay_dir, META)
-    return json.load(open(p)) if os.path.exists(p) else None
+    if not os.path.exists(p):
+        return None
+    try:
+        with open(p, encoding='utf-8') as f:
+            return json.load(f)
+    except (OSError, ValueError) as e:  # JSONDecodeError is a ValueError
+        raise MetaError(f"{p} is unreadable ({e}); render the replay again") from e
 
 
 def mismatch(replay_dir, script):
     """None if the replay used `script` or does not say; else why it did not."""
-    meta = read(replay_dir)
+    try:
+        meta = read(replay_dir)
+    except MetaError as e:
+        return str(e)  # a damaged record is not a pass: it cannot show which script the frames came from
     if meta is None:
         return None
     want = sha256(script)
@@ -40,7 +54,10 @@ def mismatch(replay_dir, script):
 
 
 def mismatch_pair(a, b):
-    ma, mb = read(a), read(b)
+    try:
+        ma, mb = read(a), read(b)
+    except MetaError as e:
+        return str(e)
     if ma is None or mb is None or ma['script_sha256'] == mb['script_sha256']:
         return None
     return f"{a} used {ma['script']} but {b} used {mb['script']}: render both from one script"

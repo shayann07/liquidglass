@@ -54,8 +54,18 @@ p50 in ms:
 
 The saving grows with the panel because the far interior is what is skipped: a 300 px panel has roughly
 40% of its rows beyond the range, a 720 px one about half. Small panels, where the band covers everything,
-are only helped by skipping the seeds. Allocation rises by 0.07% (the block map). Run-to-run spread on this
-machine is large; the paired order is the evidence, not the absolute numbers.
+are only helped by skipping the seeds. Allocation rises a little (the block map): median bytes per build, `main`
+against this change, 1,874,280 to 1,878,288 (+0.21%) at 512 × 256, 10,993,064 to 11,002,128 (+0.08%) at 1080 × 300
+and 24,258,344 to 24,276,632 (+0.08%) at 1080 × 720. (The first version of this record said +0.07%, which only the
+largest panel gave; the benchmark printed `bytes_p50` from the 25-sample index 12 after the sample count went to 61. The
+medians do not change with the index because the allocation of one build is the same every time, so only the
+statement was wrong, and the benchmark now reads index 30.) Run-to-run spread on this machine is large; the paired
+order is the evidence, not the absolute numbers.
+
+**Second run, after the review fixes (7 November, same machine and method, shared with other work):** p50 `main` against
+this change 11.55 to 9.66 ms (-16%) at 512 × 256, 24.61 to 18.72 ms (-24%) at 1080 × 300, 61.11 to 41.29 ms (-32%) at
+1080 × 720; upstream 12.75, 26.89 and 68.93 ms. The saving is -16% to -41% across the two runs, the same ordering both
+times and the same growth with the panel; the fields were byte-identical again (59 cases).
 
 Reproduce:
 

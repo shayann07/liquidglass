@@ -144,7 +144,13 @@ def best_shift(pr, pb):
 
 
 def rb_offset(x, rng, xr=None, inside=True):
-    """p90 of the R-B shift at strong edges; `xr` = (x0, x1) keeps only edges inside (or outside) that column range."""
+    return rb_stats(x, rng, xr, inside)[0]
+
+
+def rb_stats(x, rng, xr=None, inside=True):
+    """(p90 of the R-B shift at strong edges, the number of edges that gave a shift).
+    `xr` = (x0, x1) keeps only edges inside (or outside) that column range. The value is NaN, with its count,
+    when fewer than 10 edges gave one: a median over frames that includes it would mean nothing."""
     x = x.astype(np.float32); g = x[..., 1]
     gx = np.abs(np.diff(g, axis=1))[:-1]; gy = np.abs(np.diff(g, axis=0))[:, :-1]
     gm = np.maximum(gx, gy); gm[:12] = 0; gm[-12:] = 0; gm[:, :12] = 0; gm[:, -12:] = 0
@@ -152,7 +158,7 @@ def rb_offset(x, rng, xr=None, inside=True):
     if xr is not None:
         keep = (xs >= xr[0]) & (xs <= xr[1]) if inside else ~((xs >= xr[0]) & (xs <= xr[1]))
         ys, xs = ys[keep], xs[keep]
-    if len(ys) == 0: return np.nan
+    if len(ys) == 0: return np.nan, 0
     if len(ys) > 400:
         sel = rng.choice(len(ys), 400, replace=False); ys, xs = ys[sel], xs[sel]
     out = []
@@ -162,7 +168,7 @@ def rb_offset(x, rng, xr=None, inside=True):
         if pr.std() < 8 or pb.std() < 8: continue
         s = best_shift(pr, pb)
         if s is not None: out.append(s)
-    return float(np.percentile(out, 90)) if len(out) >= 10 else np.nan
+    return (float(np.percentile(out, 90)) if len(out) >= 10 else np.nan), len(out)
 
 
 def fringe_mask(x, thr):
@@ -200,10 +206,12 @@ def measure(x, thr, rng, excl=None, lens=None):
     if excl is not None and excl.any():
         m &= ~excl[np.clip((h / 15).astype(int), 0, 23)]
     n = int(m.sum())
-    extra = dict(rb_in=np.nan, rb_out=np.nan) if CONTENT_SPLIT else {}  # every row carries the keys, lens or not
+    extra = dict(rb_in=np.nan, rb_out=np.nan, rb_in_n=0, rb_out_n=0) if CONTENT_SPLIT else {}  # every row has the keys
     if lens is not None:
-        # Content split (#101 item 88): the same R-B shift at the page's own strong edges, under the lens and away from it.
-        extra = dict(rb_in=rb_offset(x, rng, lens, True), rb_out=rb_offset(x, rng, lens, False))
+        # Content split (#101 item 88): the same R-B shift at the page's own strong edges, under the lens and away from it,
+        # with how many edges each value rests on.
+        (ri, ni), (ro, no) = rb_stats(x, rng, lens, True), rb_stats(x, rng, lens, False)
+        extra = dict(rb_in=ri, rb_out=ro, rb_in_n=ni, rb_out_n=no)
     if n == 0: return dict(n=0, E=0.0, C=0.0, warm=np.nan, width=0.0, rb=rb_offset(x, rng), **extra)
     cc = c[m]; hh = h[m]
     lab, k = ndi.label(m)
@@ -255,7 +263,10 @@ def series(name, sub, thr, ours420=False):
         # names, coloured avatars magnified under a lens would otherwise read as dispersion.
         excl = content_hues(a[:Y0 - 10], thr) | content_hues(b[:Y0 - 10], thr) | static
         lens = None
-        if CONTENT_SPLIT and tr is not None and tr[j, 1] > 0: lens = (int(tr[j, 1] - LENS_HALF), int(tr[j, 1] + LENS_HALF))
+        if CONTENT_SPLIT and tr is not None and tr[j, 1] > 0:
+            # Clipped to the scored region explicitly: a lens near an end must not count columns that are not there.
+            lens = (max(0, int(tr[j, 1] - LENS_HALF)), min(X1 - 1, int(tr[j, 1] + LENS_HALF)))
+            if lens[1] <= lens[0]: lens = None
         mi = measure(a[Y0:Y1, :X1], thr, rng_i, excl, lens); mo = measure(b[Y0:Y1, :X1], thr, rng_o, excl, lens)
         rows.append(dict(t=t, v=v, excl=int(excl.sum()), **{'i_' + k: x for k, x in mi.items()}, **{'o_' + k: x for k, x in mo.items()}))
     return rows, eps
@@ -308,13 +319,16 @@ def report(name, rows, eps):
               f"  chroma {q(g('_C'), '.1f')}  warm {q(g('_warm'), '.2f')}  width {q(g('_width'), '.1f')} px"
               f"  R-B p90 {q(g('_rb'), '.2f')} px | all frames R-B {q([r[s + '_rb'] for r in rows], '.2f')}")
     if rows and 'i_rb_in' in rows[0]:
-        # Frames where the lens is up (iOS fringed beyond its rest level), split by the ink's speed.
+        # Frames where the lens is up (iOS fringed beyond its rest level) and iOS gave an under-lens estimate, split by
+        # the ink's speed. Each value is followed by the median number of edges it rests on.
         for lo, hi, lab2 in ((0, 50, 'lens still'), (50, 1e9, 'lens moving')):
-            sel = [r for r in rows if np.isfinite(r['v']) and lo <= r['v'] < hi and r['i_n'] > base['i_thr']]
+            sel = [r for r in rows if np.isfinite(r['v']) and lo <= r['v'] < hi and r['i_n'] > base['i_thr']
+                   and np.isfinite(r['i_rb_in'])]
             if len(sel) < 5: continue
             for s, lab in (('i', 'iOS '), ('o', 'ours')):
-                print(f"  {lab} content split R-B p90, {lab2} ({len(sel)} frames): under the lens {q([r[s + '_rb_in'] for r in sel], '.2f')} px, "
-                      f"away from it {q([r[s + '_rb_out'] for r in sel], '.2f')} px")
+                print(f"  {lab} content split R-B p90, {lab2} ({len(sel)} frames with an iOS estimate): "
+                      f"under the lens {q([r[s + '_rb_in'] for r in sel], '.2f')} px on {np.median([r[s + '_rb_in_n'] for r in sel]):.0f} edges, "
+                      f"away from it {q([r[s + '_rb_out'] for r in sel], '.2f')} px on {np.median([r[s + '_rb_out_n'] for r in sel]):.0f} edges")
     v = np.array([r['v'] for r in rows], float)
     if np.isfinite(v).any():
         for lo, hi in ((0, 50), (50, 400), (400, 1500), (1500, 1e9)):
