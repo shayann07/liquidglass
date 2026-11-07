@@ -1,4 +1,24 @@
-## 2 November 2026 — Pixel 7 night (Claude)
+## RESUME HERE (7 November): what is open after the milestone pass
+
+Merged: #180 (#81), #181 (#78), #182 (#101). No Pixel check has happened for any of today's work; none of it changes optics.
+
+1. **#78, the real fix:** make the three ~40k-character glass programs one (Skia child binding: the dumped sources differ in a
+   colour-space transform or plain matrix on an input image and in decal/clamp helpers) or shrink the shader. Gate it on pixel identity
+   against the desktop renders (the desktop JVM runs the same Skiko code), then re-time with `tools/measure_web_demo_shaders.mjs`.
+   Brotli/CDN is the owner's decision. Firefox, Safari and phones are unmeasured.
+2. **#70:** the 8 px end overshoot at 197-230 ms (spine spring); a wall on the leading end in `GlassPoseDynamics.kt`, mirrored in
+   `ports/skia/selector.mjs` and `ports/dotnet/LiquidGlass.Skia/CalmSelector.cs` with the fixtures regenerated (#176 is the template).
+   The level bump at 150-167 ms has another cause (the lens ends agree at 163 ms).
+3. **#114 / 130:** a diagonal press ramp (iOS TL 96 to BR 80) and pull-distance dimming (iOS 19-21 levels darker than ours at 3-4 s);
+   new opt-in uniform through every port. Owner's call: material or search accessory only.
+4. **#104:** optional retune, `edgeShadow` 0.12 to about 0.07 with `capEdgeShadow` raised to keep the end caps' 178-182; the bar geometry
+   offset (~2 px) is a scene difference.
+5. **#101 follow-ups:** item 88 restricted to edges away from the lens rim; item 87 on a second light recording.
+6. **#81:** device timing of the field build on the Pixel.
+
+Device checks owed (the owner's lead verifies on the Pixel): none of today's merged PRs changes optics; optional: record the light hold and drag
+of IMG_7049 on the device and run `tools/measure_light_hold.py` (expected for main: hold top +6.5, shadow -6.2), time the web demo's first visit on
+phone Chrome, time a custom-path panel resize.
 
 The owner lent the Pixel 7 (Android 17, API 37, 90 Hz) for this one night; no Android device for the following week.
 Everything below that says "device" was measured on it, release builds, `adb` from this machine; scripts under
@@ -33,6 +53,8 @@ one first-frame deadline miss each, GPU p50 ~11 ms: no regression.
 Next session: #108 (spread the held split over the spectral rim's hues, score with #94's fringe energy), #121 (the
 travelling lens's size and magnification against LOLL8185), #70's 150-167 ms bump, #81's bounded-resolution field
 (bit-exact gate), #109 item 115 (a second, broad rim term), #149 once the hold-length recording exists.
+
+## 2 November 2026 — Pixel 7 night (Claude)
 
 ## 1 November 2026 — PR pass and milestone 1.1.0 work (Claude)
 
