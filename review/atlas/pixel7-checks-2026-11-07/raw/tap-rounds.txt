@@ -1,0 +1,3 @@
+main06a33aa r1 frames 459 janky 8 (1.74%) p50/p90/p99 16 25 40 gpu p50/p90 9 15
+main06a33aa r2 frames 459 janky 8 (1.74%) p50/p90/p99 16 25 38 gpu p50/p90 9 16
+main06a33aa r3 frames 464 janky 9 (1.94%) p50/p90/p99 16 23 36 gpu p50/p90 9 15
