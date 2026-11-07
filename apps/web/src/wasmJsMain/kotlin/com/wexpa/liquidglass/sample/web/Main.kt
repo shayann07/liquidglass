@@ -28,6 +28,8 @@ import kotlinx.browser.window
 fun main() {
     // The Wasm has downloaded and started; what is left is the first frames.
     document.getElementById("loader-title")?.textContent = "Preparing the glass"
+    // The loader's long-wait notice reads this: before it, the wait is the download, after it the shader compile (#78).
+    document.getElementById("loader")?.setAttribute("data-stage", "started")
     // Not the body: Compose replaces its container's children, and the loader must outlive the first frames.
     ComposeViewport(document.getElementById("app")!!) {
         LaunchedEffect(Unit) {

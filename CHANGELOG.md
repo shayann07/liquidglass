@@ -7,8 +7,8 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
 20 October; later tags publish it from the release workflow.
 
 - Web demo: a first visit's wait is shader compilation, not the download (Chrome, integrated GPU: ready after 11-17 s,
-  ~10-13 s of it three glass programs linking; a repeat visit is ready in 1.2 s). The loader now says so after 6 s
-  ("Still compiling the glass shaders ... later visits are much faster"), and `tools/measure_web_demo_shaders.mjs`
+  ~10-13 s of it three glass programs linking; a repeat visit is ready in 1.2 s). The loader says so in its first text, and after 6 s
+  names the wait: "Still downloading the demo" until the app has started, then "Still compiling the glass shaders ...", and `tools/measure_web_demo_shaders.mjs`
   times each program link. Fewer or cheaper programs is the real fix and is not in this change (#78).
   [Evidence](review/atlas/web-demo-shader-compile-2026-11-07/README.md).
 - Custom-path panels (a star, a blob, a `GenericShape`): the distance field builds 16-41% faster on the desktop JVM

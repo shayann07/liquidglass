@@ -46,7 +46,7 @@ class FieldAllocationBenchmarkTest {
             }
             for(mode in 0..3) {
                 nanos[mode].sort(); bytes[mode].sort()
-                println("FIX_BENCH size=${w}x$h mode=$mode n=61 p50_ms=${nanos[mode][30]/1e6} p95_ms=${nanos[mode][57]/1e6} bytes_p50=${bytes[mode][12]} pixels_identical=true")
+                println("FIX_BENCH size=${w}x$h mode=$mode n=61 p50_ms=${nanos[mode][30]/1e6} p95_ms=${nanos[mode][57]/1e6} bytes_p50=${bytes[mode][30]} pixels_identical=true")
             }
         }
     }

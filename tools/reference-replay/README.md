@@ -11,7 +11,7 @@ Pillow. Run from a scratch directory such as `.local/sxs/`.
 | Track the selected ink | `python track.py ../../docs/1.MP4 v1.csv` (and `2.MP4 v2.csv`) |
 | Tap events (video 1) | `python events.py v1.csv` |
 | Input scripts | `python v1script.py 0 32.2 v1-script.txt`, `python v2script.py` (writes `v2-script.txt`, `v2-catalogue.txt`) |
-| Render | `tools/reference-replay/render.sh <abs>/v1-script.txt <abs>/out-v1 [variant]` (runs `:desktop:phoneReplay` and writes `replay-meta.json`: the script's sha256, variant and commit; `calm-light` is light Calm) |
+| Render | `tools/reference-replay/render.sh <abs>/v1-script.txt <abs>/out-v1 [variant]` (Windows: a POSIX sh such as Git Bash, calling `powershell` and `tools/workspace.ps1`; runs `:desktop:phoneReplay` and writes `replay-meta.json`: the script's sha256, variant and commit; `calm-light` is light Calm) |
 | Same script for both | `python tools/reference-replay/replay_meta.py pair <dir A> <dir B>`; `tools/measure_rim_fringe.py` refuses a replay whose script is not its recording's (`--allow-script-mismatch` overrides) |
 | Light holds and drags | `python tools/measure_light_hold.py <ours-dir> --ref .local/sxs --video research/datasets/ios27-phone/light/IMG_7049.MP4` (`--scan-offset` checks the alignment) |
 | Page content split under the lens | `python tools/measure_rim_fringe.py <name> <ours-subdir> --content-split` |

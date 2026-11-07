@@ -277,7 +277,7 @@ internal fun buildPathField(
 
     // The shader only reads within the band, so spending the eight bits there rather than on
     // the far interior is what keeps the quantisation under a pixel.
-    val range = (band * 1.5f).coerceAtLeast(8f) / FIELD_SCALE
+    val range = encodedReach(band) / FIELD_SCALE
     val out = IntArray(fw * fh)
     for (i in out.indices) {
         val norm = ((distance[i] / range) * 0.5f + 0.5f).coerceIn(0f, 1f)
@@ -332,13 +332,23 @@ private fun signedDistance(
 private const val FAR = 1e9f
 
 /**
- * Layer blocks are [BLOCK] pixels square. Even, so a field texel (two pixels square, aligned to
+ * Layer px from the outline at which the stored byte saturates, in the layer's own pixels: the encoder's
+ * range, centred on zero. Inherited from the encoder (one and a half bands, at least 8 px). The encoder and
+ * [activeBlocks] both read it here, so a change to the encoding range moves what the bounded transform skips with it.
+ */
+private fun encodedReach(band: Float): Float = (band * 1.5f).coerceAtLeast(8f)
+
+/**
+ * Layer blocks are [BLOCK] pixels square (authored). Even, so a field texel (two pixels square, aligned to
  * the layer's origin) never straddles two blocks.
  */
 private const val BLOCK = 16
 
-/** Slack beyond the encoded range before a pixel counts as saturated; covers texel averaging. */
+/** Slack beyond the encoded reach before a pixel counts as saturated, in px; covers texel averaging (authored). */
 private const val SATURATION_MARGIN = 8f
+
+/** Px added for the outline pixel pair sitting at a block's far edge, and the diagonal pair (authored). */
+private const val OUTLINE_SLACK = 2f
 
 /** Which blocks of a layer the transform has to visit. [active] is indexed `by * columns + bx`. */
 internal class ActiveBlocks(val columns: Int, val rows: Int, val active: BooleanArray)
@@ -400,9 +410,9 @@ internal fun activeBlocks(inside: BooleanArray, w: Int, h: Int, band: Float): Ac
         reach[by * columns + bx] = best
     }
     // A pixel d blocks from an outline block is at least (d - 1) * BLOCK - 2 pixels from the outline
-    // (the 2 covers the outline pixel pair sitting at a block's far edge, and the diagonal pair).
-    val farPixels = (band * 1.5f).coerceAtLeast(8f) + SATURATION_MARGIN
-    val farBlocks = ceil((farPixels + 2f) / BLOCK).toInt() + 1
+    // ([OUTLINE_SLACK] covers the outline pixel pair sitting at a block's far edge, and the diagonal pair).
+    val farPixels = encodedReach(band) + SATURATION_MARGIN
+    val farBlocks = ceil((farPixels + OUTLINE_SLACK) / BLOCK).toInt() + 1
     val active = BooleanArray(reach.size)
     var skipped = false
     for (i in reach.indices) { active[i] = reach[i] < farBlocks; if (!active[i]) skipped = true }
