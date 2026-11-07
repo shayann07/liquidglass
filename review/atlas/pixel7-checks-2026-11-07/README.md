@@ -100,10 +100,25 @@ follow-up (taps) shows no new miss.
   scene is the tab bar's tap animation with the selector's refraction. The honest reading is that the Flutter example holds
   90 Hz while scrolling and the Compose Calm bar is GPU-heavier while it animates (the 2 November record: GPU 10-19 ms per frame).
 
+## #78: the web demo's first visit in phone Chrome
+
+Chrome 156.0.8078.79, the live demo at `/demo/#material3` (the build with the 6 s notice from #181), new incognito tabs, the page's
+own loader read over DevTools for the demo's target only (nothing else was printed or saved; the DevTools forward was removed).
+Page-clock times are milliseconds since navigation start.
+
+| Visit | loader shown | app started | ready | 6 s notice |
+| :-- | --: | --: | --: | :-- |
+| 1, first (shader cache cold) | not seen (probe attached late) | not seen | at or before **19.05 s** | shown ("Still compiling the glass shaders ...") |
+| 2, new incognito tab, probe started first | 0.44 s | about 2.85 s | **4.5 s** | not shown (under 6 s) |
+
+The demo reached ready in both visits; the never-renders case did not reproduce. The glass itself was not seen: Chrome blocks screenshots
+and recordings of incognito pages, so "ready" is the loader's state after settled frames. Visit 2 was warm (Chrome's shader cache outlives
+the incognito tab), so this is one cold bound and one warm number, not a distribution. Desktop for comparison: 11-17 s cold, 1.2 s repeat.
+Firefox is not installed on the phone. No Chrome capture is kept.
+
 ## Not done
 
-- **#181, phone Chrome first visit:** not measured; waits for a decision on how to observe it without exposing the owner's tabs.
-  Firefox is not installed on the phone.
+- **Firefox:** not installed on the phone.
 - **#182, the light hold and drag script:** the tool scores against a script of finger positions, and `input swipe` cannot
   replay IMG_7049's path, so the desktop numbers (hold top +6.5, shadow -6.2; drag top +5.0, shadow -6.3) were not reproduced as
   such. What was done instead is the rim-aligned comparison above (hold only).

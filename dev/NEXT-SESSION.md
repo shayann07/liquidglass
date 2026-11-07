@@ -6,7 +6,8 @@ Pixel 7 (serial 29211FDH200FT8, a different unit from 2 Nov) was connected for p
 232 (2 Nov 229), clear to the lower rim; tap timing (one first-frame deadline miss per tap, unchanged); Flutter example holds a
 steady 90 Hz scrolling; React Native has no app project (blocker). **Found:** the light lens's shadow under its rim is darkest at the
 rim (241) on both the phone and the desktop replay, where iOS is 249-251 there and darkens to 242-244 about 12-20 px down (#104).
-**Still open on the device:** #181 phone-Chrome first visit (the observation method needs the owner: DevTools lists every tab); the
+**#78 phone Chrome (done later the same day):** cold first visit ready at or before 19.05 s with the 6 s notice shown, a warm visit ready in 4.5 s, no failure; the glass was not seen (incognito is black in captures).
+**Still open on the device:** the
 #182 light hold and drag with the exact IMG_7049 finger path (`input swipe` cannot replay it); #100 item 86 text sharpness (confounded by
 the text's offset under the bar); Firefox is not installed. The candidate build of current main (`06a33aa`, plain release) is installed.
 
