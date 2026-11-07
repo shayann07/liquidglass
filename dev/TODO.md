@@ -18,7 +18,7 @@ Merged tonight: #173 (#111 landing lift), #171 (#128 light held outline), #172 (
 | #149 | Measured: docs/2's short holds (0.7-0.8 s) release with a swell and settle ~250 ms; IMG_6756's long holds (1.3-1.5 s) shrink with no swell and settle at 100-150 ms. A recording with both is on #126. |
 | #109 | Item 115 measured: the search button's rim is one lobe (exponent ~4.4) where iOS's is a sharp lobe on a broad tail; no single constant fits. |
 | #122 | Closed: items done, not reproduced or outside the app (swipe-to-home). |
-| #101 | Item 87 half done (light holds and rest are now scored; drags are not). |
+| #101 | 7 Nov (tools, PR): 87 light holds and drags scored (`tools/measure_light_hold.py`: hold/drag top band +6.5/+5.0, shadow -6.2/-6.3 against IMG_7049); 88 content split under the lens (`--content-split`: ours 3.7-3.8 px vs iOS 0.6 px, not yet separated from the rim); 98 replays record their script and the fringe scorer checks it (`render.sh`, `replay_meta.py`). Left: restrict 88 to edges away from the rim; score 87 on a second light recording if one exists. |
 | #128 | Closed: item 3 (pill gradient) re-measured on main with Keypad selected, within 1-2 levels of iOS after #166; item 2 not reproduced; items 1 and 4 fixed (#162, #171). |
 | #108 | Traced: the navy line is the held lens's colour split (every split 0: 0 navy px). Halving the held split gives 784-816 px against iOS 589-678, but #94 needs more fringe, not less: the fix is spreading the split over the spectral rim's hues. Posted; no constant changed. |
 | #121 | Device: icons still split blue/white at the lens outline in a held drag. A wider side band (×1.8, ×2.6) bends more but does not close the gap; iOS's travelling lens is about twice the area. Posted; next is the travelling lens's size and magnification. |
@@ -158,7 +158,9 @@ description fix alone.
   CodeRabbit fractional-padding correction passes 21 focused checks and the full suite
   (428 total, 401 passed, 27 opt-in skips, zero failures/errors); Android/Wasm/ABI/docs checks pass.
   Verification and historical results: `review/atlas/compose-cache-field-2026-10-20/README.md`.
-- [ ] **#81 follow-up:** bounded-resolution field preparation and device timing remain. The first
+- [ ] **#81 follow-up:** device timing remains. 7 Nov: bounded transform landed in PR (skips far blocks and seeds; paired
+  p50 vs main 512x256 9.98 -> 8.42, 1080x300 26.4 -> 21.0, 1080x720 53.1 -> 31.2 ms; 59 cases byte-identical to upstream;
+  review/atlas/pathfield-bounded-2026-11-07). Android/Wasm not timed. Earlier note: The first
   build and outline/origin changes are still a synchronous full-resolution EDT; odd-pad and
   field-consumer tests stay gates.
   24 Oct: EDT ~15% faster with bit-identical output (no per-neighbour closure/bounds check, packed
@@ -183,6 +185,11 @@ description fix alone.
   4.53 MB). review/atlas/web-demo-load-2026-10-24.
   Still open: cut the transfer (4.46 MB; brotli or a smaller skiko build), first-visit shader compile
   (~2 s per opening frame), the never-renders root cause (not reproduced), and Firefox/Safari/phone checks.
+  7 Nov (GPU machine, Chrome): first visit ready 11-17 s with the download done by 0.6 s; 49 programs, three ~40k-char
+  glass programs = 85% of 10-13 s linking; repeat visit 1.2 s (shader cache). Loader notice after 6 s landed.
+  NEXT (real fix, needs design + a pixel-identity gate against the desktop renders): make the three ~40k variants one
+  program (Skia child binding: colour-space xform / matrix / decal-clamp differences) or shrink the shader. Unmeasured:
+  Firefox, Safari, phones. review/atlas/web-demo-shader-compile-2026-11-07.
 - [x] **#79 Material 3 polish (itsaqeeldev, 20 Oct).** Slider/RangeSlider tracks now run under the
   thumb's whole travel (they stopped half a thumb short: Material insets the track box by half a
   thumb and the glass track inset again); `GlassSliderTrackTest` failed before, passes after. Showcase:

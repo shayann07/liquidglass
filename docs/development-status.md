@@ -97,8 +97,12 @@ research remains available; this page identifies which later changes supersede i
 - A resize of a custom-path panel builds its field off composition and keeps the previous field until
   the new one is ready; the first field and any shape or padding change still build synchronously, so
   no frame shows the wrong outline. Bit-identical fields; seven new tests hold the build and check every
-  composed frame. A bounded-resolution build (#81) is still open:
+  composed frame:
   [evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/pathfield-off-composition-2026-10-24/README.md).
+- The custom-path field's distance transform skips the layer's far interior and seed pixels (7 November): 16-41%
+  faster paired builds on the desktop JVM (1080 x 720: 53.1 to 31.2 ms p50), byte-identical to the upstream
+  algorithm on 59 cases (#81). Desktop JVM only, no device timing:
+  [evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/pathfield-bounded-2026-11-07/README.md).
 
 ## Web demo first load (20 October, #78)
 
@@ -112,6 +116,20 @@ research remains available; this page identifies which later changes supersede i
   unthrottled). Shader compilation is untouched and was not measurable on the software-GL machine used;
   brotli (22% smaller) awaits a hosting decision.
   [Measurements](https://github.com/shayann07/liquidglass/blob/main/review/atlas/web-demo-load-2026-10-24/README.md).
+
+- 7 November: on a first visit the wait is shader compilation, not the download: ready after 11-17 s with the
+  download done by 0.6 s, three ~40k-character glass programs taking 85% of the linking (about 3-4 s each); a repeat
+  visit is ready in 1.2 s (Chrome, integrated GPU). The loader now says so after 6 s. Fewer or cheaper programs is
+  open; not measured on Firefox, Safari or a phone.
+  [Measurements](https://github.com/shayann07/liquidglass/blob/main/review/atlas/web-demo-shader-compile-2026-11-07/README.md).
+## Scoring tools (7 November, #101)
+
+- Light holds and drags now have a score (`tools/measure_light_hold.py`): against IMG_7049 the
+  held and dragged lens dims the bar's upper rim band 5-6.5 levels more than ours and its shadow is 6 lighter; the
+  replay and the recording align at 35.7 s, not the 36.0 s the script was cut with. Replays record which script they came
+  from and the fringe scorer refuses a mismatch; `--content-split` adds a first page-edge colour-split figure under the lens
+  (ours 3.7 px, iOS 0.6; not yet separated from the lens's own rim). Desktop replay, no optics changed:
+  [record](https://github.com/shayann07/liquidglass/blob/main/review/atlas/scoring-tools-2026-11-07/README.md).
 
 ## First tap after install (20 October, #71)
 
@@ -135,8 +153,8 @@ Issues #80 and #82 are addressed by active nested-theme view lifetime and matchi
 cache/build geometry: whole-pixel size and exact recording-grid padding, including fractional
 origins at reduced render scales. The first part of #81 adds shader-capability gating and transform-buffer
 reuse capped at 256k retained pixels (~4.25 MiB). Larger fields use temporary storage.
-Size-only rebuilds now run off composition (24 October); bounded-resolution preparation remains open
-under #81. Measurements are desktop allocation evidence, not physical-device frame-time evidence; the
+Size-only rebuilds now run off composition (24 October) and the transform skips the far interior
+(7 November); device timing under #81 remains. Measurements are desktop allocation evidence, not physical-device frame-time evidence; the
 first build and shape changes remain synchronous.
 See [verification and limits](https://github.com/shayann07/liquidglass/blob/main/review/atlas/compose-cache-field-2026-10-20/README.md).
 

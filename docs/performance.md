@@ -35,6 +35,14 @@ one noisy run on a 4-core cloud container, both inside the run-to-run spread); w
 it runs. On Wasm `Dispatchers.Default` is the main thread, so there it only leaves composition.
 [Method and tests](https://github.com/shayann07/liquidglass/blob/main/review/atlas/pathfield-off-composition-2026-10-24/README.md).
 
+**The transform skips what the field cannot show (#81, 7 November).** The field stores eight bits over one and a half
+bands, so every pixel farther from the outline than that stores the same byte. The transform no longer visits blocks
+of the padded layer that far (16 px blocks, a margin of 8 px) and steps over seed pixels, which nothing can improve.
+Paired with the previous build on the desktop JVM, p50: 512 x 256 px 9.98 to 8.42 ms, 1080 x 300 26.4 to 21.0 ms,
+1080 x 720 53.1 to 31.2 ms. The bytes are identical to the upstream algorithm on 59 shape, size, pad and band cases.
+Desktop JVM wall time on a shared machine; Android was not timed and no frame-rate claim is made.
+[Method, correctness argument and limits](https://github.com/shayann07/liquidglass/blob/main/review/atlas/pathfield-bounded-2026-11-07/README.md).
+
 ## Atlas wide and narrow windows — 18 October 2026
 
 Static-scene redraw submission (120 samples after 10 warmups; not presented FPS), three scenes per

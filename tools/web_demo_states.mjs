@@ -1,9 +1,11 @@
 // web_demo_states.mjs <dist> <outdir>: forces each of the web demo's loader states in Playwright's Chromium
 // and screenshots it (#78): loading, no WebAssembly GC (`WebAssembly.validate` stubbed), a failed download
-// (every .wasm request aborted), an uncaught error while starting, and a lost WebGL context. Prints the
+// (every .wasm request aborted), an uncaught error while starting, a lost WebGL context, and a slow start
+// (atlas.js held for 8 s, so the loader's "still compiling" notice shows). Prints the
 // loader's state and text and how many .wasm requests each made (none, for a browser that cannot run it).
 //   node tools/web_demo_states.mjs apps/web/build/dist/wasmJs/productionExecutable /tmp/states
-// Playwright comes from ports/web (npm ci there), else from a global `playwright` install.
+// Playwright comes from ports/web (npm ci there), else from a global `playwright` install. It uses Playwright's own
+// Chromium; MEASURE_CHANNEL=chrome uses the installed Chrome instead.
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import http from 'node:http'
@@ -27,7 +29,7 @@ await new Promise(r => server.listen(0, '127.0.0.1', r))
 const url = `http://127.0.0.1:${server.address().port}/#material3`
 
 async function scenario(name, setup, after) {
-    const browser = await chromium.launch()
+    const browser = await chromium.launch({ channel: process.env.MEASURE_CHANNEL || undefined })
     const page = await browser.newPage({ viewport: { width: 960, height: 600 } })
     const wasm = []
     page.on('request', r => { if (r.url().endsWith('.wasm')) wasm.push(r.url().split('/').pop()) })
@@ -52,6 +54,8 @@ await scenario('startup-error', p => p.addInitScript(() => {
     addEventListener('DOMContentLoaded', () => setTimeout(() => { throw new Error('Simulated startup error') }, 300))
 }), waitState('failed'))
 await scenario('loading', null, async p => { await p.waitForTimeout(300); return '' })
+await scenario('slow-start', p => p.route(/atlas\.js$/, async r => { await new Promise(x => setTimeout(x, 8000)); await r.continue() }),
+    p => p.waitForFunction(() => document.getElementById('loader-detail').textContent.startsWith('Still compiling'), null, { timeout: 30_000 }).then(() => '').catch(() => '(no notice)'))
 await scenario('context-lost', null, async p => {
     // Lose the app's WebGL context once Skia has made it.
     await p.waitForFunction(() => [...document.querySelectorAll('*')].some(e => e.shadowRoot?.querySelector('canvas')), null, { timeout: 120_000 })
