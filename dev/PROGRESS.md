@@ -1,3 +1,23 @@
+## 7 November 2026 — milestone 1.1.0 pass (Claude, Sonnet)
+
+Order given by the owner: #81, #78, #101, #104, #70, #114 item 130; one worktree and PR each, no device this week. Two PRs
+merged with evidence (#180, #182), one with a finding and a UI notice (#181), three issues got measurements and no code.
+
+| Issue | Done |
+| :-- | :-- |
+| #81 (PR #180, merged `ee67e6a`) | The custom-path field's distance transform skips seed pixels and 16 px blocks farther than 1.5 band + 8 px from the outline. Byte-identical (59 cases against the upstream algorithm). Paired desktop JVM p50 against previous main: 512x256 9.98 to 8.42 ms, 1080x300 26.4 to 21.0, 1080x720 53.1 to 31.2. Full suite 491 tests, 0 failures; ABI unchanged. Device timing still open. review/atlas/pathfield-bounded-2026-11-07 |
+| #78 (PR #181, merged `84a6704`) | The first visit is shader compilation, not the download: ready 11-17 s with the download done by 0.6 s; 49 programs, three ~40k-character glass programs = 85% of 10-13 s of linking; repeat visit 1.2 s. Loader notice after 6 s, `tools/measure_web_demo_shaders.mjs`. Real fix open (below). review/atlas/web-demo-shader-compile-2026-11-07 |
+| #101 (PR #182, merged `dd9b886`) | Item 87 `tools/measure_light_hold.py` (current main, ours minus iOS, IMG_7049 hold128: held / dragged top band +6.5 / +5.0, shadow -6.2 / -6.3; the replay aligns at 35.7 s, not 36.0); item 88 `--content-split` (under the lens ours 3.7 px, iOS 0.6; not yet separated from the lens's rim); item 98 `render.sh` + `replay_meta.py`: replays record their script, the fringe scorer refuses a mismatch. review/atlas/scoring-tools-2026-11-07 |
+| #104 | The light bar's bottom contour line is not missing on current main (row 637: 239 at x 300, 247 at x 690; iOS 247 at row 640). Remaining: 4-5 levels too dark at the top, ~2 px higher in the replay scene's bar geometry, one row against iOS's two. Posted; no change. |
+| #70 | Ten 0 to 2 taps of docs/1: the lens ends agree at 163 ms; from 197 ms ours runs on ~8 px past iOS (edge x 899-900 against 889-892) to 230 ms. Cause: the tap spine's underdamped spring plus the elongation target. Not fixed: a wall on the leading end changes the pose dynamics and has to be mirrored in the Skia and .NET selectors. Posted; no prototype was built. |
+| #114 item 130 | Pressed search button, IMG_6756 2.0-2.4 s: iOS grades TL 96 to BR 80, ours flat 96-98; pulled up (3.0 / 4.0 s) iOS is 19-21 levels darker than ours. Needs new press lighting in the material (opt-in, ports). Posted; no change. |
+
+Gotchas met today: `/c/Program Files/Microsoft/jdk-21.0.12.101-hotspot` no longer exists (only 21.0.13.21), so the shared
+`gw.sh` and `rrw.sh` fail with an invalid JAVA_HOME until their path is updated; PowerShell (`workspace.ps1`) eats `-I`, `-i` and `--info`,
+use `--init-script` and read test output from `build/test-results` XML; a removed worktree can leave a plain directory behind that
+resolves `git` to the primary checkout, as `repair-104` did; CodeRabbit does not review this repository (under 10 stars), its comment is
+only a notice; the `web` CI job can run out its 10 minutes in `npx playwright install --with-deps` (rerun it).
+
 ## 2 November 2026 — Pixel 7 night (Claude)
 
 The owner lent the Pixel 7 (Android 17, API 37, 90 Hz) for this one night; no Android device for the following week.
