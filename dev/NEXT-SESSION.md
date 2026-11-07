@@ -1,5 +1,3 @@
-## 2 November 2026 — Pixel 7 night (Claude)
-
 ## RESUME HERE (7 November): what is open after the milestone pass
 
 Merged: #180 (#81), #181 (#78), #182 (#101). No Pixel check has happened for any of today's work; none of it changes optics.
@@ -55,6 +53,8 @@ one first-frame deadline miss each, GPU p50 ~11 ms: no regression.
 Next session: #108 (spread the held split over the spectral rim's hues, score with #94's fringe energy), #121 (the
 travelling lens's size and magnification against LOLL8185), #70's 150-167 ms bump, #81's bounded-resolution field
 (bit-exact gate), #109 item 115 (a second, broad rim term), #149 once the hold-length recording exists.
+
+## 2 November 2026 — Pixel 7 night (Claude)
 
 ## 1 November 2026 — PR pass and milestone 1.1.0 work (Claude)
 
