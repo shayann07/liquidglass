@@ -3,10 +3,10 @@ IMG_6756: static content hue bins (15 deg) excluded: [0, 15, 330, 345]
 == IMG_6756: 2871 paired frames, 4 touches; rest n p99 iOS 0 ours 0
   iOS  fringed frames  781 (27.2%)  in them: n 170 (IQR 80..372, n=781)  chroma 56.4 (IQR 48.4..74.6, n=781)  warm 0.47 (IQR 0.17..0.64, n=781)  width 2.0 (IQR 2.0..2.8, n=781) px  R-B p90 0.15 (IQR 0.07..0.25, n=781) px | all frames R-B 0.07 (IQR 0.05..0.10, n=2863)
   ours fringed frames  506 (17.6%)  in them: n 342 (IQR 124..369, n=506)  chroma 47.7 (IQR 45.7..58.3, n=506)  warm 0.38 (IQR 0.00..0.39, n=506)  width 2.0 (IQR 2.0..2.0, n=506) px  R-B p90 0.08 (IQR 0.06..0.78, n=506) px | all frames R-B 0.00 (IQR 0.00..0.07, n=2871)
-  iOS  content split R-B p90, lens still (487 frames): under the lens 0.61 (IQR 0.48..0.87, n=487) px, away from it 0.00 (IQR 0.00..0.00, n=487) px
-  ours content split R-B p90, lens still (487 frames): under the lens 3.80 (IQR 3.71..3.96, n=487) px, away from it 0.00 (IQR 0.00..0.00, n=487) px
-  iOS  content split R-B p90, lens moving (294 frames): under the lens 0.59 (IQR 0.48..0.95, n=294) px, away from it 0.00 (IQR 0.00..0.00, n=294) px
-  ours content split R-B p90, lens moving (294 frames): under the lens 3.67 (IQR 3.41..3.85, n=294) px, away from it 0.00 (IQR 0.00..0.00, n=294) px
+  iOS  content split R-B p90, lens still (487 frames with an iOS estimate): under the lens 0.61 (IQR 0.48..0.87, n=487) px on 109 edges, away from it 0.00 (IQR 0.00..0.00, n=487) px on 377 edges
+  ours content split R-B p90, lens still (487 frames with an iOS estimate): under the lens 3.80 (IQR 3.71..3.96, n=487) px on 153 edges, away from it 0.00 (IQR 0.00..0.00, n=487) px on 400 edges
+  iOS  content split R-B p90, lens moving (294 frames with an iOS estimate): under the lens 0.59 (IQR 0.48..0.95, n=294) px on 156 edges, away from it 0.00 (IQR 0.00..0.00, n=294) px on 384 edges
+  ours content split R-B p90, lens moving (294 frames with an iOS estimate): under the lens 3.67 (IQR 3.41..3.85, n=294) px on 159 edges, away from it 0.00 (IQR 0.00..0.00, n=294) px on 400 edges
   iOS ink speed    0-50    px/s (2521 frames): mean E iOS   1.57 ours   1.68 | mean n iOS     26 ours     35
   iOS ink speed   50-400   px/s ( 265 frames): mean E iOS  23.45 ours   8.49 | mean n iOS    311 ours    156
   iOS ink speed  400-1500  px/s (  85 frames): mean E iOS  44.32 ours  15.92 | mean n iOS    571 ours    269

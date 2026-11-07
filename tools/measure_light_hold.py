@@ -81,6 +81,8 @@ def parse_script(path):
             t = int(w[0]) / 1000
             if w[1] == 'down' and down is None: down = t
             if w[1] == 'up': up = t
+            # An `up` is not a finger position to interpolate through: phase() ignores every frame after the lift, so
+            # the last `move` stays the finger's position for scoring. (An `up` before any other sample still starts the list.)
             if w[1] != 'up' or not pts: pts.append((t, float(w[2])))
         elif w and w[0] == 'end':
             end = int(w[1]) / 1000
@@ -113,6 +115,8 @@ def phase(pts, down, up, t):
 
 def series(ours, script, video, offset, bands):
     pts, down, up, end = parse_script(script)
+    if end is None:
+        sys.exit(f"{script} has no 'end <ms>' line, so the span to read from the recording is unknown")
     w, h = size(video)
     rows = []
     for pts_t, a in frames(video, offset, end, (w, 702, 0, h - 702)):

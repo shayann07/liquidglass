@@ -169,7 +169,7 @@ description fix alone.
   24 Oct (PR, cloud session): size-only changes build on `Dispatchers.Default`, previous field kept
   until published, conflated, dropped on leave; first field / empty-to-real / shape, pad, band,
   density, direction changes stay synchronous. `GlassPathFieldOffCompositionTest` (7) holds the build
-  dispatcher and checks every composed frame. Remaining: bounded-resolution build; device timing.
+  dispatcher and checks every composed frame. (Superseded 7 Nov: the bounded build landed in #180; only device timing remains.)
   review/atlas/pathfield-off-composition-2026-10-24.
 - [x] **#89 Material 3 slider RTL (24 Oct).** Tracks draw from the start edge, mirrored right to left;
   two RTL tests red before, green after; material3 22/22; review/atlas/material3-slider-rtl-2026-10-24.

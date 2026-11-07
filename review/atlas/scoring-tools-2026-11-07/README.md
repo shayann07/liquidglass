@@ -67,18 +67,25 @@ The fringe scorer drops every hue the page shows, so it cannot see colour fringe
 `--content-split` adds the R-B channel shift at the page's strong edges (the same estimator as the scorer's `R-B`
 column), separately for edges under the lens (iOS's ink centroid ± 165 px, from `track.csv`) and away from it.
 
-First scores, IMG_6756 (35 s of Phone-scene holds, drags and taps) against main's replay `n6` (same `script3.txt`):
-R-B p90 at strong page edges, median over frames (IQR), px:
+First scores, IMG_6756 (35 s of Phone-scene holds, drags and taps) against main's replay `n6` (same `script3.txt`),
+re-run on 7 November with the edge counts and with only frames that have an iOS under-lens estimate (the first run
+counted every lens-up frame). R-B p90 at strong page edges, median over frames (IQR), px, and under each value the
+median number of edges that value rests on (an edge is a strong gradient where the R and B profiles correlate; at most
+400 are sampled per region per frame, and a region with fewer than 10 gives no value):
 
-| Frames | iOS under the lens | ours under the lens | both, away from the lens |
-| :-- | --: | --: | --: |
-| lens still, 487 | 0.61 (0.48-0.87) | **3.80** (3.71-3.96) | 0.00 |
-| lens moving, 294 | 0.59 (0.48-0.95) | **3.67** (3.41-3.85) | 0.00 |
+| Frames | iOS under the lens | ours under the lens | iOS away from it | ours away from it |
+| :-- | --: | --: | --: | --: |
+| lens still, 487 | 0.61 (0.48-0.87), 109 edges | **3.80** (3.71-3.96), 153 edges | 0.00 (0.00-0.00), 377 edges | 0.00 (0.00-0.00), 400 edges |
+| lens moving, 294 | 0.59 (0.48-0.95), 156 edges | **3.67** (3.41-3.85), 159 edges | 0.00 (0.00-0.00), 384 edges | 0.00 (0.00-0.00), 400 edges |
 
-So under the lens our page edges read about six times iOS's channel shift, while away from it both are zero.
-**This cannot yet be attributed to the page content**: the same estimator also sees the lens's own rim, and ours
-carries a spectral rim split (#73) that iOS's rim shows at 0.9-1.4x by the fringe-energy score. Treat it as a
-flag for a follow-up (restrict the edges to those away from the rim band, then score), not as a finding about
+The 0.00 away from the lens is a real estimator output, not a missing one: it rests on 377-400 valid edges per frame
+(400 is the sampling cap), and a p90 of 0.00 px means at least nine in ten of them show no measurable R-B shift,
+which is what the page's own text and shapes should do. The 12 px border mask only trims the region's edges. So the
+page itself has no channel split in either source, and the split under the lens is the lens's. Under the lens our
+page edges read about six times iOS's channel shift.
+**This cannot yet be attributed to the page content seen through the lens**: the same estimator also sees the lens's
+own rim, and ours carries a spectral rim split (#73) that iOS's rim shows at 0.9-1.4x by the fringe-energy score. Treat
+it as a flag for a follow-up (restrict the edges to those away from the rim band, then score), not as a finding about
 content. It is the first number for this region either way; none existed.
 
 Limits: it needs `track.csv` (IMG_6756, JGEY2190, LOLL8185); the lens width is fixed at 330 px, a held lens only;
