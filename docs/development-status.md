@@ -117,7 +117,14 @@ research remains available; this page identifies which later changes supersede i
   brotli (22% smaller) awaits a hosting decision.
   [Measurements](https://github.com/shayann07/liquidglass/blob/main/review/atlas/web-demo-load-2026-10-24/README.md).
 
-- 7 November (#101, tooling): light holds and drags now have a score (`tools/measure_light_hold.py`): against IMG_7049 the
+- 7 November: on a first visit the wait is shader compilation, not the download: ready after 11-17 s with the
+  download done by 0.6 s, three ~40k-character glass programs taking 85% of the linking (about 3-4 s each); a repeat
+  visit is ready in 1.2 s (Chrome, integrated GPU). The loader now says so after 6 s. Fewer or cheaper programs is
+  open; not measured on Firefox, Safari or a phone.
+  [Measurements](https://github.com/shayann07/liquidglass/blob/main/review/atlas/web-demo-shader-compile-2026-11-07/README.md).
+## Scoring tools (7 November, #101)
+
+- Light holds and drags now have a score (`tools/measure_light_hold.py`): against IMG_7049 the
   held and dragged lens dims the bar's upper rim band 5-6.5 levels more than ours and its shadow is 6 lighter; the
   replay and the recording align at 35.7 s, not the 36.0 s the script was cut with. Replays record which script they came
   from and the fringe scorer refuses a mismatch; `--content-split` adds a first page-edge colour-split figure under the lens

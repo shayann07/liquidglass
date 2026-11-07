@@ -26,13 +26,15 @@ WebAssembly garbage collection (current Chrome, Edge, Firefox and Safari 18.2 or
 ## First load
 
 A first visit downloads about 4.5 MB (gzip), three quarters of it Skia's WebAssembly runtime, and then
-compiles the glass shaders for your GPU: a few seconds on a laptop's integrated graphics, cached by the
-browser afterwards. A loader shows while both happen. A browser without WebAssembly garbage collection,
+compiles the glass shaders for your GPU: 11-17 s on one laptop's integrated graphics (Chrome), 1.2 s on a
+repeat visit once the browser has cached them, and longer on a slow GPU or a phone. A loader shows while both happen. A browser without WebAssembly garbage collection,
 a failed download or a lost graphics context is reported on the page instead of leaving it black. The
 two demos above load lazily, as each approaches the viewport (`loading="lazy"`, a hint the browser
 may start early). Both WebAssembly files start downloading with the page rather than after its script
 has loaded: on an emulated 4G connection Skia's runtime was loaded and drawing (its first WebGL context)
 about 0.3 s sooner. The time until the app is usable was not measured. Browsers that cannot run the
 demo download nothing.
-Measurements: [loader and failures](https://github.com/shayann07/liquidglass/blob/main/review/atlas/web-demo-load-2026-10-20/README.md),
+After 6 s the loader says that it is compiling shaders and that later visits are faster. Measurements:
+[where the time goes](https://github.com/shayann07/liquidglass/blob/main/review/atlas/web-demo-shader-compile-2026-11-07/README.md),
+[loader and failures](https://github.com/shayann07/liquidglass/blob/main/review/atlas/web-demo-load-2026-10-20/README.md),
 [preloading](https://github.com/shayann07/liquidglass/blob/main/review/atlas/web-demo-load-2026-10-24/README.md).

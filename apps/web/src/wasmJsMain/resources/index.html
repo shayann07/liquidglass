@@ -51,7 +51,7 @@
 <div id="loader" role="status" aria-live="polite">
     <div id="loader-title">Loading the demo (about 4.5 MB)</div>
     <div class="bar"></div>
-    <small id="loader-detail">A first visit also compiles the glass shaders for your GPU, which can take a few seconds.</small>
+    <small id="loader-detail">A first visit also compiles the glass shaders for your GPU, which takes a few seconds or more.</small>
 </div>
 <script>
     // Starts the app, or says why it cannot start: a black page is never the answer (#78).
@@ -83,6 +83,16 @@
             var r = e.reason;
             if (starting()) fail('The demo stopped while starting.', String((r && r.message) || r || 'Unknown error') + '.');
         });
+        // A first visit compiles the glass shaders on the main thread, about 4 s a program on an integrated GPU
+        // through ANGLE and far longer on a phone: 14 s in all on the machine this was measured on, against 1.3 s
+        // on a repeat visit, which the browser's shader cache makes fast (review/atlas/web-demo-shader-compile-
+        // 2026-11-07). Past "a few seconds", say what the wait is, so it is not mistaken for a hang (#78).
+        setTimeout(function () {
+            if (!starting()) return;
+            document.getElementById('loader-detail').textContent =
+                'Still compiling the glass shaders for your GPU. This happens once per browser and later visits are ' +
+                'much faster. A slow GPU or a phone can take a minute or more.';
+        }, 6000);
         // Neither Compose nor Skiko restores a lost WebGL context, so the canvas would stay blank for good.
         // The canvas lives in Compose's shadow root, where the event does not reach window: listen on the
         // canvas itself, from the moment its context is created.

@@ -6,6 +6,11 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Web demo: a first visit's wait is shader compilation, not the download (Chrome, integrated GPU: ready after 11-17 s,
+  ~10-13 s of it three glass programs linking; a repeat visit is ready in 1.2 s). The loader now says so after 6 s
+  ("Still compiling the glass shaders ... later visits are much faster"), and `tools/measure_web_demo_shaders.mjs`
+  times each program link. Fewer or cheaper programs is the real fix and is not in this change (#78).
+  [Evidence](review/atlas/web-demo-shader-compile-2026-11-07/README.md).
 - Custom-path panels (a star, a blob, a `GenericShape`): the distance field builds 16-41% faster on the desktop JVM
   (1080 x 720 px: 53.1 to 31.2 ms p50, paired with the previous build), by not visiting the layer's far interior,
   where the field saturates anyway, and not revisiting seed pixels. The fields are byte-identical (59 cases against
