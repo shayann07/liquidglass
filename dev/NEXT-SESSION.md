@@ -1,3 +1,15 @@
+## RESUME HERE (7 November, after the Pixel session): Pixel 7 results and what is still open on the device
+
+Pixel 7 (serial 29211FDH200FT8, a different unit from 2 Nov) was connected for part of 7 November. Done, with numbers in
+`review/atlas/pixel7-checks-2026-11-07/README.md`: #81 field build on device (p50 -12% / -17% / -36% at 512x256 / 1080x300 /
+1080x720, identical field hashes); #93 squircle on device (matches the desktop blend at depths 4-8 within 3 px); light held rim
+232 (2 Nov 229), clear to the lower rim; tap timing (one first-frame deadline miss per tap, unchanged); Flutter example holds a
+steady 90 Hz scrolling; React Native has no app project (blocker). **Found:** the light lens's shadow under its rim is darkest at the
+rim (241) on both the phone and the desktop replay, where iOS is 249-251 there and darkens to 242-244 about 12-20 px down (#104).
+**Still open on the device:** #181 phone-Chrome first visit (the observation method needs the owner: DevTools lists every tab); the
+#182 light hold and drag with the exact IMG_7049 finger path (`input swipe` cannot replay it); #100 item 86 text sharpness (confounded by
+the text's offset under the bar); Firefox is not installed. The candidate build of current main (`06a33aa`, plain release) is installed.
+
 ## RESUME HERE (7 November): what is open after the milestone pass
 
 Merged: #180 (#81), #181 (#78), #182 (#101). No Pixel check has happened for any of today's work; none of it changes optics.
