@@ -142,7 +142,7 @@ scope/API/positioning decisions, one Gradle build per worktree).
   - [ ] Video-model pass, verified (26 Oct night): items 139-144. Fixed: #119 (fast scrub flattens the lens; review/atlas/scrub-flattening-2026-10-27/README.md). New issues: #120 (tap transit should form a full lens on iOS 27), #121 (side caps cut content; items 15 and 16 re-homed from the closed #77). Replay-side gaps to fix in the harness: the search episodes are missing from script3, the finger parks on exact tab centres in gen3 scripts, and the sample switches its page on touch-down.
   - [ ] Third pass (26 Oct evening, beyond the pixels): items 130-138, issues #114-#118 (press lighting, system accessibility settings, haptics, hover/focus on desktop and web, automatic quality fallback).
   - [ ] Second pass (26 Oct afternoon): items 103-129, issues #105-#113 (ink lift, press/release timing, lens over the search button, rim colour, rim highlights, glyphs, transit/landing, search mode, Control Center references).
-  - [x] #93 item 9, the held lens's outline: squircle blend .7 toward n 3 (lens-squircle-2026-10-26). Pixel 7 check pending.
+  - [x] #93 item 9, the held lens's outline: squircle blend .7 toward n 3 (lens-squircle-2026-10-26). Pixel 7 check done (7 Nov, review/atlas/pixel7-checks-2026-11-07).
 
 ### Agent work, in this order (GitHub milestone "1.1.0 — iOS 27 parity"; label `needs-dataset` = blocked on the owner's private recordings, assigned to the owner)
 
@@ -151,7 +151,7 @@ description fix alone.
 
 - [x] **#119 Fast scrub flattening and strain overshoot (27 Oct).** Prevented held lens from collapsing to half height during sustained fast scrubbing. Direction reversal decay (0.40x on <0.28s intervals), scrub target suppression, and steady-state strain guard (max 0.80 * maxStrain). 20.0s shape 386.1 × 160.2 px (was 588.6 × 102.2 px, min height 139.0 px vs 102.2 px). Skia port and .NET synchronized; fixture regenerated. review/atlas/scrub-flattening-2026-10-27/README.md.
 - [ ] **7 Nov Pixel session (review/atlas/pixel7-checks-2026-11-07):** #81 device timing done (-12% / -17% / -36%), #93 squircle checked on device, tap timing unchanged, Flutter 90 Hz, RN blocked; #78 phone Chrome done (cold <=19.05 s, warm 4.5 s, no failure); open on the device: #182 exact-path hold/drag, #100 item 86.
-- [ ] **7 Nov pass (see NEXT-SESSION):** #81 bounded transform merged (#180), device timing open; #78 first load = shader compile, loader notice merged (#181), collapse the three ~40k glass program variants next; #101 tools merged (#182); #104 bottom contour not missing on main (posted); #70 end overshoot 8 px at 197-230 ms (posted, no fix); #114 item 130 gradient and pull dimming measured (posted, needs new material uniform).
+- [ ] **7 Nov pass (see NEXT-SESSION):** #81 bounded transform merged (#180), Pixel 7 field-build timing done; #78 first load = shader compile, loader notice merged (#181), collapse the three ~40k glass program variants next; #101 tools merged (#182); #104 bottom contour not missing on main (posted); #70 end overshoot 8 px at 197-230 ms (posted, no fix); #114 item 130 gradient and pull dimming measured (posted, needs new material uniform).
 - [x] **#80 / #82 and the first part of #81 (itsaqeeldev, 20 Oct), for 1.1.0.** Active-consumer
   view lifetime, matching cache/build geometry (whole-pixel size, exact recording-grid padding),
   shader-capability gating, bounded EDT
@@ -160,7 +160,7 @@ description fix alone.
   CodeRabbit fractional-padding correction passes 21 focused checks and the full suite
   (428 total, 401 passed, 27 opt-in skips, zero failures/errors); Android/Wasm/ABI/docs checks pass.
   Verification and historical results: `review/atlas/compose-cache-field-2026-10-20/README.md`.
-- [ ] **#81 follow-up:** device timing remains. 7 Nov: bounded transform landed in PR (skips far blocks and seeds; paired
+- [ ] **#81 follow-up:** Pixel 7 field-build timing done (7 Nov); the first synchronous field of a small panel is slower once per process. 7 Nov: bounded transform landed in PR (skips far blocks and seeds; paired
   p50 vs main 512x256 9.98 -> 8.42, 1080x300 26.4 -> 21.0, 1080x720 53.1 -> 31.2 ms; 59 cases byte-identical to upstream;
   review/atlas/pathfield-bounded-2026-11-07). Android/Wasm not timed. Earlier note: The first
   build and outline/origin changes are still a synchronous full-resolution EDT; odd-pad and

@@ -10,7 +10,7 @@ raw outputs: `review/atlas/pixel7-checks-2026-11-07`.
 | #93 | Held lens width against depth on the phone matches the desktop blend .7 at depths 4-8 within 3 px; not the capsule. |
 | #104 | Light held top rim 232 (2 Nov 229); clear to the lower rim (row 2290: 255); the shadow under the rim is darkest at the rim on phone and desktop alike (241) where iOS is 249-251 and darkens 12-20 px down: a shape gap, listed on the issue. |
 | #100 / #86 | One first-frame deadline miss per tap, as on 2 Nov (12 of 12 taps; first frame total p50 / p90 37.2 / 49.2 ms against about 33 / 46); cold first tap median 62.3 against 53.0 ms; n = 3 to 12, different unit. |
-| #66 | React Native: library only, blocked. Flutter example: steady 90 Hz scrolling (521 presents, gaps 11.1 / 11.2 / 11.3 ms). Compose tap scene: app frames p50 / p90 / p99 16 / 24.6 / 30-35 ms, 93-96% on time. Not like-for-like scenes. |
+| #66 | React Native: library only, blocked. Flutter example: the display kept presenting at 90 Hz while it scrolled (521 presents, gaps 11.1 / 11.2 / 11.3 ms; Flutter's own frame cadence is unmeasured). Compose tap scene: app frames p50 / p90 / p99 16 / 24.6 / 30-35 ms, 93-96% on time. Not like-for-like scenes. |
 | #181 / #78 | Phone Chrome (156), incognito, the demo target read over DevTools: first visit ready at or before 19.05 s with the 6 s notice shown; a second, warm visit: loader 0.44 s, app started 2.85 s, ready 4.5 s, no notice; neither failed. The glass was not seen (incognito is black in captures). |
 
 ## 7 November 2026 — milestone 1.1.0 pass (Claude, Sonnet)

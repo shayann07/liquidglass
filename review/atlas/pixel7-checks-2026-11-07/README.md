@@ -23,9 +23,11 @@ alternating (round 2 in reverse order). It is the build call, not frame time. `r
 
 Medians of the three rounds (1080 × 720 p50 per round: old 52.9 / 56.2 / 56.1, new 35.6 / 35.7 / 37.6). A hash of every texel
 of the built field is the same for old and current main at each size (one hash per size over all six runs): the outline is
-unchanged. The **first** build after process start is not faster at the smallest panel (512 × 256: 31-36 ms old, 40-51 ms
-new, before ART has compiled the new loops), is the same as steady state at 1080 × 300 and faster at 1080 × 720 (36 against
-52-56 ms): once per process, on a synchronous first field.
+unchanged. The harness runs the three sizes one after another in one process, so only the **512 × 256** panel's first call
+is a first build after process start: 31-36 ms old against 40-51 ms new, before ART has compiled the new loops. That is one
+size, three rounds a build, and it is what a first, synchronous field of a small panel would cost once per process. The
+`first_ms` values of the two larger panels come after the 512 × 256 panel's 101 calls, so they are first builds at that size
+in a warm process, not cold starts, and say nothing about a cold one (measuring each size in a fresh process would).
 
 ## #93 item 9: the held lens's squircle outline
 
@@ -90,15 +92,18 @@ follow-up (taps) shows no new miss.
 - **Flutter:** the example (`ports/flutter/example`, `flutter build apk --release`, the repository's local Flutter SDK, current
   main) scrolls a list under two glass surfaces. `gfxinfo` cannot see it (Flutter draws to a SurfaceView: one frame), and Flutter
   sends no per-app frame-timeline tokens, so only display-level data exists. Ten 350 ms swipes, a Perfetto FrameTimeline trace:
-  521 display presents in 7 bursts, gaps between presents p50 / p90 / p99 **11.1 / 11.2 / 11.3 ms** (a steady 90 Hz), one skipped
-  vsync, 520 of 524 display frames with no jank (the other four "Non Animating"). `raw/present-cadence.txt`.
+  521 display presents in 7 bursts, gaps between presents p50 / p90 / p99 **11.1 / 11.2 / 11.3 ms**, one skipped vsync, 520 of 524
+  display frames with no jank (the other four "Non Animating"). This is the **display's present cadence** while the example
+  scrolled: a present can reuse an older Flutter buffer when another layer (the status bar clock, say) updates, so it does not
+  establish how often Flutter produced a new frame. **Flutter's own frame cadence is unmeasured.** `raw/present-cadence.txt`.
 - **Compose sample, same trace type, ten taps** (its frames carry tokens): app frames 504-520 per trace, duration p50 / p90 / p99
   16.1-16.7 / 24.6 / 30.5-35.0 ms, 93.3-96.3% finished on time; 85-87% of its frames are flagged "Buffer Stuffing" (the app renders
   ahead of the display, GPU-bound), 8-10 dropped display frames in about 1,000. Its display-gap row in `raw/present-cadence.txt`
   (nominal 6.3 ms) is an artefact of buffer stuffing and is not comparable.
 - **These do not compare like for like:** the Flutter scene is a scrolling gradient list under two glass surfaces, the Compose
-  scene is the tab bar's tap animation with the selector's refraction. The honest reading is that the Flutter example holds
-  90 Hz while scrolling and the Compose Calm bar is GPU-heavier while it animates (the 2 November record: GPU 10-19 ms per frame).
+  scene is the tab bar's tap animation with the selector's refraction. What can be said is that the display kept presenting at
+  90 Hz while the Flutter example scrolled (its own frame rate was not measured) and that the Compose Calm bar is GPU-heavier while it
+  animates (the 2 November record: GPU 10-19 ms per frame).
 
 ## #78: the web demo's first visit in phone Chrome
 

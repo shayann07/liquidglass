@@ -3,8 +3,8 @@
 Pixel 7 (serial 29211FDH200FT8, a different unit from 2 Nov) was connected for part of 7 November. Done, with numbers in
 `review/atlas/pixel7-checks-2026-11-07/README.md`: #81 field build on device (p50 -12% / -17% / -36% at 512x256 / 1080x300 /
 1080x720, identical field hashes); #93 squircle on device (matches the desktop blend at depths 4-8 within 3 px); light held rim
-232 (2 Nov 229), clear to the lower rim; tap timing (one first-frame deadline miss per tap, unchanged); Flutter example holds a
-steady 90 Hz scrolling; React Native has no app project (blocker). **Found:** the light lens's shadow under its rim is darkest at the
+232 (2 Nov 229), clear to the lower rim; tap timing (one first-frame deadline miss per tap, unchanged); the display kept presenting at
+90 Hz while the Flutter example scrolled (its own frame cadence is unmeasured); React Native has no app project (blocker). **Found:** the light lens's shadow under its rim is darkest at the
 rim (241) on both the phone and the desktop replay, where iOS is 249-251 there and darkens to 242-244 about 12-20 px down (#104).
 **#78 phone Chrome (done later the same day):** cold first visit ready at or before 19.05 s with the 6 s notice shown, a warm visit ready in 4.5 s, no failure; the glass was not seen (incognito is black in captures).
 **Still open on the device:** the
