@@ -1,3 +1,18 @@
+## 7 November 2026 — Pixel 7 session (Claude, Sonnet)
+
+The owner connected a Pixel 7 for part of the day (serial 29211FDH200FT8; the 2 November unit was 28121FDH2006ZF). Release builds of
+old main `13ec13b` and current main `06a33aa`, throwaway #81 harness (not committed), captures local under `.local/pixel/`. Evidence and
+raw outputs: `review/atlas/pixel7-checks-2026-11-07`.
+
+| Issue | Result |
+| :-- | :-- |
+| #81 | Field build on the phone, old to current main, p50 / p90: 512x256 9.63 to 8.46 / 9.78 to 8.58 ms, 1080x300 23.95 to 19.85 / 24.40 to 20.15, 1080x720 56.12 to 35.74 / 59.65 to 37.48; field hashes identical. First build at 512x256 slower once per process (40-51 vs 31-36 ms). |
+| #93 | Held lens width against depth on the phone matches the desktop blend .7 at depths 4-8 within 3 px; not the capsule. |
+| #104 | Light held top rim 232 (2 Nov 229); clear to the lower rim (row 2290: 255); the shadow under the rim is darkest at the rim on phone and desktop alike (241) where iOS is 249-251 and darkens 12-20 px down: a shape gap, listed on the issue. |
+| #100 / #86 | One first-frame deadline miss per tap, as on 2 Nov (12 of 12 taps; first frame total p50 / p90 37.2 / 49.2 ms against about 33 / 46); cold first tap median 62.3 against 53.0 ms; n = 3 to 12, different unit. |
+| #66 | React Native: library only, blocked. Flutter example: the display kept presenting at 90 Hz while it scrolled (521 presents, gaps 11.1 / 11.2 / 11.3 ms; Flutter's own frame cadence is unmeasured). Compose tap scene: app frames p50 / p90 / p99 16 / 24.6 / 30-35 ms, 93-96% on time. Not like-for-like scenes. |
+| #181 / #78 | Phone Chrome (156), incognito, the demo target read over DevTools: first visit ready at or before 19.05 s with the 6 s notice shown; a second, warm visit: loader 0.44 s, app started 2.85 s, ready 4.5 s, no notice; neither failed. The glass was not seen (incognito is black in captures). |
+
 ## 7 November 2026 — milestone 1.1.0 pass (Claude, Sonnet)
 
 Order given by the owner: #81, #78, #101, #104, #70, #114 item 130; one worktree and PR each, no device this week. Two PRs

@@ -1,0 +1,6 @@
+# Display present cadence from SurfaceFlinger display frames (ftgaps.py), not per-app frame cadence: a present can reuse an older
+# buffer when another layer updates. Flutter's own frame cadence is unmeasured. Line 1: Flutter scroll; lines 2-3: Compose taps
+# (their 6.3 / 6.6 ms nominal gap is an artefact of buffer stuffing and is not comparable).
+timing/flutter-ft.pftrace: bursts 7 presents 521 gaps p50/p90/p99 11.1/11.2/11.3 ms (nominal 11.1); gaps over 1.5x 1 (0.2%), skipped vsyncs 1 (0.1 per burst)
+timing/compose-ft-1.pftrace: bursts 9 presents 1016 gaps p50/p90/p99 6.3/16.4/22.5 ms (nominal 6.3); gaps over 1.5x 442 (43.9%), skipped vsyncs 575 (63.9 per burst)
+timing/compose-ft-2.pftrace: bursts 10 presents 1050 gaps p50/p90/p99 6.6/15.7/22.3 ms (nominal 6.6); gaps over 1.5x 422 (40.6%), skipped vsyncs 526 (52.6 per burst)

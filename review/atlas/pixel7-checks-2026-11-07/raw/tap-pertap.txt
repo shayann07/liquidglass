@@ -1,0 +1,26 @@
+main06a33aa tap 1: frames 58 cpu p50/p90 5.3/6.8 gpu p50/p90/max 19.8/27.2/37.9 deadline-miss 2 presented 58 skipped-vsyncs 1 interval 11.1
+#0 t=0ms flags=0 input=0.3 anim=11.7 trav=0.1 draw=3.9 sync=0.3 issue=2.5 gpu=16.2 dequeue=0.0 total=32.4 over=15.8
+#2 t=22ms flags=0 input=5.4 anim=3.8 trav=0.1 draw=2.4 sync=0.1 issue=2.5 gpu=23.7 dequeue=0.0 total=39.7 over=0.8
+main06a33aa tap 2: frames 58 cpu p50/p90 5.7/6.8 gpu p50/p90/max 19.2/25.3/46.5 deadline-miss 2 presented 58 skipped-vsyncs 1 interval 11.1
+#0 t=0ms flags=0 input=0.4 anim=8.5 trav=0.0 draw=8.6 sync=0.1 issue=2.6 gpu=25.3 dequeue=0.0 total=42.9 over=26.3
+#1 t=11ms flags=0 input=7.3 anim=2.2 trav=0.1 draw=1.8 sync=0.1 issue=2.0 gpu=39.7 dequeue=0.0 total=51.1 over=1.1
+main06a33aa tap 3: frames 57 cpu p50/p90 4.6/5.6 gpu p50/p90/max 20.6/23.5/33.0 deadline-miss 1 presented 57 skipped-vsyncs 1 interval 11.1
+#0 t=0ms flags=0 input=0.5 anim=10.9 trav=0.1 draw=3.0 sync=0.1 issue=2.0 gpu=17.2 dequeue=0.0 total=31.9 over=15.3
+main06a33aa tap 4: frames 56 cpu p50/p90 4.5/6.1 gpu p50/p90/max 20.7/27.6/43.3 deadline-miss 1 presented 56 skipped-vsyncs 0 interval 11.1
+#0 t=0ms flags=0 input=0.5 anim=11.4 trav=0.1 draw=12.1 sync=0.1 issue=2.6 gpu=26.3 dequeue=0.0 total=50.6 over=34.0
+main06a33aa tap 5: frames 58 cpu p50/p90 4.3/4.9 gpu p50/p90/max 10.5/15.0/28.8 deadline-miss 1 presented 58 skipped-vsyncs 1 interval 11.1
+#0 t=0ms flags=0 input=0.7 anim=5.0 trav=0.1 draw=1.8 sync=0.1 issue=1.9 gpu=18.3 dequeue=0.0 total=26.1 over=9.5
+main06a33aa tap 6: frames 58 cpu p50/p90 5.4/6.8 gpu p50/p90/max 19.7/21.6/37.6 deadline-miss 1 presented 58 skipped-vsyncs 0 interval 11.1
+#0 t=0ms flags=0 input=0.5 anim=7.6 trav=0.1 draw=10.8 sync=0.1 issue=2.7 gpu=18.2 dequeue=0.0 total=37.5 over=20.9
+main06a33aa tap 7: frames 58 cpu p50/p90 4.5/5.6 gpu p50/p90/max 10.7/14.3/27.3 deadline-miss 1 presented 58 skipped-vsyncs 0 interval 11.1
+#0 t=0ms flags=0 input=0.4 anim=7.5 trav=0.1 draw=2.0 sync=0.2 issue=2.0 gpu=17.4 dequeue=0.0 total=27.6 over=11.0
+main06a33aa tap 8: frames 57 cpu p50/p90 6.3/7.5 gpu p50/p90/max 19.0/24.9/34.2 deadline-miss 1 presented 57 skipped-vsyncs 1 interval 11.1
+#0 t=0ms flags=0 input=4.0 anim=13.7 trav=0.1 draw=12.8 sync=0.1 issue=3.0 gpu=18.3 dequeue=0.0 total=49.2 over=32.6
+main06a33aa tap 9: frames 57 cpu p50/p90 4.3/6.6 gpu p50/p90/max 11.5/15.2/34.2 deadline-miss 1 presented 57 skipped-vsyncs 1 interval 11.1
+#0 t=0ms flags=0 input=0.6 anim=15.5 trav=0.1 draw=2.5 sync=0.2 issue=2.3 gpu=17.7 dequeue=0.0 total=37.2 over=20.6
+main06a33aa tap 10: frames 58 cpu p50/p90 5.5/7.0 gpu p50/p90/max 19.7/21.5/31.8 deadline-miss 1 presented 58 skipped-vsyncs 1 interval 11.1
+#0 t=0ms flags=0 input=3.6 anim=7.4 trav=0.1 draw=6.3 sync=0.2 issue=2.8 gpu=16.4 dequeue=0.0 total=34.0 over=17.4
+main06a33aa tap 11: frames 57 cpu p50/p90 5.4/6.8 gpu p50/p90/max 11.5/18.3/31.5 deadline-miss 1 presented 57 skipped-vsyncs 0 interval 11.1
+#0 t=0ms flags=0 input=0.5 anim=9.9 trav=0.1 draw=2.7 sync=0.2 issue=2.9 gpu=18.3 dequeue=0.0 total=32.7 over=16.1
+main06a33aa tap 12: frames 57 cpu p50/p90 5.3/6.5 gpu p50/p90/max 12.8/23.3/37.7 deadline-miss 1 presented 57 skipped-vsyncs 0 interval 11.1
+#0 t=0ms flags=0 input=0.5 anim=7.6 trav=0.1 draw=11.4 sync=0.2 issue=3.6 gpu=19.3 dequeue=0.0 total=39.2 over=22.6
