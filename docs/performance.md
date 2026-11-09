@@ -10,7 +10,9 @@ the same whole-pixel size and exact recorded padding. Padding is already quantiz
 grid, so style changes within a grid bucket reuse the field. Fractional recorded padding remains
 aligned with the shader; equal padded dimensions cannot hide different inner geometry.
 A bounded workspace reuses the full-resolution distance-transform arrays. One workspace retains at
-most 262,144 pixels of scratch storage (approximately 4.25 MiB of primitive arrays). Larger or
+most 262,144 pixels of scratch storage: about 1.06 MiB for the packed narrow-band transform (plus
+256 KiB of alpha scratch on Android), and about 5.3 MiB once a band wider than 680 px has used the
+whole-layer fallback, whose float planes stay allocated alongside the packed ones. Larger or
 concurrent builds use temporary buffers rather than blocking or growing that retained workspace.
 
 Phone-width fields above this cap use temporary arrays, so opening a large custom-shaped screen

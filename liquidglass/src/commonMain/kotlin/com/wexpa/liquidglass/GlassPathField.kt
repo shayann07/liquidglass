@@ -204,8 +204,9 @@ internal class GlassPathFieldBuffers {
 }
 
 /**
- * One bounded reusable workspace (~1.06 MiB for packed narrow-band builds; up to ~4.25 MiB if the
- * uncapped fallback allocates float planes), not one per panel. Concurrent callers and builds over
+ * One bounded reusable workspace, not one per panel: ~1.06 MiB for packed narrow-band builds (plus 256 KiB of
+ * alpha scratch on Android), ~5.3 MiB once a wide-band build has taken the uncapped fallback and added its float
+ * planes, since the packed planes stay allocated. Concurrent callers and builds over
  * [MAX_RETAINED_PIXELS] use temporary storage without blocking or growing the pool.
  */
 internal object GlassPathFieldBufferPool {

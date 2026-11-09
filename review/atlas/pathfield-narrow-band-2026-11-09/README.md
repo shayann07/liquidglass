@@ -41,8 +41,9 @@ it skipped and more.
 - **Constants labelled.** The +3 px cap slack and the 1020 px limit are authored; 1.5 and 8 are inherited from the
   encoder.
 - **#180's 59 cases kept.** `GlassPathFieldBoundedTest` now compares every case with the whole-layer reference.
-- **New limit test.** A 2148 x 308 px layer at bands 679, 680 and 681 (half-span just under, on and just over 1020 px)
-  exercises the longest packed offsets and the fallback. Byte-identical on both sides.
+- **New limit test.** A 2148 x 308 px layer at bands 679, 680 and 681 (half-span just under, on and just over 1020 px),
+  with a rounded rectangle (which path is chosen) and a 20 px bar at the left edge (the right end ~2000 px from any seed,
+  so the capped sweep leaves pixels unreached and carries offsets to its cap). Byte-identical in all six.
 - **#180 kept as a benchmark mode.** `tools/benchmarks/pathfield/PreviousBounded.kt` is main's previous transform,
   renamed, so the port is measured against it in the same JVM.
 

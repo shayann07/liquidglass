@@ -108,18 +108,21 @@ class GlassPathFieldBoundedTest {
 
     /**
      * A layer wider than 1024 px with bands whose encoded half-span sits just under, on and just over the
-     * narrow band's limit (1020 px): the offsets get as long as the packed state allows, and one step past it
-     * the build takes the whole-layer transform instead. Both sides must match the reference.
+     * narrow band's limit (1020 px); one step past it the build takes the whole-layer transform instead. The
+     * rounded rectangle checks that choice; the bar at the left edge leaves the right end about 2000 px from any
+     * seed, so the capped sweep has to leave pixels unreached and carry offsets out to its cap.
      */
     @Test fun wideLayerAtTheNarrowBandLimitMatchesTheReference() {
         val buffers = GlassPathFieldBuffers()
         val w = 2100; val h = 260; val pad = 24
-        val path = roundRect(w, h, 90f)
-        for (band in listOf(679f, 680f, 681f)) {
-            val reference = buildPathFieldReference(path, w + 2 * pad, h + 2 * pad, pad.toFloat(), band)
-            val ours = buildPathField(path, w + 2 * pad, h + 2 * pad, pad.toFloat(), band, buffers)
-            assertNotNull(reference); assertNotNull(ours)
-            assertEquals(pixels(reference.bitmap), pixels(ours.bitmap), "band=$band")
+        val bar = Path().apply { addRect(Rect(0f, 0f, 20f, h.toFloat())) }
+        for ((name, path) in listOf("roundRect" to roundRect(w, h, 90f), "leftBar" to bar)) {
+            for (band in listOf(679f, 680f, 681f)) {
+                val reference = buildPathFieldReference(path, w + 2 * pad, h + 2 * pad, pad.toFloat(), band)
+                val ours = buildPathField(path, w + 2 * pad, h + 2 * pad, pad.toFloat(), band, buffers)
+                assertNotNull(reference, "$name band=$band"); assertNotNull(ours, "$name band=$band")
+                assertEquals(pixels(reference.bitmap), pixels(ours.bitmap), "$name band=$band")
+            }
         }
     }
 }
