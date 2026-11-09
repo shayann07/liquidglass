@@ -43,6 +43,15 @@ Paired with the previous build on the desktop JVM, p50: 512 x 256 px 9.98 to 8.4
 Desktop JVM wall time on a shared machine; Android was not timed and no frame-rate claim is made.
 [Method, correctness argument and limits](https://github.com/shayann07/liquidglass/blob/main/review/atlas/pathfield-bounded-2026-11-07/README.md).
 
+**One packed pass over a narrow band (#81, 9 November).** The transform now runs once for both sides of the outline,
+with each pixel's nearest-boundary offset packed into one `Int`, and stops 3 px past the encoded half-span, inside the
+outline's bounding box widened by that cap. Distances compare as integers, and exact ties reproduce the old float
+comparison. Paired with the 7 November build on the desktop JVM, p50: 512 x 256 px 6.2 to 2.9 ms, 1080 x 300 13.4 to
+5.7 ms, 1080 x 720 22.8 to 10.1 ms. Allocation per build falls 78-82% (1080 x 720: 24.3 to 5.4 MB). Fields stay
+byte-identical. A band whose half-span exceeds 1020 px (band above 680) uses the whole-layer transform. Desktop JVM wall
+time only; Android was not timed.
+[Method, correctness argument and limits](https://github.com/shayann07/liquidglass/blob/main/review/atlas/pathfield-narrow-band-2026-11-09/README.md).
+
 ## Atlas wide and narrow windows — 18 October 2026
 
 Static-scene redraw submission (120 samples after 10 warmups; not presented FPS), three scenes per
