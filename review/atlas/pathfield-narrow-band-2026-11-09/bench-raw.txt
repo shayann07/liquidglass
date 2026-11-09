@@ -1,0 +1,32 @@
+run 1: BOUNDED_BASELINE cases=59 identical=true
+run 1: FIX_BENCH size=512x256 mode=0 n=61 p50_ms=9.0319 p95_ms=11.6271 bytes_p50=6811344 pixels_identical=true
+run 1: FIX_BENCH size=512x256 mode=1 n=61 p50_ms=2.9828 p95_ms=4.2321 bytes_p50=1065632 pixels_identical=true
+run 1: FIX_BENCH size=512x256 mode=2 n=61 p50_ms=2.9051 p95_ms=4.4312 bytes_p50=341936 pixels_identical=true
+run 1: FIX_BENCH size=512x256 mode=3 n=61 p50_ms=7.5497 p95_ms=10.2085 bytes_p50=1874280 pixels_identical=true
+run 1: FIX_BENCH size=512x256 mode=4 n=61 p50_ms=6.2586 p95_ms=9.105 bytes_p50=1878280 pixels_identical=true
+run 1: FIX_BENCH size=1080x300 mode=0 n=61 p50_ms=20.7177 p95_ms=21.9845 bytes_p50=15703312 pixels_identical=true
+run 1: FIX_BENCH size=1080x300 mode=1 n=61 p50_ms=5.719 p95_ms=7.2654 bytes_p50=2454840 pixels_identical=true
+run 1: FIX_BENCH size=1080x300 mode=2 n=61 p50_ms=5.6798 p95_ms=6.0703 bytes_p50=2454872 pixels_identical=true
+run 1: FIX_BENCH size=1080x300 mode=3 n=61 p50_ms=17.5966 p95_ms=18.4071 bytes_p50=10992936 pixels_identical=true
+run 1: FIX_BENCH size=1080x300 mode=4 n=61 p50_ms=13.3091 p95_ms=14.4922 bytes_p50=11001992 pixels_identical=true
+run 1: FIX_BENCH size=1080x720 mode=0 n=61 p50_ms=47.1643 p95_ms=48.6438 bytes_p50=34653712 pixels_identical=true
+run 1: FIX_BENCH size=1080x720 mode=1 n=61 p50_ms=10.07 p95_ms=10.7471 bytes_p50=5415840 pixels_identical=true
+run 1: FIX_BENCH size=1080x720 mode=2 n=61 p50_ms=10.0539 p95_ms=10.6339 bytes_p50=5415872 pixels_identical=true
+run 1: FIX_BENCH size=1080x720 mode=3 n=61 p50_ms=38.7071 p95_ms=40.2057 bytes_p50=24258216 pixels_identical=true
+run 1: FIX_BENCH size=1080x720 mode=4 n=61 p50_ms=22.7798 p95_ms=23.9914 bytes_p50=24276496 pixels_identical=true
+run 2: BOUNDED_BASELINE cases=59 identical=true
+run 2: FIX_BENCH size=512x256 mode=0 n=61 p50_ms=8.8862 p95_ms=9.6421 bytes_p50=6811344 pixels_identical=true
+run 2: FIX_BENCH size=512x256 mode=1 n=61 p50_ms=2.9357 p95_ms=3.2212 bytes_p50=1065632 pixels_identical=true
+run 2: FIX_BENCH size=512x256 mode=2 n=61 p50_ms=2.9043 p95_ms=3.2959 bytes_p50=341936 pixels_identical=true
+run 2: FIX_BENCH size=512x256 mode=3 n=61 p50_ms=7.4456 p95_ms=7.9292 bytes_p50=1874280 pixels_identical=true
+run 2: FIX_BENCH size=512x256 mode=4 n=61 p50_ms=6.1295 p95_ms=6.6045 bytes_p50=1878280 pixels_identical=true
+run 2: FIX_BENCH size=1080x300 mode=0 n=61 p50_ms=20.4301 p95_ms=21.6017 bytes_p50=15703312 pixels_identical=true
+run 2: FIX_BENCH size=1080x300 mode=1 n=61 p50_ms=5.7215 p95_ms=7.128 bytes_p50=2454840 pixels_identical=true
+run 2: FIX_BENCH size=1080x300 mode=2 n=61 p50_ms=5.7052 p95_ms=5.937 bytes_p50=2454872 pixels_identical=true
+run 2: FIX_BENCH size=1080x300 mode=3 n=61 p50_ms=17.5635 p95_ms=18.1663 bytes_p50=10992936 pixels_identical=true
+run 2: FIX_BENCH size=1080x300 mode=4 n=61 p50_ms=13.4272 p95_ms=15.0676 bytes_p50=11001992 pixels_identical=true
+run 2: FIX_BENCH size=1080x720 mode=0 n=61 p50_ms=46.63 p95_ms=47.6275 bytes_p50=34653712 pixels_identical=true
+run 2: FIX_BENCH size=1080x720 mode=1 n=61 p50_ms=10.0847 p95_ms=10.5078 bytes_p50=5415840 pixels_identical=true
+run 2: FIX_BENCH size=1080x720 mode=2 n=61 p50_ms=10.0947 p95_ms=10.5941 bytes_p50=5415872 pixels_identical=true
+run 2: FIX_BENCH size=1080x720 mode=3 n=61 p50_ms=38.6445 p95_ms=39.714 bytes_p50=24258216 pixels_identical=true
+run 2: FIX_BENCH size=1080x720 mode=4 n=61 p50_ms=22.8782 p95_ms=23.5791 bytes_p50=24276496 pixels_identical=true

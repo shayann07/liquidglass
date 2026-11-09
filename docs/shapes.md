@@ -62,7 +62,7 @@ Modifier.glassEffect(Glass.Regular, MyStarShape)
 Nothing else is required; the shape being a path is detected and handled. What happens under it:
 
 1. The outline is rasterised into the padded layer, once.
-2. An exact Euclidean distance transform runs over the result.
+2. An exact Euclidean distance transform runs over the result, out to just past the band the field encodes.
 3. The field is encoded into a texture and bound as a second shader input.
 4. The shader reads the measurement instead of evaluating a formula.
 
