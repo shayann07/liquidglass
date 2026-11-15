@@ -6,6 +6,13 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Custom-path panels: the distance field builds about 2.1-2.35x faster again on the desktop JVM, paired with the
+  previous build (1080 x 720 px: 22.8 to 10.1 ms p50) and allocates 78-82% less, with byte-identical fields. One packed
+  transform now covers both sides of the outline and stops just past the encoded band; above a 1020 px half-span it
+  falls back to the whole-layer transform. If a desktop or web mask cannot be read back, there is now no field rather
+  than a blank one. The algorithm came from a supervised agent trial and was reviewed and ported. Desktop JVM only;
+  Android byte-identity is argued from source and compiles, device check pending (#81).
+  [Evidence](review/atlas/pathfield-narrow-band-2026-11-09/README.md).
 - Web demo: a first visit's wait is shader compilation, not the download (Chrome, integrated GPU: ready after 11-17 s,
   ~10-13 s of it three glass programs linking; a repeat visit is ready in 1.2 s). The loader says so in its first text, and after 6 s
   names the wait: "Still downloading the demo" until the app has started, then "Still compiling the glass shaders ...", and `tools/measure_web_demo_shaders.mjs`

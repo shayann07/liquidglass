@@ -103,6 +103,11 @@ research remains available; this page identifies which later changes supersede i
   faster paired builds on the desktop JVM (1080 x 720: 53.1 to 31.2 ms p50), byte-identical to the upstream
   algorithm on 59 cases (#81). Desktop JVM only, no device timing:
   [evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/pathfield-bounded-2026-11-07/README.md).
+- The custom-path field builds in one packed narrow-band pass (9 November), replacing the 7 November bounded transform:
+  2.1-2.35x faster than it on the desktop JVM (1080 x 720: 22.8 to 10.1 ms p50) and 78-82% fewer bytes allocated per
+  build, byte-identical on #180's 59 cases, the trial's identity suite and a new test at the 1020 px fallback limit
+  (#81). Desktop JVM only; Android device check pending:
+  [evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/pathfield-narrow-band-2026-11-09/README.md).
 
 ## Web demo first load (20 October, #78)
 

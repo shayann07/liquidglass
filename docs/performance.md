@@ -10,7 +10,9 @@ the same whole-pixel size and exact recorded padding. Padding is already quantiz
 grid, so style changes within a grid bucket reuse the field. Fractional recorded padding remains
 aligned with the shader; equal padded dimensions cannot hide different inner geometry.
 A bounded workspace reuses the full-resolution distance-transform arrays. One workspace retains at
-most 262,144 pixels of scratch storage (approximately 4.25 MiB of primitive arrays). Larger or
+most 262,144 pixels of scratch storage: about 1.06 MiB for the packed narrow-band transform (plus
+256 KiB of alpha scratch on Android), and about 5.3 MiB once a band wider than 680 px has used the
+whole-layer fallback, whose float planes stay allocated alongside the packed ones. Larger or
 concurrent builds use temporary buffers rather than blocking or growing that retained workspace.
 
 Phone-width fields above this cap use temporary arrays, so opening a large custom-shaped screen
@@ -42,6 +44,15 @@ Paired with the previous build on the desktop JVM, p50: 512 x 256 px 9.98 to 8.4
 1080 x 720 53.1 to 31.2 ms. The bytes are identical to the upstream algorithm on 59 shape, size, pad and band cases.
 Desktop JVM wall time on a shared machine; Android was not timed and no frame-rate claim is made.
 [Method, correctness argument and limits](https://github.com/shayann07/liquidglass/blob/main/review/atlas/pathfield-bounded-2026-11-07/README.md).
+
+**One packed pass over a narrow band (#81, 9 November).** The transform now runs once for both sides of the outline,
+with each pixel's nearest-boundary offset packed into one `Int`, and stops 3 px past the encoded half-span, inside the
+outline's bounding box widened by that cap. Distances compare as integers, and exact ties reproduce the old float
+comparison. Paired with the 7 November build on the desktop JVM, p50: 512 x 256 px 6.2 to 2.9 ms, 1080 x 300 13.4 to
+5.7 ms, 1080 x 720 22.8 to 10.1 ms. Allocation per build falls 78-82% (1080 x 720: 24.3 to 5.4 MB). Fields stay
+byte-identical. A band whose half-span exceeds 1020 px (band above 680) uses the whole-layer transform. Desktop JVM wall
+time only; Android was not timed.
+[Method, correctness argument and limits](https://github.com/shayann07/liquidglass/blob/main/review/atlas/pathfield-narrow-band-2026-11-09/README.md).
 
 ## Atlas wide and narrow windows — 18 October 2026
 

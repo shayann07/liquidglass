@@ -13,14 +13,13 @@ import kotlin.math.sin
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 /**
- * The bounded transform skips layer blocks too far from the outline to matter, and must hand back
- * the field the whole-layer transform does, byte for byte. These compare the two over shapes,
- * sizes, pads and bands that put the outline in every relation to the blocks: hugging the layer's
- * edge, thin, hollow, in pieces, curved, absent.
+ * The narrow-band transform must hand back the field the whole-layer transform does, byte for byte.
+ * These compare it with the whole-layer reference ([buildPathFieldReference]) over shapes, sizes, pads
+ * and bands that put the outline in every relation to the band: hugging the layer's edge, thin,
+ * hollow, in pieces, curved, absent. The cases were written for #180's bounded blocks and still
+ * cover the same ground.
  */
 class GlassPathFieldBoundedTest {
     internal class Case(val name: String, val w: Int, val h: Int, val pad: Int, val band: Float, val path: Path)
@@ -93,40 +92,37 @@ class GlassPathFieldBoundedTest {
         return List(map.width * map.height) { i -> (map[i % map.width, i / map.width].red * 255f).toInt() }
     }
 
-    @Test fun boundedFieldMatchesTheWholeLayerTransformByteForByte() {
+    @Test fun everyCaseMatchesTheWholeLayerReferenceByteForByte() {
         val buffers = GlassPathFieldBuffers()
         for (c in cases()) {
             val lw = c.w + 2 * c.pad
             val lh = c.h + 2 * c.pad
-            val whole = buildPathField(c.path, lw, lh, c.pad.toFloat(), c.band, buffers, bounded = false)
-            val bounded = buildPathField(c.path, lw, lh, c.pad.toFloat(), c.band, buffers, bounded = true)
-            assertNotNull(whole, c.name)
-            assertNotNull(bounded, c.name)
-            assertEquals(pixels(whole.bitmap), pixels(bounded.bitmap), "${c.name} ${c.w}x${c.h} pad=${c.pad} band=${c.band}")
-            assertEquals(whole.range, bounded.range)
+            val reference = buildPathFieldReference(c.path, lw, lh, c.pad.toFloat(), c.band)
+            val ours = buildPathField(c.path, lw, lh, c.pad.toFloat(), c.band, buffers)
+            assertNotNull(reference, c.name)
+            assertNotNull(ours, c.name)
+            assertEquals(pixels(reference.bitmap), pixels(ours.bitmap), "${c.name} ${c.w}x${c.h} pad=${c.pad} band=${c.band}")
+            assertEquals(reference.range, ours.range)
         }
-        // The comparison is only worth anything if the bounded path skipped work in some case.
-        val big = roundRect(1080, 720, 40f)
-        val mask = ImageBitmap(1080 + 48, 720 + 48)
-        val canvas = androidx.compose.ui.graphics.Canvas(mask)
-        canvas.translate(24f, 24f)
-        canvas.drawPath(big, androidx.compose.ui.graphics.Paint().apply { color = androidx.compose.ui.graphics.Color.White })
-        val map = mask.toPixelMap()
-        val inside = BooleanArray(mask.width * mask.height) { map[it % mask.width, it / mask.width].alpha > 0.5f }
-        val blocks = activeBlocks(inside, mask.width, mask.height, 48f)
-        assertTrue(blocks != null && blocks.active.any { !it }, "a 1080x720 panel at band 48 should leave blocks in its middle unvisited")
     }
 
-    @Test fun anAbsentOutlineKeepsTheWholeLayerBehaviour() {
-        val inside = BooleanArray(300 * 200)
-        assertNull(activeBlocks(inside, 300, 200, 48f))
-        assertNull(activeBlocks(BooleanArray(300 * 200) { true }, 300, 200, 48f))
-    }
-
-    @Test fun smallLayersVisitEveryBlock() {
-        // Everything is within range of the outline, so there is nothing to skip.
-        val w = 120; val h = 90
-        val inside = BooleanArray(w * h) { i -> i % w in 20 until 100 && i / w in 20 until 70 }
-        assertNull(activeBlocks(inside, w, h, 48f))
+    /**
+     * A layer wider than 1024 px with bands whose encoded half-span sits just under, on and just over the
+     * narrow band's limit (1020 px); one step past it the build takes the whole-layer transform instead. The
+     * rounded rectangle checks that choice; the bar at the left edge leaves the right end about 2000 px from any
+     * seed, so the capped sweep has to leave pixels unreached and carry offsets out to its cap.
+     */
+    @Test fun wideLayerAtTheNarrowBandLimitMatchesTheReference() {
+        val buffers = GlassPathFieldBuffers()
+        val w = 2100; val h = 260; val pad = 24
+        val bar = Path().apply { addRect(Rect(0f, 0f, 20f, h.toFloat())) }
+        for ((name, path) in listOf("roundRect" to roundRect(w, h, 90f), "leftBar" to bar)) {
+            for (band in listOf(679f, 680f, 681f)) {
+                val reference = buildPathFieldReference(path, w + 2 * pad, h + 2 * pad, pad.toFloat(), band)
+                val ours = buildPathField(path, w + 2 * pad, h + 2 * pad, pad.toFloat(), band, buffers)
+                assertNotNull(reference, "$name band=$band"); assertNotNull(ours, "$name band=$band")
+                assertEquals(pixels(reference.bitmap), pixels(ours.bitmap), "$name band=$band")
+            }
+        }
     }
 }

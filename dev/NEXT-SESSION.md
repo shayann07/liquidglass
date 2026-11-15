@@ -1,3 +1,15 @@
+## RESUME HERE (9 November): narrow-band field build, Argon trial
+
+- #81 follow-up: `perf/81-narrow-band-edt` replaces #180's bounded transform with a packed one-pass narrow-band transform
+  (from a supervised Gemini 4 Argon trial on a sealed clone at 13ec13b, reviewed and ported by Claude). Desktop JVM, paired
+  against #180: 2.1-2.35x faster, 78-82% less allocation, byte-identical (identity suite, #180's 59 cases, new 1020 px
+  limit test); full suite 496/0. Port fixes: a failed Skia mask read returns no field (the trial substituted a blank mask),
+  `encodedReach` is the single range source again. Open: Android has no byte-identity test and no device timing; re-time
+  on the Pixel when it is back. Evidence: `review/atlas/pathfield-narrow-band-2026-11-09`.
+- Argon trial verdict (8-9 Nov): video judgement no (Antigravity feeds it 1 fps thumbnails; it misattributed a known
+  freeze); gated engineering yes, with review (the #104 trap handled correctly, the speedup reproduced, one silent
+  fallback missed).
+
 ## RESUME HERE (7 November, after the Pixel session): Pixel 7 results and what is still open on the device
 
 Pixel 7 (serial 29211FDH200FT8, a different unit from 2 Nov) was connected for part of 7 November. Done, with numbers in
