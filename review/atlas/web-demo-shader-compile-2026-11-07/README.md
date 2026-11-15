@@ -5,6 +5,8 @@ Installed Chrome (headless, ANGLE/D3D11) on an AMD integrated GPU, Windows 11; t
 without compression. **Chrome on one machine.** Firefox, Safari, phones and other GPUs are not measured.
 Screenshots are the demo's own loader (`slow-download.png`, `slow-compile.png` and the other states, from `tools/web_demo_states.mjs`).
 
+> 15 November follow-up: fewer programs, see [web-demo-one-program-2026-11-15](../web-demo-one-program-2026-11-15/README.md).
+
 ## Finding
 
 On a first visit the demo is ready after **11-17 s**, and almost all of that is the main thread waiting for
