@@ -75,7 +75,7 @@ at 167 ms rose to 75.3 (iOS 55.3). The shipped wall shortens the spine about the
 - **Measured:** every number in the tables above (iOS from the decoded recording; main and this change from our
   replays).
 - **Authored:** `tapEndWallReach` 0.03 and `tapEndWallKnee` 0.025 bar heights, and the two-slot fade. The reach was
-  chosen between two rendered candidates, 0.02 and 0.04, by eye on the lens end and the 2 to 0 level; it is not a
+  taken midway between two rendered candidates (0.02 scored best on the 2 to 0 level, 0.04 on the 0 to 2 level; both pass the lens end), then rendered and scored itself, which is the table above; it is not a
   fitted constant.
 - **Tests:** `GlassPhoneTapTimingTest` gains three: the wall holds the landing edge on both end tabs and leaves the
   appearance alone; the same peak at 30 / 60 / 90 / 120 / 240 Hz within 0.5 px; a middle-tab tap is step for step
