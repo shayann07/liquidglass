@@ -1762,7 +1762,8 @@ object LiquidGlassDiagnostics {
      * When set, the Calm tap's end wall (#70): reach past the resting end and knee, in bar heights, and mode
      * (0 takes the excess out of the spine about the centre, 1 moves only the leading end); any prefix, in place
      * of [GlassPoseSpec.tapEndWallReach], [GlassPoseSpec.tapEndWallKnee] and [GlassPoseSpec.tapEndWallOneSided],
-     * for fitting by replay. A negative reach turns the wall off. Null in production.
+     * for fitting by replay (diagnostic; not part of the public ABI). A negative reach turns the wall off. Null in production;
+     * Calm's own values are authored (review/atlas/tap-end-wall-2026-11-16).
      */
     var tapEndWall: FloatArray? = null
 

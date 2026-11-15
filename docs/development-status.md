@@ -7,6 +7,9 @@ research remains available; this page identifies which later changes supersede i
 
 ## Main after 1.0 (24 October)
 
+- 16 November: Calm taps that land on the first or last tab meet an end wall (0.03 bar heights past the resting end, authored):
+  on docs/1 the lens's end no longer runs 8-10 px past iOS's, and 2 to 0 at 167 ms reads 55.4 (iOS 55.3, was 66.1). Arrival unchanged;
+  0 to 2 at 183-217 ms reads 4 levels further from iOS (#94). Internal spec, Skia and .NET mirrored (#70 open). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/tap-end-wall-2026-11-16/README.md).
 - 2 November: Calm's tap clock runs 1.2× for two-tab trips (internal): they arrive within 6 ms of iOS on docs/1 (was 39 ms
   late); JGEY2190 gains 33 ms and stays 65 ms late. The pill's level through the tap is no closer overall (#70 open). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/two-tab-tap-2026-11-02/README.md).
 - 2 November: `LocalGlassAdaptiveQuality` (opt-in, Android): the theme lowers its render scale while frames are missed and

@@ -340,13 +340,15 @@ internal data class GlassPoseSpec(
     val tapLongTripRate: Float = 1f,
     /** End wall for a tap landing on the first or last tab (#70): the body's leading end may reach at most
      * this many bar heights past its resting end. At rest the leading end is the resting end, so the wall
-     * holds nothing there and needs no fade. Negative (the default) disables it; on in Calm. */
+     * holds nothing there and needs no fade. Negative (the default) disables it; on in Calm, at an authored 0.03 chosen
+     * between two rendered candidates (.02 and .04). Evidence: review/atlas/tap-end-wall-2026-11-16. */
     val tapEndWallReach: Float = -1f,
     /** The wall's soft knee in bar heights: the excess over the reach is taken as `e^2 / (e + k)`, so the
-     * landing compresses into the wall (C1 at the limit) and never passes it by more than the knee. */
+     * landing compresses into the wall (C1 at the limit). Authored (.025 in every preset), not fitted. */
     val tapEndWallKnee: Float = .025f,
     /** The wall moves only the leading end (half the take from the spine, half from the centre) instead of
-     * shortening the spine about an unmoved centre. */
+     * shortening the spine about an unmoved centre. Off in every preset: rejected for Calm (taps arrived 23 ms later than
+     * iOS in the median, against 6 ms on main), kept for replay fitting. */
     val tapEndWallOneSided: Boolean = false,
     /** Opt-in tap appearance from excess projected area; zero preserves historical optics.
      * This is separate from held formation and never grants pointer ownership. */
