@@ -36,7 +36,7 @@ const DEFAULT_SPEC = Object.freeze({
   tapShortTripRate: 1, tapAppearanceArea: 0, tapAppearanceSpine: 0,
   tapAppearanceFallOmega: 0, releaseFormationSpeed: 0, releaseStillHoldSeconds: 0,
   releaseStillFadeOmega: 0,
-  releaseMovingFadeOmega: 0, tapLongTripRate: 1,
+  releaseMovingFadeOmega: 0, tapLongTripRate: 1, tapEndWallReach: -1, tapEndWallKnee: .025, tapEndWallOneSided: false,
   heldSquircle: 0, squircleExponent: 3,
 });
 
@@ -54,7 +54,7 @@ export const CALM_SELECTOR_SPEC = Object.freeze({
   graspOmega: 120, heldFormRiseOmega: 26, pressFormation: 0, holdThresholdSeconds: .11,
   releaseTrailingEdge: true, releaseRecoveryOmega: 13,
   releaseTrailingInOmega: 9, releaseTrailingInZeta: .3, releaseTrailingCarry: .1, releaseWallGive: .35,
-  releaseTrailingStiffening: .5, releaseStillHoldSeconds: .035, releaseStillFadeOmega: 100, releaseMovingFadeOmega: 12, tapLongTripRate: 1.2,
+  releaseTrailingStiffening: .5, releaseStillHoldSeconds: .035, releaseStillFadeOmega: 100, releaseMovingFadeOmega: 12, tapLongTripRate: 1.2, tapEndWallReach: .03,
   heldTravelStrain: .6, heldTravelStrainOmega: 10,
   heldSquircle: .7,
 });
@@ -291,6 +291,7 @@ export class CalmSelectorController {
     this.form = new Spring(); this.transit = new Spring(); this.travel = new Spring(); this.tapArea = new Spring();
     this.strainDrive = new Spring(); this.heldTravelDirection = 0; this.reversalInterval = 1;
     this.tapAreaActive = false; this.tapDistance = 0; this.releaseImpactActive = false;
+    this.tapFreeDx = 0; this.tapFreeDxVelocity = 0; this.tapWallEngaged = false;
     this.releaseEdge = new Spring(); this.releaseTrail = new Spring(); this.releaseEdgeActive = false; this.trailImpact = false;
     this.releasedAt = 0; this.releasedStill = false;
     this.now = 0; this.pressStart = 0; this.downX = 0; this.downY = 0; this.downOnBody = false;
@@ -349,7 +350,7 @@ export class CalmSelectorController {
   }
 
   snapToRest(index) {
-    this.releaseEdgeActive = false; this.tapAreaActive = false; this.tapDistance = 0; this.releaseImpactActive = false;
+    this.releaseEdgeActive = false; this.tapAreaActive = false; this.tapWallEngaged = false; this.tapDistance = 0; this.releaseImpactActive = false;
     this.requestedIndex = index; this.restIndex = clamp(index, 0, Math.max(this.bar.count - 1, 0));
     resetPose(this.pose); resetPose(this.velocity);
     this.pose.cx = centreOf(this.bar, this.restIndex); this.pose.cy = this.bar.height / 2;
@@ -494,6 +495,23 @@ export class CalmSelectorController {
   }
   // The held travel strain (heldTravelStrain) widens the rendered body by e^u; zero leaves it 1.
   strainScale() { return this.spec.heldTravelStrain > 0 ? Math.exp(this.pose.u) : 1; }
+  // A coupled tap landing on an end tab keeps its leading end within tapEndWallReach bar heights past its resting end (#70).
+  applyTapEndWall(targetX, dt) {
+    const s = this.spec, bar = this.bar, pose = this.pose, vel = this.velocity, ref = this.reference;
+    if (!(s.tapEndWallReach >= 0) || bar.count < 2) return;
+    const side = this.restIndex === bar.count - 1 ? 1 : this.restIndex === 0 ? -1 : 0;
+    if (side === 0) return;
+    const limit = targetX + side * (ref.r + ref.a + s.tapEndWallReach * bar.height);
+    const excess = side * (pose.cx + side * this.landingHalfWidth() - limit);
+    if (excess <= 0) return;
+    const far = clamp(this.tapDistance / Math.max(bar.slotWidth, 1) - 2, 0, 1);
+    const share = Math.min(dt * 960, 1) * (1 - far * far * (3 - 2 * far));
+    if (share <= 0) return;
+    this.tapWallEngaged = true;
+    const knee = Math.max(s.tapEndWallKnee * bar.height, 1e-3), taken = share * excess * excess / (excess + knee), eu = this.strainScale();
+    if (s.tapEndWallOneSided) { pose.dx -= .5 * taken / eu; pose.cx -= side * .5 * taken; } else pose.dx -= taken / eu;
+    if (vel.dx > 0) vel.dx *= 1 - share * excess / (excess + knee);
+  }
   landingHalfWidth() { return (this.reference.r * Math.exp(this.pose.p) + this.pose.dx + Math.max(this.pose.acc, 0)) * this.strainScale(); }
   landingHalfWidthVelocity() {
     const eu = this.strainScale(), base = this.reference.r * Math.exp(this.pose.p) + this.pose.dx + Math.max(this.pose.acc, 0);
@@ -554,6 +572,7 @@ export class CalmSelectorController {
       this.tapArea.velocity = (2 * PI * radius + 4 * spine) * radius * vel.p + 4 * radius * spineVelocity;
     }
     this.tapAreaActive = coupleArea;
+    if (!coupleTapArea) this.tapWallEngaged = false;
     const distanceExcess = coupleTapArea ? Math.max(this.tapDistance / ref.width - 2, 0) : 0;
     const longTapDrive = 1 - Math.exp(-distanceExcess * distanceExcess / (distanceExcess + .5));
     const vRef = Math.max(this.mode === MODE.Held ? s.heldReferenceSpeed : tapMotion ? s.tapReferenceSpeed : s.referenceSpeed, 1e-3);
@@ -690,7 +709,16 @@ export class CalmSelectorController {
     else spz = s.spineZeta;
     [pose.dx, vel.dx] = this.stepState(dt, pose.dx, vel.dx, eq.dx, spo, spz);
     [pose.dy, vel.dy] = this.stepState(dt, pose.dy, vel.dy, eq.dy, spo, spz);
+    if (this.tapWallEngaged) {
+      // The spine this tap would have had without the end wall; the transit appearance reads it (#70).
+      const fo = (eq.dx < this.tapFreeDx ? s.tapSpineFallOmega : s.tapAreaSpineOmega) * tapClock;
+      [this.tapFreeDx, this.tapFreeDxVelocity] = this.stepState(dt, this.tapFreeDx, this.tapFreeDxVelocity, eq.dx, fo, spz);
+    }
     this.clampShape();
+    if (this.tapWallEngaged) {
+      const maxSpine = ref.a + Math.max(s.elongationSlots, s.tapSpineLimitSlots) * Math.max(bar.slotWidth, 1);
+      if (this.tapFreeDx > maxSpine) { this.tapFreeDxVelocity *= maxSpine / this.tapFreeDx; this.tapFreeDx = maxSpine; }
+    } else { this.tapFreeDx = pose.dx; this.tapFreeDxVelocity = vel.dx; }
     if (coupleReleaseArea && pose.dx < .002) { pose.dx = .002; if (vel.dx < 0) vel.dx = 0; }
     if (coupleArea) {
       const r0 = ref.r, restArea = PI * r0 * r0 + 4 * ref.a * r0;
@@ -708,9 +736,10 @@ export class CalmSelectorController {
     if (coupleTapArea && s.tapAppearanceArea > 0) {
       const restArea = PI * ref.r * ref.r + 4 * ref.a * ref.r;
       const extra = Math.max(this.tapArea.value / restArea - 1, 0), q = extra / s.tapAppearanceArea;
-      const spine = Math.hypot(pose.dx, pose.dy), spineScale = s.tapAppearanceSpine * ref.width;
+      const sdx = this.tapWallEngaged ? this.tapFreeDx : pose.dx, svx = this.tapWallEngaged ? this.tapFreeDxVelocity : vel.dx;
+      const spine = Math.hypot(sdx, pose.dy), spineScale = s.tapAppearanceSpine * ref.width;
       const axial = spineScale > 0 ? Math.max(spine - ref.a, 0) / spineScale : 0;
-      const axialVelocity = spineScale > 0 && spine > ref.a && spine > 1e-5 ? (pose.dx * vel.dx + pose.dy * vel.dy) / (spine * spineScale) : 0;
+      const axialVelocity = spineScale > 0 && spine > ref.a && spine > 1e-5 ? (sdx * svx + pose.dy * vel.dy) / (spine * spineScale) : 0;
       const raw = q * q + axial * axial, shoulder = clamp((raw - .85) / .2, 0, 1);
       const demand = raw <= .85 ? raw : .85 + .2 * (shoulder - .5 * shoulder * shoulder);
       const slope = raw <= .85 ? 1 : 1 - shoulder;
@@ -788,6 +817,7 @@ export class CalmSelectorController {
         const co = s.centreOmega * tapClock;
         [pose.cx, vel.cx] = this.stepState(dt, pose.cx, vel.cx, tx, co, s.centreZeta);
         [pose.cy, vel.cy] = this.stepState(dt, pose.cy, vel.cy, ty, co, s.centreZeta);
+        if (coupleTapArea) this.applyTapEndWall(tx, dt);
       }
     }
     if (coupleReleaseArea && !twoEdge) {

@@ -128,4 +128,62 @@ class GlassPhoneTapTimingTest {
             assertTrue(abs(c.centreX-x)<1f)
         }
     }
+
+    /** t, left, right, transit appearance, centre: a tap from [start] to [target] released after 40 ms. */
+    private fun edges(spec: GlassPoseSpec, start: Int, target: Int): List<FloatArray> {
+        val c = GlassPoseController(spec)
+        c.attach(bar,null,null); c.snapToRest(start)
+        c.pointerDown(bar.centreOf(target),bar.centreY,0.0,true); c.retarget(target)
+        var released = false
+        return (0..1440).map { i ->
+            val t = i/960f
+            if (!released && t >= .04f) { c.advanceTo(.04f); c.pointerUp(target); released=true }
+            c.advanceTo(t)
+            assertFalse(c.solverFailed)
+            val e = GlassPoseExtents().also(c::extents)
+            floatArrayOf(t,e.left,e.right,c.transitAppearance,c.centreX)
+        }
+    }
+
+    @Test fun tapLandingOnAnEndTabStopsAtTheEndWall() {
+        // #70: a two-slot tap's leading end ran about 10 px past the bar's end for three or four frames; iOS's does not.
+        val calm=GlassPoseSpec.Calm; val free=calm.copy(tapEndWallReach=-1f)
+        assertTrue(calm.tapEndWallReach >= 0f,"the wall is on in Calm")
+        val allowed=(calm.tapEndWallReach+calm.tapEndWallKnee)*bar.height+.5f
+        // Last tab: the right end; first tab: the mirror.
+        val on=edges(calm,0,2); val off=edges(free,0,2)
+        val rest=on.last()[2]
+        assertEquals(off.last()[2],rest,.5f,"the resting body is the same with and without the wall")
+        assertTrue(on.maxOf { it[2] } <= rest+allowed,"leading end ${on.maxOf { it[2] }} against rest $rest + $allowed")
+        assertTrue(off.maxOf { it[2] } > on.maxOf { it[2] }+2f,"without the wall the end overshoots further: ${off.maxOf { it[2] }}")
+        val onBack=edges(calm,2,0); val offBack=edges(free,2,0)
+        val restBack=onBack.last()[1]
+        assertTrue(onBack.minOf { it[1] } >= restBack-allowed,"leading end ${onBack.minOf { it[1] }} against rest $restBack - $allowed")
+        assertTrue(offBack.minOf { it[1] } < onBack.minOf { it[1] }-2f)
+        // The wall shortens the body, not its pigment: the transit appearance is the free tap's at every step.
+        for(i in on.indices) {
+            // .005: the walled tap settles, and snaps to rest, a few samples before the free one's last .002.
+            assertEquals(off[i][3],on[i][3],5e-3f,"transit appearance at sample $i (0->2)")
+            assertEquals(offBack[i][3],onBack[i][3],5e-3f,"transit appearance at sample $i (2->0)")
+        }
+    }
+
+    @Test fun endWallIsTheSameAtEveryFrameRate() {
+        // The wall takes per simulation step; a frame's short remainder step must not count as a whole one.
+        fun peak(hz: Int): Float {
+            val c = GlassPoseController(GlassPoseSpec.Calm)
+            c.attach(bar,null,null); c.snapToRest(0); c.retarget(2)
+            var most = 0f
+            for(i in 0..hz) { c.advanceFrameTo(i.toFloat()/hz); assertFalse(c.solverFailed)
+                if(i%(hz/30)==0) most = maxOf(most, GlassPoseExtents().also(c::extents).right) }
+            return most
+        }
+        val reference=peak(120)
+        for(hz in listOf(30,60,90,240)) assertEquals(reference,peak(hz),.5f,"leading end peak at $hz Hz")
+    }
+
+    @Test fun tapLandingOnAMiddleTabNeverMeetsTheWall() {
+        val on=edges(GlassPoseSpec.Calm,0,1); val off=edges(GlassPoseSpec.Calm.copy(tapEndWallReach=-1f),0,1)
+        for(i in on.indices) for(axis in 1..4) assertEquals(off[i][axis],on[i][axis],0f,"sample $i axis $axis")
+    }
 }
