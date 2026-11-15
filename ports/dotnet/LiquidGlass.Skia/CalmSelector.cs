@@ -54,6 +54,7 @@ public sealed record CalmSelectorSpec
     public double ReleaseStillFadeOmega { get; init; } = 0;
     public double ReleaseMovingFadeOmega { get; init; } = 0;
     public double TapLongTripRate { get; init; } = 1;
+    public double TapEndWallReach { get; init; } = -1; public double TapEndWallKnee { get; init; } = .025; public bool TapEndWallOneSided { get; init; }
     /// <summary>The held lens's superellipse blend (#93) at full formation, and its exponent.</summary>
     public double HeldSquircle { get; init; } = 0; public double SquircleExponent { get; init; } = 3;
 
@@ -71,7 +72,7 @@ public sealed record CalmSelectorSpec
         GraspOmega = 120, HeldFormRiseOmega = 26, PressFormation = 0, HoldThresholdSeconds = .11,
         ReleaseTrailingEdge = true, ReleaseRecoveryOmega = 13,
         ReleaseTrailingInOmega = 9, ReleaseTrailingInZeta = .3, ReleaseTrailingCarry = .1, ReleaseWallGive = .35,
-        ReleaseTrailingStiffening = .5, ReleaseStillHoldSeconds = .035, ReleaseStillFadeOmega = 100, ReleaseMovingFadeOmega = 12, TapLongTripRate = 1.2,
+        ReleaseTrailingStiffening = .5, ReleaseStillHoldSeconds = .035, ReleaseStillFadeOmega = 100, ReleaseMovingFadeOmega = 12, TapLongTripRate = 1.2, TapEndWallReach = .03,
         HeldTravelStrain = .6, HeldTravelStrainOmega = 10,
         HeldSquircle = .7,
     };
@@ -315,6 +316,8 @@ public sealed class CalmSelectorController
     private readonly double[] contour = new double[ContourSamples * 2];
     private SelectorReference reference = new(1, 1);
     private CalmSelectorBar? bar;
+    private double tapFreeDx, tapFreeDxVelocity;
+    private bool tapWallEngaged;
     private bool tapAreaActive, releaseImpactActive, releaseEdgeActive, downOnBody, pressEligible, pointerDownActive,
         hasGrasp, accommodating, releasedFromHold, hasPointerTime, hasLastGood, accommodationValid;
     private double tapDistance, now, pressStart, downX, downY, lastSampleAt, graspQx, graspQy, graspY0, slowFor,
@@ -371,7 +374,7 @@ public sealed class CalmSelectorController
     public void SnapToRest(int index)
     {
         var b = Bar;
-        releaseEdgeActive = false; tapAreaActive = false; tapDistance = 0; releaseImpactActive = false;
+        releaseEdgeActive = false; tapAreaActive = false; tapWallEngaged = false; tapDistance = 0; releaseImpactActive = false;
         requestedIndex = index; RestIndex = Math.Clamp(index, 0, Math.Max(b.Count - 1, 0));
         pose.Reset(); velocity.Reset();
         pose.Cx = b.CentreOf(RestIndex); pose.Cy = b.Height / 2; pose.Dx = reference.A; pose.Dy = 0;
@@ -509,6 +512,30 @@ public sealed class CalmSelectorController
         referenceHeight <= 1e-4 || barHeight <= 1e-4 ? 0 : Math.Log(ratio * barHeight / referenceHeight);
     // The held travel strain (HeldTravelStrain) widens the rendered body by e^u; zero leaves it 1.
     private double StrainScale() => Spec.HeldTravelStrain > 0 ? Math.Exp(pose.U) : 1;
+    /// <summary>A coupled tap landing on an end tab has its leading end pushed back once it passes TapEndWallReach bar heights beyond its resting end (#70); a soft limit, not a clamp.</summary>
+    private void ApplyTapEndWall(double targetX, double dt)
+    {
+        var s = Spec; var b = Bar;
+        if (!(s.TapEndWallReach >= 0) || b.Count < 2) return;
+        var side = RestIndex == b.Count - 1 ? 1 : RestIndex == 0 ? -1 : 0;
+        if (side == 0) return;
+        var limit = targetX + side * (reference.R + reference.A + s.TapEndWallReach * b.Height);
+        var excess = side * (pose.Cx + side * LandingHalfWidth() - limit);
+        if (excess <= 0) return;
+        var far = Math.Clamp(tapDistance / Math.Max(b.SlotWidth, 1) - 2, 0, 1);
+        var share = Math.Min(dt * 960, 1) * (1 - far * far * (3 - 2 * far));
+        if (share <= 0) return;
+        tapWallEngaged = true;
+        var knee = Math.Max(s.TapEndWallKnee * b.Height, 1e-3); var taken = share * excess * excess / (excess + knee); var eu = StrainScale();
+        if (s.TapEndWallOneSided) { pose.Dx -= .5 * taken / eu; pose.Cx -= side * .5 * taken; } else pose.Dx -= taken / eu;
+        if (velocity.Dx > 0) velocity.Dx *= 1 - share * excess / (excess + knee);
+        // Derive the radius again from the area and the shortened spine, so a sampled frame does not depend on how it was cut into steps.
+        double r0 = reference.R, restArea = Math.PI * r0 * r0 + 4 * reference.A * r0, area = Math.Max(tapArea.Value, restArea * .5);
+        double spine = Hypot(pose.Dx, pose.Dy), spineVelocity = spine > 1e-5 ? (pose.Dx * velocity.Dx + pose.Dy * velocity.Dy) / spine : 0;
+        var radius = area / (Math.Sqrt(4 * spine * spine + Math.PI * area) + 2 * spine);
+        pose.P = Math.Log(radius / r0);
+        velocity.P = (tapArea.Velocity - 4 * radius * spineVelocity) / Math.Max((2 * Math.PI * radius + 4 * spine) * radius, 1e-5);
+    }
     private double LandingHalfWidth() => (reference.R * Math.Exp(pose.P) + pose.Dx + Math.Max(pose.Acc, 0)) * StrainScale();
     private double LandingHalfWidthVelocity()
     {
@@ -568,6 +595,7 @@ public sealed class CalmSelectorController
             tapArea.Velocity = (2 * Math.PI * radius + 4 * spine) * radius * velocity.P + 4 * radius * spineVelocity;
         }
         tapAreaActive = coupleArea;
+        if (!coupleTapArea) tapWallEngaged = false;
         var distanceExcess = coupleTapArea ? Math.Max(tapDistance / refr.Width - 2, 0) : 0;
         var longTapDrive = 1 - Math.Exp(-distanceExcess * distanceExcess / (distanceExcess + .5));
         var vRef = Math.Max(Mode == CalmSelectorMode.Held ? s.HeldReferenceSpeed : tapMotion ? s.TapReferenceSpeed : s.ReferenceSpeed, 1e-3);
@@ -719,7 +747,19 @@ public sealed class CalmSelectorController
         else spz = s.SpineZeta;
         (pose.Dx, velocity.Dx) = StepState(dt, pose.Dx, velocity.Dx, equilibrium.Dx, spo, spz);
         (pose.Dy, velocity.Dy) = StepState(dt, pose.Dy, velocity.Dy, equilibrium.Dy, spo, spz);
+        if (tapWallEngaged)
+        {
+            // The spine this tap would have had without the end wall; the transit appearance reads it (#70).
+            var fo = (equilibrium.Dx < tapFreeDx ? s.TapSpineFallOmega : s.TapAreaSpineOmega) * tapClock;
+            (tapFreeDx, tapFreeDxVelocity) = StepState(dt, tapFreeDx, tapFreeDxVelocity, equilibrium.Dx, fo, spz);
+        }
         ClampShape();
+        if (tapWallEngaged)
+        {
+            var maxFree = refr.A + Math.Max(s.ElongationSlots, s.TapSpineLimitSlots) * Math.Max(b.SlotWidth, 1);
+            if (tapFreeDx > maxFree) { tapFreeDxVelocity *= maxFree / tapFreeDx; tapFreeDx = maxFree; }
+        }
+        else { tapFreeDx = pose.Dx; tapFreeDxVelocity = velocity.Dx; }
         if (coupleReleaseArea && pose.Dx < .002) { pose.Dx = .002; if (velocity.Dx < 0) velocity.Dx = 0; }
         if (coupleArea)
         {
@@ -739,9 +779,10 @@ public sealed class CalmSelectorController
         {
             var restArea = Math.PI * refr.R * refr.R + 4 * refr.A * refr.R;
             var extra = Math.Max(tapArea.Value / restArea - 1, 0); var q = extra / s.TapAppearanceArea;
-            double spine = Hypot(pose.Dx, pose.Dy), spineScale = s.TapAppearanceSpine * refr.Width;
+            double sdx = tapWallEngaged ? tapFreeDx : pose.Dx, svx = tapWallEngaged ? tapFreeDxVelocity : velocity.Dx;
+            double spine = Hypot(sdx, pose.Dy), spineScale = s.TapAppearanceSpine * refr.Width;
             var axial = spineScale > 0 ? Math.Max(spine - refr.A, 0) / spineScale : 0;
-            var axialVelocity = spineScale > 0 && spine > refr.A && spine > 1e-5 ? (pose.Dx * velocity.Dx + pose.Dy * velocity.Dy) / (spine * spineScale) : 0;
+            var axialVelocity = spineScale > 0 && spine > refr.A && spine > 1e-5 ? (sdx * svx + pose.Dy * velocity.Dy) / (spine * spineScale) : 0;
             var raw = q * q + axial * axial; var shoulder = Math.Clamp((raw - .85) / .2, 0, 1);
             var demand = raw <= .85 ? raw : .85 + .2 * (shoulder - .5 * shoulder * shoulder);
             var slope = raw <= .85 ? 1 : 1 - shoulder;
@@ -823,6 +864,7 @@ public sealed class CalmSelectorController
                 var co = s.CentreOmega * tapClock;
                 (pose.Cx, velocity.Cx) = StepState(dt, pose.Cx, velocity.Cx, tx, co, s.CentreZeta);
                 (pose.Cy, velocity.Cy) = StepState(dt, pose.Cy, velocity.Cy, ty, co, s.CentreZeta);
+                if (coupleTapArea) ApplyTapEndWall(tx, dt);
             }
         }
         if (coupleReleaseArea && !twoEdge)

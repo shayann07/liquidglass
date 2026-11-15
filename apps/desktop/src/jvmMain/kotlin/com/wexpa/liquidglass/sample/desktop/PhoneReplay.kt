@@ -65,6 +65,9 @@ private fun replay(args: Array<String>) {
     // "+tapl=<rate>": the coupled tap's clock ratio for two-slot trips (#70).
     variant.substringAfter("+tapl=", "").substringBefore('+').toFloatOrNull()?.takeIf { it.isFinite() }
         ?.let { @OptIn(com.wexpa.liquidglass.LiquidGlassDiagnosticApi::class) run { com.wexpa.liquidglass.LiquidGlassDiagnostics.tapLongTripRate = it } }
+    // "+tapw=<reach>[,<knee>[,<mode>]]": the tap's end wall in bar heights; mode 0 spine, 1 leading end only (#70).
+    variant.substringAfter("+tapw=", "").substringBefore('+').split(',').mapNotNull { it.toFloatOrNull() }
+        .takeIf { it.isNotEmpty() }?.let { @OptIn(com.wexpa.liquidglass.LiquidGlassDiagnosticApi::class) run { com.wexpa.liquidglass.LiquidGlassDiagnostics.tapEndWall = it.toFloatArray() } }
     // "+fringe=<still>,<moving>": the Calm selector's rim split, for fitting by replay (#73).
     variant.substringAfter("+fringe=", "").substringBefore('+').split(',').mapNotNull { it.toFloatOrNull() }
         .takeIf { it.size >= 2 }?.let { @OptIn(com.wexpa.liquidglass.LiquidGlassDiagnosticApi::class) run { com.wexpa.liquidglass.LiquidGlassDiagnostics.selectorFringe = it.toFloatArray() } }

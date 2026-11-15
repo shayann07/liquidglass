@@ -1759,6 +1759,15 @@ object LiquidGlassDiagnostics {
     var tapLongTripRate: Float? = null
 
     /**
+     * When set, the Calm tap's end wall (#70): reach past the resting end and knee, in bar heights, and mode
+     * (0 takes the excess out of the spine about the centre, 1 moves only the leading end); any prefix, in place
+     * of [GlassPoseSpec.tapEndWallReach], [GlassPoseSpec.tapEndWallKnee] and [GlassPoseSpec.tapEndWallOneSided],
+     * for fitting by replay (diagnostic; not part of the public ABI). A negative reach turns the wall off. Null in production;
+     * Calm's own values are authored (review/atlas/tap-end-wall-2026-11-16).
+     */
+    var tapEndWall: FloatArray? = null
+
+    /**
      * When set, [LocalGlassAdaptiveQuality] counts a frame as missed once it runs past this fraction of its deadline,
      * so a rig can drive the governor's steps on a device that meets its deadlines (#118); null in production.
      */
@@ -1774,6 +1783,7 @@ object LiquidGlassDiagnostics {
         selectorFringe = null
         lensSquircle = null
         tapLongTripRate = null
+        tapEndWall = null
         adaptiveDeadlineScale = null
         adaptiveQualityListener = null
     }

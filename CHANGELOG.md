@@ -6,6 +6,14 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Calm taps that land on the first or last tab now meet an end wall: the lens's leading end is pushed back once it passes 0.03 bar heights
+  past its resting end (a soft limit, not a clamp: a two-slot tap stays within 0.055), so it stops where iOS's does instead of running 8-10 px past it. The pigment timing is unchanged
+  (the tap's appearance reads the spine without the wall), the result does not depend on frame rate, and the wall fades out
+  by three slots; mirrored in the Skia and .NET Calm selectors. On docs/1, ten 0 to 2 taps read 0 at the bar's end where
+  main read 20 (iOS 0), and 2 to 0 at 167 ms falls from 66.1 to 55.4 (iOS 55.3); arrival is unchanged. On 0 to 2 at 183-217 ms
+  the level reads 4 levels further from iOS than before (38 against 42; both far from iOS 105.7), which belongs to #94.
+  Default look changed: Calm taps that land on the first or last tab stop at the bar's end instead of pressing about 10 px
+  past it for three or four frames. [Evidence](review/atlas/tap-end-wall-2026-11-16/README.md).
 - Web/desktop: the path-field image and the placeholder field are declared premultiplied (every alpha is 255, so the
   bytes are the same), so Skia links the glass programs once instead of twice: heavy programs (over 15k characters, all links counted) 5 to 3 and 49 to 46 in all on
   `/#material3`, 6 to 4 and 36 to 33 on Atlas Studio. Desktop render of docs/1 is pixel-identical (0 of 1934 frames differ).
