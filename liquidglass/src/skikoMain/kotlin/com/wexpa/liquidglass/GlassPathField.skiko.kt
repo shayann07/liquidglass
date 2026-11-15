@@ -63,6 +63,8 @@ internal actual fun createFieldBitmap(
     height: Int,
     pixels: IntArray,
 ): ImageBitmap {
+    // Test-only variant: its alpha is caller-supplied, so it stays UNPREMUL (the production path,
+    // createGreyscaleFieldBitmap above, is premultiplied because its alpha is always 255).
     // Skia wants bytes; the field is greyscale so the channel order does not matter, but the
     // alpha does - an unpremultiplied opaque byte keeps the sampler from scaling the value.
     val bytes = ByteArray(width * height * 4)
