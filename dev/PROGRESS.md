@@ -10,6 +10,13 @@
   freeze); gated engineering yes, with review (the #104 trap handled correctly, the speedup reproduced, one silent
   fallback missed).
 
+## 15 November 2026 - #78 PR 1: fewer glass programs (Claude)
+
+- `perf/78-one-glass-program`: the path-field image and the placeholder field are declared premultiplied (alpha is always 255),
+  so Skia links the glass programs once: heavy 5->3, total 49->46 on `/#material3`; 6->4 and 36->33 on Atlas Studio. docs/1
+  replay 0 of 1934 frames differ; new `GlassPathFieldAlphaTypeTest`. Load time not re-measured (no quiet machine). Open: wide-input
+  variant (PR 2). Evidence: `review/atlas/web-demo-one-program-2026-11-15`.
+
 ## 7 November 2026 — Pixel 7 session (Claude, Sonnet)
 
 The owner connected a Pixel 7 for part of the day (serial 29211FDH200FT8; the 2 November unit was 28121FDH2006ZF). Release builds of

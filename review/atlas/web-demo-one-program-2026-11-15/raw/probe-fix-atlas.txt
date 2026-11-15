@@ -1,0 +1,7 @@
+visit 1: ready=18340 ms  programs=33  link time=16375 ms
+      5087 ms  fragment  39086 chars  at 11558 ms
+      4986 ms  fragment  40294 chars  at 6444 ms
+      4754 ms  fragment  39723 chars  at 1090 ms
+      1095 ms  fragment  22050 chars  at 16696 ms
+        92 ms  fragment   9347 chars  at 17803 ms
+        37 ms  fragment   3249 chars  at 11439 ms

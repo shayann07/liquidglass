@@ -5,6 +5,8 @@
 // source length stands in for its size. `ready` is when the page's loader was dismissed.
 // One persistent Chrome profile is used for all visits, so visit 2 and on show the browser's own shader
 // cache at work (a new profile per run would be a first visit every time).
+// DUMP_DIR=<dir> also saves the fragment source of every program over 15k characters (visit 1 only), named by link order
+// and length, so two builds can be diffed to see which glass programs Skia compiled.
 //   node tools/measure_web_demo_shaders.mjs apps/web/build/dist/wasmJs/productionExecutable material3 3
 // Playwright comes from ports/web (npm ci there), else from a global `playwright` install. The installed
 // Chrome is used, with a GPU if the machine has one; timings differ by GPU and driver.
@@ -46,7 +48,8 @@ const hook = () => {
         const link = Ctx.prototype.linkProgram
         Ctx.prototype.linkProgram = function (p) {
             const t0 = performance.now(), r = link.call(this, p)
-            window.__links.push({ p, at: Math.round(t0), call: +(performance.now() - t0).toFixed(1), chars: Math.max(0, ...(attached.get(p) ?? []).map(s => s.length)) })
+            const srcs = attached.get(p) ?? [], chars = Math.max(0, ...srcs.map(s => s.length))
+            window.__links.push({ p, at: Math.round(t0), call: +(performance.now() - t0).toFixed(1), chars, src: chars > 15000 ? srcs.find(s => s.length === chars) : undefined })
             return r
         }
         const status = Ctx.prototype.getProgramParameter
@@ -84,6 +87,11 @@ try {
             const total = links.reduce((a, l) => a + l.ms, 0)
             console.log(`visit ${visit}: ready=${state === 'ready' ? elapsed : 'never'} ms  programs=${links.length}  link time=${total.toFixed(0)} ms`)
             for (const l of links.sort((a, b) => b.ms - a.ms).slice(0, 6)) console.log(`    ${l.ms.toFixed(0).padStart(6)} ms  fragment ${String(l.chars).padStart(6)} chars  at ${l.at} ms`)
+            // DUMP_DIR=<dir> saves the fragment source of every program over 15k characters (the glass programs), visit 1 only.
+            if (process.env.DUMP_DIR && visit === 1) {
+                fs.mkdirSync(process.env.DUMP_DIR, { recursive: true })
+                links.filter(l => l.src).sort((a, b) => a.at - b.at).forEach((l, i) => fs.writeFileSync(path.join(process.env.DUMP_DIR, `program-${i + 1}-${l.chars}.frag`), l.src))
+            }
         } finally {
             await context.close()
         }

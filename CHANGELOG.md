@@ -14,6 +14,12 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   the level reads 4 levels further from iOS than before (38 against 42; both far from iOS 105.7), which belongs to #94.
   Default look changed: Calm taps that land on the first or last tab stop at the bar's end instead of pressing about 10 px
   past it for three or four frames. [Evidence](review/atlas/tap-end-wall-2026-11-16/README.md).
+- Web/desktop: the path-field image and the placeholder field are declared premultiplied (every alpha is 255, so the
+  bytes are the same), so Skia links the glass programs once instead of twice: heavy programs (over 15k characters, all links counted) 5 to 3 and 49 to 46 in all on
+  `/#material3`, 6 to 4 and 36 to 33 on Atlas Studio. Desktop render of docs/1 is pixel-identical (0 of 1934 frames differ).
+  Load time was not re-measured, so no saving is claimed; the wide-input material variant is still a second program (#78).
+  Default look changed: none.
+  [Evidence](review/atlas/web-demo-one-program-2026-11-15/README.md).
 - Custom-path panels: the distance field builds about 2.1-2.35x faster again on the desktop JVM, paired with the
   previous build (1080 x 720 px: 22.8 to 10.1 ms p50) and allocates 78-82% less, with byte-identical fields. One packed
   transform now covers both sides of the outline and stops just past the encoded band; above a 1020 px half-span it

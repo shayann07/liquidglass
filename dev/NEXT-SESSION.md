@@ -27,6 +27,9 @@ the text's offset under the bar); Firefox is not installed. The candidate build 
 
 Merged: #180 (#81), #181 (#78), #182 (#101). No Pixel check has happened for any of today's work; none of it changes optics.
 
+0. **#78 PR 1 (15 Nov, branch `perf/78-one-glass-program`, not pushed):** premultiplied field images, programs 5->3 / 49->46 on `/#material3`,
+   6->4 / 36->33 on Atlas Studio, replay 0 of 1934 frames differ. Still to do: quiet interleaved timing x3, PR, CI; then PR 2 (wide-input fold, after #190).
+   Evidence `review/atlas/web-demo-one-program-2026-11-15`.
 1. **#78, the real fix:** make the three ~40k-character glass programs one (Skia child binding: the dumped sources differ in a
    colour-space transform or plain matrix on an input image and in decal/clamp helpers) or shrink the shader. Gate it on pixel identity
    against the desktop renders (the desktop JVM runs the same Skiko code), then re-time with `tools/measure_web_demo_shaders.mjs`.
