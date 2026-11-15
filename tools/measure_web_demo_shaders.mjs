@@ -5,6 +5,8 @@
 // source length stands in for its size. `ready` is when the page's loader was dismissed.
 // One persistent Chrome profile is used for all visits, so visit 2 and on show the browser's own shader
 // cache at work (a new profile per run would be a first visit every time).
+// DUMP_DIR=<dir> also saves the fragment source of every program over 15k characters (visit 1 only), named by link order
+// and length, so two builds can be diffed to see which glass programs Skia compiled.
 //   node tools/measure_web_demo_shaders.mjs apps/web/build/dist/wasmJs/productionExecutable material3 3
 // Playwright comes from ports/web (npm ci there), else from a global `playwright` install. The installed
 // Chrome is used, with a GPU if the machine has one; timings differ by GPU and driver.
