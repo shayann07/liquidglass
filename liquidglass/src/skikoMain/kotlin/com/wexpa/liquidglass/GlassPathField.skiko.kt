@@ -37,7 +37,10 @@ internal actual fun createGreyscaleFieldBitmap(
     height: Int,
     grey: ByteArray,
 ): ImageBitmap {
-    // Skia wants RGBA bytes with an unpremultiplied opaque alpha so sampling never scales distance.
+    // Skia wants RGBA bytes with an opaque alpha so sampling never scales distance. Every alpha is
+    // 255, so premultiplied and unpremultiplied bytes are the same; declaring them premultiplied
+    // keeps Skia from wrapping the child in an unpremul-to-premul step, which on the web made it
+    // link the glass program a second time (#78).
     val bytes = ByteArray(width * height * 4)
     for (i in 0 until width * height) {
         val v = grey[i]
@@ -47,7 +50,7 @@ internal actual fun createGreyscaleFieldBitmap(
         bytes[o + 2] = v
         bytes[o + 3] = -1
     }
-    val info = ImageInfo(width, height, ColorType.RGBA_8888, ColorAlphaType.UNPREMUL)
+    val info = ImageInfo(width, height, ColorType.RGBA_8888, ColorAlphaType.PREMUL)
     val bitmap = Bitmap()
     bitmap.allocPixels(info)
     bitmap.installPixels(bytes)
