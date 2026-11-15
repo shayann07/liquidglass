@@ -338,6 +338,13 @@ internal data class GlassPoseSpec(
      * authored, chosen against the two-tab taps' arrival in docs/1 and JGEY2190 (scores in
      * review/atlas/two-tab-tap-2026-11-02). */
     val tapLongTripRate: Float = 1f,
+    /** Opt-in end wall for a tap landing on the first or last tab (#70): while the tap's transit appearance
+     * lasts, the body's leading end may not pass its resting end less this many bar heights. The excess is
+     * taken out of the spine through a soft knee, so the landing compresses instead of stopping, and the wall
+     * eases to nothing as the appearance falls, so the resting body is unchanged. Zero disables it. Calm:
+     * authored against docs/1's ten 0->2 taps, where iOS's arriving lens ends about 8 px inside its resting
+     * end at 163-230 ms (review/atlas/tap-end-wall-2026-11-15). */
+    val tapEndWallInset: Float = 0f,
     /** Opt-in tap appearance from excess projected area; zero preserves historical optics.
      * This is separate from held formation and never grants pointer ownership. */
     val tapAppearanceArea: Float = 0f,
@@ -504,7 +511,7 @@ internal data class GlassPoseSpec(
         val Calm = CalmWallLanding.copy(heldTravelStrain = .6f, heldTravelStrainOmega = 10f,
             heldReferenceSpeed = 8f, heldSquircle = .7f, formFromMovement = 1f, formRiseOmega = 75f,
             pressFormation = 0f, holdThresholdSeconds = .110f, heldFormRiseOmega = 26f,
-            releaseStillHoldSeconds = .035f, releaseStillFadeOmega = 100f, releaseMovingFadeOmega = 12f, tapLongTripRate = 1.2f, barPressDelaySeconds = .075f, barPressStiffness = 1700f, heldInkLift = 22f / 255f, selectionHaptics = true, hoverScale = 1.06f)
+            releaseStillHoldSeconds = .035f, releaseStillFadeOmega = 100f, releaseMovingFadeOmega = 12f, tapLongTripRate = 1.2f, tapEndWallInset = .05f, barPressDelaySeconds = .075f, barPressStiffness = 1700f, heldInkLift = 22f / 255f, selectionHaptics = true, hoverScale = 1.06f)
     }
 }
 
@@ -1552,6 +1559,7 @@ internal class GlassPoseController(
                 val cz = spec.centreZeta
                 stepState(dt, pose.cx, velocity.cx, targetX, co, cz).let { pose.cx = it[0]; velocity.cx = it[1] }
                 stepState(dt, pose.cy, velocity.cy, targetY, co, cz).let { pose.cy = it[0]; velocity.cy = it[1] }
+                if (coupleTapArea && spec.tapEndWallInset > 0f) applyTapEndWall(targetX)
             }
         }
 
@@ -1659,6 +1667,31 @@ internal class GlassPoseController(
 
     /** The rendered body's extra width from [GlassPoseSpec.heldTravelStrain]; exactly 1 without it. */
     private fun strainScale(): Float = if (spec.heldTravelStrain > 0f) exp(pose.u) else 1f
+
+    /**
+     * [GlassPoseSpec.tapEndWallInset]: a tap landing on an end tab keeps its leading end inside the resting end
+     * less the inset, scaled by the transit appearance. The excess over the limit comes out of the spine
+     * through a soft knee (`e^2 / (e + k)`, C1 at the limit), and spine growth beyond it is damped in proportion.
+     */
+    private fun applyTapEndWall(targetX: Float) {
+        val side = when {
+            bar.count < 2 -> return
+            restIndex == bar.count - 1 -> 1f
+            restIndex == 0 -> -1f
+            else -> return
+        }
+        val appearance = transit.value.coerceIn(0f, 1f)
+        if (appearance <= 0f) return
+        val inset = spec.tapEndWallInset * bar.height * appearance
+        val restEnd = targetX + side * (reference.r + reference.a)
+        val eu = strainScale()
+        val excess = side * (pose.cx + side * landingHalfWidth() - (restEnd - side * inset))
+        if (excess <= 0f) return
+        val knee = .5f * spec.tapEndWallInset * bar.height
+        val taken = excess * excess / (excess + knee)
+        pose.dx -= taken / eu
+        if (velocity.dx > 0f) velocity.dx *= knee / (excess + knee)
+    }
 
     private fun landingHalfWidth(): Float = (reference.r * exp(pose.p) +
         pose.dx + max(pose.acc, 0f)) * strainScale()
