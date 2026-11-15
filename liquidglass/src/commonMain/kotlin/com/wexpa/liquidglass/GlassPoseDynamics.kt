@@ -338,7 +338,7 @@ internal data class GlassPoseSpec(
      * authored, chosen against the two-tab taps' arrival in docs/1 and JGEY2190 (scores in
      * review/atlas/two-tab-tap-2026-11-02). */
     val tapLongTripRate: Float = 1f,
-    /** End wall for a tap landing on the first or last tab (#70): the body's leading end may reach at most
+    /** End wall for a tap landing on the first or last tab (#70): the body's leading end is pushed back once it passes
      * this many bar heights past its resting end. At rest the leading end is the resting end, so the wall
      * holds nothing there and needs no fade. Negative (the default) disables it; on in Calm, at an authored 0.03 chosen
      * between two rendered candidates (.02 and .04). Evidence: review/atlas/tap-end-wall-2026-11-16. */
@@ -1697,7 +1697,7 @@ internal class GlassPoseController(
     private fun strainScale(): Float = if (spec.heldTravelStrain > 0f) exp(pose.u) else 1f
 
     /**
-     * [GlassPoseSpec.tapEndWallReach]: a coupled tap landing on an end tab keeps its leading end within the reach
+     * [GlassPoseSpec.tapEndWallReach]: a coupled tap landing on an end tab has its leading end pushed back once it passes the reach
      * past its resting end. The excess comes through a soft knee (`e^2 / (e + k)`, C1 at the limit) out of the
      * spine (or, one-sided, half from the spine and half from the centre), and the spine's outward growth is damped
      * in proportion. The transit appearance reads the spine without the wall ([tapFreeDx]). The take is per

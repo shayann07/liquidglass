@@ -495,7 +495,7 @@ export class CalmSelectorController {
   }
   // The held travel strain (heldTravelStrain) widens the rendered body by e^u; zero leaves it 1.
   strainScale() { return this.spec.heldTravelStrain > 0 ? Math.exp(this.pose.u) : 1; }
-  // A coupled tap landing on an end tab keeps its leading end within tapEndWallReach bar heights past its resting end (#70).
+  // A coupled tap landing on an end tab has its leading end pushed back once it passes tapEndWallReach bar heights beyond its resting end (#70); a soft limit, not a clamp.
   applyTapEndWall(targetX, dt) {
     const s = this.spec, bar = this.bar, pose = this.pose, vel = this.velocity, ref = this.reference;
     if (!(s.tapEndWallReach >= 0) || bar.count < 2) return;

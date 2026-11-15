@@ -512,7 +512,7 @@ public sealed class CalmSelectorController
         referenceHeight <= 1e-4 || barHeight <= 1e-4 ? 0 : Math.Log(ratio * barHeight / referenceHeight);
     // The held travel strain (HeldTravelStrain) widens the rendered body by e^u; zero leaves it 1.
     private double StrainScale() => Spec.HeldTravelStrain > 0 ? Math.Exp(pose.U) : 1;
-    /// <summary>A coupled tap landing on an end tab keeps its leading end within TapEndWallReach bar heights past its resting end (#70).</summary>
+    /// <summary>A coupled tap landing on an end tab has its leading end pushed back once it passes TapEndWallReach bar heights beyond its resting end (#70); a soft limit, not a clamp.</summary>
     private void ApplyTapEndWall(double targetX, double dt)
     {
         var s = Spec; var b = Bar;

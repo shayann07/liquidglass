@@ -46,8 +46,8 @@ one warning. Its default style is `GlassTabBarStyle.Calm(dark)` in the theme's a
 spine length so short taps become rounder and longer trips flatten. Adjacent travel uses a
 slower authored rate; a two-tab trip runs 1.2x faster (since 2 November: on docs/1 it reaches its tab within
 6 ms of iOS), and longer trips keep the historical rate. Tap deformation can
-extend beyond the resting bar, except that a Calm tap landing on the first or last tab is held to 0.03 bar heights past
-its resting end (since 16 November; fitted on two-slot trips, fading out by three slots); this does not grant held-gesture ownership. Off-axis drag
+extend beyond the resting bar, except that a Calm tap landing on the first or last tab is pushed back once its leading end passes 0.03 bar heights beyond
+its resting end (a soft limit, not a clamp: a two-slot tap stays within 0.055) (since 16 November; fitted on two-slot trips, fading out by three slots); this does not grant held-gesture ownership. Off-axis drag
 strain belongs to the whole navigation bar, whose layout and hit targets stay anchored.
 
 Dark Calm's development tap appearance also fades the inset pigment and emphasizes selected

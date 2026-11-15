@@ -7,7 +7,7 @@ That recording is private: only numbers measured from it appear here, no frames.
 
 ## What changed
 
-A Calm tap that lands on the first or last tab now meets an end wall. Its leading end may reach at most
+A Calm tap that lands on the first or last tab now meets an end wall. Its leading end is pushed back once it passes
 `tapEndWallReach` = 0.03 bar heights past its resting end; the excess is taken out of the spine about the centre through
 a soft knee (`tapEndWallKnee`, 0.025 bar heights). Before, the lens pressed about 10 px past the bar's end for three or
 four frames. The tap's transit appearance reads a shadow spine without the wall, so the pigment timing does not move.

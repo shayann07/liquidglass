@@ -6,8 +6,8 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
-- Calm taps that land on the first or last tab now meet an end wall: the lens's leading end may reach at most 0.03 bar heights
-  past its resting end, so it stops where iOS's does instead of running 8-10 px past it. The pigment timing is unchanged
+- Calm taps that land on the first or last tab now meet an end wall: the lens's leading end is pushed back once it passes 0.03 bar heights
+  past its resting end (a soft limit, not a clamp: a two-slot tap stays within 0.055), so it stops where iOS's does instead of running 8-10 px past it. The pigment timing is unchanged
   (the tap's appearance reads the spine without the wall), the result does not depend on frame rate, and the wall fades out
   by three slots; mirrored in the Skia and .NET Calm selectors. On docs/1, ten 0 to 2 taps read 0 at the bar's end where
   main read 20 (iOS 0), and 2 to 0 at 167 ms falls from 66.1 to 55.4 (iOS 55.3); arrival is unchanged. On 0 to 2 at 183-217 ms
