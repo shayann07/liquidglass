@@ -193,6 +193,10 @@ description fix alone.
   NEXT (real fix, needs design + a pixel-identity gate against the desktop renders): make the three ~40k variants one
   program (Skia child binding: colour-space xform / matrix / decal-clamp differences) or shrink the shader. Unmeasured:
   Firefox, Safari, phones. review/atlas/web-demo-shader-compile-2026-11-07.
+  15 Nov (perf/78-one-glass-program, local, PR 1): path-field and placeholder images PREMUL; heavy programs 5->3, total 49->46
+  (/#material3), 6->4 and 36->33 (Atlas Studio); docs/1 replay 0 of 1934 frames differ; GlassPathFieldAlphaTypeTest. Load time NOT
+  re-measured (needs a quiet machine, interleaved x3). Remaining: the wide-input material variant (PR 2 experiment).
+  review/atlas/web-demo-one-program-2026-11-15.
 - [x] **#79 Material 3 polish (itsaqeeldev, 20 Oct).** Slider/RangeSlider tracks now run under the
   thumb's whole travel (they stopped half a thumb short: Material insets the track box by half a
   thumb and the glass track inset again); `GlassSliderTrackTest` failed before, passes after. Showcase:

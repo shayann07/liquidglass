@@ -35,14 +35,18 @@ internal actual val backdropBlurInRecording: Boolean = false
 
 internal actual val supportsGlassEndpointInputs: Boolean = true
 
-/** One opaque pixel, so the `field` child is always bound even when nothing samples it. */
+/**
+ * One opaque pixel, so the `field` child is always bound even when nothing samples it. Premultiplied,
+ * like the real field (GlassPathField.skiko.kt): children of the same alpha type let Skia reuse one
+ * compiled glass program whether or not a field is bound (#78).
+ */
 private val placeholderFieldShader: org.jetbrains.skia.Shader by lazy {
     org.jetbrains.skia.Image.makeRaster(
         org.jetbrains.skia.ImageInfo(
             1,
             1,
             org.jetbrains.skia.ColorType.RGBA_8888,
-            org.jetbrains.skia.ColorAlphaType.UNPREMUL,
+            org.jetbrains.skia.ColorAlphaType.PREMUL,
         ),
         byteArrayOf(0, 0, 0, -1),
         4,

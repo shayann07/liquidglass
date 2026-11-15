@@ -127,6 +127,10 @@ research remains available; this page identifies which later changes supersede i
   visit is ready in 1.2 s (Chrome, integrated GPU). The loader says so up front and, after 6 s, names the wait (downloading, then compiling). Fewer or cheaper programs is
   open; not measured on Firefox, Safari or a phone.
   [Measurements](https://github.com/shayann07/liquidglass/blob/main/review/atlas/web-demo-shader-compile-2026-11-07/README.md).
+- 15 November: the path-field and placeholder images are premultiplied, so Skia compiles fewer glass programs: heavy 5 to 3, total 49 to
+  46 on `/#material3`; 6 to 4 and 36 to 33 on Atlas Studio. Pixel-identical on the desktop replay. Load time not re-measured (no quiet
+  machine); the wide-input material variant is still a second program.
+  [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/web-demo-one-program-2026-11-15/README.md).
 ## Scoring tools (7 November, #101)
 
 - Light holds and drags now have a score (`tools/measure_light_hold.py`): against IMG_7049 the
