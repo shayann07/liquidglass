@@ -1732,6 +1732,17 @@ internal class GlassPoseController(
             pose.dx -= taken / eu
         }
         if (velocity.dx > 0f) velocity.dx *= 1f - share * excess / (excess + knee)
+        // The tap's radius is derived from its area and its actual spine earlier in the step; derive it again from
+        // the shortened spine, so the body a frame samples is the same however the frame was cut into steps.
+        val r0 = reference.r
+        val restArea = kotlin.math.PI.toFloat() * r0 * r0 + 4f * reference.a * r0
+        val area = tapArea.value.coerceAtLeast(restArea * .5f)
+        val spine = kotlin.math.hypot(pose.dx, pose.dy)
+        val spineVelocity = if (spine > 1e-5f) (pose.dx * velocity.dx + pose.dy * velocity.dy) / spine else 0f
+        val radius = area / (sqrt(4f * spine * spine + kotlin.math.PI.toFloat() * area) + 2f * spine)
+        pose.p = kotlin.math.ln(radius / r0)
+        velocity.p = (tapArea.velocity - 4f * radius * spineVelocity) /
+            ((2f * kotlin.math.PI.toFloat() * radius + 4f * spine) * radius).coerceAtLeast(1e-5f)
     }
 
     private fun landingHalfWidth(): Float = (reference.r * exp(pose.p) +

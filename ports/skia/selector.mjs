@@ -511,6 +511,12 @@ export class CalmSelectorController {
     const knee = Math.max(s.tapEndWallKnee * bar.height, 1e-3), taken = share * excess * excess / (excess + knee), eu = this.strainScale();
     if (s.tapEndWallOneSided) { pose.dx -= .5 * taken / eu; pose.cx -= side * .5 * taken; } else pose.dx -= taken / eu;
     if (vel.dx > 0) vel.dx *= 1 - share * excess / (excess + knee);
+    // Derive the radius again from the area and the shortened spine, so a sampled frame does not depend on how it was cut into steps.
+    const r0 = ref.r, restArea = PI * r0 * r0 + 4 * ref.a * r0, area = Math.max(this.tapArea.value, restArea * .5);
+    const spine = Math.hypot(pose.dx, pose.dy), spineVelocity = spine > 1e-5 ? (pose.dx * vel.dx + pose.dy * vel.dy) / spine : 0;
+    const radius = area / (Math.sqrt(4 * spine * spine + PI * area) + 2 * spine);
+    pose.p = Math.log(radius / r0);
+    vel.p = (this.tapArea.velocity - 4 * radius * spineVelocity) / Math.max((2 * PI * radius + 4 * spine) * radius, 1e-5);
   }
   landingHalfWidth() { return (this.reference.r * Math.exp(this.pose.p) + this.pose.dx + Math.max(this.pose.acc, 0)) * this.strainScale(); }
   landingHalfWidthVelocity() {

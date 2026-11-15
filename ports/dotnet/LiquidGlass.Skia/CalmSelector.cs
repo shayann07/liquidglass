@@ -529,6 +529,12 @@ public sealed class CalmSelectorController
         var knee = Math.Max(s.TapEndWallKnee * b.Height, 1e-3); var taken = share * excess * excess / (excess + knee); var eu = StrainScale();
         if (s.TapEndWallOneSided) { pose.Dx -= .5 * taken / eu; pose.Cx -= side * .5 * taken; } else pose.Dx -= taken / eu;
         if (velocity.Dx > 0) velocity.Dx *= 1 - share * excess / (excess + knee);
+        // Derive the radius again from the area and the shortened spine, so a sampled frame does not depend on how it was cut into steps.
+        double r0 = reference.R, restArea = Math.PI * r0 * r0 + 4 * reference.A * r0, area = Math.Max(tapArea.Value, restArea * .5);
+        double spine = Hypot(pose.Dx, pose.Dy), spineVelocity = spine > 1e-5 ? (pose.Dx * velocity.Dx + pose.Dy * velocity.Dy) / spine : 0;
+        var radius = area / (Math.Sqrt(4 * spine * spine + Math.PI * area) + 2 * spine);
+        pose.P = Math.Log(radius / r0);
+        velocity.P = (tapArea.Velocity - 4 * radius * spineVelocity) / Math.Max((2 * Math.PI * radius + 4 * spine) * radius, 1e-5);
     }
     private double LandingHalfWidth() => (reference.R * Math.Exp(pose.P) + pose.Dx + Math.Max(pose.Acc, 0)) * StrainScale();
     private double LandingHalfWidthVelocity()
