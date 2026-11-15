@@ -593,6 +593,11 @@ internal class GlassPoseController(
     private var reversalInterval = 1f
     private var tapAreaActive = false
     private var tapDistance = 0f
+    /** The spine this tap would have had without the end wall, read by the transit appearance once the wall
+     * has engaged ([tapWallEngaged]); otherwise a copy of the real spine. */
+    private var tapFreeDx = 0f
+    private var tapFreeDxVelocity = 0f
+    private var tapWallEngaged = false
     private var releaseImpactActive = false
     private val releaseEdge = GlassSpring()
     private val releaseTrail = GlassSpring()
@@ -768,6 +773,7 @@ internal class GlassPoseController(
     fun snapToRest(index: Int) {
         releaseEdgeActive = false
         tapAreaActive = false
+        tapWallEngaged = false
         tapDistance = 0f
         releaseImpactActive = false
         requestedIndex = index
@@ -1148,6 +1154,7 @@ internal class GlassPoseController(
                 4f * radius * spineVelocity
         }
         tapAreaActive = coupleArea
+        if (!coupleTapArea) tapWallEngaged = false
         // The older five-item reference crosses more than three resting body widths;
         // the new Phone long tap crosses fewer than two. A bounded, C1 extra drive keeps
         // those distances distinct without making ordinary adjacent taps more sensitive.
@@ -1398,7 +1405,19 @@ internal class GlassPoseController(
         }
         stepState(dt, pose.dx, velocity.dx, equilibrium.dx, spo, spz).let { pose.dx = it[0]; velocity.dx = it[1] }
         stepState(dt, pose.dy, velocity.dy, equilibrium.dy, spo, spz).let { pose.dy = it[0]; velocity.dy = it[1] }
+        if (tapWallEngaged) {
+            // The shadow spine follows the same law as the real one, minus the wall's take.
+            val fo = if (equilibrium.dx < tapFreeDx) spec.tapSpineFallOmega * tapClock else spec.tapAreaSpineOmega * tapClock
+            stepState(dt, tapFreeDx, tapFreeDxVelocity, equilibrium.dx, fo, spz).let { tapFreeDx = it[0]; tapFreeDxVelocity = it[1] }
+        }
         clampShape()
+        if (tapWallEngaged) {
+            val maxSpine = reference.a + spec.spineLimitSlots * max(bar.slotWidth, 1f)
+            if (tapFreeDx > maxSpine) { tapFreeDxVelocity *= maxSpine / tapFreeDx; tapFreeDx = maxSpine }
+        } else {
+            tapFreeDx = pose.dx
+            tapFreeDxVelocity = velocity.dx
+        }
         if (coupleReleaseArea && pose.dx < .002f) {
             // A zero spine is a circle. Negative doubled-angle length would rotate it
             // vertically. The legacy geometry uses exact zero as an unset reference spine,
@@ -1431,11 +1450,15 @@ internal class GlassPoseController(
             val restArea = kotlin.math.PI.toFloat()*reference.r*reference.r + 4f*reference.a*reference.r
             val extra = (tapArea.value/restArea - 1f).coerceAtLeast(0f)
             val q = extra/spec.tapAppearanceArea
-            val spine = kotlin.math.hypot(pose.dx, pose.dy)
+            // The end wall shortens the real spine; the appearance reads the spine without it, so a landing
+            // that meets the wall keeps the pigment of one that does not.
+            val sdx = if (tapWallEngaged) tapFreeDx else pose.dx
+            val svx = if (tapWallEngaged) tapFreeDxVelocity else velocity.dx
+            val spine = kotlin.math.hypot(sdx, pose.dy)
             val spineScale = spec.tapAppearanceSpine * reference.width
             val axial = if (spineScale > 0f) (spine-reference.a).coerceAtLeast(0f)/spineScale else 0f
             val axialVelocity = if (spineScale > 0f && spine > reference.a && spine > 1e-5f)
-                (pose.dx*velocity.dx + pose.dy*velocity.dy)/(spine*spineScale) else 0f
+                (sdx*svx + pose.dy*velocity.dy)/(spine*spineScale) else 0f
             val raw = q*q + axial*axial
             // C1 shoulder into a .95 ceiling: a moving inset never becomes the full held
             // material. Existing area/spine springs drive onset without a second lag.
@@ -1687,6 +1710,7 @@ internal class GlassPoseController(
         val eu = strainScale()
         val excess = side * (pose.cx + side * landingHalfWidth() - (restEnd - side * inset))
         if (excess <= 0f) return
+        tapWallEngaged = true
         val knee = .5f * spec.tapEndWallInset * bar.height
         val taken = excess * excess / (excess + knee)
         pose.dx -= taken / eu
