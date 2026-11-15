@@ -7,7 +7,7 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
 20 October; later tags publish it from the release workflow.
 
 - Web/desktop: the path-field image and the placeholder field are declared premultiplied (every alpha is 255, so the
-  bytes are the same), so Skia links the glass programs once instead of twice: heavy programs 5 to 3 and 49 to 46 in all on
+  bytes are the same), so Skia links the glass programs once instead of twice: heavy programs (over 15k characters, all links counted) 5 to 3 and 49 to 46 in all on
   `/#material3`, 6 to 4 and 36 to 33 on Atlas Studio. Desktop render of docs/1 is pixel-identical (0 of 1934 frames differ).
   Load time was not re-measured, so no saving is claimed; the wide-input material variant is still a second program (#78).
   Default look changed: none.

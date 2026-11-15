@@ -34,6 +34,10 @@ and not premultiplying 255 is the identity. `createFieldBitmap` (caller-supplied
 | `/#material3` | 5 / 49 | 3 / 46 | 40294 (wide-input material), 39086 (material), 22050 (content) |
 | Atlas Studio (empty hash) | 6 / 36 | 4 / 33 | 39723, 40294, 39086, 22050 |
 
+Where the counts come from: the totals are every `linkProgram` the page made. The heavy counts are the number of `.frag` files
+`DUMP_DIR` wrote, which is every program over 15k characters, not the six slowest rows the probe prints (the printed rows in `raw/`
+are only a sample). The dumps are not committed.
+
 Main's heavy sizes: `/#material3` 40437, 39229, 39086, 22116, 22050; Atlas Studio 39866, 40437, 39229, 22116, 39086, 22050.
 Raw probe output is in `raw/` (`probe-<build>-<route>.txt`); the dumped `.frag` sources are not committed.
 
