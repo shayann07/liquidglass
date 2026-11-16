@@ -18,16 +18,19 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   `GlassStyle.detailLift` (c, default 0) and `GlassStyle.toneCurve` (the dark tone's bow, default 0); the 1.0 constructor and
   `copy` stay binary-compatible as hidden overloads. Pixel 7 (Android 17, 90 Hz), main against this branch (8155507a, six
   rounds each): 90 fps held, ghost-scroll frames in 12 s 1112 against 1100 (light) and 1098 against 1099 (dark),
-  calibration-screen p90 31.8 against 30.0 ms; on the final commit the tab bar is unchanged (p50 13.5-15.5 against 13.8-16.4 ms,
-  GPU p50 9.1-10.1 against 9.6-10.4); the captures show stepped copies under a card on main and one soft copy here.
-  docs/1 replay against main on the same GPU: every
-  difference is inside glass and at most 7 levels (95% of the changed pixels in the search button, which uses Regular glass;
-  3.8% the lens, 1.3% the bar), and the tab bar's track is unchanged (45.4 px rms on both).
+  calibration-screen p90 31.8 against 30.0 ms; on the final commit the Calm tab bar's timing is unchanged (p50 13.5-15.5
+  against 13.8-16.4 ms, GPU p50 9.1-10.1 against 9.6-10.4); the captures show stepped copies under a card on main and one soft
+  copy here. docs/1 replay against main on the same GPU: 1934 frames differ, every difference is inside glass and at most
+  7 levels, and the tab bar's track is unchanged (45.4 px rms on both). The search button changes because of the wide-kernel
+  recording pad (0.75 to 1.5 sigma), not because of a material split: with the pad factor reset to 0.75 the render is
+  byte-identical to main, and the search button and the bar measure the same material on both builds.
   Ports updated and checked: Skia, npm canvas engine, React Native, Qt, Unity, .NET; the Flutter Dart port is not compiled
   (no toolchain here); the npm HTML/CSS engine and `ports/web` are not ported.
   Default look changed: Regular glass everywhere it is used (`Glass.Regular`, `GlassStyle.Regular`, `inApp`, `toolbar`, the
-  Material 3 control, toolbar and panel glass) at every Tint; every wide-kernel style loses the along-axis term and its
-  wide-kernel recording pad grows from 0.75 to 1.5 sigma; custom styles with `0 < blurRadius <= 1/3 dp` now get the four-tap
+  Material 3 control, toolbar and panel glass) at every Tint; `GlassEffectContainer` (merged glass) now draws the same
+  three-term material (dark Regular over grey 128 reads 134 alone and inside a container, 109 before); every wide-kernel
+  style loses the along-axis term, including the Measured and V3 tab bars (the Calm bar had already cancelled it), which keep
+  their earlier style values until #203; the wide-kernel recording pad grows from 0.75 to 1.5 sigma; custom styles with `0 < blurRadius <= 1/3 dp` now get the four-tap
   detail kernel; Tint 0 and 100 take the 1/3 dp detail reach (authored, #208).
   [Evidence](review/atlas/material-model-2026-11-16/README.md).
 - Scoring tools: `tools/measure_rim_fringe.py --content-split --content-core PX` also scores the page's colour split only at

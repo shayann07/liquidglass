@@ -9,7 +9,8 @@ measured from them appear here, no frames.
 The glass material now follows a measured model of the lab stills at Tint 50 (`lin = B + k (D - B) + c |D - B|`, then a
 tone curve; `tools/glass_model.py` is the public spec). The along-axis high-pass that drew the stepped ghost copies is
 removed, the wide kernel gets a 1.5 sigma host pad, and a custom style with a blur reach of 1/3 dp or less gets a
-four-tap detail kernel. Tints 0 and 100 blend toward the lab values; that blend is authored (tracked in #208). The
+four-tap detail kernel. Between Tints 0 and 100 the lab values are blended in by an authored weight (tracked in #208); Tints 0 and 100 themselves keep
+the earlier fit and take only the 1/3 dp detail reach (authored, #208). The
 `GlassStyle` API is additive only (`detailLift`, `toneCurve`). "Default look changed" is listed in the CHANGELOG.
 
 ## Images
@@ -49,7 +50,7 @@ card and capsule; #200 shows one soft copy.
 Provenance: **measured** = from the private lab stills or from device runs; **authored** = chosen, not fitted.
 
 Lab gate (private, 89 lab stills, Tint 50, interior zones, rms levels, gate 3.0 per appearance). Measured on
-`5ed4d37d` and re-scored on the final commit `9730618e` with the same result.
+`5ed4d37d`; it has not been re-scored on the final commit.
 
 | | dark | light |
 | :-- | --: | --: |
@@ -70,10 +71,11 @@ Pixel 7 timing (measured, 6 rounds each, main `0e2f7a63`):
 - 17 Nov, #200 `9730618e`, tab bar: frame p50 13.5-15.5 ms against main 13.8-16.4 ms; GPU p50 9.1-10.1 against
   9.6-10.4 ms; ghost light 1100-1103 frames in 12 s.
 
-docs/1 replay (desktop, Direct3D on the same GPU for both, `script3.txt`, Calm), #200 against a fresh
-render of main 0e2f7a63: 1934 of 1935 frames differ, at most 7 levels; 95% of the changed pixels are in the search
-button (Regular glass), 3.8% in the lens, 1.0% in the bar interior and 0.3% on its rim. The tab bar's track score is
-unchanged (45.4 px rms, median 1.8 px, on both). The tab bar keeps its earlier material until #203.
+docs/1 replay (desktop, Direct3D on the same GPU for both, Calm), #200 against a fresh
+render of main 0e2f7a63: 1934 of 1935 frames differ, at most 7 levels, all inside glass. The tab bar's track score is
+unchanged (45.4 px rms, median 1.8 px, on both). The search button changes because of the wide-kernel recording pad
+(0.75 to 1.5 sigma), not a material split: with the pad factor reset to 0.75 the render is byte-identical to main on 8 pages,
+and the search button and the bar measure the same material on both builds. The tab bar keeps its earlier style values until #203.
 
 ## Limits
 
