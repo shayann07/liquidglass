@@ -601,11 +601,11 @@ half4 main(float2 coord) {
     float rimSharp = (1.0 - e) * (1.0 - e);
     half3 bg;
     if (uWideKernel * mat >= 2.0) {
-        // Across a bar the phone keeps no detail at all, in the edge band as in the middle
-        // (FINDINGS 22), so the rim's crisp copy may only contribute its colour fringe. The
-        // fine term is already sharp along the axis here, because its scatter falls to zero at
-        // the rim; mixing the crisp copy back in whole is what drew a step the phone has not
-        // got, 23 levels against 9 over the target's black band.
+        // Within about 5-8 pt of the outline iOS shows content from further inside (the rim band,
+        // #202; the 16 November lab stills): a boundary crossing a bar leaves no step at its true
+        // row there, which is what FINDINGS 22 saw and once read as a detail filter along the bar.
+        // So the rim's crisp copy may only contribute its colour fringe; mixing it back in whole
+        // drew a step the phone has not got, 23 levels against 9 over the target's black band.
         half3 axis = half3(backdropAt(base + push));
         bg = soft + (sharp - axis) * half(rimSharp);
     } else {

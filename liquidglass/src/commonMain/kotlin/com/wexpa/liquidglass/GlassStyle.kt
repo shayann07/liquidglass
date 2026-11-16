@@ -98,19 +98,18 @@ data class GlassStyle(
      */
     val bodyBandScale: Float = 1f,
     /**
-     * Sigma of the wide kernel, the second of the measured material's two blurs.
-     *
-     * Across a hard edge inside a navigation pill the tone follows a 10 dp kernel while 16 px
-     * stripes under the same glass keep a third of their contrast at the default Tint Amount,
-     * which one blur cannot do. So the backdrop term is a mix of the fine kernel and this one,
-     * weighted by [fineShare]. Rendered once per frame as a quarter-scale blurred copy of the
+     * Sigma of the wide kernel B, the blur that sets the material's tone: `lin = B + k (D - B) + c |D - B|`
+     * with k = [fineShare] and c = [detailLift] (`tools/glass_model.py`). Measured on iOS 27 at Tint 50 as
+     * 15.5 dp (46.5 px at 3x; the fit is flat from 44 to 52 px); [GlassStyle.inApp] uses it there and the
+     * earlier 10 dp at Tint 0 and 100. Rendered once per frame as a quarter-scale blurred copy of the
      * backdrop; set it to 0 to switch it off.
      */
     val wideKernel: Dp = 10.dp,
     /**
-     * Share of the fine kernel in the backdrop term, 0 to 1; the rest is the wide kernel.
-     * Measured as `0.95 (1 - t/100)^1.5` against Tint Amount t: 0.95 at Clear, 0.34 at the
-     * default, 0 at Tinted, the same in both appearances. See [GlassMaterial.fineShare].
+     * The detail share k: how much of the backdrop's own detail is laid over the wide kernel's
+     * tone, 0 to 1. Measured on iOS 27 at Tint 50 as 0.277 (dark) and 0.273 (light), the same for
+     * detail along and across a bar. The earlier fit, `0.95 (1 - t/100)^1.5` ([GlassMaterial.fineShare]),
+     * still applies at Tint 0 and 100.
      */
     val fineShare: Float = 0.34f,
     /**
@@ -188,13 +187,10 @@ data class GlassStyle(
      */
     val heldGlowFloor: Float = 0f,
     /**
-     * How the detail seen through the glass is drawn, 0 to 1. At 0 (the default) it is the measured
-     * high-pass along the element's long axis (FINDINGS 22), sampled through a per-pixel rotated
-     * scatter. At 1 it is a plain soft copy: the wide kernel's tone plus [fineShare] of the fine
-     * blur, sampled without rotation. Read in display colours, iOS 26's Phone bar shows page text
-     * under it as one soft, legible copy; the along-axis high-pass draws ghost copies of every
-     * glyph about 16 and 34 px to either side and the rotation turns the rest into grain
-     * (docs/2, horizontal detail 2.72 against iOS's 2.77, 4.94 at 0; 2026-10-15).
+     * How the fine scatter is sampled, 0 to 1: at 0 through a per-pixel rotation (grain), at 1
+     * unrotated. Since #200 the detail is always one soft copy over the wide kernel's tone; the
+     * along-axis high-pass that drew ghost copies of every glyph about 16 and 34 px to either side
+     * (#190) is gone. [inApp] sets 1 at the measured Tint 50.
      */
     val softDetail: Float = 0f,
     /**

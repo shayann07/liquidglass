@@ -1817,7 +1817,10 @@ internal fun GlassStyle.padPx(density: Density): Float = with(density) {
     if (profile == GlassProfile.Legacy) {
         refractionDepth.toPx() * 1.4f + blur
     } else {
-        val wide = if (wideKernel.isSpecified) wideKernel.toPx() * 0.75f else 0f
+        // 1.5 sigma of the wide kernel (0.75 before #200): with the measured 15.5 pt kernel a 0.75 sigma pad left
+        // about 6 % of its weight outside the recording 38 px inside a toolbar, so content running along the bar
+        // read 2-3 levels off against content running across it (GlassLabModelTest, 64 px stripes).
+        val wide = if (wideKernel.isSpecified) wideKernel.toPx() * 1.5f else 0f
         maxOf(blur, wide, 2f)
     }
 }
