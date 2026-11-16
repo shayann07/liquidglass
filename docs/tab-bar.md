@@ -100,7 +100,11 @@ Six notes from a check on a phone, each compared with the iOS recordings and cha
   0.1 px) and follow the bar's growth on a hold (14 px out, 4% larger). Calm now does both
   (`itemsFollowBarPress = false`); before, every tap slid the icons 7 px and back.
 - **Tap travel.** A tapped selector stretches the ink it carries into its rim in transit, as iOS's does
-  (since 26 October: a narrow stretch, rim mirror 0.3 and gain 0.15, that clears before landing).
+  (since 26 October: a narrow stretch, rim mirror 0.3 and gain 0.15, that clears before landing). A tap long enough to
+  form the selector past half (two tabs or more) keeps the formed lens's map in that stretch until it settles, so the
+  ink's teardrops along the top rim fade with the transit instead of vanishing the frame the formation falls below half
+  (since 17 November; on docs/1 they now go at about 212 ms, iOS's at about 214, where they went at 178;
+  [evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/tap-plateau-2026-11-17/README.md)).
 - **Two glasses.** The held lens's refraction band is the body's own (`GlassStyle.bodyBandScale` 1.1 since
   26 October; it was 0.3) and its map has no seam, so the bar's edge bends into the rim as a crescent instead of
   showing as a second capsule. The rim splits colour in proportion to the shift and carries a thin spectral

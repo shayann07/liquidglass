@@ -34,9 +34,10 @@ Merged: #180 (#81), #181 (#78), #182 (#101). No Pixel check has happened for any
    colour-space transform or plain matrix on an input image and in decal/clamp helpers) or shrink the shader. Gate it on pixel identity
    against the desktop renders (the desktop JVM runs the same Skiko code), then re-time with `tools/measure_web_demo_shaders.mjs`.
    Brotli/CDN is the owner's decision. Firefox, Safari and phones are unmeasured.
-2. **#70:** the end wall is built (16 November, `fix/70-leading-end-wall`; evidence `review/atlas/tap-end-wall-2026-11-16`): lens end and
-   2 to 0 at 167 ms now match iOS. Open: on 0 to 2 the level after 183 ms reads 36-38 against iOS 105.7-63.5, the destination ink's
-   magnification timing (#94 item 23, rows 470-490 read that ink); trips of three or more slots and a Pixel look at a last-tab tap are unchecked.
+2. **#70:** end wall merged (#198); 17 November `fix/70-plateau` keeps the formed lens's map as a two-tab tap settles, so the
+   0 to 2 plateau ends at ~212 ms on docs/1 (iOS 214, was 178; evidence `review/atlas/tap-plateau-2026-11-17`). Open: iOS fades the
+   teardrops over ~3 frames where ours go in one (their size is steep in the lens strength); the five-tab recording's longer
+   trips (iOS teardrops past 300 ms) are not moved; no Pixel look.
 3. **#114 / 130:** a diagonal press ramp (iOS TL 96 to BR 80) and pull-distance dimming (iOS 19-21 levels darker than ours at 3-4 s);
    new opt-in uniform through every port. Owner's call: material or search accessory only.
 4. **#104:** optional retune, `edgeShadow` 0.12 to about 0.07 with `capEdgeShadow` raised to keep the end caps' 178-182; the bar geometry

@@ -6,6 +6,16 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Calm taps of two tabs or more keep the formed lens's look until they settle (#70). Such a tap forms the selector past
+  half (about 0.76); in the frame its formation fell back below half, the transit fold switched from the formed lens's
+  map to the measured one, and the destination's ink, stretched into teardrops along the top rim, vanished in one frame.
+  The tap now keeps the formed lens's map (its strength still follows the transit appearance), so the teardrops fade with
+  the transit. On docs/1's ten 0 to 2 taps the travelling pill's level reads 110.6 / 105.7 / 49.3 at 183 / 200 / 217 ms
+  (iOS 105.7 / 85.7 / 63.5; before 38.0 / 37.0 / 36.0), and its plateau ends at about 212 ms (iOS about 214, before
+  about 178). One-tab taps and light `Calm` are unchanged; the all-tap profile over 100-300 ms moves from 3.3 to 2.9
+  levels rms. Mirrored in the Skia and .NET Calm selectors (`tapFormed`, `formedTap`; additive).
+  Default look changed: dark Calm taps of two tabs or more keep the ink's teardrops along the lens's top rim for about
+  two more frames (to about 212 ms instead of 178 on docs/1). [Evidence](review/atlas/tap-plateau-2026-11-17/README.md).
 - Scoring tools: `tools/measure_rim_fringe.py --content-split --content-core PX` also scores the page's colour split only at
   edges well inside the lens outline, so the lens's own rim is not counted (#101 item 88). On IMG_6756 the page seen through our
   held lens reads 5.3-5.6 px R-B shift at those edges against iOS 1.1-1.2 (iOS rests on 16-19 edges per frame, so its level is
