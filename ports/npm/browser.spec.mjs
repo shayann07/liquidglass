@@ -126,8 +126,9 @@ test('the canvas engine draws the production shader over the provided canvas', a
     for (const el of document.querySelectorAll('liquid-glass[engine=canvas]')) el.refresh();
   });
   await expect.poll(async () => (await stats()).mean).toBeGreaterThan(first.mean + 20);
-  // Dark Regular over white is (1 - 0.451) + 35/255 = 0.686 of white: 175, within rounding.
-  expect((await stats()).centre.slice(0, 3).every(v => Math.abs(v - 175) <= 3)).toBe(true);
+  // Dark Regular over white at Tint 50 is the lab tone (#200): 31.72 + 254.40 - 101.01 = 185.1 of 255, within
+  // rounding (it was (1 - 0.451) + 35/255 = 0.686 of white, 175, under the earlier fit).
+  expect((await stats()).centre.slice(0, 3).every(v => Math.abs(v - 185) <= 3)).toBe(true);
   // A variant the canvas engine does not draw falls back to the html engine, and says why.
   await page.evaluate(() => { document.querySelector('#c-card').variant = 'clear'; });
   await expect(card).toHaveAttribute('data-engine', 'html');

@@ -1,6 +1,7 @@
 package com.wexpa.liquidglass
 
 import androidx.compose.ui.graphics.asSkiaBitmap
+import androidx.compose.ui.unit.dp
 import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.Canvas
 import org.jetbrains.skia.ColorAlphaType
@@ -82,8 +83,15 @@ internal object GlassRender {
         restMap: Float = 0f,
         wide: Float = 0f,
         fineShare: Float = 1f,
-        /** [GlassStyle.softDetail]: 0 the along-axis high-pass with a dithered scatter, 1 a soft copy. */
+        /** [GlassStyle.softDetail]: 0 a dithered (rotated) fine scatter, 1 an unrotated one. */
         softDetail: Float = 0f,
+        /** [GlassStyle.detailLift] and [GlassStyle.toneCurve]. */
+        detailLift: Float = 0f,
+        toneCurve: Float = 0f,
+        /** Device pixels per dp, to read [blur] as a reach in dp: the callers' 3x convention (px = dp * 3). */
+        density: Float = 3f,
+        /** `uDetailCross`: the four-tap detail kernel, chosen from the reach as the host does ([GlassMaterial.usesDetailCross]). */
+        detailCross: Float = if (GlassMaterial.usesDetailCross((blur / density).dp)) 1f else 0f,
         lift: Float = 0f,
         liftAdapt: Float = 0f,
         bevel: Float = 2f,
@@ -217,6 +225,9 @@ internal object GlassRender {
         b.uniform("uWideScale", wideScale)
         b.uniform("uFineShare", fineShare)
         b.uniform("uSoftDetail", softDetail)
+        b.uniform("uDetailLift", detailLift)
+        b.uniform("uToneCurve", toneCurve)
+        b.uniform("uDetailCross", detailCross)
         b.uniform("uWideKernel", wide)
         b.uniform("uLift", lift)
         b.uniform("uLiftAdapt", liftAdapt)

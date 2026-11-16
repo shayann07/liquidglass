@@ -174,7 +174,10 @@ test('in-app surfaces preserve measured plateaus, rounded coverage, source repla
   const pixel=(pixels,x,y,c=0)=>pixels[(y*w+x)*4+c];
   try {
     assert.throws(()=>painter.drawSurface(canvas,bounds),/setSource/);
-    for(const [source,dark,expected] of [[black,true,35],[white,true,175],[black,false,136],[white,false,247]]) {
+    // The Tint 50 plateaus of the lab fit (GlassMaterial.lab*, #200): dark 31.72 + 254.40 x - 101.01 x^2 over a flat
+    // grey x (black 32, white 185), light 132.5 + 0.502 x (black 133, white clipped at 255). They were 35, 175, 136
+    // and 247 under the earlier fit.
+    for(const [source,dark,expected] of [[black,true,32],[white,true,185],[black,false,133],[white,false,255]]) {
       painter.setSource(source);canvas.clear(kit.TRANSPARENT);
       const matrix=Array.from(canvas.getTotalMatrix()),saves=canvas.getSaveCount();
       painter.drawSurface(canvas,bounds,{dark});surface.flush();

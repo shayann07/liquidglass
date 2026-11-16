@@ -70,6 +70,8 @@ public static class CalmSelectorMaterial
                 : Snap.Contains(key) || (OptionalDp.Contains(key) && (a[0] < 0 || b[0] < 0)) ? (float[])(t < .5f ? a : b).Clone()
                 : a.Zip(b, (x, y) => t <= 0 ? x : t >= 1 ? y : x + (y - x) * t).ToArray();
         }
+        // The four-tap detail kernel is chosen from the blended reach in dp (GlassMaterial.usesDetailCross, 0.1 % slack), never blended itself.
+        if (output.ContainsKey("uDetailCross")) output["uDetailCross"] = [output["uBlur"][0] > 0 && output["uBlur"][0] <= 1f / 3 * 1.001f ? 1f : 0f];
         // An ink split that follows dispersion snaps with the identity (GlassMorph `s`).
         if (style.PillInkFollows || style.LensInkFollows)
             output["uInkSplit"] = (t < .5f ? style.PillInkFollows : style.LensInkFollows)

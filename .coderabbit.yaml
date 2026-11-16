@@ -46,8 +46,9 @@ reviews:
       instructions: >-
         The optics are measured, not styled. Every number is measured, inherited or authored, and the
         three must not be mixed in comments or KDoc. Flag any change to a measured constant that does not
-        say what it was scored against. New optical behaviour must arrive behind a style flag with the
-        default unchanged, so every verified path keeps its tolerance. Shader source (SkSL/AGSL strings)
+        say what it was scored against. New optics are on by default from 1.1.0 (AGENTS.md rule 8), and
+        every change to the default look must be listed under "Default look changed" in CHANGELOG.md
+        with what it was scored against. Shader source (SkSL/AGSL strings)
         is exported to ports/skia/shaders and regenerated into every port: flag shader changes that do
         not regenerate the ports' files.
     - path: "liquidglass*/src/**/*Test.kt"

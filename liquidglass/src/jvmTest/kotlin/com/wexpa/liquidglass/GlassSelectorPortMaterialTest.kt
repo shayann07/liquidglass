@@ -1,6 +1,7 @@
 package com.wexpa.liquidglass
 
 import androidx.compose.ui.unit.isSpecified
+import androidx.compose.ui.unit.dp
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -35,6 +36,9 @@ class GlassSelectorPortMaterialTest {
         "uHeldEdgeTone" to listOf(s.heldEdgeTone.coerceIn(0f, 1f)),
         "uHeldGlowFloor" to listOf(s.heldGlowFloor.coerceIn(0f, 1f)),
         "uSoftDetail" to listOf(s.softDetail.coerceIn(0f, 1f)),
+        "uDetailLift" to listOf(s.detailLift.coerceIn(-1f, 1f)),
+        "uToneCurve" to listOf(s.toneCurve),
+        "uDetailCross" to listOf(if (GlassMaterial.usesDetailCross(s.blurRadius)) 1f else 0f),
         "uRestMap" to listOf(s.restMap.uniform),
         "uEdgeFold" to listOf(s.edgeFold.coerceIn(0f, 2f)),
         "uInkSplit" to listOf(if (s.inkDispersion.isNaN()) s.dispersion else s.inkDispersion),

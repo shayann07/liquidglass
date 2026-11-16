@@ -1,3 +1,12 @@
+## RESUME HERE (16 November): #200 three-term material awaiting final checks
+
+- `feat/200-material-model` carries the measured material (along-axis filter removed,
+  `detailLift`, `toneCurve`, four-tap detail kernel, authored Tint blend). Docs are written; code, ports and tests are described in
+  PROGRESS.md.
+- Lab gate re-scored on 9730618e (1.43 / 1.42), docs/1 replay done (differences inside glass, at most 7 levels), evidence in
+  `review/atlas/material-model-2026-11-16/`. Next: the full suite on the final commit, then the PR.
+- No commit, push or tag has been made for this work.
+
 ## RESUME HERE (9 November): narrow-band field build, Argon trial
 
 - #81 follow-up: `perf/81-narrow-band-edt` replaces #180's bounded transform with a packed one-pass narrow-band transform

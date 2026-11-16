@@ -1,3 +1,11 @@
+## #200 measured three-term material (16 November, `feat/200-material-model`)
+
+- [x] Re-score the private lab gate on the final commit: 1.43 / 1.42 on 9730618e.
+- [x] docs/1 replay against a fresh main render: differences inside glass only, at most 7 levels; track unchanged.
+- [ ] Full suite after the `toolbarEarlier` change (last run at 8155507a: 506 tests, 1 failure now addressed).
+- [ ] Open items named in the entry: 6 px stripes (6.9 / 4.5), Tint 0/100 (#208), colour (#201), rim band (#202), tab bar (#203).
+- [ ] Not ported: npm HTML/CSS engine, `ports/web`. Not compiled: Flutter Dart.
+
 ## 2 November 2026 — Pixel 7 night (Claude)
 
 The owner lent the Pixel 7 (Android 17, API 37, 90 Hz) for this one night; no Android device for the following week.

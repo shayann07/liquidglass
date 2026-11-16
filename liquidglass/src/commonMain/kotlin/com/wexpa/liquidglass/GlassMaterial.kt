@@ -43,6 +43,46 @@ object GlassMaterial {
      */
     val wideKernel: Dp = 10.dp
 
+    /**
+     * How far the 16 November lab fit (#199, `tools/glass_model.py`) applies at a Tint Amount: 1 at
+     * the default, where it was measured, falling to 0 at 0 and 100, where the earlier fit stays until
+     * those tints are re-measured (#208). The blend between is authored.
+     */
+    internal fun labWeight(tintAmount: Float): Float =
+        (1f - kotlin.math.abs(tintAmount.coerceIn(0f, 100f) - DEFAULT_TINT_AMOUNT) / 50f).coerceIn(0f, 1f)
+
+    /** Lab fit, Tint 50: sigma of the wide kernel B, 46.5 px at 3x (the fit is flat from 44 to 52 px). */
+    internal val labWideKernel: Dp = 15.5.dp
+
+    /**
+     * Lab fit, Tint 50: the reach of the detail copy D, 1 px at 3x (measured at 3x only), drawn as four
+     * taps at that reach (the shader's detailAt): 2 px stripes vanish, 4, 6 and 8 px keep 50, 75 and 85 %.
+     */
+    internal val labDetailReach: Dp = (1f / 3f).dp
+
+    /**
+     * Whether [reach] takes the four-tap detail kernel (`uDetailCross`): above zero and at most [labDetailReach],
+     * with 0.1 % slack because a Dp lerp between two equal reaches can land one float step above (884 of 10,001
+     * morph fractions at 1/3 dp), which would flip the kernel for those frames.
+     */
+    internal fun usesDetailCross(reach: Dp): Boolean = reach.value > 0f && reach.value <= labDetailReach.value * 1.001f
+
+    /** Lab fit, Tint 50: the detail share k (dark 0.277, light 0.273). */
+    internal fun labDetailShare(dark: Boolean): Float = if (dark) 0.277f else 0.273f
+
+    /** Lab fit, Tint 50: the one-sided term c, +0.22 on light glass, -0.22 on dark. */
+    internal fun labDetailLift(dark: Boolean): Float = if (dark) -0.22f else 0.22f
+
+    /**
+     * Lab fit, Tint 50: the tone over flat grey as a blend toward the tint colour plus a lift and a bow.
+     * Dark: 31.72 + 254.40 x - 101.01 x^2 (rms 0.22, at most 0.42 levels from the 17 measured points),
+     * so black at 0.3985, lift 31.72/255, bow 101.01/255. Light: 132.5 + 0.502 in, so white at 0.498
+     * and lift 5.5/255, clipping at 255 from about 242.
+     */
+    internal fun labOpacity(dark: Boolean): Float = if (dark) 0.3985f else 0.498f
+    internal fun labLift(dark: Boolean): Float = if (dark) 31.72f / 255f else 5.5f / 255f
+    internal fun labToneCurve(dark: Boolean): Float = if (dark) 101.01f / 255f else 0f
+
     /** The light in-app tint colour: a constant 241/255 at every slider position. */
     val lightTint: Color = Color(0xFFF1F1F1)
 

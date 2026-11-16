@@ -47,6 +47,9 @@ ShaderEffect {
     property real uWideStrip
     property real uWideScale
     property real uFineShare
+    property real uDetailLift
+    property real uToneCurve
+    property real uDetailCross
     property real uWideKernel
     property real uLift
     property real uLiftAdapt
@@ -129,6 +132,9 @@ ShaderEffect {
         v = values.uWideStrip; if (v) uWideStrip = v[0]
         v = values.uWideScale; if (v) uWideScale = v[0]
         v = values.uFineShare; if (v) uFineShare = v[0]
+        v = values.uDetailLift; if (v) uDetailLift = v[0]
+        v = values.uToneCurve; if (v) uToneCurve = v[0]
+        v = values.uDetailCross; if (v) uDetailCross = v[0]
         v = values.uWideKernel; if (v) uWideKernel = v[0]
         v = values.uLift; if (v) uLift = v[0]
         v = values.uLiftAdapt; if (v) uLiftAdapt = v[0]

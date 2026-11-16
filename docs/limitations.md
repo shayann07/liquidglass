@@ -147,7 +147,8 @@ physical-device behavior have not been verified for this revision.
 `GlassEffectContainer` runs the measured optics too, but a container has no drag to track, so
 its lens formation is fixed at 0: fused bodies get the two-kernel tone, the lift and the
 inward rest profile, never the fold. Its pieces also share one `Glass`, so a container cannot
-mix roles.
+mix roles. Merged glass does not yet have every term of the single-element shader (see
+[the material is measured at Tint 50 only](#the-material-is-measured-at-tint-50-only); #211).
 
 ## The measured tone is within a few levels, not exact
 
@@ -227,13 +228,35 @@ the lens is moving the copy inside it lags a frame, so a glyph shows two colours
 frame. The reference does the same (its content sits 12-20 px toward the lens centre mid-drag
 in the iOS 27 recording), so it is left as it is.
 
-## The detail's sharp axis is assumed to be the element's long one
+## The material is measured at Tint 50 only
 
-The material's fine term is a high-pass along a bar and nothing across it, which is what the
-phone does (measured model, section 2a). Both elements it was measured on are horizontal bars,
-so the captures cannot say whether the sharp axis is the screen's x or the element's own long
-axis. The shader takes the long axis, which is the same thing for every bar and toolbar and a
-guess for a tall element. A vertical glass element over a striped backdrop would settle it.
+The three-term material ([measured model](research/measured-model.md), section 2e) was measured at
+Tint 50. Tints between 0 and 100 blend authored values toward the earlier fit, and Tint 0 and 100
+themselves keep that earlier fit's tint, lift and wide kernel with the 1/3 dp detail reach. Measuring
+them is #208.
+
+- **6 px stripes.** Over 6 px stripes the toolbar pill reads 6.9 (dark) and 4.5 (light) levels rms from the
+  measured stills; 2 px bars read 3.7 and 4.5. The four-tap detail kernel keeps 0, 50, 75 and 85 %
+  of 2, 4, 6 and 8 px stripes where iOS keeps 0, 49, 73 and about 100 %.
+- **Colour** is unchanged until #201, and the **rim band** is #202.
+- **The tab bar** still uses the earlier toolbar fit (`GlassTabBarStyle.Measured`) until #203. It
+  already runs the new shader (no along-axis term), as do the V3 tab bar and merged glass.
+- **Merged glass** (`GlassEffectContainer`) now draws the same three-term material, but still lacks
+  the legibility term, the rim fringe, `uTintAbsorb`, the rotated `softDetail` scatter and
+  `Glass.light`. Tracked by #211.
+- **Ports.** The npm HTML/CSS engine and `ports/web` keep their own two-kernel approximation and are
+  not ported to the three-term material. The Flutter Dart port carries the change but has not been
+  compiled.
+
+## The detail's sharp axis is assumed to be the element's long one (superseded)
+
+Superseded by #200: the lab stills show iOS keeping the same detail along and across a bar, and the
+along-axis term is removed from the shader. The note below is the earlier assumption, kept as record.
+
+The material's fine term was a high-pass along a bar and nothing across it, which is what the
+phone appeared to do (measured model, section 2a). Both elements it was measured on were horizontal bars,
+so the captures could not say whether the sharp axis was the screen's x or the element's own long
+axis.
 
 ## The pill's dark contour is not drawn
 

@@ -162,6 +162,9 @@ internal actual fun createGlassRenderEffect(
     builder.uniform("uHeldEdgeTone", uniforms.heldEdgeTone)
     builder.uniform("uHeldGlowFloor", uniforms.heldGlowFloor)
     builder.uniform("uSoftDetail", uniforms.softDetail)
+    builder.uniform("uDetailLift", uniforms.detailLift)
+    builder.uniform("uToneCurve", uniforms.toneCurve)
+    builder.uniform("uDetailCross", uniforms.detailCross)
     builder.uniform("uRestMap", uniforms.restMap)
     builder.uniform(
         "uBody",
@@ -439,6 +442,9 @@ internal actual fun createGlassContainerRenderEffect(
     builder.uniform("uWideStrip", uniforms.wideStrip)
     builder.uniform("uWideScale", uniforms.wideScale)
     builder.uniform("uFineShare", uniforms.fineShare)
+    builder.uniform("uDetailLift", uniforms.detailLift)
+    builder.uniform("uToneCurve", uniforms.toneCurve)
+    builder.uniform("uDetailCross", uniforms.detailCross)
     builder.uniform("uWideKernel", uniforms.wideKernel)
     builder.uniform("uLift", uniforms.tintLift)
     builder.uniform("uLiftAdapt", uniforms.liftAdapt)

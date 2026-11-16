@@ -158,6 +158,9 @@ internal actual fun createGlassRenderEffect(
     shader.setFloatUniform("uHeldEdgeTone", uniforms.heldEdgeTone)
     shader.setFloatUniform("uHeldGlowFloor", uniforms.heldGlowFloor)
     shader.setFloatUniform("uSoftDetail", uniforms.softDetail)
+    shader.setFloatUniform("uDetailLift", uniforms.detailLift)
+    shader.setFloatUniform("uToneCurve", uniforms.toneCurve)
+    shader.setFloatUniform("uDetailCross", uniforms.detailCross)
     shader.setFloatUniform("uRestMap", uniforms.restMap)
     shader.setFloatUniform(
         "uBody",
@@ -425,6 +428,9 @@ internal actual fun createGlassContainerRenderEffect(
     shader.setFloatUniform("uWideStrip", uniforms.wideStrip)
     shader.setFloatUniform("uWideScale", uniforms.wideScale)
     shader.setFloatUniform("uFineShare", uniforms.fineShare)
+    shader.setFloatUniform("uDetailLift", uniforms.detailLift)
+    shader.setFloatUniform("uToneCurve", uniforms.toneCurve)
+    shader.setFloatUniform("uDetailCross", uniforms.detailCross)
     shader.setFloatUniform("uWideKernel", uniforms.wideKernel)
     shader.setFloatUniform("uLift", uniforms.tintLift)
     shader.setFloatUniform("uLiftAdapt", uniforms.liftAdapt)
