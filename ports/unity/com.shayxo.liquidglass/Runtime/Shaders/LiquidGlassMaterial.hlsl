@@ -51,6 +51,9 @@ float uFineShare;    // the detail share k in lin = B + k (D - B) + c |D - B| (G
 float uDetailLift;   // the one-sided term c: + light glass, - dark glass (GlassStyle.detailLift)
 float uToneCurve;    // the tone curve's bow: col += uToneCurve x (1 - x) per channel (GlassStyle.toneCurve)
 float uDetailCross;  // 1 the measured four-tap detail copy, 0 the scatter; the host sets it from the reach (at most 1/3 dp)
+float3 uChromaGain;   // the measured colour transfer: chroma gain per channel at luma 0 (host, from GlassStyle.detailLift)
+float3 uChromaSlope;  // its change per unit of luma, per channel
+float uChromaWeight; // how much of it applies; 0 the per-channel tone alone
 float uWideKernel;   // px sigma of the wide kernel; also the fine term's spread across the element
 float uLift;         // fixed luminance lift after the tint (the dark material's 35/255)
 float uLiftAdapt;    // how far the lift falls with the wide-kernel luma (system backdrops: 0.864)
@@ -1136,6 +1139,20 @@ float4 glassMain(float2 coord) {
     if (uToneCurve != 0.0) {
         float3 x = clamp(bg, ((float3)(0.0)), ((float3)(1.0)));
         col += float(uToneCurve * mat * tintCoverage) * x * (((float3)(1.0)) - x);
+    }
+    // The measured colour transfer (#201): over flat colour iOS keeps and boosts saturation. The glass is
+    // tone(y) + (g0 + g1 y) (x - y) per channel about the luma y of the material, where the tone path above
+    // runs each channel through the grey curve. So the difference is added here: the blend's chroma gain
+    // (1 - strength) becomes the measured one and the bow is taken on the luma, not per channel. It is zero
+    // over grey.
+    if (uChromaWeight > 0.0) {
+        float3 x = clamp(bg, ((float3)(0.0)), ((float3)(1.0)));
+        float y = luma(x);
+        float3 d = x - ((float3)(float(y)));
+        float bow = uToneCurve * mat * tintCoverage;
+        float3 gain = ((float3)(uChromaGain + uChromaSlope * y)) - ((float3)(float(1.0 - strength)));
+        float3 chroma = d * gain - float(bow) * d * (((float3)(float(1.0 - y))) - x);
+        col += float(uChromaWeight * mat * tintCoverage) * chroma;
     }
     // The measured lift: the dark in-app material is black at its opacity plus a fixed 35/255;
     // the system backdrops lift by 142/255 minus 0.864 of the mean luma behind them, which is

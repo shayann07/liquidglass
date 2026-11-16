@@ -28,6 +28,18 @@ function labLift(dark) { return dark ? 31.72 / 255 : 5.5 / 255; }
 function labDetailShare(dark) { return dark ? .277 : .273; }
 function labDetailLift(dark) { return dark ? -.22 : .22; }
 function labToneCurve(dark) { return dark ? 101.01 / 255 : 0; }
+// GlassMaterial.labChromaGain / labChromaSlope (#201): the colour transfer's g0 and g1 per channel (R, G, B).
+function labChromaGain(dark) { return dark ? [1.317, 1.256, 1.314] : [.988, .952, .979]; }
+function labChromaSlope(dark) { return dark ? [-.427, -.351, -.429] : [-.076, .028, -.045]; }
+
+// GlassMaterial.chromaOf: [g0 R, G, B, g1 R, G, B, weight] from GlassStyle.detailLift. The sign picks the appearance
+// and |c| / |labDetailLift| is the weight; zero lift is seven zeros (the per-channel tone alone).
+function chromaOf(detailLift) {
+    var dark = detailLift < 0;
+    var weight = clamp01(Math.abs(detailLift) / Math.abs(labDetailLift(dark)));
+    if (weight <= 0) return [0, 0, 0, 0, 0, 0, 0];
+    return labChromaGain(dark).concat(labChromaSlope(dark), [weight]);
+}
 
 // Compose's Color lerp runs in Oklab and stores 8 bits per channel again; the Oklab intermediate keeps alpha in
 // 10 bits, truncated, which is the step the golden values show.
@@ -150,6 +162,12 @@ function uniforms(m, width, height, density) {
         var q = function (c) { return Math.round(c * 255) / 255; };
         v.uTint = [q(m.tint[0]), q(m.tint[1]), q(m.tint[2]), q(m.tint[3])];
     }
+    // The colour transfer (#201). All three are written on every call, zeros included: the QML skips absent keys, so
+    // a missing key would keep the previous material's value (as it just did for the lift and the tone curve).
+    var chroma = chromaOf(v.uDetailLift ? v.uDetailLift[0] : 0);
+    v.uChromaGain = chroma.slice(0, 3);
+    v.uChromaSlope = chroma.slice(3, 6);
+    v.uChromaWeight = [chroma[6]];
     // Qt reads the wide tone from the backdrop directly (see tool/generate_shader.mjs): switch it on.
     v.uWideStrip = [1];
     return v;

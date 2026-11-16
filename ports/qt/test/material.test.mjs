@@ -32,5 +32,7 @@ fixture.forEach((entry, i) => {
       mine.forEach((v, j) => assert.ok(Math.abs(v - theirs[j]) <= 1e-6, `${name}[${j}]: ${v} vs ${theirs[j]}`));
     }
     for (const name of Object.keys(ours)) assert.ok(members.has(name), `${name} is set but not in the shader`);
+    // QML skips absent keys, so a missing one keeps the previous material's value: all three are written every call.
+    for (const name of ['uChromaGain', 'uChromaSlope', 'uChromaWeight']) assert.ok(ours[name], `${name} is always written`);
   });
 });

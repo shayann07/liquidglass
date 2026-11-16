@@ -16,6 +16,9 @@ const cases = [
   {width: 312, height: 72, radius: 36, density: 2.625, dark: true, tintAmount: 50, light: [-0.35, -0.94]},
   {width: 120, height: 120, radius: 20, density: 1, dark: false, tintAmount: 30, light: [-0.35, -0.94],
     tint: [0.2, 0.4, 0.9, 0.35], materialize: 0.5, reducedTransparency: 0.25, increasedContrast: 0.75},
+  // Tint 0: no lab weight, so the colour transfer (#201) is all zeros, which Qt and Flutter must write, not skip.
+  {width: 200, height: 64, radius: 24, density: 1, dark: true, tintAmount: 0, light: [-0.35, -0.94]},
+  {width: 200, height: 64, radius: 24, density: 1, dark: false, tintAmount: 0, light: [-0.35, -0.94]},
 ];
 const fixture = cases.map(c => {
   const d = c.density;
