@@ -2270,7 +2270,9 @@ data class GlassTabBarStyle(
          *
          * The bar of an iOS 27 tab bar is the same role as the Photos toolbar, which was
          * measured through the calibration target at every Tint Amount in both appearances
-         * (`docs/research/measured-model.md`, section 2), so [GlassStyle.toolbar] is the bar. The
+         * (`docs/research/measured-model.md`, section 2), so the bar is the toolbar. Until #203 it uses the
+         * toolbar's earlier style values (the internal `GlassStyle.toolbarEarlier`), not the #200 lab
+         * material [GlassStyle.toolbar] now carries; like every wide-kernel style it has no along-axis term. The
          * resting inset and the held lens keep the 0.1 numbers, which were read off native
          * screenshots of an iOS 26 tab bar rather than through the target; they look through the
          * bar and are independent of its material. A tab bar over the target has not been
