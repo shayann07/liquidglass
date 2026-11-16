@@ -528,6 +528,8 @@ data class GlassStyle(
      * own side of the surroundings at [fineShare] + c and detail on the other side at [fineShare] - c,
      * `lin = B + k (D - B) + c |D - B|` (`tools/glass_model.py`). Measured on iOS 27 at Tint 50
      * (#199): +0.22 on light glass, -0.22 on dark. Zero, the default, is the plain two-kernel mix.
+     * It also carries the material's measured colour transfer (#201): over colour the glass keeps and
+     * boosts saturation in the appearance its sign names, in full at |c| = 0.22 and in proportion below.
      */
     val detailLift: Float = 0f,
     /**

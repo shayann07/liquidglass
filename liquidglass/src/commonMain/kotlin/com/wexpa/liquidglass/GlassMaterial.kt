@@ -83,6 +83,31 @@ object GlassMaterial {
     internal fun labLift(dark: Boolean): Float = if (dark) 31.72f / 255f else 5.5f / 255f
     internal fun labToneCurve(dark: Boolean): Float = if (dark) 101.01f / 255f else 0f
 
+    /**
+     * Lab fit, Tint 50 (#201): the colour transfer over flat colour, `tone(y) + (g0 + g1 y) (x - y)` for each channel
+     * x about the Rec. 709 luma y of the sRGB code values (0-1), then clipped; g0 and g1 per channel (R, G, B). Fitted
+     * on the 125-point RGB cube of the lab stills, converted once from Display P3 to sRGB and clipped to the sRGB
+     * gamut: dark 0.99 levels rms, at most 7.1; light 0.83 rms, at most 5.3. Greys are unchanged.
+     */
+    internal fun labChromaGain(dark: Boolean): FloatArray =
+        if (dark) floatArrayOf(1.317f, 1.256f, 1.314f) else floatArrayOf(0.988f, 0.952f, 0.979f)
+    internal fun labChromaSlope(dark: Boolean): FloatArray =
+        if (dark) floatArrayOf(-0.427f, -0.351f, -0.429f) else floatArrayOf(-0.076f, 0.028f, -0.045f)
+
+    /**
+     * The colour transfer's uniforms for a style: g0 (R, G, B), g1 (R, G, B) and the weight (`uChromaGain`,
+     * `uChromaSlope`, `uChromaWeight`). Derived from [GlassStyle.detailLift], so no new style field is needed: the
+     * sign picks the appearance and |c| / 0.22 is the lab weight, which [GlassStyle.inApp] and [GlassStyle.toolbar]
+     * set as `labDetailLift(dark) * labWeight(tint)`. Zero lift, as on every style without the lab material (the tab
+     * bar's earlier fit among them), leaves the per-channel tone alone.
+     */
+    internal fun chromaOf(detailLift: Float): FloatArray {
+        val dark = detailLift < 0f
+        val weight = (kotlin.math.abs(detailLift) / kotlin.math.abs(labDetailLift(dark))).coerceIn(0f, 1f)
+        if (weight <= 0f) return FloatArray(7)
+        return labChromaGain(dark) + labChromaSlope(dark) + floatArrayOf(weight)
+    }
+
     /** The light in-app tint colour: a constant 241/255 at every slider position. */
     val lightTint: Color = Color(0xFFF1F1F1)
 

@@ -1,3 +1,11 @@
+## #201 colour transfer (17 November, `feat/201-colour`)
+
+- [x] Fit (per-channel gains, sRGB), shader, 27 cube assertions, private gates (cube, colour-pair stripes, grey lab).
+- [ ] Ports: set `uChromaGain`, `uChromaSlope`, `uChromaWeight` from `detailLift` in every port (Skia, npm canvas, React Native,
+  Qt, Unity, .NET, Flutter) and add the correction to the hand-written shaders (Flutter, Qt, Unity HLSL).
+- [ ] Owner review: derivation from `detailLift` (a light-to-dark morph passes through the per-channel tone at c = 0).
+- [ ] Device capture over coloured content (Pixel 7) once #200 lands.
+
 ## #200 measured three-term material (16 November, `feat/200-material-model`)
 
 - [x] Re-score the private lab gate on the final commit: 1.43 / 1.42 on 9730618e.

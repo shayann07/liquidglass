@@ -1,3 +1,11 @@
+## RESUME HERE (17 November): #201 colour transfer, stacked on #200
+
+- `feat/201-colour` (on `feat/200-material-model`): `tone(y) + (g0 + g1 y) (x - y)` per channel after the tint blend, uniforms
+  `uChromaGain`, `uChromaSlope`, `uChromaWeight`, derived from `detailLift` (no style field). Fit, gates and decisions are in
+  `docs/research/measured-model.md` section 2f and PROGRESS.md.
+- Next: review the judgement calls (sRGB working space, per-channel gains, derivation from `detailLift`), then port to the ports.
+- Committed locally only; nothing pushed.
+
 ## RESUME HERE (16 November): #200 three-term material awaiting final checks
 
 - `feat/200-material-model` carries the measured material (along-axis filter removed,

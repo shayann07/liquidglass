@@ -161,6 +161,9 @@ internal actual fun createGlassRenderEffect(
     shader.setFloatUniform("uDetailLift", uniforms.detailLift)
     shader.setFloatUniform("uToneCurve", uniforms.toneCurve)
     shader.setFloatUniform("uDetailCross", uniforms.detailCross)
+    shader.setFloatUniform("uChromaGain", uniforms.chroma[0], uniforms.chroma[1], uniforms.chroma[2])
+    shader.setFloatUniform("uChromaSlope", uniforms.chroma[3], uniforms.chroma[4], uniforms.chroma[5])
+    shader.setFloatUniform("uChromaWeight", uniforms.chroma[6])
     shader.setFloatUniform("uRestMap", uniforms.restMap)
     shader.setFloatUniform(
         "uBody",
@@ -431,6 +434,9 @@ internal actual fun createGlassContainerRenderEffect(
     shader.setFloatUniform("uWideKernel", uniforms.wideKernel)
     shader.setFloatUniform("uLift", uniforms.tintLift)
     shader.setFloatUniform("uLiftAdapt", uniforms.liftAdapt)
+    shader.setFloatUniform("uChromaGain", uniforms.chroma[0], uniforms.chroma[1], uniforms.chroma[2])
+    shader.setFloatUniform("uChromaSlope", uniforms.chroma[3], uniforms.chroma[4], uniforms.chroma[5])
+    shader.setFloatUniform("uChromaWeight", uniforms.chroma[6])
 
     // The interior blur is NOT chained ahead of the shader: pre-blurring destroys exactly the
     // detail the rim is supposed to bend. backdropBlur is the opt-in that does pre-blur, for

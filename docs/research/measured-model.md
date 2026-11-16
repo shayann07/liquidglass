@@ -301,8 +301,62 @@ public `GlassLabModelTest` (synthetic backdrops only) runs 222 checks including 
 99 to 100 steps (at most 1.34 levels rms) and counts one turning point through a text stem (main 15,
 gate 7). The stills are private and are not in the repository.
 
-Open and named: the 6 px stripe residual; colour (#201); the rim band (#202); the tab bar container
-and selector, which keep the earlier fit until #203; and the Tint 0/100 blend (#208).
+Open and named: the 6 px stripe residual; the rim band (#202); the tab bar container and selector,
+which keep the earlier fit until #203; and the Tint 0/100 blend (#208). Colour is section 2f (#201).
+
+## 2f. Colour: the glass keeps and boosts saturation (16 November 2026, #201)
+
+Over flat colour at Tint 50 iOS does not run each channel through the grey tone curve. It keeps the
+colour's chroma about its luma and, on dark glass, boosts it: pure red reads 255, 62, 46 (Display P3)
+on dark glass and 245, 118, 113 on light. Running the grey curve per channel misses the 125-point RGB
+cube of the lab stills (five levels per channel, drawn in sRGB) by 36 levels rms on dark glass and 29
+on light. The public specification is `colour()` in `tools/glass_model.py`:
+
+    y   = 0.2126 R + 0.7152 G + 0.0722 B                      (sRGB code values)
+    out = clip(tone(y) + (g0 + g1 y / 255) (lin - y), 0, 255)  per channel
+
+| Appearance | g0 (R, G, B) | g1 (R, G, B) | cube, sRGB: rms / max | cube read in P3: rms / max (of it, the sRGB gamut) | 18 held-out colours: rms / max |
+| :-- | :-- | :-- | :-- | :-- | :-- |
+| Dark | 1.317, 1.256, 1.314 | -0.427, -0.351, -0.429 | 0.99 / 7.1 | 4.0 / 21.0 (3.9 / 20.9) | 1.5 / 7.1 |
+| Light | 0.988, 0.952, 0.979 | -0.076, 0.028, -0.045 | 0.83 / 5.3 | 2.9 / 8.2 (2.8 / 8.2) | 1.0 / 5.3 |
+
+Levels of 255. The worst points are the zero channels of saturated colours where iOS clips another
+channel in Display P3: dark magenta's green reads 19 on iOS and 12 here, light yellow's blue 35 and 30.
+
+Provenance, kept apart:
+
+- **Measured**, at Tint 50 only, on the lab stills: the 125-point cube in both appearances and the 18
+  colours of another lab program used as the held-out check. g0 and g1 are least-squares fits to the
+  cube.
+- **Decided: the working space.** The stills hold Display P3 code values; the library draws in sRGB.
+  The table is converted once, P3 code values to linear light, to sRGB through D65 XYZ, sRGB encoding,
+  and clipped to the sRGB gamut, because an sRGB render can show nothing outside it. Fitted in P3
+  instead, the same form misses the cube by 5.0 / 4.7 rms, at most 21 / 15. Read back in P3, the sRGB
+  result is within 0.1 level of the gamut's own floor.
+- **Decided: the form, not a lookup.** The 125-point table with trilinear interpolation fits the
+  held-out colours better (0.65 / 0.18 rms) but bends the greys between its nodes by up to 7.8 levels on
+  light glass, where the tone clips at 255 from about 242. The analytic form leaves every grey on the
+  grey curve. One gain for all three channels does almost as well (1.11 / 0.94 rms) but reaches 9.5
+  levels on dark magenta, at the gate's edge before the render's own rounding.
+- **Checked: the detail term stays per channel.** On the eight colour-pair stripe stills (16 px,
+  red-black to yellow-blue) the per-channel mix with this transfer scores 1.6 dark / 1.4 light levels
+  rms in the model, at most 1.9; the one-sided term on luma scores 7.3-11.5 and the whole detail term
+  on luma 24-31.
+- **Authored**: the Tint blend, as for the rest of the material. The transfer is in full at Tint 50 and
+  fades to the per-channel tone at 0 and 100 by the same weight. It is derived from
+  `GlassStyle.detailLift` (sign for the appearance, |c| / 0.22 for the weight), so it needs no style
+  field of its own; the tab bar's earlier fit has c = 0 and is unchanged (#203).
+
+In the shader the transfer is added after the tint blend as a correction that is zero over grey: the
+blend's chroma gain `1 - strength` is replaced by `g0 + g1 y`, and the dark bow is taken on the luma
+instead of per channel (uniforms `uChromaGain`, `uChromaSlope`, `uChromaWeight`). The merged-glass
+container shader carries the same correction against its own blend, which has no bow.
+
+Rendered through the toolbar style at Tint 50, scored privately in the pill's interior zones (sRGB):
+the 125 cube colours within 1.05 dark / 0.85 light levels rms, at most 7.1 / 4.8, greys within 1.0;
+the eight colour-pair stripe stills within 1.7 / 1.5 rms each (gate 5); the 89 grey stills unchanged
+at 1.43 / 1.42. The public `GlassLabModelTest` renders 27 cube points (0, 128, 255 per channel) and
+holds every channel within 2 levels of `colour()`; all are within 1.
 
 ## 3. Shell glass at Tint 50 (over the wallpaper; the wallpaper itself is dimmed x0.773 in Clear-icon mode)
 

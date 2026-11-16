@@ -173,6 +173,7 @@ internal fun LiquidGlassContainer(
                             fineShare = style.fineShare,
                             tintLift = style.tintLift,
                             liftAdapt = style.liftAdaptivity,
+                            chroma = GlassMaterial.chromaOf(style.detailLift.coerceIn(-1f, 1f)),
                             backdropSigma = if (style.backdropSigma.isSpecified) style.backdropSigma.toPx() else 0f,
                             refractDepth = style.refractionDepth.toPx(),
                             aberration = style.dispersion,
@@ -285,6 +286,8 @@ internal class GlassContainerUniforms(
     val liftAdapt: Float = 0f,
     /** Gaussian sigma of the pre-blur, px; 0 means use [backdropBlur] as the platform radius. */
     val backdropSigma: Float = 0f,
+    /** The measured colour transfer: gain (R, G, B), slope (R, G, B), weight, from [GlassMaterial.chromaOf]. */
+    val chroma: FloatArray = FloatArray(7),
 )
 
 internal expect fun createGlassContainerRenderEffect(

@@ -237,12 +237,18 @@ them is #208.
 - **6 px stripes.** Over 6 px stripes the toolbar pill reads 6.9 (dark) and 4.5 (light) levels rms from the
   measured stills; 2 px bars read 3.7 and 4.5. The four-tap detail kernel keeps 0, 50, 75 and 85 %
   of 2, 4, 6 and 8 px stripes where iOS keeps 0, 49, 73 and about 100 %.
-- **Colour** is unchanged until #201, and the **rim band** is #202.
+- **Colour** (#201, section 2f) is measured at Tint 50 only and, like the rest, blends toward the
+  per-channel tone at 0 and 100 (authored). It works in sRGB: where iOS shows a saturated colour
+  outside the sRGB gamut (dark glass over pure red reads 255, 62, 46 in Display P3), the library
+  shows the nearest sRGB colour, and the zero channels of such colours read up to 7 levels from iOS.
+  The transfer rides on `detailLift`, so a style morphing between the light and dark lab materials
+  passes through the per-channel tone at the midpoint, where c is zero. The **rim band** is #202.
 - **The tab bar** still uses the earlier toolbar fit (`GlassTabBarStyle.Measured`) until #203, and
   the container shader keeps running the new shader, so docs/1 replay frames may differ from before.
 - **Ports.** The npm HTML/CSS engine and `ports/web` keep their own two-kernel approximation and are
   not ported to the three-term material. The Flutter Dart port carries the change but has not been
-  compiled.
+  compiled. No port carries the colour transfer yet (#201): `ports/skia/shaders/material.sksl` declares
+  its uniforms, and a port that leaves them unset draws the per-channel tone.
 
 ## The detail's sharp axis is assumed to be the element's long one (superseded)
 

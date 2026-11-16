@@ -10,7 +10,7 @@ import kotlin.test.assertTrue
  * Regular glass against the measured model of #199 (`tools/glass_model.py`), with no private data: the
  * toolbar style at Tint 50 drawn through the production modifier over synthetic backdrops, read in the
  * interior zones the lab stills were scored in, and compared with the model over the same backdrop.
- * Gates from #200. Greys only (colour is #201); the rim band (#202) is outside the zones.
+ * Gates from #200, and the colour transfer of #201 over flat colour; the rim band (#202) is outside the zones.
  */
 class GlassLabModelTest {
     private class Case(val name: String, val values: (Int, Int) -> Int)
@@ -153,6 +153,49 @@ class GlassLabModelTest {
             zoneRows.sumOf { y -> GlassRender.luma(out[y * width + x]) } / zoneRows.count()
         }
         return turningPoints(profile)
+    }
+
+    @Test
+    fun regularGlassKeepsAndBoostsColour() {
+        // The 27 points of the RGB cube at 0, 128 and 255 (#201): every channel of the interior within 2 levels of the
+        // model's colour transfer, the greys among them at the grey tone. The model itself is within 0.99 / 0.83 levels
+        // rms (at most 7.1 / 5.3) of the measured 125-point cube in sRGB, dark / light (tools/glass_model.py).
+        val levels = listOf(0, 128, 255)
+        for (dark in listOf(true, false)) {
+            val app = if (dark) "dark" else "light"
+            GlassLabScene(GlassStyle.toolbar(dark = dark)).use { s ->
+                val zone = s.zone()
+                for (r in levels) for (g in levels) for (b in levels) {
+                    val argb = (0xFF shl 24) or (r shl 16) or (g shl 8) or b
+                    val out = s.render(IntArray(s.width * s.height) { argb })
+                    val got = DoubleArray(3) { ch -> zone.map { ((out[it] ushr (16 - 8 * ch)) and 0xFF).toDouble() }.average() }
+                    val want = GlassLabModel.colour(doubleArrayOf(r.toDouble(), g.toDouble(), b.toDouble()), dark)
+                    val worst = (0..2).maxOf { abs(got[it] - want[it]) }
+                    check(
+                        worst <= 2.0,
+                        "$app colour $r,$g,$b: ours %.1f %.1f %.1f, model %.1f %.1f %.1f".format(got[0], got[1], got[2], want[0], want[1], want[2]),
+                    )
+                }
+            }
+        }
+        assertTrue(failures.isEmpty(), "${failures.size} colour gates failed:\n" + failures.joinToString("\n"))
+    }
+
+    @Test
+    fun colourTransferFollowsTheLabWeight() {
+        // Derived from detailLift (no style field): in full at Tint 50, none at 0 and 100, and none on the tab bar's
+        // earlier fit, which moves to the lab material in #203.
+        for (dark in listOf(true, false)) {
+            val full = GlassMaterial.chromaOf(GlassStyle.toolbar(dark = dark).detailLift)
+            check(full[6] == 1f && full[0] == GlassMaterial.labChromaGain(dark)[0], "${if (dark) "dark" else "light"} Tint 50: ${full.toList()}")
+            check(abs(GlassMaterial.chromaOf(GlassStyle.inApp(dark = dark, tintAmount = 75f).detailLift)[6] - 0.5f) < 1e-5f, "Tint 75 weight")
+            for (tint in listOf(0f, 100f)) {
+                check(GlassMaterial.chromaOf(GlassStyle.toolbar(dark = dark, tintAmount = tint).detailLift)[6] == 0f, "Tint $tint weight")
+            }
+            check(GlassMaterial.chromaOf(GlassStyle.toolbarEarlier(dark).detailLift).all { it == 0f }, "tab bar earlier fit")
+        }
+        check(GlassMaterial.chromaOf(GlassStyle().detailLift).all { it == 0f }, "default constructor")
+        assertTrue(failures.isEmpty(), failures.joinToString("; "))
     }
 
     @Test

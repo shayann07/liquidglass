@@ -1,3 +1,12 @@
+## 17 November 2026 - #201 colour transfer (Claude)
+
+- `feat/201-colour`: over colour the tone applies to the Rec. 709 luma and the chroma keeps a measured per-channel gain
+  (fitted on the private 125-point cube, converted from Display P3 to sRGB and clipped). Model: cube 0.99 / 0.83 rms (max 7.1 / 5.3),
+  held-out colours 1.5 / 1.0. Render (toolbar, Tint 50): cube 1.05 / 0.85 (max 7.1 / 4.8), colour-pair stripes at most 1.7 / 1.5,
+  grey lab 1.43 / 1.42 unchanged. One shared gain reached 9.5 (10.1 rendered) on dark magenta, so the gains are per channel.
+- `GlassLabModelTest`: 27 cube points within 2 levels of the model (all within 1) and the lab-weight derivation. Port fixtures and
+  `ports/skia/shaders/material.sksl` re-exported; no port sets the new uniforms yet (they read zero, the per-channel tone).
+
 ## 16 November 2026 - #200 measured three-term material (Claude)
 
 - `feat/200-material-model`: the along-axis filter (FINDINGS 22) is replaced by `lin = B + k (D - B) + c |D - B|`, wide kernel 15.5 dp,

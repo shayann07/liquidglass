@@ -7,6 +7,11 @@ research remains available; this page identifies which later changes supersede i
 
 ## Main after 1.0 (24 October)
 
+- 17 November: Regular glass keeps and boosts colour (#201): the grey tone applies to the luma and the chroma about it keeps a
+  measured per-channel gain, fitted on the private 125-point RGB cube converted from Display P3 to sRGB. Rendered at Tint 50 the
+  cube is within 1.05 / 0.85 levels rms (at most 7.1 / 4.8), the colour-pair stripe stills within 1.7 / 1.5, and the grey lab
+  stills stay at 1.43 / 1.42; `GlassLabModelTest` asserts 27 cube points. Open: the sRGB gamut (saturated iOS colours outside
+  it read up to 7 levels off), Tint 0/100 authored (#208), no port carries it yet.
 - 16 November: Regular glass follows the measured three-term material (#200, fixes #190): the along-axis detail filter that
   drew stepped ghost copies of text is removed, detail is one soft copy over a 15.5 dp wide kernel, and the dark tone is a fitted
   curve. 1.43 dark / 1.42 light levels rms on 89 private lab stills at Tint 50 (gate 3.0; main 24.2 / 15.2); public `GlassLabModelTest`

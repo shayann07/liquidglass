@@ -65,6 +65,9 @@ uniform float   uFineShare;    // share of fine detail in the backdrop term
 uniform float   uWideKernel;   // px sigma of the wide kernel; also the fine term's spread across the element
 uniform float   uLift;         // fixed luminance lift after the tint
 uniform float   uLiftAdapt;    // how far the lift falls with the wide-kernel luma
+uniform float3  uChromaGain;   // the measured colour transfer (#201), as in the panel shader
+uniform float3  uChromaSlope;
+uniform float   uChromaWeight;
 
 $GLASS_OKLAB_SOURCE
 
@@ -397,6 +400,15 @@ half4 main(float2 coord) {
         ? half3(uTint.rgb)
         : toneMappedTint(half3(uTint.rgb), bgLuma, uAdaptive);
     half3 col = mix(bg, tinted, half(clamp(uTint.a, 0.0, 1.0)));
+    // The measured colour transfer (#201); see the panel shader. Here the blend's chroma gain is 1 - uTint.a
+    // (no materialise fade, no tint mask) and there is no bow.
+    if (uChromaWeight > 0.0) {
+        half3 x = clamp(bg, half3(0.0), half3(1.0));
+        float y = luma(x);
+        half3 d = x - half3(half(y));
+        half3 gain = half3(uChromaGain + uChromaSlope * y) - half3(half(1.0 - clamp(uTint.a, 0.0, 1.0)));
+        col += half(uChromaWeight) * d * gain;
+    }
     float lift = uLift - uLiftAdapt * luma(wide);
     col += half3(half((uLiftAdapt > 0.0) ? max(lift, 0.0) : lift));
 

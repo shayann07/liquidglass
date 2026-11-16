@@ -165,6 +165,9 @@ internal actual fun createGlassRenderEffect(
     builder.uniform("uDetailLift", uniforms.detailLift)
     builder.uniform("uToneCurve", uniforms.toneCurve)
     builder.uniform("uDetailCross", uniforms.detailCross)
+    builder.uniform("uChromaGain", uniforms.chroma[0], uniforms.chroma[1], uniforms.chroma[2])
+    builder.uniform("uChromaSlope", uniforms.chroma[3], uniforms.chroma[4], uniforms.chroma[5])
+    builder.uniform("uChromaWeight", uniforms.chroma[6])
     builder.uniform("uRestMap", uniforms.restMap)
     builder.uniform(
         "uBody",
@@ -445,6 +448,9 @@ internal actual fun createGlassContainerRenderEffect(
     builder.uniform("uWideKernel", uniforms.wideKernel)
     builder.uniform("uLift", uniforms.tintLift)
     builder.uniform("uLiftAdapt", uniforms.liftAdapt)
+    builder.uniform("uChromaGain", uniforms.chroma[0], uniforms.chroma[1], uniforms.chroma[2])
+    builder.uniform("uChromaSlope", uniforms.chroma[3], uniforms.chroma[4], uniforms.chroma[5])
+    builder.uniform("uChromaWeight", uniforms.chroma[6])
 
     // See the Android actual: only backdropBlur pre-blurs; the interior blur lives in the
     // shader so the rim keeps its detail.
