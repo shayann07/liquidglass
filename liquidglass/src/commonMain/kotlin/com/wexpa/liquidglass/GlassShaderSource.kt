@@ -257,6 +257,15 @@ half3 blurredAt(float2 p, float radius, float2 rot) {
     return sum * half(1.0 / 19.0);
 }
 
+// The detail copy D of the measured material (#200): four taps at +-r along both axes, no centre. Its
+// response to stripes is (1 + cos(2 pi r / P)) / 2: at r = 1 px (3x) 2 px stripes vanish and 4, 6 and 8 px
+// keep 50, 75 and 85 %, where iOS keeps 0, 49, 73 and about 100 % (the lab stills, #199).
+half3 detailAt(float2 p, float r) {
+    if (r < 0.25) return backdropAt(p);
+    return (backdropAt(p + float2(r, 0.0)) + backdropAt(p - float2(r, 0.0))
+        + backdropAt(p + float2(0.0, r)) + backdropAt(p - float2(0.0, r))) * half(0.25);
+}
+
 float luma(half3 c) {
     return dot(float3(c), float3(0.2126, 0.7152, 0.0722));
 }
@@ -588,7 +597,7 @@ half4 main(float2 coord) {
     // At Tinted the fine share is 0 and the fine scatter would be thrown away: skip it.
     half3 soft = (uWideStrip >= 1.0 && uFineShare < 0.02)
         ? sharp
-        : blurredAt(base + push, uBlur * mat * e, rot);
+        : ((uDetailLift != 0.0) ? detailAt(base + push, uBlur * mat * e) : blurredAt(base + push, uBlur * mat * e, rot));
     float rimSharp = (1.0 - e) * (1.0 - e);
     half3 bg;
     if (uWideKernel * mat >= 2.0) {

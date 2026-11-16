@@ -54,8 +54,11 @@ object GlassMaterial {
     /** Lab fit, Tint 50: sigma of the wide kernel B, 46.5 px at 3x (the fit is flat from 44 to 52 px). */
     internal val labWideKernel: Dp = 15.5.dp
 
-    /** Lab fit, Tint 50: sigma of the detail copy D, 0.83 px at 3x (measured at 3x only). */
-    internal val labFineKernel: Dp = 0.28.dp
+    /**
+     * Lab fit, Tint 50: the reach of the detail copy D, 1 px at 3x (measured at 3x only), drawn as four
+     * taps at that reach (the shader's detailAt): 2 px stripes vanish, 4, 6 and 8 px keep 50, 75 and 85 %.
+     */
+    internal val labDetailReach: Dp = (1f / 3f).dp
 
     /** Lab fit, Tint 50: the detail share k (dark 0.277, light 0.273). */
     internal fun labDetailShare(dark: Boolean): Float = if (dark) 0.277f else 0.273f

@@ -559,8 +559,11 @@ data class GlassStyle(
             )
         }
 
-        /** In-app glass, light appearance, default Tint Amount: the measured navigation pill. */
-        val Regular = GlassStyle()
+        /**
+         * In-app glass, light appearance, default Tint Amount: the default style of [liquidGlass]. Its
+         * interior is the material measured on iOS 27 at Tint 50 (#199); its rim is unchanged (#202).
+         */
+        val Regular: GlassStyle by lazy { GlassStyle().towardLab(dark = false, tintAmount = GlassMaterial.DEFAULT_TINT_AMOUNT) }
 
         /**
          * In-app glass — a navigation pill, round buttons, a toolbar — for one appearance and
@@ -587,7 +590,9 @@ data class GlassStyle(
                 tintLift = f(tintLift, GlassMaterial.labLift(dark)),
                 fineShare = f(fineShare, GlassMaterial.labDetailShare(dark)),
                 wideKernel = lerp(wideKernel, GlassMaterial.labWideKernel, w),
-                blurRadius = lerp(blurRadius, GlassMaterial.labFineKernel / 0.6f, w),
+                // Held, not blended: the shader draws D with four taps and no centre whenever detailLift is set, and
+                // a wider reach would draw four displaced copies.
+                blurRadius = GlassMaterial.labDetailReach,
                 detailLift = GlassMaterial.labDetailLift(dark) * w,
                 toneCurve = GlassMaterial.labToneCurve(dark) * w,
                 // The lab stills show no extra tint over busy content: the stripes keep k at every contrast.
