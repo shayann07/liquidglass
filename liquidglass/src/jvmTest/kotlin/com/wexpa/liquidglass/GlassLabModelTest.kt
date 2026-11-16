@@ -22,11 +22,16 @@ class GlassLabModelTest {
         if (!ok) failures += message
     }
 
+    /** Our frame over [case], green channel. */
+    private fun GlassLabScene.ours(case: Case): DoubleArray {
+        val out = render(IntArray(width * height) { i -> GlassLabScene.grey(case.values(i % width, i / width)) })
+        return DoubleArray(out.size) { i -> ((out[i] ushr 8) and 0xFF).toDouble() }
+    }
+
+    /** Our frame over [case] and the model's prediction over the same backdrop. */
     private fun GlassLabScene.run(dark: Boolean, case: Case): Pair<DoubleArray, DoubleArray> {
         val greys = DoubleArray(width * height) { i -> case.values(i % width, i / width).toDouble() }
-        val out = render(IntArray(width * height) { i -> GlassLabScene.grey(greys[i].toInt()) })
-        val ours = DoubleArray(out.size) { i -> ((out[i] ushr 8) and 0xFF).toDouble() }
-        return ours to GlassLabModel.predict(greys, width, height, dark)
+        return ours(case) to GlassLabModel.predict(greys, width, height, dark)
     }
 
     private fun GlassLabScene.zone(): List<Int> =
@@ -44,7 +49,7 @@ class GlassLabModelTest {
                 val zone = s.zone()
                 // Flat greys: the measured tone table within 2 levels.
                 for (v in GlassLabModel.greyIn) {
-                    val (ours, _) = s.run(dark, Case("grey-$v") { _, _ -> v })
+                    val ours = s.ours(Case("grey-$v") { _, _ -> v })
                     val got = zone.map { ours[it] }.average()
                     val want = GlassLabModel.tone(v.toDouble(), dark)
                     check(abs(got - want) <= 2.0, "$app grey $v: ours %.1f, measured %.1f".format(got, want))
@@ -198,7 +203,7 @@ class GlassLabModelTest {
                 val frames = listOf(a, b).map { tint ->
                     GlassLabScene(GlassStyle.toolbar(dark = dark, tintAmount = tint)).use { s ->
                         val zone = s.zone()
-                        cases.map { case -> s.run(dark, case).first.let { o -> zone.map { o[it] } } }
+                        cases.map { case -> s.ours(case).let { o -> zone.map { o[it] } } }
                     }
                 }
                 cases.forEachIndexed { i, case ->
