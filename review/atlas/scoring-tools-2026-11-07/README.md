@@ -102,19 +102,21 @@ R-B p90 at strong page edges, median over frames (IQR), px, with the median numb
 
 | Frames | iOS under the lens | iOS core | ours under the lens | ours core |
 | :-- | --: | --: | --: | --: |
-| lens still, 487 | 0.62 (0.48-0.88), 109 edges | 1.13 (0.49-4.64), 15 edges | 3.82 (3.70-3.98), 152 edges | **5.60** (5.15-6.00), 50 edges |
-| lens moving, 294 | 0.60 (0.48-0.95), 155 edges | 1.24 (0.49-4.90), 18 edges | 3.66 (3.42-3.85), 158 edges | **5.27** (4.79-6.00), 40 edges |
+| lens still, 487 | 0.62 (0.48-0.88), 109 edges | 1.09 (0.46-4.61), 16 edges | 3.82 (3.70-3.98), 152 edges | **5.60** (5.15-6.00), 50 edges |
+| lens moving, 294 | 0.60 (0.48-0.95), 155 edges | 1.24 (0.49-4.90), 19 edges | 3.66 (3.42-3.85), 158 edges | **5.27** (4.79-6.00), 41 edges |
 
-(The "under the lens" columns reproduce the earlier run within 0.05 px.) **Reading:** the split does not go away when the
-rim is excluded; ours is larger in the core, not smaller (5.3-5.6 px against 3.7-3.8 under the whole lens), so the gap to
-iOS is not the lens's own rim leaking into the page-edge estimate. The page seen through our lens reads about five times
-iOS's channel shift. Confidence: iOS's core figure rests on 15-18 edges per frame and its IQR is wide (0.49-4.9), so its
-level is poorly pinned; ours rests on 40-50 edges and is stable. Fewer edges survive in the core because the lens is magnified
+(The "under the lens" columns reproduce the earlier run within 0.05 px; the core edge counts are medians over the frames that have
+a core estimate, and the 16 November re-run corrects the core clipping near the image edge and that count.) **Reading:** at edges
+at least 40 px inside the outline the page seen through our lens still reads a channel shift of 5.3-5.6 px against iOS's
+1.1-1.2, so a split persists away from the rim. This does not show that the rim added nothing to the whole-lens figure
+(3.7-3.8 px): the two figures use different edge populations (the core keeps fewer, and different, edges), so they are not
+comparable as a subtraction. Confidence: iOS's core figure rests on 16-19 edges per frame and its IQR is wide (0.46-4.9), so its
+level is poorly pinned; ours rests on 41-50 edges and is stable. Fewer edges survive in the core because the lens is magnified
 page with few strong edges; a frame with fewer than 10 gives no value. The capsule is an approximation (a held lens, fixed
-size), and the estimator still cannot say whether the shift comes from dispersion in the refraction or from a colour fringe
-the glass adds; it measures that the page seen through the lens is split, not why. Nothing measured was re-fitted.
+size; the bounds are not clipped to the image, only the sampling is), and the estimator cannot say whether the shift comes from
+dispersion in the refraction or from a colour fringe the glass adds. Nothing measured was re-fitted.
 
-Self-test, no recording needed: `python tools/test_measure_rim_fringe.py` (capsule geometry; a split confined to the rim is
+Self-test, no recording needed: `python tools/test_measure_rim_fringe.py` (capsule geometry, also for a lens near the image edge; the core edge count; a split confined to the rim is
 invisible in the core figure and visible in the plain under-lens figure).
 
 ## Reproduce

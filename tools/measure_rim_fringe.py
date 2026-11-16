@@ -217,7 +217,7 @@ def static_hues(name, eps, end, crop, thr):
     return b | np.roll(b, 1) | np.roll(b, -1)
 
 
-def measure(x, thr, rng, excl=None, lens=None):
+def measure(x, thr, rng, excl=None, lens=None, lens_full=None):
     m, h, c = fringe_mask(x, thr)
     if excl is not None and excl.any():
         m &= ~excl[np.clip((h / 15).astype(int), 0, 23)]
@@ -230,7 +230,8 @@ def measure(x, thr, rng, excl=None, lens=None):
         extra = dict(rb_in=ri, rb_out=ro, rb_in_n=ni, rb_out_n=no, rb_core=np.nan, rb_core_n=0)
         if CORE_RIM > 0:
             # Only edges well inside the lens outline (#101 item 88 follow-up): the rim is not page content.
-            rc, nc = rb_stats(x, rng, None, True, (lens[0], lens[1], LENS_ROWS[0] - Y0, LENS_ROWS[1] - Y0, CORE_RIM))
+            # The capsule keeps the unclipped bounds: clipping them near an image edge would change its shape.
+            rc, nc = rb_stats(x, rng, None, True, (lens_full[0], lens_full[1], LENS_ROWS[0] - Y0, LENS_ROWS[1] - Y0, CORE_RIM))
             extra.update(rb_core=rc, rb_core_n=nc)
     if n == 0: return dict(n=0, E=0.0, C=0.0, warm=np.nan, width=0.0, rb=rb_offset(x, rng), **extra)
     cc = c[m]; hh = h[m]
@@ -282,12 +283,13 @@ def series(name, sub, thr, ours420=False):
         # Hues the page itself shows in this frame (either source) are not counted as fringe: red missed-call
         # names, coloured avatars magnified under a lens would otherwise read as dispersion.
         excl = content_hues(a[:Y0 - 10], thr) | content_hues(b[:Y0 - 10], thr) | static
-        lens = None
+        lens = lens_full = None
         if CONTENT_SPLIT and tr is not None and tr[j, 1] > 0:
             # Clipped to the scored region explicitly: a lens near an end must not count columns that are not there.
             lens = (max(0, int(tr[j, 1] - LENS_HALF)), min(X1 - 1, int(tr[j, 1] + LENS_HALF)))
+            lens_full = (int(tr[j, 1] - LENS_HALF), int(tr[j, 1] + LENS_HALF))
             if lens[1] <= lens[0]: lens = None
-        mi = measure(a[Y0:Y1, :X1], thr, rng_i, excl, lens); mo = measure(b[Y0:Y1, :X1], thr, rng_o, excl, lens)
+        mi = measure(a[Y0:Y1, :X1], thr, rng_i, excl, lens, lens_full); mo = measure(b[Y0:Y1, :X1], thr, rng_o, excl, lens, lens_full)
         rows.append(dict(t=t, v=v, excl=int(excl.sum()), **{'i_' + k: x for k, x in mi.items()}, **{'o_' + k: x for k, x in mo.items()}))
     return rows, eps
 
@@ -329,6 +331,14 @@ def q(a, f='+.3f'):
     return f"{np.median(a):{f}} (IQR {np.percentile(a, 25):{f}}..{np.percentile(a, 75):{f}}, n={len(a)})"
 
 
+def core_summary(rows, s):
+    """(shift summary, median edge count) over the frames that have a finite core estimate: the count describes the
+    same frames as the shift, not the ones q() drops."""
+    ok = [r for r in rows if np.isfinite(r[s + '_rb_core'])]
+    if not ok: return 'n=0', 0.0
+    return q([r[s + '_rb_core'] for r in ok], '.2f'), float(np.median([r[s + '_rb_core_n'] for r in ok]))
+
+
 def report(name, rows, eps):
     base, per = phases(rows, eps)
     print(f"\n== {name}: {len(rows)} paired frames, {len(eps)} touches; rest n p99 iOS {base['i_rest99']:.0f} ours {base['o_rest99']:.0f}")
@@ -350,8 +360,9 @@ def report(name, rows, eps):
                       f"under the lens {q([r[s + '_rb_in'] for r in sel], '.2f')} px on {np.median([r[s + '_rb_in_n'] for r in sel]):.0f} edges, "
                       f"away from it {q([r[s + '_rb_out'] for r in sel], '.2f')} px on {np.median([r[s + '_rb_out_n'] for r in sel]):.0f} edges")
                 if CORE_RIM > 0:
+                    cs, cn = core_summary(sel, s)
                     print(f"  {lab} content split R-B p90, {lab2}: core, {CORE_RIM:g} px or more inside the lens outline "
-                          f"{q([r[s + '_rb_core'] for r in sel], '.2f')} px on {np.median([r[s + '_rb_core_n'] for r in sel]):.0f} edges")
+                          f"{cs} px on {cn:.0f} edges")
     v = np.array([r['v'] for r in rows], float)
     if np.isfinite(v).any():
         for lo, hi in ((0, 50), (50, 400), (400, 1500), (1500, 1e9)):
