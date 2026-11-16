@@ -16,9 +16,13 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   Tint 50 is measured: tints between 0 and 100 are an authored blend toward the earlier fit until #208. Colour stays on
   the earlier model until #201, the rim band is #202 and the tab bar keeps its earlier fit until #203. New public
   `GlassStyle.detailLift` (c, default 0) and `GlassStyle.toneCurve` (the dark tone's bow, default 0); the 1.0 constructor and
-  `copy` stay binary-compatible as hidden overloads. Pixel 7 (Android 17, 90 Hz), main against this branch, six rounds each:
-  90 fps held, ghost-scroll frames in 12 s 1112 against 1100 (light) and 1098 against 1099 (dark), calibration-screen p90 31.8
-  against 30.0 ms; the captures show stepped copies under a card on main and one soft copy here. docs/1 replay: REPLAY_RESULT.
+  `copy` stay binary-compatible as hidden overloads. Pixel 7 (Android 17, 90 Hz), main against this branch (8155507a, six
+  rounds each): 90 fps held, ghost-scroll frames in 12 s 1112 against 1100 (light) and 1098 against 1099 (dark),
+  calibration-screen p90 31.8 against 30.0 ms; on the final commit the tab bar is unchanged (p50 13.5-15.5 against 13.8-16.4 ms,
+  GPU p50 9.1-10.1 against 9.6-10.4); the captures show stepped copies under a card on main and one soft copy here.
+  docs/1 replay against main on the same GPU: every
+  difference is inside glass and at most 7 levels (95% of the changed pixels in the search button, which uses Regular glass;
+  3.8% the lens, 1.3% the bar), and the tab bar's track is unchanged (45.4 px rms on both).
   Ports updated and checked: Skia, npm canvas engine, React Native, Qt, Unity, .NET; the Flutter Dart port is not compiled
   (no toolchain here); the npm HTML/CSS engine and `ports/web` are not ported.
   Default look changed: Regular glass everywhere it is used (`Glass.Regular`, `GlassStyle.Regular`, `inApp`, `toolbar`, the
