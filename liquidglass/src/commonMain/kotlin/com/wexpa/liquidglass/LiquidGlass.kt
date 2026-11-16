@@ -625,6 +625,9 @@ internal fun Modifier.liquidGlassCore(
                         softDetail = style.softDetail.coerceIn(0f, 1f),
                         detailLift = style.detailLift.coerceIn(-1f, 1f),
                         toneCurve = style.toneCurve,
+                        // The four-tap cross is the measured detail kernel at the lab reach; at a wider reach it would draw
+                        // four displaced copies, so it is chosen by the reach in dp, never by a pixel threshold.
+                        detailCross = if (style.blurRadius > 0.dp && style.blurRadius <= GlassMaterial.labDetailReach) 1f else 0f,
                         restMap = style.restMap.uniform,
                         body = body?.let {
                             floatArrayOf(
@@ -1387,6 +1390,8 @@ internal data class GlassUniforms(
     val detailLift: Float = 0f,
     /** [GlassStyle.toneCurve]. */
     val toneCurve: Float = 0f,
+    /** 1 the four-tap detail kernel, chosen from [GlassStyle.blurRadius] (see `uDetailCross`). */
+    val detailCross: Float = 0f,
     /** Resting-corner source map: 0 the legacy map, 1 the measured table ([GlassRestMap]). */
     val restMap: Float = 0f,
     /** V3 body: left centre x, right centre x, left radius, right radius, in the centred frame. */
@@ -1524,7 +1529,7 @@ internal data class GlassUniforms(
             heldMagnification == other.heldMagnification && heldGlow == other.heldGlow &&
             heldGlowReach == other.heldGlowReach && foldCorners == other.foldCorners &&
             rimMirror == other.rimMirror && rimMirrorGain == other.rimMirrorGain &&
-            heldEdgeRecovery == other.heldEdgeRecovery && heldEdgeTone == other.heldEdgeTone && softDetail == other.softDetail && detailLift == other.detailLift && toneCurve == other.toneCurve && heldGlowFloor == other.heldGlowFloor &&
+            heldEdgeRecovery == other.heldEdgeRecovery && heldEdgeTone == other.heldEdgeTone && softDetail == other.softDetail && detailLift == other.detailLift && toneCurve == other.toneCurve && detailCross == other.detailCross && heldGlowFloor == other.heldGlowFloor &&
             restMap == other.restMap &&
             body.contentEquals(other.body) && bodyY == other.bodyY && bodyKind == other.bodyKind &&
             poseA.contentEquals(other.poseA) && poseAInv.contentEquals(other.poseAInv) &&

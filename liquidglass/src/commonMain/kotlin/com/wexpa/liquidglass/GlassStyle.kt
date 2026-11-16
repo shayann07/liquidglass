@@ -829,7 +829,9 @@ data class GlassStyle(
          */
         private fun GlassStyle.towardLab(dark: Boolean, tintAmount: Float): GlassStyle {
             val w = GlassMaterial.labWeight(tintAmount)
-            if (w <= 0f) return this
+            // The detail reach is set at every tint, not blended: the earlier 0.83 to 3.3 dp reach was fitted inside the
+            // along-axis model the lab replaced, and switching it at the first step off Tint 0 drew a 25-level jump.
+            if (w <= 0f) return copy(blurRadius = GlassMaterial.labDetailReach)
             fun f(a: Float, b: Float) = a + (b - a) * w
             val labTint = (if (dark) Color.Black else Color.White).copy(alpha = GlassMaterial.labOpacity(dark))
             return copy(
@@ -837,8 +839,8 @@ data class GlassStyle(
                 tintLift = f(tintLift, GlassMaterial.labLift(dark)),
                 fineShare = f(fineShare, GlassMaterial.labDetailShare(dark)),
                 wideKernel = lerp(wideKernel, GlassMaterial.labWideKernel, w),
-                // Held, not blended: the shader draws D with four taps and no centre whenever detailLift is set, and
-                // a wider reach would draw four displaced copies.
+                // Held, not blended: at this reach the host picks the four-tap detail kernel (uDetailCross), and a
+                // wider reach would draw four displaced copies.
                 blurRadius = GlassMaterial.labDetailReach,
                 detailLift = GlassMaterial.labDetailLift(dark) * w,
                 toneCurve = GlassMaterial.labToneCurve(dark) * w,

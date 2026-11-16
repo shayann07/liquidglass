@@ -172,6 +172,7 @@ internal object GlassEndpointRender {
         pb.uniform("uFineShare", 1f)
         pb.uniform("uDetailLift", 0f)
         pb.uniform("uToneCurve", 0f)
+        pb.uniform("uDetailCross", 0f)
         pb.uniform("uWideKernel", 0f)
         pb.uniform("uLift", 0f)
         pb.uniform("uLiftAdapt", 0f)

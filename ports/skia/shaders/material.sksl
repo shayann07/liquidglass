@@ -42,6 +42,7 @@ uniform float   uWideScale;    // scale of that copy (0.25)
 uniform float   uFineShare;    // the detail share k in lin = B + k (D - B) + c |D - B| (GlassStyle.fineShare)
 uniform float   uDetailLift;   // the one-sided term c: + light glass, - dark glass (GlassStyle.detailLift)
 uniform float   uToneCurve;    // the tone curve's bow: col += uToneCurve x (1 - x) per channel (GlassStyle.toneCurve)
+uniform float   uDetailCross;  // 1 the measured four-tap detail copy, 0 the scatter; the host sets it from the reach (at most 1/3 dp)
 uniform float   uWideKernel;   // px sigma of the wide kernel; also the fine term's spread across the element
 uniform float   uLift;         // fixed luminance lift after the tint (the dark material's 35/255)
 uniform float   uLiftAdapt;    // how far the lift falls with the wide-kernel luma (system backdrops: 0.864)
@@ -1021,7 +1022,7 @@ half4 main(float2 coord) {
     // At Tinted the fine share is 0 and the fine scatter would be thrown away: skip it.
     half3 soft = (uWideStrip >= 1.0 && uFineShare < 0.02)
         ? sharp
-        : ((uDetailLift != 0.0) ? detailAt(base + push, uBlur * mat * e) : blurredAt(base + push, uBlur * mat * e, rot));
+        : ((uDetailCross >= 0.5) ? detailAt(base + push, uBlur * mat * e) : blurredAt(base + push, uBlur * mat * e, rot));
     float rimSharp = (1.0 - e) * (1.0 - e);
     half3 bg;
     if (uWideKernel * mat >= 2.0) {

@@ -87,6 +87,8 @@ internal object GlassRender {
         /** [GlassStyle.detailLift] and [GlassStyle.toneCurve]. */
         detailLift: Float = 0f,
         toneCurve: Float = 0f,
+        /** `uDetailCross`: the four-tap detail kernel, which the host picks from the reach. */
+        detailCross: Float = if (detailLift != 0f) 1f else 0f,
         lift: Float = 0f,
         liftAdapt: Float = 0f,
         bevel: Float = 2f,
@@ -222,6 +224,7 @@ internal object GlassRender {
         b.uniform("uSoftDetail", softDetail)
         b.uniform("uDetailLift", detailLift)
         b.uniform("uToneCurve", toneCurve)
+        b.uniform("uDetailCross", detailCross)
         b.uniform("uWideKernel", wide)
         b.uniform("uLift", lift)
         b.uniform("uLiftAdapt", liftAdapt)

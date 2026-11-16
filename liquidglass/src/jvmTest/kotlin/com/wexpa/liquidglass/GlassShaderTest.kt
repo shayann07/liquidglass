@@ -33,7 +33,7 @@ class GlassShaderTest {
             .toSet()
 
         val setByHost = setOf(
-            "uHeldEdgeRecovery", "uHeldEdgeTone", "uHeldGlowFloor", "uSoftDetail", "uDetailLift", "uToneCurve", "uHeldGlowReach", "uFoldCorners", "uRimMirror", "uRimMirrorGain",
+            "uHeldEdgeRecovery", "uHeldEdgeTone", "uHeldGlowFloor", "uSoftDetail", "uDetailLift", "uToneCurve", "uDetailCross", "uHeldGlowReach", "uFoldCorners", "uRimMirror", "uRimMirrorGain",
             "uSize", "uRadii", "uRefractBand", "uBandBottom", "uBackdrop", "uAberration", "uBase", "uBlur", "uIor", "uBevelPower", "uMirror",
             "uFresnel", "uHiChroma", "uLegibility", "uCornerPower", "uTouch", "uTouchAmt",
             "uMaterialize", "uFrost", "uContrast", "uDebugCoverage", "uShapeKind", "uFieldRange", "uFieldScale", "uRefractDepth", "uBevel",

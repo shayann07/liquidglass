@@ -1,5 +1,6 @@
 package com.wexpa.liquidglass
 
+import androidx.compose.ui.unit.dp
 import kotlin.math.abs
 import kotlin.math.sqrt
 import kotlin.test.Test
@@ -162,6 +163,21 @@ class GlassLabModelTest {
             GlassLabScene(GlassStyle.toolbar(dark = dark, tintAmount = tint)).use { s ->
                 val turns = s.stemTurningPoints()
                 check(turns <= 7, "${if (dark) "dark" else "light"} tint $tint text stem: $turns turning points")
+            }
+        }
+        assertTrue(failures.isEmpty(), failures.joinToString("; "))
+    }
+
+    @Test
+    fun morphKeepsOneDetailCopy() {
+        // GlassMorph lerps the reach with the rest of the style; past the lab reach the host must leave the four-tap
+        // kernel, or a morph toward a wider-reach style draws four displaced copies (#190's ghosts) halfway.
+        for (dark in listOf(true, false)) for (fraction in listOf(0.25f, 0.5f, 0.75f)) {
+            val start = GlassStyle.toolbar(dark = dark)
+            val stop = start.copy(blurRadius = 1.5.dp, detailLift = 0f, toneCurve = 0f)
+            GlassLabScene(lerpGlassStyle(start, stop, fraction)).use { s ->
+                val turns = s.stemTurningPoints()
+                check(turns <= 7, "${if (dark) "dark" else "light"} morph $fraction text stem: $turns turning points")
             }
         }
         assertTrue(failures.isEmpty(), failures.joinToString("; "))
