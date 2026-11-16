@@ -140,7 +140,8 @@ research remains available; this page identifies which later changes supersede i
   held and dragged lens dims the bar's upper rim band 5-6.5 levels more than ours and its shadow is 6 lighter; the
   replay and the recording align at 35.7 s, not the 36.0 s the script was cut with. Replays record which script they came
   from and the fringe scorer refuses a mismatch; `--content-split` adds a first page-edge colour-split figure under the lens
-  (ours 3.7 px, iOS 0.6; not yet separated from the lens's own rim). Desktop replay, no optics changed:
+  (ours 3.7 px, iOS 0.6). `--content-core 40` (16 November) leaves out the rim band: ours 5.3-5.6 px against iOS 1.1-1.2 on
+  16-19 edges (loose), so a split persists away from the rim (not a subtraction from the whole-lens figure: different edges). Desktop replay, no optics changed:
   [record](https://github.com/shayann07/liquidglass/blob/main/review/atlas/scoring-tools-2026-11-07/README.md).
 
 ## First tap after install (20 October, #71)

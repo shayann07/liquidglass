@@ -10,6 +10,14 @@
   freeze); gated engineering yes, with review (the #104 trap handled correctly, the speedup reproduced, one silent
   fallback missed).
 
+## 16 November 2026 - #101 item 88 follow-up (Claude)
+
+- `feat/101-scoring-tools`: `measure_rim_fringe.py --content-core PX` scores page-edge colour split only at edges at least PX px
+  inside the lens capsule. IMG_6756 vs `n6`: ours 5.60 / 5.27 px (still / moving, 50 / 40 edges), iOS 1.09 / 1.24 (16 / 19 edges, IQR
+  0.46-4.9): a split persists away from the rim (not a subtraction from the whole-lens figure). Review fixes 17 Nov: capsule keeps
+  unclipped bounds near the image edge, core edge count over frames with an estimate. New `tools/test_measure_rim_fringe.py` (5 tests, synthetic frames). Item 87 on
+  IMG_7048 not done: no input script exists for it. Tooling only; evidence in `review/atlas/scoring-tools-2026-11-07`.
+
 ## 15 November 2026 - #78 PR 1: fewer glass programs (Claude)
 
 - `perf/78-one-glass-program`: the path-field image and the placeholder field are declared premultiplied (alpha is always 255),
