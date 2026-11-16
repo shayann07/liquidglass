@@ -29,6 +29,9 @@ import org.jetbrains.skia.ImageInfo
  * uniforms, pad and wide kernel, not a hand-built uniform set. The default geometry is the place of
  * Safari's address pill in the 16 November lab stills (#199): 632 x 143 px, capsule, its interior
  * zones at 104-147 and 502-537 px from its left end and 38-108 px from its top.
+ *
+ * With [container] the same pill is the one member of a [LiquidGlassContainer] filling the scene, so
+ * the merged-glass shader and its host draw the same style at the same place.
  */
 internal class GlassLabScene(
     style: GlassStyle,
@@ -38,6 +41,7 @@ internal class GlassLabScene(
     val pillY: Int = 168,
     val pillW: Int = 632,
     val pillH: Int = 143,
+    val container: Boolean = false,
 ) : AutoCloseable {
     /** The backdrop: a ground colour, then rectangles (x, y, w, h, argb) of every other colour over it. */
     private var ground by mutableStateOf(0)
@@ -59,11 +63,14 @@ internal class GlassLabScene(
                     i += 5
                 }
             })
-            Box(
-                Modifier.offset { IntOffset(pillX, pillY) }
-                    .size((pillW / 3f).dp, (pillH / 3f).dp)
-                    .liquidGlass(glass, RoundedCornerShape(50), style),
-            )
+            val pill = Modifier.offset { IntOffset(pillX, pillY) }.size((pillW / 3f).dp, (pillH / 3f).dp)
+            if (container) {
+                LiquidGlassContainer(glass, Modifier.fillMaxSize(), style = style) {
+                    Box(Modifier.fillMaxSize()) { Box(pill.glassMember(RoundedCornerShape(50))) }
+                }
+            } else {
+                Box(pill.liquidGlass(glass, RoundedCornerShape(50), style))
+            }
         }
     }
 
@@ -75,16 +82,55 @@ internal class GlassLabScene(
     fun render(argb: IntArray): IntArray {
         ground = argb.asList().groupingBy { it }.eachCount().maxBy { it.value }.key
         backdrop = rectsOf(argb, width, height, ground)
-        // The first frame records the new backdrop; the second draws the glass over that recording.
-        scene.render(time); time += 16_000_000L
+        // The first frame records the new backdrop; the second draws the glass over that recording. A container
+        // learns where its members are only after its first layout, so it takes one frame more.
+        repeat(if (container) 2 else 1) { scene.render(time); time += 16_000_000L }
         val frame = scene.render(time); time += 16_000_000L
         return pixelsOf(frame)
     }
 
     override fun close() = scene.close()
 
+    /**
+     * A 30 px black stem (the stem of 110 pt bold text at 3x) on the #190 probe's off-white page at the pill's centre:
+     * turning points of the row-averaged profile across the interior. A single soft stem with the detail term's own
+     * halo has at most 7; main's five-tap along-axis average gave 15 (fix/190-axis-comb).
+     */
+    fun stemTurningPoints(): Int = turningPoints(stemProfile())
+
+    /** The row-averaged luma across the interior over that stem, from 100 px inside the pill's left end to 100 px inside its right. */
+    fun stemProfile(): DoubleArray {
+        val centreX = pillX + pillW / 2
+        val out = render(IntArray(width * height) { i ->
+            if ((i % width) - centreX in -15..14) 0xFF000000.toInt() else 0xFFF3F0E8.toInt()
+        })
+        return DoubleArray(pillW - 200) { i ->
+            val x = pillX + 100 + i
+            zoneRows.sumOf { y -> GlassRender.luma(out[y * width + x]) } / zoneRows.count()
+        }
+    }
+
     companion object {
         fun grey(v: Int): Int = (0xFF shl 24) or (v shl 16) or (v shl 8) or v
+
+        /** Turning points of at least [amplitude] levels (the probe of `GlassAxisDetailRenderTest`, abandoned #190 branch). */
+        fun turningPoints(p: DoubleArray, amplitude: Double = 4.0): Int {
+            var count = 0
+            var last = p[0]
+            var direction = 0
+            for (v in p) {
+                if (direction >= 0 && v < last - amplitude) {
+                    if (direction > 0) count++
+                    direction = -1; last = v
+                } else if (direction <= 0 && v > last + amplitude) {
+                    if (direction < 0) count++
+                    direction = 1; last = v
+                } else if ((direction > 0 && v > last) || (direction < 0 && v < last)) {
+                    last = v
+                }
+            }
+            return count
+        }
 
         /** Runs of each non-[ground] colour along a row, repeated rows merged into one band: (x, y, w, h, argb). */
         fun rectsOf(argb: IntArray, w: Int, h: Int, ground: Int): IntArray {

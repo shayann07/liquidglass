@@ -134,6 +134,11 @@ function uniforms(m, width, height, density) {
     var w = labWeight(tintAmount);
     v.uBlur = [LAB_DETAIL_REACH * density];
     v.uDetailCross = [1];
+    // The earlier fit's values, written at every tint: GlassEffect.qml keeps a uniform it is not handed, so a move
+    // from Tint 50 to 0 or 100 would otherwise keep the lab's lift, bow and soft detail.
+    v.uDetailLift = [0];
+    v.uToneCurve = [0];
+    v.uSoftDetail = [0];
     if (w > 0) {
         var mix = function (a, b) { return a + (b - a) * w; };
         var labGrey = m.dark ? 0 : 1;

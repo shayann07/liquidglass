@@ -138,6 +138,7 @@ class GlassContainerShaderTest {
             "uBevel", "uLight", "uSpecular", "uSpecularPow", "uFresnel", "uHiChroma", "uTint",
             "uInnerShadow", "uAdaptive", "uCounterLight", "uEdgeLight", "uBevelPeak", "uEdgeShadow", "uOuterContour", "uRimSoft", "uTintAbsorb",
             "uProfile", "uFormation", "uHeldLens", "uRestMap", "uWideStrip", "uWideScale", "uFineShare", "uWideKernel", "uLift", "uLiftAdapt",
+            "uDetailLift", "uToneCurve", "uDetailCross",
         )
 
         val unset = declared - setByHost

@@ -138,23 +138,6 @@ class GlassLabModelTest {
         assertTrue(failures.isEmpty(), "${failures.size} lab gates failed:\n" + failures.joinToString("\n"))
     }
 
-    /**
-     * A 30 px black stem (the stem of 110 pt bold text at 3x) on the #190 probe's off-white page at the pill's centre:
-     * turning points of the row-averaged profile across the interior. A single soft stem with the detail term's own
-     * halo has at most 7; main's five-tap along-axis average gave 15 (fix/190-axis-comb).
-     */
-    private fun GlassLabScene.stemTurningPoints(): Int {
-        val centreX = pillX + pillW / 2
-        val out = render(IntArray(width * height) { i ->
-            if ((i % width) - centreX in -15..14) 0xFF000000.toInt() else 0xFFF3F0E8.toInt()
-        })
-        val profile = DoubleArray(pillW - 200) { i ->
-            val x = pillX + 100 + i
-            zoneRows.sumOf { y -> GlassRender.luma(out[y * width + x]) } / zoneRows.count()
-        }
-        return turningPoints(profile)
-    }
-
     @Test
     fun noGhostCopiesAtOtherTints() {
         // Between the measured Tint 50 and the earlier fit at 0 and 100 the material is blended (authored); the
@@ -225,24 +208,5 @@ class GlassLabModelTest {
             }
         }
         assertTrue(failures.isEmpty(), failures.joinToString("; "))
-    }
-
-    /** Turning points of at least [amplitude] levels (the probe of `GlassAxisDetailRenderTest`, abandoned #190 branch). */
-    private fun turningPoints(p: DoubleArray, amplitude: Double = 4.0): Int {
-        var count = 0
-        var last = p[0]
-        var direction = 0
-        for (v in p) {
-            if (direction >= 0 && v < last - amplitude) {
-                if (direction > 0) count++
-                direction = -1; last = v
-            } else if (direction <= 0 && v > last + amplitude) {
-                if (direction < 0) count++
-                direction = 1; last = v
-            } else if ((direction > 0 && v > last) || (direction < 0 && v < last)) {
-                last = v
-            }
-        }
-        return count
     }
 }

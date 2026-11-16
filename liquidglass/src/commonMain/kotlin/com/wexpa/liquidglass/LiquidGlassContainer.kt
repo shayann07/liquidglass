@@ -171,6 +171,10 @@ internal fun LiquidGlassContainer(
                             wideStrip = if (useWide) paddedSize.height.toFloat() else 0f,
                             wideScale = wideScale,
                             fineShare = style.fineShare,
+                            detailLift = style.detailLift.coerceIn(-1f, 1f),
+                            toneCurve = style.toneCurve,
+                            // The panel's rule (Modifier.liquidGlass): the four-tap kernel only at the lab reach.
+                            detailCross = if (GlassMaterial.usesDetailCross(style.blurRadius)) 1f else 0f,
                             tintLift = style.tintLift,
                             liftAdapt = style.liftAdaptivity,
                             backdropSigma = if (style.backdropSigma.isSpecified) style.backdropSigma.toPx() else 0f,
@@ -281,6 +285,12 @@ internal class GlassContainerUniforms(
     val wideStrip: Float = 0f,
     val wideScale: Float = 0.25f,
     val fineShare: Float = 1f,
+    /** [GlassStyle.detailLift]. */
+    val detailLift: Float = 0f,
+    /** [GlassStyle.toneCurve]. */
+    val toneCurve: Float = 0f,
+    /** 1 the four-tap detail kernel ([GlassMaterial.usesDetailCross]), 0 the scatter. */
+    val detailCross: Float = 0f,
     val tintLift: Float = 0f,
     val liftAdapt: Float = 0f,
     /** Gaussian sigma of the pre-blur, px; 0 means use [backdropBlur] as the platform radius. */
