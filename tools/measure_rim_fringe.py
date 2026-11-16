@@ -46,6 +46,8 @@ import replay_meta
 ALLOW_SCRIPT_MISMATCH = False
 CONTENT_SPLIT = False
 LENS_HALF = 165  # px: half the held lens's width (about 330 px in scene pixels), for --content-split
+LENS_ROWS = (436, 655)  # the held lens's top and bottom rows in scene pixels (219 px tall, both sources within 3 px)
+CORE_RIM = 0.0  # px: --content-core keeps under-lens edges at least this far inside the lens outline (0 = off)
 
 VIDEO = {'docs1': 'docs/1.MP4', 'docs2': 'docs/2.MP4',
          'IMG_6756': 'research/datasets/ios27-phone/bubble/IMG_6756.MP4',
@@ -147,16 +149,30 @@ def rb_offset(x, rng, xr=None, inside=True):
     return rb_stats(x, rng, xr, inside)[0]
 
 
-def rb_stats(x, rng, xr=None, inside=True):
+def capsule_depth(xs, ys, x0, x1, row0, row1):
+    """How far (px) each point is inside the lens outline, negative outside. The held lens is a capsule: columns
+    x0..x1 wide, rows row0..row1 tall, with semicircular ends of radius half its height."""
+    r = (row1 - row0) / 2.0; cy = (row0 + row1) / 2.0
+    a, b = x0 + r, x1 - r  # the capsule's centre segment
+    cx = np.clip(np.asarray(xs, float), a, b) if b > a else np.full(len(xs), (x0 + x1) / 2.0)
+    return r - np.hypot(np.asarray(xs, float) - cx, np.asarray(ys, float) - cy)
+
+
+def rb_stats(x, rng, xr=None, inside=True, core=None):
     """(p90 of the R-B shift at strong edges, the number of edges that gave a shift).
-    `xr` = (x0, x1) keeps only edges inside (or outside) that column range. The value is NaN, with its count,
-    when fewer than 10 edges gave one: a median over frames that includes it would mean nothing."""
+    `xr` = (x0, x1) keeps only edges inside (or outside) that column range. `core` = (x0, x1, row0, row1, rim)
+    keeps only edges at least `rim` px inside that lens capsule (rows relative to `x`), so the lens's own rim
+    is not counted as page content. The value is NaN, with its count, when fewer than 10 edges gave one: a
+    median over frames that includes it would mean nothing."""
     x = x.astype(np.float32); g = x[..., 1]
     gx = np.abs(np.diff(g, axis=1))[:-1]; gy = np.abs(np.diff(g, axis=0))[:, :-1]
     gm = np.maximum(gx, gy); gm[:12] = 0; gm[-12:] = 0; gm[:, :12] = 0; gm[:, -12:] = 0
     ys, xs = np.nonzero(gm > 30)
     if xr is not None:
         keep = (xs >= xr[0]) & (xs <= xr[1]) if inside else ~((xs >= xr[0]) & (xs <= xr[1]))
+        ys, xs = ys[keep], xs[keep]
+    if core is not None:
+        keep = capsule_depth(xs, ys, *core[:4]) >= core[4]
         ys, xs = ys[keep], xs[keep]
     if len(ys) == 0: return np.nan, 0
     if len(ys) > 400:
@@ -206,12 +222,16 @@ def measure(x, thr, rng, excl=None, lens=None):
     if excl is not None and excl.any():
         m &= ~excl[np.clip((h / 15).astype(int), 0, 23)]
     n = int(m.sum())
-    extra = dict(rb_in=np.nan, rb_out=np.nan, rb_in_n=0, rb_out_n=0) if CONTENT_SPLIT else {}  # every row has the keys
+    extra = dict(rb_in=np.nan, rb_out=np.nan, rb_in_n=0, rb_out_n=0, rb_core=np.nan, rb_core_n=0) if CONTENT_SPLIT else {}  # every row has the keys
     if lens is not None:
         # Content split (#101 item 88): the same R-B shift at the page's own strong edges, under the lens and away from it,
         # with how many edges each value rests on.
         (ri, ni), (ro, no) = rb_stats(x, rng, lens, True), rb_stats(x, rng, lens, False)
-        extra = dict(rb_in=ri, rb_out=ro, rb_in_n=ni, rb_out_n=no)
+        extra = dict(rb_in=ri, rb_out=ro, rb_in_n=ni, rb_out_n=no, rb_core=np.nan, rb_core_n=0)
+        if CORE_RIM > 0:
+            # Only edges well inside the lens outline (#101 item 88 follow-up): the rim is not page content.
+            rc, nc = rb_stats(x, rng, None, True, (lens[0], lens[1], LENS_ROWS[0] - Y0, LENS_ROWS[1] - Y0, CORE_RIM))
+            extra.update(rb_core=rc, rb_core_n=nc)
     if n == 0: return dict(n=0, E=0.0, C=0.0, warm=np.nan, width=0.0, rb=rb_offset(x, rng), **extra)
     cc = c[m]; hh = h[m]
     lab, k = ndi.label(m)
@@ -329,6 +349,9 @@ def report(name, rows, eps):
                 print(f"  {lab} content split R-B p90, {lab2} ({len(sel)} frames with an iOS estimate): "
                       f"under the lens {q([r[s + '_rb_in'] for r in sel], '.2f')} px on {np.median([r[s + '_rb_in_n'] for r in sel]):.0f} edges, "
                       f"away from it {q([r[s + '_rb_out'] for r in sel], '.2f')} px on {np.median([r[s + '_rb_out_n'] for r in sel]):.0f} edges")
+                if CORE_RIM > 0:
+                    print(f"  {lab} content split R-B p90, {lab2}: core, {CORE_RIM:g} px or more inside the lens outline "
+                          f"{q([r[s + '_rb_core'] for r in sel], '.2f')} px on {np.median([r[s + '_rb_core_n'] for r in sel]):.0f} edges")
     v = np.array([r['v'] for r in rows], float)
     if np.isfinite(v).any():
         for lo, hi in ((0, 50), (50, 400), (400, 1500), (1500, 1e9)):
@@ -358,8 +381,9 @@ if __name__ == '__main__':
     ap.add_argument('--ref', default=REF); ap.add_argument('--csv', action='store_true')
     ap.add_argument('--ours420', action='store_true', help='control: pass our frames through 4:2:0 chroma sampling')
     ap.add_argument('--content-split', action='store_true', help='also report the R-B shift at page edges under and away from the lens (#101 item 88); needs track.csv')
+    ap.add_argument('--content-core', type=float, default=0, metavar='PX', help='with --content-split, also score only the under-lens edges at least PX px inside the lens outline (the rim excluded; 40 clears the rim band)')
     ap.add_argument('--allow-script-mismatch', action='store_true', help='score a replay rendered from a different script than the recording uses')
-    a = ap.parse_args(); REF = a.ref; ALLOW_SCRIPT_MISMATCH = a.allow_script_mismatch; CONTENT_SPLIT = a.content_split
+    a = ap.parse_args(); REF = a.ref; ALLOW_SCRIPT_MISMATCH = a.allow_script_mismatch; CONTENT_SPLIT = a.content_split; CORE_RIM = a.content_core if a.content_split else 0
     for name, sub in zip(a.pairs[::2], a.pairs[1::2]):
         rows, eps = series(name, sub, a.thr, a.ours420)
         if a.csv:

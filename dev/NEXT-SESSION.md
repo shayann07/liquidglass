@@ -41,7 +41,7 @@ Merged: #180 (#81), #181 (#78), #182 (#101). No Pixel check has happened for any
    new opt-in uniform through every port. Owner's call: material or search accessory only.
 4. **#104:** optional retune, `edgeShadow` 0.12 to about 0.07 with `capEdgeShadow` raised to keep the end caps' 178-182; the bar geometry
    offset (~2 px) is a scene difference.
-5. **#101 follow-ups:** item 88 restricted to edges away from the lens rim; item 87 on a second light recording.
+5. **#101 follow-ups:** item 88 is restricted to edges away from the rim (16 Nov, `--content-core 40`: ours 5.3-5.6 px against iOS 1.1-1.2, so the page split under our lens is not the rim; branch `feat/101-scoring-tools`, unpushed). Open: item 87 on IMG_7048, which needs an input script inferred from the recording (`events.py` / `track.py`), and why the page through the lens splits (refraction dispersion against an added fringe).
 6. **#81:** device timing of the field build on the Pixel.
 
 Device checks owed (the owner's lead verifies on the Pixel): none of today's merged PRs changes optics; optional: record the light hold and drag

@@ -92,11 +92,38 @@ Limits: it needs `track.csv` (IMG_6756, JGEY2190, LOLL8185); the lens width is f
 a strong edge under a lens that is not content (the lens's own rim) also counts, so read the under-lens figure as
 "page edges plus the rim", with the away-from-lens figure as the page's own baseline.
 
+## 88 follow-up: edges away from the lens rim (16 November)
+
+`--content-core PX` (with `--content-split`) adds a third figure: only the under-lens edges at least PX px inside the
+lens outline, taken as a capsule (330 px wide, rows 436-655 in scene pixels, the held lens in both sources). With 40 px
+the rim band and its 12 px estimator window are out. Same recording, replay and script as above (IMG_6756 against `n6`,
+`script3.txt`; main replay rendered before this change, so the scorer is the only difference), run on 16 November.
+R-B p90 at strong page edges, median over frames (IQR), px, with the median number of edges it rests on:
+
+| Frames | iOS under the lens | iOS core | ours under the lens | ours core |
+| :-- | --: | --: | --: | --: |
+| lens still, 487 | 0.62 (0.48-0.88), 109 edges | 1.13 (0.49-4.64), 15 edges | 3.82 (3.70-3.98), 152 edges | **5.60** (5.15-6.00), 50 edges |
+| lens moving, 294 | 0.60 (0.48-0.95), 155 edges | 1.24 (0.49-4.90), 18 edges | 3.66 (3.42-3.85), 158 edges | **5.27** (4.79-6.00), 40 edges |
+
+(The "under the lens" columns reproduce the earlier run within 0.05 px.) **Reading:** the split does not go away when the
+rim is excluded; ours is larger in the core, not smaller (5.3-5.6 px against 3.7-3.8 under the whole lens), so the gap to
+iOS is not the lens's own rim leaking into the page-edge estimate. The page seen through our lens reads about five times
+iOS's channel shift. Confidence: iOS's core figure rests on 15-18 edges per frame and its IQR is wide (0.49-4.9), so its
+level is poorly pinned; ours rests on 40-50 edges and is stable. Fewer edges survive in the core because the lens is magnified
+page with few strong edges; a frame with fewer than 10 gives no value. The capsule is an approximation (a held lens, fixed
+size), and the estimator still cannot say whether the shift comes from dispersion in the refraction or from a colour fringe
+the glass adds; it measures that the page seen through the lens is split, not why. Nothing measured was re-fitted.
+
+Self-test, no recording needed: `python tools/test_measure_rim_fringe.py` (capsule geometry; a split confined to the rim is
+invisible in the core figure and visible in the plain under-lens figure).
+
 ## Reproduce
 
 ```
 tools/reference-replay/render.sh <abs>/hold128.txt <abs>/m101 calm-light     # JAVA_HOME / ANDROID_HOME as for Gradle
 python tools/measure_light_hold.py <abs>/m101 --ref .local/sxs --video research/datasets/ios27-phone/light/IMG_7049.MP4 [--scan-offset]
 python tools/measure_rim_fringe.py IMG_6756 n6 --content-split --ref .local/sxs
+python tools/measure_rim_fringe.py IMG_6756 n6 --content-split --content-core 40 --ref .local/sxs   # adds the core figure
+python tools/test_measure_rim_fringe.py
 python tools/reference-replay/replay_meta.py pair <dir A> <dir B>
 ```

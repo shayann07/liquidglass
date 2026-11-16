@@ -6,6 +6,11 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Scoring tools: `tools/measure_rim_fringe.py --content-split --content-core PX` also scores the page's colour split only at
+  edges well inside the lens outline, so the lens's own rim is not counted (#101 item 88). On IMG_6756 the page seen through our
+  held lens reads 5.3-5.6 px R-B shift at those edges against iOS 1.1-1.2 (iOS rests on 15-18 edges per frame, so its level is
+  loose); the 3.7 px figure under the whole lens was not the rim leaking in. Tooling only, desktop replay.
+  Default look changed: none. [Evidence](review/atlas/scoring-tools-2026-11-07/README.md).
 - Calm taps that land on the first or last tab now meet an end wall: the lens's leading end is pushed back once it passes 0.03 bar heights
   past its resting end (a soft limit, not a clamp: a two-slot tap stays within 0.055), so it stops where iOS's does instead of running 8-10 px past it. The pigment timing is unchanged
   (the tap's appearance reads the spine without the wall), the result does not depend on frame rate, and the wall fades out
