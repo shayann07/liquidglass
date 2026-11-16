@@ -1046,8 +1046,10 @@ vec4 glassMain(vec2 coord) {
     // A soft copy ([GlassStyle.softDetail]) samples its scatter unrotated: the rotation is what
     // turns a sparse kernel's ghosts into grain.
     vec2 rot = (uSoftDetail >= 0.5) ? vec2(1.0, 0.0) : tapRotation(coord);
-    // At Tinted the fine share is 0 and the fine scatter would be thrown away: skip it.
-    vec3 soft = (uWideStrip >= 1.0 && uFineShare < 0.02)
+    // At Tinted the fine share and the one-sided term are both 0 and the fine scatter would be thrown away: skip it.
+    // The one-sided term reads the softened copy too (c |D - B|), so a share of 0 alone does not make it unused; both
+    // take the share's tolerance, so every built-in tint skips exactly where it did.
+    vec3 soft = (uWideStrip >= 1.0 && uFineShare < 0.02 && abs(uDetailLift) < 0.02)
         ? sharp
         : ((uDetailCross >= 0.5) ? detailAt(base + push, uBlur * mat * e) : blurredAt(base + push, uBlur * mat * e, rot));
     float rimSharp = (1.0 - e) * (1.0 - e);
