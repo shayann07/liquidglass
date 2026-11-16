@@ -2280,8 +2280,9 @@ data class GlassTabBarStyle(
         fun Measured(dark: Boolean = true, tintAmount: Float = GlassMaterial.DEFAULT_TINT_AMOUNT): GlassTabBarStyle =
             Dark.copy(
                 // The legacy resting-corner map: the tab bar's caps were scored against the recordings with it
-                // and carry their own cap lens (capFold); toolbar() itself moved to the measured map (#97); the bar keeps the
-                // toolbar's earlier fit, not the #200 lab material: the tab bar moves to that in #203.
+                // and carry their own cap lens (capFold); toolbar() itself moved to the measured map (#97). The bar keeps
+                // the toolbar's earlier style values (tint, detail share, detail reach), not the #200 lab material, until
+                // #203; like every wide-kernel style it no longer has the along-axis detail term (#190).
                 bar = GlassStyle.toolbarEarlier(dark = dark, tintAmount = tintAmount).copy(restMap = GlassRestMap.Legacy),
                 pill = RestingInsetMeasured,
                 lens = HeldLensMeasured,
