@@ -19,8 +19,10 @@ public sealed class GlassPainter : IDisposable
     private readonly SKPaint paint = new();
     private SKImage? source;
     private SKImage? ownedSource;
-    private SKImage? wideImage;
-    private float wideSigma;
+    // Tone images of the current source by wide-kernel sigma, most recent last. Surfaces at different Tint Amounts use
+    // different sigmas (15.5 dp at the default, 10 dp at 0 and 100), so one slot would rebuild on every alternation.
+    private const int WideCacheSize = 4;
+    private readonly List<(float Sigma, SKImage Image)> wideImages = new();
     private bool disposed;
     private static readonly SKSamplingOptions Sampling = new(SKFilterMode.Linear, SKMipmapMode.None);
     private static readonly (float X, float Y)[] DarkOpacity = [(0, .416f), (29, .439f), (50, .451f), (62, .510f), (86, .655f), (100, .737f)];
@@ -44,7 +46,7 @@ public sealed class GlassPainter : IDisposable
             throw new ArgumentException("Supply a live opaque sRGB backdrop image", nameof(image));
         source = image;
         if (!ReferenceEquals(ownedSource, image)) { ownedSource?.Dispose(); ownedSource = null; }
-        wideImage?.Dispose(); wideImage = null;
+        ClearWideImages();
     }
 
     /// <summary>Record host-owned page drawing once for all glass. Exclude glass overlays.
@@ -387,12 +389,29 @@ public sealed class GlassPainter : IDisposable
             using var once = Tone(view, sigma);
             return Compose(view, once, origin, out strip);
         }
-        if (wideImage is null || wideSigma != sigma)
+        return Compose(source!, WideImage(sigma), origin, out strip);
+    }
+
+    /// <summary>The source's tone image at <paramref name="sigma"/>, from a small least-recently-used cache.</summary>
+    private SKImage WideImage(float sigma)
+    {
+        var i = wideImages.FindIndex(e => e.Sigma == sigma);
+        if (i >= 0)
         {
-            wideImage?.Dispose(); wideImage = null;
-            wideImage = Tone(source!, sigma); wideSigma = sigma;
+            var hit = wideImages[i];
+            wideImages.RemoveAt(i); wideImages.Add(hit);
+            return hit.Image;
         }
-        return Compose(source!, wideImage, origin, out strip);
+        var image = Tone(source!, sigma);
+        wideImages.Add((sigma, image));
+        if (wideImages.Count > WideCacheSize) { wideImages[0].Image.Dispose(); wideImages.RemoveAt(0); }
+        return image;
+    }
+
+    private void ClearWideImages()
+    {
+        foreach (var e in wideImages) e.Image.Dispose();
+        wideImages.Clear();
     }
 
     private static SKImage Tone(SKImage image, float sigma)
@@ -461,5 +480,5 @@ public sealed class GlassPainter : IDisposable
         var i = 0; while (i < table.Length - 2 && table[i + 1].X <= x) i++;
         var a = table[i]; var b = table[i + 1]; return a.Y + (b.Y - a.Y) * (x - a.X) / (b.X - a.X);
     }
-    public void Dispose() { if (!disposed) { disposed = true; source = null; ownedSource?.Dispose(); ownedSource = null; wideImage?.Dispose(); wideImage = null; paint.Dispose(); material.Dispose(); contentPass?.Dispose(); } }
+    public void Dispose() { if (!disposed) { disposed = true; source = null; ownedSource?.Dispose(); ownedSource = null; ClearWideImages(); paint.Dispose(); material.Dispose(); contentPass?.Dispose(); } }
 }
