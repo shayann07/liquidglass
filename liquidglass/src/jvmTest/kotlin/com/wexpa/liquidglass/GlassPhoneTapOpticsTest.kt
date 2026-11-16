@@ -159,6 +159,18 @@ class GlassPhoneTapOpticsTest {
             assertTrue(on.maxOf { it.first }<.5f)
             assertEquals(tapMaterials(off,GlassTabBarStyle.Calm(),a,z),on,"$a->$z")
         }
+        // A settled two-slot tap leaves nothing behind: a later one-slot trip with no press (keyboard or host selection)
+        // gets the same material as with the option off.
+        fun afterFormed(spec: GlassPoseSpec): List<GlassStyle> {
+            val b=bar(); val c=GlassPoseController(spec)
+            c.attach(b,null,null); c.snapToRest(0); c.retarget(2)
+            var t=0f
+            while(t<1.2f){t+=1/60f;c.advanceTo(t)}
+            c.retarget(1)
+            return (1..30).map { t+=1/60f; c.advanceTo(t); assertFalse(c.tapFormed)
+                glassSelectorMaterial(GlassTabBarStyle.Calm(),c.formation,c.transitAppearance,0f,0f,c.tapFormed) }
+        }
+        assertEquals(afterFormed(off),afterFormed(GlassPoseSpec.Calm),"one-slot trip after a settled two-slot tap")
         // Light Calm has no transit fold, so its formed tap never switched: unchanged.
         for((a,z) in listOf(0 to 2, 2 to 0))
             assertEquals(tapMaterials(off,GlassTabBarStyle.Calm(dark=false),a,z),

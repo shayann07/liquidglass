@@ -821,6 +821,8 @@ internal class GlassPoseController(
     fun retarget(index: Int) {
         if (index != requestedIndex && mode != GlassPoseMode.Held && mode != GlassPoseMode.Released) {
             tapDistance = abs(bar.centreOf(index.coerceIn(0, max(bar.count - 1, 0))) - pose.cx)
+            // A new trip: it keeps the formed lens only if it forms past half itself.
+            tapFormedLatch = false
         }
         requestedIndex = index
         restIndex = index.coerceIn(0, max(bar.count - 1, 0))
@@ -1219,7 +1221,8 @@ internal class GlassPoseController(
         // A tap that formed the selector past half keeps the formed lens's family until it settles (#70).
         @OptIn(LiquidGlassDiagnosticApi::class)
         val keepFormed = LiquidGlassDiagnostics.tapKeepsFormedLens ?: spec.tapKeepsFormedLens
-        if (!keepFormed || !motionEnabled || mode == GlassPoseMode.Held || mode == GlassPoseMode.Released) {
+        if (!keepFormed || !motionEnabled || mode == GlassPoseMode.Held || mode == GlassPoseMode.Released ||
+            (transit.value <= 1e-4f && form.value <= 1e-3f)) {
             tapFormedLatch = false
         } else if (coupleTapArea && formation >= .5f) {
             tapFormedLatch = true

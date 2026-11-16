@@ -394,7 +394,10 @@ public sealed class CalmSelectorController
     {
         var b = Bar; var n = Math.Max(b.Count - 1, 0);
         if (index != requestedIndex && Mode != CalmSelectorMode.Held && Mode != CalmSelectorMode.Released)
+        {
             tapDistance = Math.Abs(b.CentreOf(Math.Clamp(index, 0, n)) - pose.Cx);
+            tapFormedLatch = false; // a new trip keeps the formed lens only if it forms past half itself
+        }
         requestedIndex = index; RestIndex = Math.Clamp(index, 0, n);
         if (Math.Abs(pose.Cx - b.CentreOf(RestIndex)) >= .25) { quietSteps = 0; if (Mode == CalmSelectorMode.Rest) Mode = CalmSelectorMode.TapTransit; }
     }
@@ -632,7 +635,8 @@ public sealed class CalmSelectorController
             : Mode == CalmSelectorMode.Released && !releasedStill && s.ReleaseMovingFadeOmega > 0 ? s.ReleaseMovingFadeOmega : s.FormOmega;
         form.Step(dt, formTarget > form.Value ? riseOmega : fallOmega, s.FormZeta);
         // A tap that formed the selector past half keeps the formed lens's family until it settles (#70).
-        if (!s.TapKeepsFormedLens || !MotionEnabled || Mode == CalmSelectorMode.Held || Mode == CalmSelectorMode.Released) tapFormedLatch = false;
+        if (!s.TapKeepsFormedLens || !MotionEnabled || Mode == CalmSelectorMode.Held || Mode == CalmSelectorMode.Released ||
+            (transit.Value <= 1e-4 && form.Value <= 1e-3)) tapFormedLatch = false;
         else if (coupleTapArea && Formation >= .5) tapFormedLatch = true;
 
         var formation = Formation;

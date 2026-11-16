@@ -366,8 +366,10 @@ export class CalmSelectorController {
 
   retarget(index) {
     const n = Math.max(this.bar.count - 1, 0);
-    if (index !== this.requestedIndex && this.mode !== MODE.Held && this.mode !== MODE.Released)
+    if (index !== this.requestedIndex && this.mode !== MODE.Held && this.mode !== MODE.Released) {
       this.tapDistance = Math.abs(centreOf(this.bar, clamp(index, 0, n)) - this.pose.cx);
+      this.tapFormedLatch = false; // a new trip keeps the formed lens only if it forms past half itself
+    }
     this.requestedIndex = index; this.restIndex = clamp(index, 0, n);
     if (Math.abs(this.pose.cx - centreOf(this.bar, this.restIndex)) >= .25) {
       this.quietSteps = 0; if (this.mode === MODE.Rest) this.mode = MODE.TapTransit;
@@ -608,7 +610,8 @@ export class CalmSelectorController {
       : this.mode === MODE.Released && !this.releasedStill && s.releaseMovingFadeOmega > 0 ? s.releaseMovingFadeOmega : s.formOmega;
     this.form.step(dt, formTarget > this.form.value ? riseOmega : fallOmega, s.formZeta);
     // A tap that formed the selector past half keeps the formed lens's family until it settles (#70).
-    if (!s.tapKeepsFormedLens || !this.motionEnabled || this.mode === MODE.Held || this.mode === MODE.Released) this.tapFormedLatch = false;
+    if (!s.tapKeepsFormedLens || !this.motionEnabled || this.mode === MODE.Held || this.mode === MODE.Released ||
+      (this.transit.value <= 1e-4 && this.form.value <= 1e-3)) this.tapFormedLatch = false;
     else if (coupleTapArea && this.formation >= .5) this.tapFormedLatch = true;
 
     // ---- equilibria

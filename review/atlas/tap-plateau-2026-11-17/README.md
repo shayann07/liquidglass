@@ -2,8 +2,8 @@
 
 Source revision: branch `fix/70-plateau` on main `7fa5ec24`. Backend: desktop JVM, Skia GPU render (`:desktop:phoneReplay`,
 `calm`, the full finger scripts of docs/1 (32 s) and JGEY2190 (48 s)). "Before" is this branch with the new behaviour
-switched off by the replay's diagnostic option (`calm+tapf=0`); it is within 2 levels of the main baseline render at every
-frame of docs/1 and its pose trace is identical. "After" is the branch as shipped. Both were scored against the iOS
+switched off by the replay's diagnostic option (`calm+tapf=0`); on docs/1 it is pixel-identical, frame for frame, to a
+render of clean `origin/main` (`7fa5ec24`), and so is its pose trace. "After" is the branch as shipped. Both were scored against the iOS
 recordings, which are private: only numbers measured from them appear here, no iOS frames. Nothing here was captured on a
 phone.
 
@@ -80,12 +80,26 @@ gone once it falls below about 0.9), so a fade cannot be shaped through that str
 
 ## A five-tab recording (iOS 27, 16 November)
 
-A private iOS 27 recording of a five-tab App Store bar has six taps, including four-tab trips (first to last and back) and
-two-tab trips. It was replayed on our App Store scene (`appstore-clear`) with the same finger times. Our scene's page and
-icons are placeholders, so the level at rows 470-490 reads content, not the plateau, and is not reported. Looked at frame
-by frame: iOS's teardrops on a first-to-last tap and a first-to-middle tap last past 300 ms, and a middle-to-last tap shows
-none; ours show a faint top stretch on all three, before and after alike. This change does not move that recording
-measurably; the longer trips stay open on #70.
+A private iOS 27 recording of a five-tab App Store bar has six taps: three four-tab trips (first to last and back) and two
+two-tab trips. It was replayed on our App Store scene (`appstore-clear`) with the same finger times. That scene's page and
+icons are placeholders, so its pixels are not compared with iOS's; the table compares timing instead. For iOS: how long
+blue lies more than 4 px above the destination glyph's resting top, in a 60 px column on the glyph (the teardrops, and the
+rim's blue fringe where it crosses that column; the Today page behind the 4 to 0 taps has content). For ours, from the
+replay's trace: when the formed map ended before (the formation falling below 0.5) and when it fades now (the transit
+appearance below 0.9, where the teardrops are nearly gone).
+
+| tap | iOS: blue above the glyph | ours before: formation below 0.5 | ours after: transit below 0.9 |
+| :-- | :-- | --: | --: |
+| 0 to 4 | 150-367 ms | 253 ms | 286 ms |
+| 4 to 0 | 150-317 ms | 253 ms | 287 ms |
+| 0 to 2 | 100-317 ms | 187 ms | 220 ms |
+| 2 to 4 | 100-267 ms | 187 ms | 220 ms |
+| 4 to 0 | 183-350 ms | 255 ms | 288 ms |
+
+Our four-tab trips form further (0.90 against 0.76) and hold the formed map longer, as iOS's longer trips do. The change
+moves every tap about 33 ms toward iOS, but on this recording iOS's teardrops still last 30-100 ms longer than ours (by these two different measures). By
+eye on its frames, iOS's teardrops on the first-to-last and first-to-middle taps last past 300 ms, and the middle-to-last
+tap shows little beyond the rim's fringe. This stays open on #70.
 
 ## Rejected candidates
 
@@ -104,8 +118,9 @@ measurably; the longer trips stay open on #70.
 - **Authored:** none. The change keeps an existing map for longer; it adds no fitted constant.
 - **Tests:** `GlassPhoneTapOpticsTest` gains two: a two-slot tap (both directions) keeps the formed lens's family from the
   frame it forms past half until it settles and never loses more than 0.4 of its lens strength in one 60 Hz frame (fails
-  with main's switch: the family turns measured at the crossing); one-slot taps and light Calm give the same material with
-  the option on and off. The port fixtures record `tapFormed` per frame and eight formed-tap material samples per
+  with main's switch: the family turns measured at the crossing); one-slot taps, a one-slot trip with no press after a
+  settled two-slot tap, and light Calm give the same material with the option on and off. A new trip (a press, or a
+  retarget to another tab) and a settled tap both clear the latch. The port fixtures record `tapFormed` per frame and eight formed-tap material samples per
   appearance; `ports/skia` `npm test` 46/46 and the .NET checks 16/16 reproduce them.
 
 ## Limits
