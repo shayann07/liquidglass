@@ -92,11 +92,40 @@ Limits: it needs `track.csv` (IMG_6756, JGEY2190, LOLL8185); the lens width is f
 a strong edge under a lens that is not content (the lens's own rim) also counts, so read the under-lens figure as
 "page edges plus the rim", with the away-from-lens figure as the page's own baseline.
 
+## 88 follow-up: edges away from the lens rim (16 November)
+
+`--content-core PX` (with `--content-split`) adds a third figure: only the under-lens edges at least PX px inside the
+lens outline, taken as a capsule (330 px wide, rows 436-655 in scene pixels, the held lens in both sources). With 40 px
+the rim band and its 12 px estimator window are out. Same recording, replay and script as above (IMG_6756 against `n6`,
+`script3.txt`; main replay rendered before this change, so the scorer is the only difference), run on 16 November.
+R-B p90 at strong page edges, median over frames (IQR), px, with the median number of edges it rests on:
+
+| Frames | iOS under the lens | iOS core | ours under the lens | ours core |
+| :-- | --: | --: | --: | --: |
+| lens still, 487 | 0.62 (0.48-0.88), 109 edges | 1.09 (0.46-4.61), 16 edges | 3.82 (3.70-3.98), 152 edges | **5.60** (5.15-6.00), 50 edges |
+| lens moving, 294 | 0.60 (0.48-0.95), 155 edges | 1.24 (0.49-4.90), 19 edges | 3.66 (3.42-3.85), 158 edges | **5.27** (4.79-6.00), 41 edges |
+
+(The "under the lens" columns reproduce the earlier run within 0.05 px; the core edge counts are medians over the frames that have
+a core estimate, and the 16 November re-run corrects the core clipping near the image edge and that count.) **Reading:** at edges
+at least 40 px inside the outline the page seen through our lens still reads a channel shift of 5.3-5.6 px against iOS's
+1.1-1.2, so a split persists away from the rim. This does not show that the rim added nothing to the whole-lens figure
+(3.7-3.8 px): the two figures use different edge populations (the core keeps fewer, and different, edges), so they are not
+comparable as a subtraction. Confidence: iOS's core figure rests on 16-19 edges per frame and its IQR is wide (0.46-4.9), so its
+level is poorly pinned; ours rests on 41-50 edges and is stable. Fewer edges survive in the core because the lens is magnified
+page with few strong edges; a frame with fewer than 10 gives no value. The capsule is an approximation (a held lens, fixed
+size; the bounds are not clipped to the image, only the sampling is), and the estimator cannot say whether the shift comes from
+dispersion in the refraction or from a colour fringe the glass adds. Nothing measured was re-fitted.
+
+Self-test, no recording needed: `python tools/test_measure_rim_fringe.py` (capsule geometry, also for a lens near the image edge; the core edge count; a split confined to the rim is
+invisible in the core figure and visible in the plain under-lens figure).
+
 ## Reproduce
 
 ```
 tools/reference-replay/render.sh <abs>/hold128.txt <abs>/m101 calm-light     # JAVA_HOME / ANDROID_HOME as for Gradle
 python tools/measure_light_hold.py <abs>/m101 --ref .local/sxs --video research/datasets/ios27-phone/light/IMG_7049.MP4 [--scan-offset]
 python tools/measure_rim_fringe.py IMG_6756 n6 --content-split --ref .local/sxs
+python tools/measure_rim_fringe.py IMG_6756 n6 --content-split --content-core 40 --ref .local/sxs   # adds the core figure
+python tools/test_measure_rim_fringe.py
 python tools/reference-replay/replay_meta.py pair <dir A> <dir B>
 ```
