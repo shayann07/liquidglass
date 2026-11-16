@@ -177,6 +177,31 @@ class GlassPhoneTapOpticsTest {
                 tapMaterials(GlassPoseSpec.Calm,GlassTabBarStyle.Calm(dark=false),a,z),"light $a->$z")
     }
 
+    @Test fun retargetedTapQualifiesOnItsOwnFormation() {
+        // A trip started mid-tap inherits the formation (about .6 here) but not the qualification: it keeps the formed
+        // lens only after its own formation rises through half, never on the formation the previous trip left behind.
+        for(press in listOf(false,true)) {
+            val b=bar(); val c=GlassPoseController(GlassPoseSpec.Calm)
+            c.attach(b,null,null); c.snapToRest(0)
+            c.pointerDown(b.centreOf(2),b.centreY,0.0,true); c.retarget(2)
+            c.advanceTo(.04f); c.pointerUp(2)
+            var t=.04f
+            while(c.formation<.6f && t<.5f){t+=1/240f;c.advanceTo(t)}
+            val inherited=c.formation
+            assertTrue(c.tapFormed && inherited>=.5f && inherited<.7f,"the 0->2 tap formed past half: $inherited")
+            if(press) c.pointerDown(b.centreOf(1),b.centreY,t.toDouble(),true)
+            c.retarget(1)
+            if(press){t+=.04f;c.advanceTo(t);c.pointerUp(1)}
+            var below=false; var crossed=false
+            repeat(60) {
+                t+=1/60f; c.advanceTo(t); assertFalse(c.solverFailed)
+                if(c.formation<.5f) below=true else if(below) crossed=true
+                assertTrue(!c.tapFormed || crossed,
+                    "press=$press t=$t: the trip to 1 keeps the formed lens on inherited formation ${c.formation}")
+            }
+        }
+    }
+
     @Test fun appearanceDoesNotChangeThePoseOrHeldFormation() {
         for(target in listOf(1,2)) {
             val b=bar()

@@ -120,8 +120,12 @@ tap shows little beyond the rim's fringe. This stays open on #70.
   frame it forms past half until it settles and never loses more than 0.4 of its lens strength in one 60 Hz frame (fails
   with main's switch: the family turns measured at the crossing); one-slot taps, a one-slot trip with no press after a
   settled two-slot tap, and light Calm give the same material with the option on and off. A new trip (a press, or a
-  retarget to another tab) and a settled tap both clear the latch. The port fixtures record `tapFormed` per frame and eight formed-tap material samples per
-  appearance; `ports/skia` `npm test` 46/46 and the .NET checks 16/16 reproduce them.
+  retarget to another tab) and a settled tap both clear the latch. A retargeted trip qualifies on its own formation: one
+  started while the formation is still past half sets the latch only after falling below half and rising through it
+  again (`retargetedTapQualifiesOnItsOwnFormation`, fails before: a 0 to 2 tap retargeted to 1 at 0.6 kept the formed
+  lens on the inherited formation). The port fixtures record `tapFormed` per frame (with that retarget as
+  `tap-far-retarget`) and eight formed-tap material samples per appearance; `ports/skia` `npm test` 47/47 and the .NET
+  checks 16/16 reproduce them.
 
 ## Limits
 

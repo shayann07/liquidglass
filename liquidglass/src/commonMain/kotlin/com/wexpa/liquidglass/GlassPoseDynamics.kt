@@ -352,8 +352,10 @@ internal data class GlassPoseSpec(
     val tapEndWallOneSided: Boolean = false,
     /** A coupled tap whose movement formed the selector past half (#70: Calm's two-slot taps reach about 0.76, one-slot
      * taps about 0.29) keeps the formed lens's family in its transit fold until it settles, instead of switching to the
-     * measured map in the frame its formation falls below half. The fold's own strength still follows the transit
-     * appearance. Off in the default spec; on in Calm (evidence: review/atlas/tap-plateau-2026-11-17). */
+     * measured map in the frame its formation falls below half. A trip qualifies on its own formation: one started by a
+     * retarget while the formation is still past half qualifies only after it falls below half and rises through it again.
+     * The fold's own strength still follows the transit appearance. Off in the default spec; on in Calm (evidence:
+     * review/atlas/tap-plateau-2026-11-17). */
     val tapKeepsFormedLens: Boolean = false,
     /** Opt-in tap appearance from excess projected area; zero preserves historical optics.
      * This is separate from held formation and never grants pointer ownership. */
@@ -592,6 +594,8 @@ internal class GlassPoseController(
     /** Tap pigment/ink response; not held formation, bar growth, band optics or pointer ownership. */
     val transitAppearance: Float get() = transit.value.coerceIn(0f,.95f)
     private var tapFormedLatch = false
+    /** The current trip started below half formation or has fallen below it since: only then may it set the latch (#70). */
+    private var tapFormedArmed = false
     /** [GlassPoseSpec.tapKeepsFormedLens]: the tap in transit formed the selector past half, and has not settled. Optics only. */
     val tapFormed: Boolean get() = tapFormedLatch && (transit.value > 1e-4f || form.value > 1e-3f)
     private val travel = GlassSpring()
@@ -788,6 +792,7 @@ internal class GlassPoseController(
         tapAreaActive = false
         tapWallEngaged = false
         tapFormedLatch = false
+        tapFormedArmed = false
         tapDistance = 0f
         releaseImpactActive = false
         requestedIndex = index
@@ -821,8 +826,9 @@ internal class GlassPoseController(
     fun retarget(index: Int) {
         if (index != requestedIndex && mode != GlassPoseMode.Held && mode != GlassPoseMode.Released) {
             tapDistance = abs(bar.centreOf(index.coerceIn(0, max(bar.count - 1, 0))) - pose.cx)
-            // A new trip: it keeps the formed lens only if it forms past half itself.
+            // A new trip keeps the formed lens only if its own formation rises through half, not on the formation it inherits.
             tapFormedLatch = false
+            tapFormedArmed = formation < .5f
         }
         requestedIndex = index
         restIndex = index.coerceIn(0, max(bar.count - 1, 0))
@@ -1224,9 +1230,10 @@ internal class GlassPoseController(
         if (!keepFormed || !motionEnabled || mode == GlassPoseMode.Held || mode == GlassPoseMode.Released ||
             (transit.value <= 1e-4f && form.value <= 1e-3f)) {
             tapFormedLatch = false
-        } else if (coupleTapArea && formation >= .5f) {
+        } else if (coupleTapArea && tapFormedArmed && formation >= .5f) {
             tapFormedLatch = true
         }
+        if (formation < .5f) tapFormedArmed = true // this trip's formation has been below half
 
         // ---- equilibria
         // Trace-free strain and taper: kept in the state for the shader contract, both zero.

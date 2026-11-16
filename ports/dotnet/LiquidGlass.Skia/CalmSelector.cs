@@ -322,6 +322,8 @@ public sealed class CalmSelectorController
     private double tapFreeDx, tapFreeDxVelocity;
     private bool tapWallEngaged;
     private bool tapFormedLatch;
+    /// <summary>The current trip started below half formation or has fallen below it since: only then may it set the latch (#70).</summary>
+    private bool tapFormedArmed;
     private bool tapAreaActive, releaseImpactActive, releaseEdgeActive, downOnBody, pressEligible, pointerDownActive,
         hasGrasp, accommodating, releasedFromHold, hasPointerTime, hasLastGood, accommodationValid;
     private double tapDistance, now, pressStart, downX, downY, lastSampleAt, graspQx, graspQy, graspY0, slowFor,
@@ -381,7 +383,7 @@ public sealed class CalmSelectorController
     public void SnapToRest(int index)
     {
         var b = Bar;
-        releaseEdgeActive = false; tapAreaActive = false; tapWallEngaged = false; tapFormedLatch = false; tapDistance = 0; releaseImpactActive = false;
+        releaseEdgeActive = false; tapAreaActive = false; tapWallEngaged = false; tapFormedLatch = false; tapFormedArmed = false; tapDistance = 0; releaseImpactActive = false;
         requestedIndex = index; RestIndex = Math.Clamp(index, 0, Math.Max(b.Count - 1, 0));
         pose.Reset(); velocity.Reset();
         pose.Cx = b.CentreOf(RestIndex); pose.Cy = b.Height / 2; pose.Dx = reference.A; pose.Dy = 0;
@@ -396,7 +398,8 @@ public sealed class CalmSelectorController
         if (index != requestedIndex && Mode != CalmSelectorMode.Held && Mode != CalmSelectorMode.Released)
         {
             tapDistance = Math.Abs(b.CentreOf(Math.Clamp(index, 0, n)) - pose.Cx);
-            tapFormedLatch = false; // a new trip keeps the formed lens only if it forms past half itself
+            // A new trip keeps the formed lens only if its own formation rises through half, not on the formation it inherits.
+            tapFormedLatch = false; tapFormedArmed = Formation < .5;
         }
         requestedIndex = index; RestIndex = Math.Clamp(index, 0, n);
         if (Math.Abs(pose.Cx - b.CentreOf(RestIndex)) >= .25) { quietSteps = 0; if (Mode == CalmSelectorMode.Rest) Mode = CalmSelectorMode.TapTransit; }
@@ -637,7 +640,8 @@ public sealed class CalmSelectorController
         // A tap that formed the selector past half keeps the formed lens's family until it settles (#70).
         if (!s.TapKeepsFormedLens || !MotionEnabled || Mode == CalmSelectorMode.Held || Mode == CalmSelectorMode.Released ||
             (transit.Value <= 1e-4 && form.Value <= 1e-3)) tapFormedLatch = false;
-        else if (coupleTapArea && Formation >= .5) tapFormedLatch = true;
+        else if (coupleTapArea && tapFormedArmed && Formation >= .5) tapFormedLatch = true;
+        if (Formation < .5) tapFormedArmed = true; // this trip's formation has been below half
 
         var formation = Formation;
         var gain = MotionEnabled ? 2 * s.StretchGain * Math.Max(formation, .35) : 0;

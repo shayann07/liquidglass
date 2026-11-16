@@ -291,7 +291,7 @@ export class CalmSelectorController {
     this.form = new Spring(); this.transit = new Spring(); this.travel = new Spring(); this.tapArea = new Spring();
     this.strainDrive = new Spring(); this.heldTravelDirection = 0; this.reversalInterval = 1;
     this.tapAreaActive = false; this.tapDistance = 0; this.releaseImpactActive = false;
-    this.tapFreeDx = 0; this.tapFreeDxVelocity = 0; this.tapWallEngaged = false; this.tapFormedLatch = false;
+    this.tapFreeDx = 0; this.tapFreeDxVelocity = 0; this.tapWallEngaged = false; this.tapFormedLatch = false; this.tapFormedArmed = false;
     this.releaseEdge = new Spring(); this.releaseTrail = new Spring(); this.releaseEdgeActive = false; this.trailImpact = false;
     this.releasedAt = 0; this.releasedStill = false;
     this.now = 0; this.pressStart = 0; this.downX = 0; this.downY = 0; this.downOnBody = false;
@@ -352,7 +352,7 @@ export class CalmSelectorController {
   }
 
   snapToRest(index) {
-    this.releaseEdgeActive = false; this.tapAreaActive = false; this.tapWallEngaged = false; this.tapFormedLatch = false; this.tapDistance = 0; this.releaseImpactActive = false;
+    this.releaseEdgeActive = false; this.tapAreaActive = false; this.tapWallEngaged = false; this.tapFormedLatch = false; this.tapFormedArmed = false; this.tapDistance = 0; this.releaseImpactActive = false;
     this.requestedIndex = index; this.restIndex = clamp(index, 0, Math.max(this.bar.count - 1, 0));
     resetPose(this.pose); resetPose(this.velocity);
     this.pose.cx = centreOf(this.bar, this.restIndex); this.pose.cy = this.bar.height / 2;
@@ -368,7 +368,8 @@ export class CalmSelectorController {
     const n = Math.max(this.bar.count - 1, 0);
     if (index !== this.requestedIndex && this.mode !== MODE.Held && this.mode !== MODE.Released) {
       this.tapDistance = Math.abs(centreOf(this.bar, clamp(index, 0, n)) - this.pose.cx);
-      this.tapFormedLatch = false; // a new trip keeps the formed lens only if it forms past half itself
+      // A new trip keeps the formed lens only if its own formation rises through half, not on the formation it inherits.
+      this.tapFormedLatch = false; this.tapFormedArmed = this.formation < .5;
     }
     this.requestedIndex = index; this.restIndex = clamp(index, 0, n);
     if (Math.abs(this.pose.cx - centreOf(this.bar, this.restIndex)) >= .25) {
@@ -612,7 +613,8 @@ export class CalmSelectorController {
     // A tap that formed the selector past half keeps the formed lens's family until it settles (#70).
     if (!s.tapKeepsFormedLens || !this.motionEnabled || this.mode === MODE.Held || this.mode === MODE.Released ||
       (this.transit.value <= 1e-4 && this.form.value <= 1e-3)) this.tapFormedLatch = false;
-    else if (coupleTapArea && this.formation >= .5) this.tapFormedLatch = true;
+    else if (coupleTapArea && this.tapFormedArmed && this.formation >= .5) this.tapFormedLatch = true;
+    if (this.formation < .5) this.tapFormedArmed = true; // this trip's formation has been below half
 
     // ---- equilibria
     const formation = this.formation;

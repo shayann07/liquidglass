@@ -13,7 +13,8 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   the transit. On docs/1's ten 0 to 2 taps the travelling pill's level reads 110.6 / 105.7 / 49.3 at 183 / 200 / 217 ms
   (iOS 105.7 / 85.7 / 63.5; before 38.0 / 37.0 / 36.0), and its plateau ends at about 212 ms (iOS about 214, before
   about 178). One-tab taps and light `Calm` are unchanged; the all-tap profile over 100-300 ms moves from 3.3 to 2.9
-  levels rms. Mirrored in the Skia and .NET Calm selectors (`tapFormed`, `formedTap`; additive).
+  levels rms. A trip retargeted while the selector is still formed past half qualifies on its own formation, not the
+  one it inherits. Mirrored in the Skia and .NET Calm selectors (`tapFormed`, `formedTap`; additive).
   Default look changed: dark Calm taps of two tabs or more keep the ink's teardrops along the lens's top rim for about
   two more frames (to about 212 ms instead of 178 on docs/1). [Evidence](review/atlas/tap-plateau-2026-11-17/README.md).
 - Scoring tools: `tools/measure_rim_fringe.py --content-split --content-core PX` also scores the page's colour split only at

@@ -72,6 +72,11 @@ class GlassSelectorPortFixtureTest {
             Call(.1, "down", listOf(centre(1), y)), Call(.1, "retarget", listOf(1f)), Call(.16, "up", listOf(1f))))
         list += scenario("tap-far", 1.4, listOf(
             Call(.1, "down", listOf(centre(2), y)), Call(.1, "retarget", listOf(2f)), Call(.17, "up", listOf(2f))))
+        // The same tap retargeted to the middle tab while still formed past half (about .58): the new trip does not
+        // inherit the formed lens (#70).
+        list += scenario("tap-far-retarget", 1.4, listOf(
+            Call(.1, "down", listOf(centre(2), y)), Call(.1, "retarget", listOf(2f)), Call(.17, "up", listOf(2f)),
+            Call(.255, "retarget", listOf(1f))))
         // A held throw into the right wall: hold, drag after the threshold, release moving.
         run {
             val calls = mutableListOf(Call(.1, "down", listOf(centre(0), y)), Call(.1, "retarget", listOf(0f)))
