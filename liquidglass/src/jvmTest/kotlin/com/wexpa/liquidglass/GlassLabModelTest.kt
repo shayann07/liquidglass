@@ -125,23 +125,42 @@ class GlassLabModelTest {
                     val rms = sqrt(idx.sumOf { (ours[it] - model[it]) * (ours[it] - model[it]) } / idx.size)
                     check(rms <= 3.0, "$app ${case.name}: rms %.2f".format(rms))
                 }
-                // A text stem on a plain page: one soft copy, not stepped ghosts (#190). A 30 px black stem (the
-                // stem of 110 pt bold text at 3x) on the #190 probe's off-white page; turning points of the
-                // row-averaged profile across the pill's interior. A single soft stem with the detail term's own
-                // halo has at most 7; main's five-tap along-axis average gave 15 (fix/190-axis-comb).
-                val stem = IntArray(s.width * s.height) { i ->
-                    if ((i % s.width) - centreX in -15..14) 0xFF000000.toInt() else 0xFFF3F0E8.toInt()
-                }
-                val out = s.render(stem)
-                val profile = DoubleArray(s.pillW - 200) { i ->
-                    val x = s.pillX + 100 + i
-                    s.zoneRows.sumOf { y -> GlassRender.luma(out[y * s.width + x]) } / s.zoneRows.count()
-                }
-                val turns = turningPoints(profile)
+                // A text stem on a plain page: one soft copy, not stepped ghosts (#190).
+                val turns = s.stemTurningPoints()
                 check(turns <= 7, "$app text stem: $turns turning points")
             }
         }
         assertTrue(failures.isEmpty(), "${failures.size} lab gates failed:\n" + failures.joinToString("\n"))
+    }
+
+    /**
+     * A 30 px black stem (the stem of 110 pt bold text at 3x) on the #190 probe's off-white page at the pill's centre:
+     * turning points of the row-averaged profile across the interior. A single soft stem with the detail term's own
+     * halo has at most 7; main's five-tap along-axis average gave 15 (fix/190-axis-comb).
+     */
+    private fun GlassLabScene.stemTurningPoints(): Int {
+        val centreX = pillX + pillW / 2
+        val out = render(IntArray(width * height) { i ->
+            if ((i % width) - centreX in -15..14) 0xFF000000.toInt() else 0xFFF3F0E8.toInt()
+        })
+        val profile = DoubleArray(pillW - 200) { i ->
+            val x = pillX + 100 + i
+            zoneRows.sumOf { y -> GlassRender.luma(out[y * width + x]) } / zoneRows.count()
+        }
+        return turningPoints(profile)
+    }
+
+    @Test
+    fun noGhostCopiesAtOtherTints() {
+        // Between the measured Tint 50 and the earlier fit at 0 and 100 the material is blended (authored); the
+        // detail copy must stay one soft copy throughout.
+        for (dark in listOf(true, false)) for (tint in listOf(25f, 75f)) {
+            GlassLabScene(GlassStyle.toolbar(dark = dark, tintAmount = tint)).use { s ->
+                val turns = s.stemTurningPoints()
+                check(turns <= 7, "${if (dark) "dark" else "light"} tint $tint text stem: $turns turning points")
+            }
+        }
+        assertTrue(failures.isEmpty(), failures.joinToString("; "))
     }
 
     /** Turning points of at least [amplitude] levels (the probe of `GlassAxisDetailRenderTest`, abandoned #190 branch). */
