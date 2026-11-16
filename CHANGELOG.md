@@ -31,7 +31,11 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   three-term material (dark Regular over grey 128 reads 134 alone and inside a container, 109 before); every wide-kernel
   style loses the along-axis term, including the Measured and V3 tab bars (the Calm bar had already cancelled it), which keep
   their earlier style values until #203; the wide-kernel recording pad grows from 0.75 to 1.5 sigma; custom styles with `0 < blurRadius <= 1/3 dp` now get the four-tap
-  detail kernel; Tint 0 and 100 take the 1/3 dp detail reach (authored, #208).
+  detail kernel; Tint 0 and 100 take the 1/3 dp detail reach (authored, #208). Near the top of the Tint range the detail
+  copy and the legibility term it feeds now fade out as the larger of the detail share and `detailLift` falls from 0.10 to
+  0.02 (authored) instead of switching off at one tint; this applies to every wide-kernel style with a share in that band,
+  custom styles included. Main switched at Tint 92 to 93 with an 18-level step; now no adjacent pair of whole tints steps
+  more than 1.80 levels rms (dark) or 1.65 (light), and Tints 98 to 100 render as before.
   [Evidence](review/atlas/material-model-2026-11-16/README.md).
 - Scoring tools: `tools/measure_rim_fringe.py --content-split --content-core PX` also scores the page's colour split only at
   edges well inside the lens outline, so the lens's own rim is not counted (#101 item 88). On IMG_6756 the page seen through our

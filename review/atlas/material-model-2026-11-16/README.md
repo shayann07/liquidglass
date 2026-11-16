@@ -50,7 +50,7 @@ card and capsule; #200 shows one soft copy.
 Provenance: **measured** = from the private lab stills or from device runs; **authored** = chosen, not fitted.
 
 Lab gate (private, 89 lab stills, Tint 50, interior zones, rms levels, gate 3.0 per appearance). Measured on
-`5ed4d37d`; it has not been re-scored on the final commit.
+`5ed4d37d` and re-scored on `d939655d` (the tint fade), with the same result.
 
 | | dark | light |
 | :-- | --: | --: |
@@ -63,6 +63,10 @@ Named residuals: 6 px stripes 6.9 dark / 4.5 light; 2 px bars 3.7 dark / 4.5 lig
 The stills stay private; only these scores are published.
 
 `GlassLabModelTest` (public): 222 checks pass, including the Tint 0 to 1 and 99 to 100 steps (at most 1.34 rms).
+`tintStepsAreContinuous` checks every adjacent pair of whole tints from 0 to 100 over black stems on grey 128 and
+0/255 stripes: the worst step is 1.80 levels rms dark (Tint 78 to 79) and 1.65 light (92 to 93). Before the fade of the
+detail copy and the legibility term (authored, share 0.10 to 0.02) the switch drew 12.8 dark / 14.4 light at 97 to 98;
+main switches at 92 to 93 with an 18-level step. Tints 98 to 100 and Tint 50 render byte-identically with and without the fade.
 
 Pixel 7 timing (measured, 6 rounds each, main `0e2f7a63`):
 
