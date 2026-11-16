@@ -167,6 +167,35 @@ class GlassLabModelTest {
         assertTrue(failures.isEmpty(), failures.joinToString("; "))
     }
 
+    @Test
+    fun tintEndsDoNotStep() {
+        // The measured material is blended toward the earlier fit at Tint 0 and 100 (authored), but the detail
+        // reach and kernel switch as soon as the blend weight leaves 0. A step there must stay no larger than a
+        // tint step elsewhere would be: within 3 levels rms of the next tint, over fine and coarse content.
+        val cases = listOf(
+            stripes(6, 0, 255, true),
+            stripes(12, 0, 255, false),
+            Case("bars-2 0-255") { x, _ -> if (x % 24 < 2) 255 else 0 },
+            Case("checker-10 64-192") { x, y -> if ((x / 5 + y / 5) % 2 == 0) 64 else 192 },
+        )
+        for (dark in listOf(true, false)) {
+            val app = if (dark) "dark" else "light"
+            for ((a, b) in listOf(0f to 1f, 1f to 2f, 98f to 99f, 99f to 100f)) {
+                val frames = listOf(a, b).map { tint ->
+                    GlassLabScene(GlassStyle.toolbar(dark = dark, tintAmount = tint)).use { s ->
+                        val zone = s.zone()
+                        cases.map { case -> s.run(dark, case).first.let { o -> zone.map { o[it] } } }
+                    }
+                }
+                cases.forEachIndexed { i, case ->
+                    val d = frames[0][i].zip(frames[1][i]) { x, y -> (x - y) * (x - y) }.average().let { sqrt(it) }
+                    check(d <= 3.0, "$app tint ${a.toInt()} to ${b.toInt()} ${case.name}: %.2f levels rms".format(d))
+                }
+            }
+        }
+        assertTrue(failures.isEmpty(), failures.joinToString("; "))
+    }
+
     /** Turning points of at least [amplitude] levels (the probe of `GlassAxisDetailRenderTest`, abandoned #190 branch). */
     private fun turningPoints(p: DoubleArray, amplitude: Double = 4.0): Int {
         var count = 0
