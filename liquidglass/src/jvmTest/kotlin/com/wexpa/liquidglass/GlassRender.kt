@@ -84,6 +84,9 @@ internal object GlassRender {
         fineShare: Float = 1f,
         /** [GlassStyle.softDetail]: 0 the along-axis high-pass with a dithered scatter, 1 a soft copy. */
         softDetail: Float = 0f,
+        /** [GlassStyle.detailLift] and [GlassStyle.toneCurve]. */
+        detailLift: Float = 0f,
+        toneCurve: Float = 0f,
         lift: Float = 0f,
         liftAdapt: Float = 0f,
         bevel: Float = 2f,
@@ -217,6 +220,8 @@ internal object GlassRender {
         b.uniform("uWideScale", wideScale)
         b.uniform("uFineShare", fineShare)
         b.uniform("uSoftDetail", softDetail)
+        b.uniform("uDetailLift", detailLift)
+        b.uniform("uToneCurve", toneCurve)
         b.uniform("uWideKernel", wide)
         b.uniform("uLift", lift)
         b.uniform("uLiftAdapt", liftAdapt)

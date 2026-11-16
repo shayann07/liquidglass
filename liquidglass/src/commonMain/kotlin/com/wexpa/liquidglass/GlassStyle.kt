@@ -2,8 +2,10 @@ package com.wexpa.liquidglass
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.lerp
 
 /**
  * Which optical model the shader runs.
@@ -525,6 +527,19 @@ data class GlassStyle(
      * travelling lens's caps stretch into long petals reaching the rim).
      */
     val rimMirrorGain: Float = 1f,
+    /**
+     * The one-sided detail term c of the measured material, -1 to 1: the glass keeps detail on its
+     * own side of the surroundings at [fineShare] + c and detail on the other side at [fineShare] - c,
+     * `lin = B + k (D - B) + c |D - B|` (`tools/glass_model.py`). Measured on iOS 27 at Tint 50
+     * (#199): +0.22 on light glass, -0.22 on dark. Zero, the default, is the plain two-kernel mix.
+     */
+    val detailLift: Float = 0f,
+    /**
+     * The bow of the material's tone curve, added as `toneCurve x (1 - x)` per channel of the
+     * backdrop term before the tint, so the tint blend and [tintLift] give its straight part. The
+     * dark in-app curve measured on iOS 27 at Tint 50 is concave, 101/255 (#200); zero is straight.
+     */
+    val toneCurve: Float = 0f,
 ) {
     companion object {
         /** Clear standalone lens. [magnification] is the centre zoom, gradually returning to
@@ -553,7 +568,35 @@ data class GlassStyle(
          * 2): opacity from the pill's black and white levels, the fine share from the toolbar's
          * stripes, the tint colour and lift per appearance, the edge line per appearance.
          */
-        fun inApp(dark: Boolean, tintAmount: Float = GlassMaterial.DEFAULT_TINT_AMOUNT): GlassStyle {
+        fun inApp(dark: Boolean, tintAmount: Float = GlassMaterial.DEFAULT_TINT_AMOUNT): GlassStyle =
+            inAppEarlier(dark, tintAmount).towardLab(dark, tintAmount)
+
+        /**
+         * The 16 November lab fit (#199, #200; `tools/glass_model.py`) laid over the earlier fit by
+         * [GlassMaterial.labWeight]: in full at Tint 50, not at all at 0 and 100. The material is
+         * `lin = B + k (D - B) + c |D - B|`, then the appearance's tone; the toolbar, the address pill
+         * and plain in-app glass share it.
+         */
+        private fun GlassStyle.towardLab(dark: Boolean, tintAmount: Float): GlassStyle {
+            val w = GlassMaterial.labWeight(tintAmount)
+            if (w <= 0f) return this
+            fun f(a: Float, b: Float) = a + (b - a) * w
+            val labTint = (if (dark) Color.Black else Color.White).copy(alpha = GlassMaterial.labOpacity(dark))
+            return copy(
+                tint = lerp(tint, labTint, w),
+                tintLift = f(tintLift, GlassMaterial.labLift(dark)),
+                fineShare = f(fineShare, GlassMaterial.labDetailShare(dark)),
+                wideKernel = lerp(wideKernel, GlassMaterial.labWideKernel, w),
+                blurRadius = lerp(blurRadius, GlassMaterial.labFineKernel / 0.6f, w),
+                detailLift = GlassMaterial.labDetailLift(dark) * w,
+                toneCurve = GlassMaterial.labToneCurve(dark) * w,
+                // The lab stills show no extra tint over busy content: the stripes keep k at every contrast.
+                legibility = f(legibility, 0f),
+                softDetail = f(softDetail, 1f),
+            )
+        }
+
+        private fun inAppEarlier(dark: Boolean, tintAmount: Float): GlassStyle {
             val a = GlassMaterial.opacity(dark, tintAmount)
             return GlassStyle(
                 // The measured resting-corner map (GlassRestMap.Measured), fitted on the Photos toolbar's
@@ -602,9 +645,9 @@ data class GlassStyle(
          */
         fun toolbar(dark: Boolean, tintAmount: Float = GlassMaterial.DEFAULT_TINT_AMOUNT): GlassStyle {
             val a = GlassMaterial.toolbarOpacity(dark, tintAmount)
-            return inApp(dark = dark, tintAmount = tintAmount).copy(
+            return inAppEarlier(dark = dark, tintAmount = tintAmount).copy(
                 tint = if (dark) Color.Black.copy(alpha = a) else GlassMaterial.toolbarLightTint.copy(alpha = a),
-            )
+            ).towardLab(dark, tintAmount)
         }
 
         /**

@@ -623,6 +623,8 @@ internal fun Modifier.liquidGlassCore(
                         heldEdgeTone = style.heldEdgeTone.coerceIn(0f, 1f),
                         heldGlowFloor = style.heldGlowFloor.coerceIn(0f, 1f),
                         softDetail = style.softDetail.coerceIn(0f, 1f),
+                        detailLift = style.detailLift.coerceIn(-1f, 1f),
+                        toneCurve = style.toneCurve,
                         restMap = style.restMap.uniform,
                         body = body?.let {
                             floatArrayOf(
@@ -1381,6 +1383,10 @@ internal data class GlassUniforms(
     val heldGlowFloor: Float = 0f,
     /** [GlassStyle.softDetail]. */
     val softDetail: Float = 0f,
+    /** [GlassStyle.detailLift]. */
+    val detailLift: Float = 0f,
+    /** [GlassStyle.toneCurve]. */
+    val toneCurve: Float = 0f,
     /** Resting-corner source map: 0 the legacy map, 1 the measured table ([GlassRestMap]). */
     val restMap: Float = 0f,
     /** V3 body: left centre x, right centre x, left radius, right radius, in the centred frame. */
@@ -1518,7 +1524,7 @@ internal data class GlassUniforms(
             heldMagnification == other.heldMagnification && heldGlow == other.heldGlow &&
             heldGlowReach == other.heldGlowReach && foldCorners == other.foldCorners &&
             rimMirror == other.rimMirror && rimMirrorGain == other.rimMirrorGain &&
-            heldEdgeRecovery == other.heldEdgeRecovery && heldEdgeTone == other.heldEdgeTone && softDetail == other.softDetail && heldGlowFloor == other.heldGlowFloor &&
+            heldEdgeRecovery == other.heldEdgeRecovery && heldEdgeTone == other.heldEdgeTone && softDetail == other.softDetail && detailLift == other.detailLift && toneCurve == other.toneCurve && heldGlowFloor == other.heldGlowFloor &&
             restMap == other.restMap &&
             body.contentEquals(other.body) && bodyY == other.bodyY && bodyKind == other.bodyKind &&
             poseA.contentEquals(other.poseA) && poseAInv.contentEquals(other.poseAInv) &&

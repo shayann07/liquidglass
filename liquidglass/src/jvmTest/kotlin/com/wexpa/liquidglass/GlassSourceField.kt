@@ -241,6 +241,8 @@ internal object GlassSourceField {
             b.uniform("uWideStrip", 0f)
             b.uniform("uWideScale", 0.25f)
             b.uniform("uFineShare", 1f)
+            b.uniform("uDetailLift", 0f)
+            b.uniform("uToneCurve", 0f)
             b.uniform("uWideKernel", 0f)
             b.uniform("uLift", 0f)
             b.uniform("uLiftAdapt", 0f)

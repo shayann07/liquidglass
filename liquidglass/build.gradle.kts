@@ -93,6 +93,9 @@ tasks.withType<Test>().configureEach {
     (project.findProperty("liquidglass.calibration") as String?)?.let { systemProperty("liquidglass.calibration", it) }
     (project.findProperty("liquidglass.wideClamp") as String?)?.let { systemProperty("liquidglass.wideClamp", it) }
     (project.findProperty("liquidglass.restMap") as String?)?.let { systemProperty("liquidglass.restMap", it) }
+    // The #200 lab scene (GlassLabSceneRender), opt-in: -Pliquidglass.lab=<dir> [-Pliquidglass.labTag=<tag>].
+    (project.findProperty("liquidglass.lab") as String?)?.let { systemProperty("liquidglass.lab", it) }
+    (project.findProperty("liquidglass.labTag") as String?)?.let { systemProperty("liquidglass.labTag", it) }
     // The showcase render (com.wexpa.liquidglass.showcase) is opt-in the same way:
     // -Pliquidglass.showcase=<dir> renders every scene there as stills and frame sequences.
     (project.findProperty("liquidglass.showcase") as String?)?.let {
