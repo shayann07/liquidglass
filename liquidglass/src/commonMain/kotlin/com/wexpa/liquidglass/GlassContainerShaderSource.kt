@@ -17,9 +17,9 @@ internal const val MAX_GLASS_MEMBERS = 8
  * Every member is evaluated on every pixel. That is what allows the fields to interact at
  * all, and it is why the member count is capped.
  *
- * The optics match [GLASS_SHADER_SOURCE] — both profiles, the measured fold and two-kernel tone
- * included — so a member looks like the same material whether or not it happens to be inside a
- * container. A container is chrome at rest, so its lens formation is 0.
+ * The optics match [GLASS_SHADER_SOURCE] — both profiles, the measured fold and the measured
+ * three-term material (#200) included — so a member looks like the same material whether or not it
+ * happens to be inside a container. A container is chrome at rest, so its lens formation is 0.
  */
 internal val GLASS_CONTAINER_SHADER_SOURCE = """
 uniform shader content;
@@ -61,7 +61,10 @@ uniform float   uHeldLens;     // GlassProfile.Held: how far the tab-bar lens ha
 uniform float   uRestMap;      // resting-corner source map: 0 legacy, 1 the measured table (GlassRestMap)
 uniform float   uWideStrip;    // layer row where the quarter-scale blurred copy starts; 0 disables it
 uniform float   uWideScale;    // scale of that copy
-uniform float   uFineShare;    // share of fine detail in the backdrop term
+uniform float   uFineShare;    // the detail share k in lin = B + k (D - B) + c |D - B| (GlassStyle.fineShare)
+uniform float   uDetailLift;   // the one-sided term c: + light glass, - dark glass (GlassStyle.detailLift)
+uniform float   uToneCurve;    // the tone curve's bow: col += uToneCurve x (1 - x) per channel (GlassStyle.toneCurve)
+uniform float   uDetailCross;  // 1 the measured four-tap detail copy, 0 the scatter; the host sets it from the reach (at most 1/3 dp)
 uniform float   uWideKernel;   // px sigma of the wide kernel; also the fine term's spread across the element
 uniform float   uLift;         // fixed luminance lift after the tint
 uniform float   uLiftAdapt;    // how far the lift falls with the wide-kernel luma
@@ -196,24 +199,11 @@ half3 blurredAt(float2 p, float radius, float2 rot) {
     return sum * half(1.0 / 19.0);
 }
 
-// The measured material's fine term is one-dimensional (MODEL.md section 2a, FINDINGS 22): it
-// carries detail along a bar and none at all across it. Two readings of the Photos toolbar pill
-// pin it down. Where the target's 8 px stripe band ends under the pill the detail stops within
-// two rows, so nothing is averaged across; and the target's 20-row black band under the same
-// pill leaves no step at all, though it is a 122-level boundary. Content that does not vary
-// along the bar produces no fine term, which is what a high-pass along one axis does.
-//
-// So the detail is the fine sample minus the backdrop averaged along the element's long axis,
-// five taps spanning the along-axis wide kernel, jittered per pixel so periodic content does not
-// beat against the tap spacing. Five rather than seven: the pair at 2.25 sigma carries 5% of the
-// weight and cost 1.5 ms a frame on an S24.
-half3 axisMeanAt(float2 p, float span, float2 rot) {
-    float2 t = (uSize.x >= uSize.y) ? float2(1.0, 0.0) : float2(0.0, 1.0);
-    float k = span * (0.85 + 0.3 * abs(rot.x));
-    half3 sum = backdropAt(p);
-    half3 acc = (backdropAt(p + t * (0.75 * k)) + backdropAt(p - t * (0.75 * k))) * half(0.7548);
-    acc += (backdropAt(p + t * (1.60 * k)) + backdropAt(p - t * (1.60 * k))) * half(0.4043);
-    return (sum + acc) * half(1.0 / 3.3182);
+// The detail copy D of the measured material; see detailAt in GlassShaderSource.
+half3 detailAt(float2 p, float r) {
+    if (r < 0.25) return backdropAt(p);
+    return (backdropAt(p + float2(r, 0.0)) + backdropAt(p - float2(r, 0.0))
+        + backdropAt(p + float2(0.0, r)) + backdropAt(p - float2(0.0, r))) * half(0.25);
 }
 
 float luma(half3 c) {
@@ -381,18 +371,23 @@ half4 main(float2 coord) {
         backdropAt(coord + push).g,
         backdropAt(coord + pushB).b
     );
-    half3 soft = blurredAt(coord + push, uBlur * e, tapRotation(coord));
+    // The panel shader's choice: the four-tap detail copy at the lab reach, the scatter otherwise, faded out (authored)
+    // as the larger of the detail share and the one-sided term goes from 0.10 to 0.02, and none below that.
+    float detailWeight = (uWideStrip >= 1.0) ? smoothstep(0.02, 0.10, max(uFineShare, abs(uDetailLift))) : 1.0;
+    half3 soft = sharp;
+    if (detailWeight > 0.0) {
+        half3 detailCopy = (uDetailCross >= 0.5) ? detailAt(coord + push, uBlur * e) : blurredAt(coord + push, uBlur * e, tapRotation(coord));
+        soft = (detailWeight < 1.0) ? mix(sharp, detailCopy, half(detailWeight)) : detailCopy;
+    }
     float rimSharp = (1.0 - e) * (1.0 - e);
     half3 bg = mix(soft, sharp, half(rimSharp));
 
-    // The measured two-kernel material; see the panel shader.
+    // The measured material, lin = B + k (D - B) + c |D - B|; see the panel shader.
     half3 wide = bg;
     if (uWideStrip >= 1.0) {
         wide = wideAt(coord);
-        // A high-pass along the long axis, not a share of a second blurred copy: see the note on
-        // axisMeanAt and FINDINGS 22.
-        half3 line = axisMeanAt(coord + push, uWideKernel * 0.7, tapRotation(coord));
-        bg = wide + (bg - line) * half(clamp(uFineShare, 0.0, 1.0));
+        half3 detail = bg - wide;
+        bg = wide + detail * half(clamp(uFineShare, 0.0, 1.0)) + abs(detail) * half(clamp(uDetailLift, -1.0, 1.0));
     }
 
     float bgLuma = luma(bg);
@@ -400,14 +395,22 @@ half4 main(float2 coord) {
         ? half3(uTint.rgb)
         : toneMappedTint(half3(uTint.rgb), bgLuma, uAdaptive);
     half3 col = mix(bg, tinted, half(clamp(uTint.a, 0.0, 1.0)));
-    // The measured colour transfer (#201); see the panel shader. Here the blend's chroma gain is 1 - uTint.a
-    // (no materialise fade, no tint mask) and there is no bow.
+    // The measured dark tone curve's bow, as in the panel shader. A container has no materialise fade and no
+    // tint mask, so the panel's mat * tintCoverage is 1 here.
+    if (uToneCurve != 0.0) {
+        half3 x = clamp(bg, half3(0.0), half3(1.0));
+        col += half(uToneCurve) * x * (half3(1.0) - x);
+    }
+    // The measured colour transfer (#201), the panel shader's block: the blend's chroma gain 1 - uTint.a
+    // becomes the measured per-channel one and the bow is taken on the luma. Zero over grey.
     if (uChromaWeight > 0.0) {
         half3 x = clamp(bg, half3(0.0), half3(1.0));
         float y = luma(x);
         half3 d = x - half3(half(y));
+        float bow = uToneCurve;
         half3 gain = half3(uChromaGain + uChromaSlope * y) - half3(half(1.0 - clamp(uTint.a, 0.0, 1.0)));
-        col += half(uChromaWeight) * d * gain;
+        half3 chroma = d * gain - half(bow) * d * (half3(half(1.0 - y)) - x);
+        col += half(uChromaWeight) * chroma;
     }
     float lift = uLift - uLiftAdapt * luma(wide);
     col += half3(half((uLiftAdapt > 0.0) ? max(lift, 0.0) : lift));

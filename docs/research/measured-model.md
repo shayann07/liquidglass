@@ -255,8 +255,8 @@ along-axis average is also what drew the stepped ghost copies of sharp text (#19
 Section 2a stays as the record of the earlier fit; the earlier fit still supplies the parameters at
 Tint 0 and 100 (see the authored blend below).
 
-The public specification is `tools/glass_model.py`. The forward model, in linear light of the
-backdrop term before the colour step:
+The public specification is `tools/glass_model.py`. The forward model, linear in the backdrop
+term and applied to display code values (0-255), as in `tools/glass_model.py`, before the colour step:
 
     lin = B + k (D - B) + c |D - B|        out = tone(lin)
 

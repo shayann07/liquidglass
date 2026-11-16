@@ -1049,10 +1049,24 @@ vec4 glassMain(vec2 coord) {
     // A soft copy ([GlassStyle.softDetail]) samples its scatter unrotated: the rotation is what
     // turns a sparse kernel's ghosts into grain.
     vec2 rot = (uSoftDetail >= 0.5) ? vec2(1.0, 0.0) : tapRotation(coord);
-    // At Tinted the fine share is 0 and the fine scatter would be thrown away: skip it.
-    vec3 soft = (uWideStrip >= 1.0 && uFineShare < 0.02)
-        ? sharp
-        : ((uDetailCross >= 0.5) ? detailAt(base + push, uBlur * mat * e) : blurredAt(base + push, uBlur * mat * e, rot));
+    // The softened copy is read by the share k, by the one-sided term c |D - B| and by the legibility contrast below.
+    // Toward Tinted k and c both approach 0 and the copy would be thrown away, so it fades out (authored): its weight
+    // rises from 0 to 1 as the larger of k and |c| goes from 0.02 to 0.10, and at weight 0 the sharp copy stands in and
+    // the kernel is skipped. The legibility contrast it feeds fades with the same weight. A hard switch at 0.02 turned
+    // both off in one tint step (12.8 dark, 14.4 light levels rms over 6 px stripes at Tint 97 to 98). Without the
+    // wide kernel the copy is always drawn at full weight.
+    float detailWeight = (uWideStrip >= 1.0) ? smoothstep(0.02, 0.10, max(uFineShare, abs(uDetailLift))) : 1.0;
+    vec3 soft = sharp;
+    float contrast = 0.0;
+    if (detailWeight > 0.0) {
+        vec3 detailCopy = (uDetailCross >= 0.5) ? detailAt(base + push, uBlur * mat * e) : blurredAt(base + push, uBlur * mat * e, rot);
+        soft = (detailWeight < 1.0) ? mix(sharp, detailCopy, float(detailWeight)) : detailCopy;
+        // Local contrast, free: the rim sample and the interior sample already bracket the backdrop's high
+        // frequencies, so their luma difference stands in for text scrolling underneath. Apple raises tint and
+        // dynamic range exactly then, to keep controls legible. Scaled by the weight rather than read from the
+        // faded copy: the clamp would otherwise saturate midway and steepen the fade.
+        contrast = detailWeight * clamp(abs(luma(sharp) - luma(detailCopy)) * 4.0, 0.0, 1.0);
+    }
     float rimSharp = (1.0 - e) * (1.0 - e);
     vec3 bg;
     if (uWideKernel * mat >= 2.0) {
@@ -1091,11 +1105,6 @@ vec4 glassMain(vec2 coord) {
     }
 
     float bgLuma = luma(bg);
-
-    // Local contrast, free: the rim sample and the interior sample already bracket the
-    // backdrop's high frequencies, so their luma difference stands in for text scrolling
-    // underneath. Apple raises tint and dynamic range exactly then, to keep controls legible.
-    float contrast = clamp(abs(luma(sharp) - luma(soft)) * 4.0, 0.0, 1.0);
 
     vec3 tinted = (measured > 0.5)
         ? vec3(uTint.rgb)

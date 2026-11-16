@@ -22,11 +22,16 @@ class GlassLabModelTest {
         if (!ok) failures += message
     }
 
+    /** Our frame over [case], green channel. */
+    private fun GlassLabScene.ours(case: Case): DoubleArray {
+        val out = render(IntArray(width * height) { i -> GlassLabScene.grey(case.values(i % width, i / width)) })
+        return DoubleArray(out.size) { i -> ((out[i] ushr 8) and 0xFF).toDouble() }
+    }
+
+    /** Our frame over [case] and the model's prediction over the same backdrop. */
     private fun GlassLabScene.run(dark: Boolean, case: Case): Pair<DoubleArray, DoubleArray> {
         val greys = DoubleArray(width * height) { i -> case.values(i % width, i / width).toDouble() }
-        val out = render(IntArray(width * height) { i -> GlassLabScene.grey(greys[i].toInt()) })
-        val ours = DoubleArray(out.size) { i -> ((out[i] ushr 8) and 0xFF).toDouble() }
-        return ours to GlassLabModel.predict(greys, width, height, dark)
+        return ours(case) to GlassLabModel.predict(greys, width, height, dark)
     }
 
     private fun GlassLabScene.zone(): List<Int> =
@@ -44,7 +49,7 @@ class GlassLabModelTest {
                 val zone = s.zone()
                 // Flat greys: the measured tone table within 2 levels.
                 for (v in GlassLabModel.greyIn) {
-                    val (ours, _) = s.run(dark, Case("grey-$v") { _, _ -> v })
+                    val ours = s.ours(Case("grey-$v") { _, _ -> v })
                     val got = zone.map { ours[it] }.average()
                     val want = GlassLabModel.tone(v.toDouble(), dark)
                     check(abs(got - want) <= 2.0, "$app grey $v: ours %.1f, measured %.1f".format(got, want))
@@ -138,23 +143,6 @@ class GlassLabModelTest {
         assertTrue(failures.isEmpty(), "${failures.size} lab gates failed:\n" + failures.joinToString("\n"))
     }
 
-    /**
-     * A 30 px black stem (the stem of 110 pt bold text at 3x) on the #190 probe's off-white page at the pill's centre:
-     * turning points of the row-averaged profile across the interior. A single soft stem with the detail term's own
-     * halo has at most 7; main's five-tap along-axis average gave 15 (fix/190-axis-comb).
-     */
-    private fun GlassLabScene.stemTurningPoints(): Int {
-        val centreX = pillX + pillW / 2
-        val out = render(IntArray(width * height) { i ->
-            if ((i % width) - centreX in -15..14) 0xFF000000.toInt() else 0xFFF3F0E8.toInt()
-        })
-        val profile = DoubleArray(pillW - 200) { i ->
-            val x = pillX + 100 + i
-            zoneRows.sumOf { y -> GlassRender.luma(out[y * width + x]) } / zoneRows.count()
-        }
-        return turningPoints(profile)
-    }
-
     @Test
     fun regularGlassKeepsAndBoostsColour() {
         // The 27 points of the RGB cube at 0, 128 and 255 (#201): every channel of the interior within 2 levels of the
@@ -242,6 +230,48 @@ class GlassLabModelTest {
     }
 
     @Test
+    fun tintStepsAreContinuous() {
+        // Every adjacent pair of whole tints, 0 to 100, within 3 levels rms over the interior zones, on the page that
+        // steps most: black stems on grey 128 and 0/255 stripes. The detail kernel and the legibility term it feeds
+        // fade out near Tint 100 (authored); the hard switch where the share fell below 0.02 drew 12.8 (dark) and 14.4
+        // (light) levels over the 6 px stripes at 97 to 98.
+        val pages = listOf(
+            Case("stems on grey 128") { x, _ -> if (x % 90 < 30) 0 else 128 },
+            stripes(6, 0, 255, true),
+        )
+        for (dark in listOf(true, false)) {
+            val app = if (dark) "dark" else "light"
+            GlassLabScene(GlassStyle.toolbar(dark = dark, tintAmount = 0f)).use { s ->
+                val zone = s.zone()
+                fun frames(tint: Int): List<List<Double>> {
+                    s.style = GlassStyle.toolbar(dark = dark, tintAmount = tint.toFloat())
+                    return pages.map { case -> s.ours(case).let { o -> zone.map { o[it] } } }
+                }
+                fun rms(a: List<Double>, b: List<Double>) = sqrt(a.zip(b) { x, y -> (x - y) * (x - y) }.average())
+                var previous = frames(0)
+                var worst = 0.0
+                var worstAt = 0
+                for (tint in 1..100) {
+                    val current = frames(tint)
+                    val steps = pages.indices.map { rms(previous[it], current[it]) }
+                    val i = steps.indices.maxBy { steps[it] }
+                    check(steps[i] <= 3.0, "$app tint ${tint - 1} to $tint: %.2f levels rms (${pages[i].name})".format(steps[i]))
+                    if (steps[i] > worst) { worst = steps[i]; worstAt = tint }
+                    previous = current
+                }
+                println("LAB worst $app step: tint ${worstAt - 1} to $worstAt, %.2f levels rms".format(worst))
+                // The sweep re-draws one scene; a fresh scene at the last tint must draw the same frames.
+                val fresh = GlassLabScene(GlassStyle.toolbar(dark = dark, tintAmount = 100f)).use { f ->
+                    pages.map { case -> f.ours(case).let { o -> zone.map { o[it] } } }
+                }
+                val drift = pages.indices.maxOf { rms(previous[it], fresh[it]) }
+                check(drift <= 0.1, "$app sweep scene against a fresh scene at tint 100: %.2f levels rms".format(drift))
+            }
+        }
+        assertTrue(failures.isEmpty(), failures.joinToString("; "))
+    }
+
+    @Test
     fun tintEndsDoNotStep() {
         // The measured material is blended toward the earlier fit at Tint 0 and 100 (authored), but the detail
         // reach and kernel switch as soon as the blend weight leaves 0. A step there must stay no larger than a
@@ -258,7 +288,7 @@ class GlassLabModelTest {
                 val frames = listOf(a, b).map { tint ->
                     GlassLabScene(GlassStyle.toolbar(dark = dark, tintAmount = tint)).use { s ->
                         val zone = s.zone()
-                        cases.map { case -> s.run(dark, case).first.let { o -> zone.map { o[it] } } }
+                        cases.map { case -> s.ours(case).let { o -> zone.map { o[it] } } }
                     }
                 }
                 cases.forEachIndexed { i, case ->
@@ -268,24 +298,5 @@ class GlassLabModelTest {
             }
         }
         assertTrue(failures.isEmpty(), failures.joinToString("; "))
-    }
-
-    /** Turning points of at least [amplitude] levels (the probe of `GlassAxisDetailRenderTest`, abandoned #190 branch). */
-    private fun turningPoints(p: DoubleArray, amplitude: Double = 4.0): Int {
-        var count = 0
-        var last = p[0]
-        var direction = 0
-        for (v in p) {
-            if (direction >= 0 && v < last - amplitude) {
-                if (direction > 0) count++
-                direction = -1; last = v
-            } else if (direction <= 0 && v > last + amplitude) {
-                if (direction < 0) count++
-                direction = 1; last = v
-            } else if ((direction > 0 && v > last) || (direction < 0 && v < last)) {
-                last = v
-            }
-        }
-        return count
     }
 }

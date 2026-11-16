@@ -64,19 +64,21 @@ no colour split at all. That is the rainbow fringe on the sheet's edge and nowhe
 
 ## 3. Two kernels — detail and tone
 
-The measured material is not one blur. Across a hard black/white edge inside a navigation pill
+The earlier fit was not one blur either. Across a hard black/white edge inside a navigation pill
 the tone follows a kernel about 10 dp wide, while 16 px stripes under the same glass keep a
 third of their contrast at the default Tint Amount, which a single 10 dp blur would leave at
-nothing. So the backdrop term is
+nothing. That fit, still used by the tab bar styles until #203 and as the earlier end of the
+Tint blend (Tints 0 and 100), is
 
 ```
-B = w · G_fine(backdrop) + (1 - w) · G_wide(backdrop)
+B_earlier = w · G_fine(backdrop) + (1 - w) · G_wide(backdrop)
 ```
 
 with the fine sigma under a point (`blurRadius`, a rotating tap disc in the shader), the wide
 sigma 10 dp (`wideKernel`, rendered once per frame as a quarter-scale blurred copy of the
-padded backdrop in a strip beneath it, sampled with one tap), and `fineShare` w = 0.95 (1 −
-t/100)^1.5 against Tint Amount t: 0.95 at Clear, 0.34 at the default, 0 at Tinted.
+padded backdrop in a strip beneath it, sampled with one tap), and `w` = 0.95 (1 −
+t/100)^1.5 against Tint Amount t: 0.95 at Clear, 0.34 at the default, 0 at Tinted
+(`GlassMaterial.fineShare(t)`).
 
 Since #200 the detail term is the measured three-term mix, the same along and across an element
 (measured at Tint 50; the earlier along-axis high-pass drew ghost copies of sharp text and is gone):
@@ -85,7 +87,7 @@ Since #200 the detail term is the measured three-term mix, the same along and ac
 lin = B + k (D - B) + c |D - B|      B: wide kernel (15.5 dp), D: the backdrop softened by about 1 px
 ```
 
-`k` is `fineShare` (0.277 dark, 0.273 light) and `c` is `detailLift` (-0.22 dark, +0.22 light). Dark
+In the current model `fineShare` is `k` (0.277 dark, 0.273 light) and `c` is `detailLift` (-0.22 dark, +0.22 light). Dark
 glass then bends the tint blend by `toneCurve * x (1 - x)`, the curve measured for the dark tone;
 light stays a straight blend. The detail `D` is a four-tap kernel at 1/3 dp with no centre tap, chosen by the
 host when `blurRadius` is at most 1/3 dp; wider reaches keep the dithered scatter. Tints other than
@@ -146,7 +148,9 @@ runs over 0.2 R along the edge. `lensFormation` then carries both toward the ful
 finger tracks the surface.
 
 `GlassEffectContainer` runs the same two paths with one difference: a fused body is chrome at
-rest, so its lens formation is always 0.
+rest, so its lens formation is always 0. It also still lacks some terms of the single-element
+shader (legibility, rim fringe, `uTintAbsorb`, the rotated `softDetail` scatter, `Glass.light`;
+#211, see [limitations](limitations.md)).
 
 `GlassProfile.Legacy` is the 0.1 material, kept so `Chrome`, `DarkChrome`, `Clear`, `Thick` and
 the tab bar styles keep the look they were tuned to: an *outward* Snell deviation through a

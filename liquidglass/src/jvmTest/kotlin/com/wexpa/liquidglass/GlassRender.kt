@@ -1,6 +1,7 @@
 package com.wexpa.liquidglass
 
 import androidx.compose.ui.graphics.asSkiaBitmap
+import androidx.compose.ui.unit.dp
 import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.Canvas
 import org.jetbrains.skia.ColorAlphaType
@@ -82,13 +83,15 @@ internal object GlassRender {
         restMap: Float = 0f,
         wide: Float = 0f,
         fineShare: Float = 1f,
-        /** [GlassStyle.softDetail]: 0 the along-axis high-pass with a dithered scatter, 1 a soft copy. */
+        /** [GlassStyle.softDetail]: 0 a dithered (rotated) fine scatter, 1 an unrotated one. */
         softDetail: Float = 0f,
         /** [GlassStyle.detailLift] and [GlassStyle.toneCurve]. */
         detailLift: Float = 0f,
         toneCurve: Float = 0f,
-        /** `uDetailCross`: the four-tap detail kernel, which the host picks from the reach. */
-        detailCross: Float = if (detailLift != 0f) 1f else 0f,
+        /** Device pixels per dp, to read [blur] as a reach in dp: the callers' 3x convention (px = dp * 3). */
+        density: Float = 3f,
+        /** `uDetailCross`: the four-tap detail kernel, chosen from the reach as the host does ([GlassMaterial.usesDetailCross]). */
+        detailCross: Float = if (GlassMaterial.usesDetailCross((blur / density).dp)) 1f else 0f,
         /** The measured colour transfer the host derives from [detailLift] ([GlassMaterial.chromaOf]). */
         chroma: FloatArray = GlassMaterial.chromaOf(detailLift),
         lift: Float = 0f,

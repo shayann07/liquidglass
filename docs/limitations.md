@@ -147,7 +147,8 @@ physical-device behavior have not been verified for this revision.
 `GlassEffectContainer` runs the measured optics too, but a container has no drag to track, so
 its lens formation is fixed at 0: fused bodies get the two-kernel tone, the lift and the
 inward rest profile, never the fold. Its pieces also share one `Glass`, so a container cannot
-mix roles.
+mix roles. Merged glass does not yet have every term of the single-element shader (see
+[the material is measured at Tint 50 only](#the-material-is-measured-at-tint-50-only); #211).
 
 ## The measured tone is within a few levels, not exact
 
@@ -243,8 +244,11 @@ them is #208.
   shows the nearest sRGB colour, and the zero channels of such colours read up to 7 levels from iOS.
   The transfer rides on `detailLift`, so a style morphing between the light and dark lab materials
   passes through the per-channel tone at the midpoint, where c is zero. The **rim band** is #202.
-- **The tab bar** still uses the earlier toolbar fit (`GlassTabBarStyle.Measured`) until #203, and
-  the container shader keeps running the new shader, so docs/1 replay frames may differ from before.
+- **The tab bar** still uses the earlier toolbar fit (`GlassTabBarStyle.Measured`) until #203. It
+  already runs the new shader (no along-axis term), as do the V3 tab bar and merged glass.
+- **Merged glass** (`GlassEffectContainer`) now draws the same three-term material and colour
+  transfer, but still lacks the legibility term, the rim fringe, `uTintAbsorb`, the rotated
+  `softDetail` scatter and `Glass.light`. Tracked by #211.
 - **Ports.** The npm HTML/CSS engine and `ports/web` keep their own two-kernel approximation and are
   not ported to the three-term material. The Flutter Dart port carries the change but has not been
   compiled. No port carries the colour transfer yet (#201): `ports/skia/shaders/material.sksl` declares

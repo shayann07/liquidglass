@@ -37,10 +37,11 @@ enum class GlassProfile {
 /**
  * The physical parameters of a piece of glass.
  *
- * These are the knobs the shader consumes. The constructor defaults are the measured in-app
- * material in a light appearance at the default Tint Amount, so `GlassStyle()` is a navigation
- * pill as iOS 27 draws one; the factories on the companion build the other measured roles, and
- * the [GlassProfile.Legacy] presets keep the 0.1 material for hosts tuned against it.
+ * These are the knobs the shader consumes. The constructor defaults are the earlier measured
+ * in-app fit, before the three-term material of #200 (so [detailLift] and [toneCurve] default to
+ * 0), and `GlassStyle()` is no longer [Regular]. To customise Regular, start from it:
+ * `GlassStyle.Regular.copy(...)`. The factories on the companion build the other measured roles,
+ * and the [GlassProfile.Legacy] presets keep the 0.1 material for hosts tuned against it.
  */
 @Immutable
 data class GlassStyle(
@@ -109,7 +110,10 @@ data class GlassStyle(
      * The detail share k: how much of the backdrop's own detail is laid over the wide kernel's
      * tone, 0 to 1. Measured on iOS 27 at Tint 50 as 0.277 (dark) and 0.273 (light), the same for
      * detail along and across a bar. The earlier fit, `0.95 (1 - t/100)^1.5` ([GlassMaterial.fineShare]),
-     * still applies at Tint 0 and 100.
+     * still applies at Tint 0 and 100. With the wide kernel on, the softened detail copy (which
+     * [legibility] also reads) fades out as the larger of this share and |[detailLift]| falls from
+     * 0.10 to 0.02 (authored), and is not drawn below that, so a share that runs toward 0 near
+     * Tint 100 does not switch the look at one tint.
      */
     val fineShare: Float = 0.34f,
     /**
@@ -533,9 +537,11 @@ data class GlassStyle(
      */
     val detailLift: Float = 0f,
     /**
-     * The bow of the material's tone curve, added as `toneCurve x (1 - x)` per channel of the
-     * backdrop term before the tint, so the tint blend and [tintLift] give its straight part. The
-     * dark in-app curve measured on iOS 27 at Tint 50 is concave, 101/255 (#200); zero is straight.
+     * The bow of the material's tone curve, `toneCurve x (1 - x)` per channel, where x is the
+     * backdrop term (the material before the tint). The shader adds it after the tint blend, scaled
+     * by the material and tint coverage but not by the tint opacity, and before [tintLift]; the tint
+     * blend and [tintLift] give the curve's straight part. The dark in-app curve measured on iOS 27
+     * at Tint 50 is concave, 101/255 (#200); zero is straight.
      */
     val toneCurve: Float = 0f,
 ) {

@@ -33,18 +33,31 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   `GlassStyle.detailLift` (c, default 0) and `GlassStyle.toneCurve` (the dark tone's bow, default 0); the 1.0 constructor and
   `copy` stay binary-compatible as hidden overloads. Pixel 7 (Android 17, 90 Hz), main against this branch (8155507a, six
   rounds each): 90 fps held, ghost-scroll frames in 12 s 1112 against 1100 (light) and 1098 against 1099 (dark),
-  calibration-screen p90 31.8 against 30.0 ms; on the final commit the tab bar is unchanged (p50 13.5-15.5 against 13.8-16.4 ms,
-  GPU p50 9.1-10.1 against 9.6-10.4); the captures show stepped copies under a card on main and one soft copy here.
-  docs/1 replay against main on the same GPU: every
-  difference is inside glass and at most 7 levels (95% of the changed pixels in the search button, which uses Regular glass;
-  3.8% the lens, 1.3% the bar), and the tab bar's track is unchanged (45.4 px rms on both).
+  calibration-screen p90 31.8 against 30.0 ms; on the final commit the Calm tab bar's timing is unchanged (p50 13.5-15.5
+  against 13.8-16.4 ms, GPU p50 9.1-10.1 against 9.6-10.4); the captures show stepped copies under a card on main and one soft
+  copy here. docs/1 replay against main on the same GPU: 1934 frames differ, every difference is inside glass and at most
+  7 levels, and the tab bar's track is unchanged (45.4 px rms on both). The search button changes because of the wide-kernel
+  recording pad (0.75 to 1.5 sigma), not because of a material split: with the pad factor reset to 0.75 the render is
+  byte-identical to main, and the search button and the bar measure the same material on both builds.
   Ports updated and checked: Skia, npm canvas engine, React Native, Qt, Unity, .NET; the Flutter Dart port is not compiled
   (no toolchain here); the npm HTML/CSS engine and `ports/web` are not ported.
   Default look changed: Regular glass everywhere it is used (`Glass.Regular`, `GlassStyle.Regular`, `inApp`, `toolbar`, the
-  Material 3 control, toolbar and panel glass) at every Tint; every wide-kernel style loses the along-axis term and its
-  wide-kernel recording pad grows from 0.75 to 1.5 sigma; custom styles with `0 < blurRadius <= 1/3 dp` now get the four-tap
-  detail kernel; Tint 0 and 100 take the 1/3 dp detail reach (authored, #208).
+  Material 3 control, toolbar and panel glass) at every Tint; `GlassEffectContainer` (merged glass) now draws the same
+  three-term material (dark Regular over grey 128 reads 134 alone and inside a container, 109 before); every wide-kernel
+  style loses the along-axis term, including the Measured and V3 tab bars (the Calm bar had already cancelled it), which keep
+  their earlier style values until #203; the wide-kernel recording pad grows from 0.75 to 1.5 sigma; custom styles with `0 < blurRadius <= 1/3 dp` now get the four-tap
+  detail kernel; Tint 0 and 100 take the 1/3 dp detail reach (authored, #208). Near the top of the Tint range the detail
+  copy and the legibility term it feeds now fade out as the larger of the detail share and `detailLift` falls from 0.10 to
+  0.02 (authored) instead of switching off at one tint; this applies to every wide-kernel style with a share in that band,
+  custom styles included. Main switched at Tint 92 to 93 with an 18-level step; now no adjacent pair of whole tints steps
+  more than 1.80 levels rms (dark) or 1.65 (light), and Tints 98 to 100 render as before.
   [Evidence](review/atlas/material-model-2026-11-16/README.md).
+- Scoring tools: `tools/measure_rim_fringe.py --content-split --content-core PX` also scores the page's colour split only at
+  edges well inside the lens outline, so the lens's own rim is not counted (#101 item 88). On IMG_6756 the page seen through our
+  held lens reads 5.3-5.6 px R-B shift at those edges against iOS 1.1-1.2 (iOS rests on 16-19 edges per frame, so its level is
+  loose), so a split persists away from the rim; it does not show the rim added nothing to the 3.7 px under the whole lens, which
+  uses different edges. Tooling only, desktop replay.
+  Default look changed: none. [Evidence](review/atlas/scoring-tools-2026-11-07/README.md).
 - Calm taps that land on the first or last tab now meet an end wall: the lens's leading end is pushed back once it passes 0.03 bar heights
   past its resting end (a soft limit, not a clamp: a two-slot tap on a three-tab bar stops about 0.055 bar heights past it, asserted with a 0.5 px tolerance), so it stops where iOS's does instead of running 8-10 px past it. The pigment timing is unchanged
   (the tap's appearance reads the spine without the wall), the result does not depend on frame rate, and the wall fades out

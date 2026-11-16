@@ -14,7 +14,7 @@ Pillow. Run from a scratch directory such as `.local/sxs/`.
 | Render | `tools/reference-replay/render.sh <abs>/v1-script.txt <abs>/out-v1 [variant]` (Windows: a POSIX sh such as Git Bash, calling `powershell` and `tools/workspace.ps1`; runs `:desktop:phoneReplay` and writes `replay-meta.json`: the script's sha256, variant and commit; `calm-light` is light Calm) |
 | Same script for both | `python tools/reference-replay/replay_meta.py pair <dir A> <dir B>`; `tools/measure_rim_fringe.py` refuses a replay whose script is not its recording's (`--allow-script-mismatch` overrides) |
 | Light holds and drags | `python tools/measure_light_hold.py <ours-dir> --ref .local/sxs --video research/datasets/ios27-phone/light/IMG_7049.MP4` (`--scan-offset` checks the alignment) |
-| Page content split under the lens | `python tools/measure_rim_fringe.py <name> <ours-subdir> --content-split` |
+| Page content split under the lens | `python tools/measure_rim_fringe.py <name> <ours-subdir> --content-split [--content-core 40]` (`--content-core` leaves out the lens rim band; self-test `python tools/test_measure_rim_fringe.py`) |
 | Paired strips | `python strip.py ../../docs/2.MP4 out-v2 2.10 2.60 0.0333 throw.png` |
 | Three-row video | `./sxs3.sh ../../docs/2.MP4 before-v2 out-v2 cmp-v2.mp4` (local only: contains the reference) |
 
