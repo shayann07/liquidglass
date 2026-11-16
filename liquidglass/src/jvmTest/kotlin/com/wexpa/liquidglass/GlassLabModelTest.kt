@@ -187,6 +187,48 @@ class GlassLabModelTest {
     }
 
     @Test
+    fun tintStepsAreContinuous() {
+        // Every adjacent pair of whole tints, 0 to 100, within 3 levels rms over the interior zones, on the page that
+        // steps most: black stems on grey 128 and 0/255 stripes. The detail kernel and the legibility term it feeds
+        // fade out near Tint 100 (authored); the hard switch where the share fell below 0.02 drew 12.8 (dark) and 14.4
+        // (light) levels over the 6 px stripes at 97 to 98.
+        val pages = listOf(
+            Case("stems on grey 128") { x, _ -> if (x % 90 < 30) 0 else 128 },
+            stripes(6, 0, 255, true),
+        )
+        for (dark in listOf(true, false)) {
+            val app = if (dark) "dark" else "light"
+            GlassLabScene(GlassStyle.toolbar(dark = dark, tintAmount = 0f)).use { s ->
+                val zone = s.zone()
+                fun frames(tint: Int): List<List<Double>> {
+                    s.style = GlassStyle.toolbar(dark = dark, tintAmount = tint.toFloat())
+                    return pages.map { case -> s.ours(case).let { o -> zone.map { o[it] } } }
+                }
+                fun rms(a: List<Double>, b: List<Double>) = sqrt(a.zip(b) { x, y -> (x - y) * (x - y) }.average())
+                var previous = frames(0)
+                var worst = 0.0
+                var worstAt = 0
+                for (tint in 1..100) {
+                    val current = frames(tint)
+                    val steps = pages.indices.map { rms(previous[it], current[it]) }
+                    val i = steps.indices.maxBy { steps[it] }
+                    check(steps[i] <= 3.0, "$app tint ${tint - 1} to $tint: %.2f levels rms (${pages[i].name})".format(steps[i]))
+                    if (steps[i] > worst) { worst = steps[i]; worstAt = tint }
+                    previous = current
+                }
+                println("LAB worst $app step: tint ${worstAt - 1} to $worstAt, %.2f levels rms".format(worst))
+                // The sweep re-draws one scene; a fresh scene at the last tint must draw the same frames.
+                val fresh = GlassLabScene(GlassStyle.toolbar(dark = dark, tintAmount = 100f)).use { f ->
+                    pages.map { case -> f.ours(case).let { o -> zone.map { o[it] } } }
+                }
+                val drift = pages.indices.maxOf { rms(previous[it], fresh[it]) }
+                check(drift <= 0.1, "$app sweep scene against a fresh scene at tint 100: %.2f levels rms".format(drift))
+            }
+        }
+        assertTrue(failures.isEmpty(), failures.joinToString("; "))
+    }
+
+    @Test
     fun tintEndsDoNotStep() {
         // The measured material is blended toward the earlier fit at Tint 0 and 100 (authored), but the detail
         // reach and kernel switch as soon as the blend weight leaves 0. A step there must stay no larger than a

@@ -110,7 +110,10 @@ data class GlassStyle(
      * The detail share k: how much of the backdrop's own detail is laid over the wide kernel's
      * tone, 0 to 1. Measured on iOS 27 at Tint 50 as 0.277 (dark) and 0.273 (light), the same for
      * detail along and across a bar. The earlier fit, `0.95 (1 - t/100)^1.5` ([GlassMaterial.fineShare]),
-     * still applies at Tint 0 and 100.
+     * still applies at Tint 0 and 100. With the wide kernel on, the softened detail copy (which
+     * [legibility] also reads) fades out as the larger of this share and |[detailLift]| falls from
+     * 0.10 to 0.02 (authored), and is not drawn below that, so a share that runs toward 0 near
+     * Tint 100 does not switch the look at one tint.
      */
     val fineShare: Float = 0.34f,
     /**

@@ -368,11 +368,14 @@ half4 main(float2 coord) {
         backdropAt(coord + push).g,
         backdropAt(coord + pushB).b
     );
-    // The panel shader's choice: the four-tap detail copy at the lab reach, the scatter otherwise, and none when
-    // the wide kernel takes the whole backdrop term (no detail share and no one-sided term).
-    half3 soft = (uWideStrip >= 1.0 && uFineShare < 0.02 && abs(uDetailLift) < 0.02)
-        ? sharp
-        : ((uDetailCross >= 0.5) ? detailAt(coord + push, uBlur * e) : blurredAt(coord + push, uBlur * e, tapRotation(coord)));
+    // The panel shader's choice: the four-tap detail copy at the lab reach, the scatter otherwise, faded out (authored)
+    // as the larger of the detail share and the one-sided term goes from 0.10 to 0.02, and none below that.
+    float detailWeight = (uWideStrip >= 1.0) ? smoothstep(0.02, 0.10, max(uFineShare, abs(uDetailLift))) : 1.0;
+    half3 soft = sharp;
+    if (detailWeight > 0.0) {
+        half3 detailCopy = (uDetailCross >= 0.5) ? detailAt(coord + push, uBlur * e) : blurredAt(coord + push, uBlur * e, tapRotation(coord));
+        soft = (detailWeight < 1.0) ? mix(sharp, detailCopy, half(detailWeight)) : detailCopy;
+    }
     float rimSharp = (1.0 - e) * (1.0 - e);
     half3 bg = mix(soft, sharp, half(rimSharp));
 

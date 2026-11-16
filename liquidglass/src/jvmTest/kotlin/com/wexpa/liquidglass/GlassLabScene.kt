@@ -43,6 +43,10 @@ internal class GlassLabScene(
     val pillH: Int = 143,
     val container: Boolean = false,
 ) : AutoCloseable {
+    /** The style drawn. Setting it re-draws the same scene, so a sweep over styles need not build one scene each. */
+    var style by mutableStateOf(style)
+    private var drawn: GlassStyle? = null
+
     /** The backdrop: a ground colour, then rectangles (x, y, w, h, argb) of every other colour over it. */
     private var ground by mutableStateOf(0)
     private var backdrop by mutableStateOf(IntArray(0))
@@ -65,11 +69,11 @@ internal class GlassLabScene(
             })
             val pill = Modifier.offset { IntOffset(pillX, pillY) }.size((pillW / 3f).dp, (pillH / 3f).dp)
             if (container) {
-                LiquidGlassContainer(glass, Modifier.fillMaxSize(), style = style) {
+                LiquidGlassContainer(glass, Modifier.fillMaxSize(), style = this@GlassLabScene.style) {
                     Box(Modifier.fillMaxSize()) { Box(pill.glassMember(RoundedCornerShape(50))) }
                 }
             } else {
-                Box(pill.liquidGlass(glass, RoundedCornerShape(50), style))
+                Box(pill.liquidGlass(glass, RoundedCornerShape(50), this@GlassLabScene.style))
             }
         }
     }
@@ -83,8 +87,11 @@ internal class GlassLabScene(
         ground = argb.asList().groupingBy { it }.eachCount().maxBy { it.value }.key
         backdrop = rectsOf(argb, width, height, ground)
         // The first frame records the new backdrop; the second draws the glass over that recording. A container
-        // learns where its members are only after its first layout, so it takes one frame more.
-        repeat(if (container) 2 else 1) { scene.render(time); time += 16_000_000L }
+        // learns where its members are only after its first layout, so it takes one frame more, and so does a new style:
+        // its first frame recomposes and may change the host's recording pad.
+        val warmUp = (if (container) 2 else 1) + (if (drawn != null && drawn != style) 1 else 0)
+        drawn = style
+        repeat(warmUp) { scene.render(time); time += 16_000_000L }
         val frame = scene.render(time); time += 16_000_000L
         return pixelsOf(frame)
     }
