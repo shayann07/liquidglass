@@ -1,6 +1,6 @@
 ## RESUME HERE (16 November): #200 three-term material awaiting final checks
 
-- `feat/200-material-model` (worktree `.local/worktrees/200-material-model`) carries the measured material (along-axis filter removed,
+- `feat/200-material-model` carries the measured material (along-axis filter removed,
   `detailLift`, `toneCurve`, four-tap detail kernel, authored Tint blend). Docs are written; code, ports and tests are described in
   PROGRESS.md.
 - Lab gate re-scored on 9730618e (1.43 / 1.42), docs/1 replay done (differences inside glass, at most 7 levels), evidence in
