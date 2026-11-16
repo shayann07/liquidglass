@@ -68,6 +68,9 @@ private fun replay(args: Array<String>) {
     // "+tapw=<reach>[,<knee>[,<mode>]]": the tap's end wall in bar heights; mode 0 spine, 1 leading end only (#70).
     variant.substringAfter("+tapw=", "").substringBefore('+').split(',').mapNotNull { it.toFloatOrNull() }
         .takeIf { it.isNotEmpty() }?.let { @OptIn(com.wexpa.liquidglass.LiquidGlassDiagnosticApi::class) run { com.wexpa.liquidglass.LiquidGlassDiagnostics.tapEndWall = it.toFloatArray() } }
+    // "+tapf=<0|1>": whether a tap that formed the selector keeps the formed lens's family as it settles (#70).
+    variant.substringAfter("+tapf=", "").substringBefore('+').toIntOrNull()
+        ?.let { @OptIn(com.wexpa.liquidglass.LiquidGlassDiagnosticApi::class) run { com.wexpa.liquidglass.LiquidGlassDiagnostics.tapKeepsFormedLens = it != 0 } }
     // "+fringe=<still>,<moving>": the Calm selector's rim split, for fitting by replay (#73).
     variant.substringAfter("+fringe=", "").substringBefore('+').split(',').mapNotNull { it.toFloatOrNull() }
         .takeIf { it.size >= 2 }?.let { @OptIn(com.wexpa.liquidglass.LiquidGlassDiagnosticApi::class) run { com.wexpa.liquidglass.LiquidGlassDiagnostics.selectorFringe = it.toFloatArray() } }

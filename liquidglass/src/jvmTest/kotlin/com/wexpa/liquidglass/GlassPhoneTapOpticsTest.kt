@@ -112,6 +112,59 @@ class GlassPhoneTapOpticsTest {
         assertTrue(c.formation<.25f)
     }
 
+    /** A 60 Hz tap from [start] to [target]: per frame, the formation and the selector's material as the bar computes
+     * it, the held travel taken from the centre's speed as GlassTabBar's fringe speed is (400 dp/s, 3 px a dp). */
+    private fun tapMaterials(spec: GlassPoseSpec, style: GlassTabBarStyle, start: Int, target: Int): List<Pair<Float, GlassStyle>> {
+        val b=bar(); val c=GlassPoseController(spec)
+        c.attach(b,null,null); c.snapToRest(start)
+        c.pointerDown(b.centreOf(target),b.centreY,0.0,true); c.retarget(target)
+        var released=false; var lastX=c.centreX
+        return (1..36).map { i ->
+            val t=i/60f
+            if(!released && t>=.04f){c.advanceTo(.04f);c.pointerUp(target);released=true}
+            c.advanceTo(t); assertFalse(c.solverFailed)
+            val travel=(abs(c.centreX-lastX)*60f/1200f).coerceIn(0f,1f); lastX=c.centreX
+            c.formation to glassSelectorMaterial(style,c.formation,c.transitAppearance,travel,0f,c.tapFormed)
+        }
+    }
+
+    /** The lens strength the shader draws: the held family's, none for the transit fold (Measured). */
+    private fun lensOf(m: GlassStyle)=if(m.profile==GlassProfile.Held) m.heldLens else 0f
+
+    @Test fun formedTapFadesItsLensInsteadOfDroppingIt() {
+        // #70: a two-slot Calm tap forms the selector past half (about .76). In the frame its formation fell below half its
+        // fold switched from the formed lens's held map to the measured map, and the destination's ink, stretched into
+        // teardrops along the top rim, went in one frame (docs/1, ten 0->2 taps: 115 to 38 at 183 ms; iOS 106, 86, 64 at
+        // 183, 200, 217 ms).
+        val style=GlassTabBarStyle.Calm()
+        assertTrue(GlassPoseSpec.Calm.tapKeepsFormedLens,"on in Calm")
+        for((a,z) in listOf(0 to 2, 2 to 0)) {
+            val frames=tapMaterials(GlassPoseSpec.Calm,style,a,z)
+            val first=frames.indexOfFirst { it.first>=.5f }
+            assertTrue(first>=0,"$a->$z forms past half")
+            val lens=frames.map { lensOf(it.second) }
+            println("FORMED_TAP $a->$z formation=${frames.map { "%.2f".format(it.first) }} lens=${lens.map { "%.2f".format(it) }}")
+            assertTrue(frames.drop(first).all { it.second.profile==GlassProfile.Held },"$a->$z keeps the formed lens's family")
+            for(i in first+1 until lens.size)
+                assertTrue(lens[i-1]-lens[i]<=.4f,"$a->$z frame $i: the lens falls ${lens[i-1]} -> ${lens[i]} in one frame")
+            assertTrue(lens.last()<.05f,"$a->$z settles: ${lens.last()}")
+        }
+    }
+
+    @Test fun formedTapOpticsLeaveOneSlotTapsAndLightCalmAlone() {
+        val off=GlassPoseSpec.Calm.copy(tapKeepsFormedLens=false)
+        // One-slot taps form to about .29 and never reach the formed lens.
+        for((a,z) in listOf(0 to 1, 1 to 0, 1 to 2, 2 to 1)) {
+            val on=tapMaterials(GlassPoseSpec.Calm,GlassTabBarStyle.Calm(),a,z)
+            assertTrue(on.maxOf { it.first }<.5f)
+            assertEquals(tapMaterials(off,GlassTabBarStyle.Calm(),a,z),on,"$a->$z")
+        }
+        // Light Calm has no transit fold, so its formed tap never switched: unchanged.
+        for((a,z) in listOf(0 to 2, 2 to 0))
+            assertEquals(tapMaterials(off,GlassTabBarStyle.Calm(dark=false),a,z),
+                tapMaterials(GlassPoseSpec.Calm,GlassTabBarStyle.Calm(dark=false),a,z),"light $a->$z")
+    }
+
     @Test fun appearanceDoesNotChangeThePoseOrHeldFormation() {
         for(target in listOf(1,2)) {
             val b=bar()
