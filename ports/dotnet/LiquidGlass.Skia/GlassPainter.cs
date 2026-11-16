@@ -89,8 +89,8 @@ public sealed class GlassPainter : IDisposable
         if (radii.Count != 4 || radii.Any(r => !float.IsFinite(r) || r < 0)) throw new ArgumentException("Four nonnegative radii required", nameof(radii));
         var v = SurfaceUniforms(bounds, radii, options);
         var origin = new SKPoint(bounds.Left - 2, bounds.Top - 2);
-        using var shader = Backdrop(origin, 10 * options.Density, out var strip);
-        Set(v, "uWideStrip", strip);
+        using var shader = Backdrop(origin, v["uWideKernel"][0], out var strip);
+        Set(v, "uWideStrip", v["uWideKernel"][0] >= 1 ? strip : 0);
         Draw(canvas, v, shader, origin, bounds, feedback, options.Density);
     }
 
@@ -106,7 +106,7 @@ public sealed class GlassPainter : IDisposable
         var tint = o.Dark ? 0 : 241f / 255;
         Set(v, "uRadii", r); Set(v, "uRefractBand", .6f * r.Max()); Set(v, "uRefractDepth", 14 * o.Density);
         Set(v, "uProfile", 1); Set(v, "uFormation", 0); Set(v, "uHeldLens", 0); Set(v, "uHeldMagnification", 0);
-        Set(v, "uHeldGlow", 1); Set(v, "uAberration", .07f); Set(v, "uBlur", (.5f + 1.5f * t * t) / .6f * o.Density);
+        Set(v, "uHeldGlow", 1); Set(v, "uAberration", .07f);
         Set(v, "uWideKernel", 10 * o.Density); Set(v, "uFineShare", .95f * MathF.Pow(1 - t, 1.5f));
         Set(v, "uTint", tint, tint, tint, MathF.Round(Interpolate(o.Dark ? DarkOpacity : LightOpacity, o.TintAmount) * 255) / 255);
         Set(v, "uLift", o.Dark ? 35f / 255 : 0); Set(v, "uBevel", 1.33f * o.Density); Set(v, "uBevelPeak", .25f);
@@ -114,7 +114,57 @@ public sealed class GlassPainter : IDisposable
         Set(v, "uLight", o.LightX, o.LightY);
         Set(v, "uScale", Math.Clamp((Math.Min(bounds.Width, bounds.Height) / o.Density - 56) / 264, 0, 1));
         Set(v, "uMaterialize", o.Materialize); Set(v, "uFrost", o.ReducedTransparency); Set(v, "uContrast", o.IncreasedContrast);
+        TowardLab(v, o);
         return v;
+    }
+
+    // GlassStyle.towardLab: the lab fit (#199, #200) laid over the earlier fit by a weight that is 1 at the default
+    // Tint Amount and 0 at 0 and 100. The detail reach is the lab's at every tint, which selects the four-tap
+    // detail kernel (uDetailCross: 0 < blurRadius <= 1/3 dp, decided in dp).
+    private const float LabWideKernel = 15.5f, LabDetailReach = 1f / 3;
+
+    private static void TowardLab(Dictionary<string, float[]> v, GlassSurfaceOptions o)
+    {
+        Set(v, "uBlur", LabDetailReach * o.Density); Set(v, "uDetailCross", 1);
+        var w = Math.Clamp(1 - MathF.Abs(Math.Clamp(o.TintAmount, 0, 100) - 50) / 50, 0, 1);
+        if (w <= 0) return;
+        float Mix(float a, float b) => a + (b - a) * w;
+        var dark = o.Dark;
+        var grey = dark ? 0f : 1f;
+        Set(v, "uTint", LerpColor(v["uTint"], [grey, grey, grey, Q8(dark ? .3985f : .498f)], w));
+        Set(v, "uLift", Mix(v["uLift"][0], dark ? 31.72f / 255 : 5.5f / 255));
+        Set(v, "uFineShare", Mix(v["uFineShare"][0], dark ? .277f : .273f));
+        Set(v, "uWideKernel", Mix(v["uWideKernel"][0], LabWideKernel * o.Density));
+        Set(v, "uDetailLift", (dark ? -.22f : .22f) * w); Set(v, "uToneCurve", (dark ? 101.01f / 255 : 0f) * w);
+        Set(v, "uLegibility", Mix(v["uLegibility"][0], 0)); Set(v, "uSoftDetail", Mix(0, 1));
+    }
+
+    // Compose's Color lerp runs in Oklab and stores 8 bits per channel again; the Oklab intermediate keeps alpha in
+    // 10 bits, truncated, which is the step the golden values show.
+    private static float Q8(float x) => MathF.Floor(Math.Clamp(x, 0, 1) * 255 + .5f) / 255;
+    private static double SrgbToLinear(double c) => c <= .04045 ? c / 12.92 : Math.Pow((c + .055) / 1.055, 2.4);
+    private static double LinearToSrgb(double c) => c <= .0031308 ? c * 12.92 : 1.055 * Math.Pow(c, 1 / 2.4) - .055;
+
+    private static double[] ToOklab(float[] c)
+    {
+        double r = SrgbToLinear(c[0]), g = SrgbToLinear(c[1]), b = SrgbToLinear(c[2]);
+        double l = Math.Cbrt(.4122214708 * r + .5363325363 * g + .0514459929 * b);
+        double m = Math.Cbrt(.2119034982 * r + .6806995451 * g + .1073969566 * b);
+        double s = Math.Cbrt(.0883024619 * r + .2817188376 * g + .6299787005 * b);
+        return [.2104542553 * l + .793617785 * m - .0040720468 * s, 1.9779984951 * l - 2.428592205 * m + .4505937099 * s,
+            .0259040371 * l + .7827717662 * m - .808675766 * s];
+    }
+
+    private static float[] LerpColor(float[] a, float[] b, float w)
+    {
+        double[] p = ToOklab(a), q = ToOklab(b);
+        double L = p[0] + (q[0] - p[0]) * w, A = p[1] + (q[1] - p[1]) * w, B = p[2] + (q[2] - p[2]) * w;
+        double l = Math.Pow(L + .3963377774 * A + .2158037573 * B, 3), m = Math.Pow(L - .1055613458 * A - .0638541728 * B, 3);
+        double s = Math.Pow(L - .0894841775 * A - 1.291485548 * B, 3);
+        float Ch(double linear) => Q8((float)LinearToSrgb(Math.Clamp(linear, 0, 1)));
+        var alpha = MathF.Floor(Math.Clamp(a[3] + (b[3] - a[3]) * w, 0, 1) * 1023) / 1023;
+        return [Ch(4.0767416621 * l - 3.3077115913 * m + .2309699292 * s), Ch(-1.2684380046 * l + 2.6097574011 * m - .3413193965 * s),
+            Ch(-.0041960863 * l - .7034186147 * m + 1.707614701 * s), Q8(alpha)];
     }
 
     /// <summary>Draw a Calm navigation bar's glass in the Compose Calm bar material

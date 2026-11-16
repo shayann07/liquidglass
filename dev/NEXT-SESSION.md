@@ -1,3 +1,13 @@
+## RESUME HERE (16 November): #200 three-term material awaiting final checks
+
+- `feat/200-material-model` (worktree `.local/worktrees/200-material-model`) carries the measured material (along-axis filter removed,
+  `detailLift`, `toneCurve`, four-tap detail kernel, authored Tint blend). Docs are written; code, ports and tests are described in
+  PROGRESS.md.
+- Next: re-score the private lab gate on the final commit; run the full suite (`./gradlew :liquidglass:jvmTest --rerun`) after the
+  tab bar `toolbarEarlier` change; replay docs/1 and replace the `REPLAY_RESULT` token in the CHANGELOG entry; create
+  `review/atlas/material-model-2026-11-16/README.md` (the CHANGELOG and development status name it); strict MkDocs.
+- No commit, push or tag has been made for this work.
+
 ## RESUME HERE (9 November): narrow-band field build, Argon trial
 
 - #81 follow-up: `perf/81-narrow-band-edt` replaces #180's bounded transform with a packed one-pass narrow-band transform

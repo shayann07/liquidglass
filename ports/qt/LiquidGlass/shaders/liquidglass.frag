@@ -46,6 +46,9 @@ layout(std140, binding = 0) uniform buf {
     float uWideStrip;
     float uWideScale;
     float uFineShare;
+    float uDetailLift;
+    float uToneCurve;
+    float uDetailCross;
     float uWideKernel;
     float uLift;
     float uLiftAdapt;
@@ -539,24 +542,13 @@ vec3 blurredAt(vec2 p, float radius, vec2 rot) {
     return sum * float(1.0 / 19.0);
 }
 
-// The measured material's fine term is one-dimensional (MODEL.md section 2a, FINDINGS 22): it
-// carries detail along a bar and none at all across it. Two readings of the Photos toolbar pill
-// pin it down. Where the target's 8 px stripe band ends under the pill the detail stops within
-// two rows, so nothing is averaged across; and the target's 20-row black band under the same
-// pill leaves no step at all, though it is a 122-level boundary. Content that does not vary
-// along the bar produces no fine term, which is what a high-pass along one axis does.
-//
-// So the detail is the fine sample minus the backdrop averaged along the element's long axis,
-// five taps spanning the along-axis wide kernel, jittered per pixel so periodic content does not
-// beat against the tap spacing. Five rather than seven: the pair at 2.25 sigma carries 5% of the
-// weight and cost 1.5 ms a frame on an S24.
-vec3 axisMeanAt(vec2 p, float span, vec2 rot) {
-    vec2 t = (uSize.x >= uSize.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
-    float k = span * (0.85 + 0.3 * abs(rot.x));
-    vec3 sum = backdropAt(p);
-    vec3 acc = (backdropAt(p + t * (0.75 * k)) + backdropAt(p - t * (0.75 * k))) * float(0.7548);
-    acc += (backdropAt(p + t * (1.60 * k)) + backdropAt(p - t * (1.60 * k))) * float(0.4043);
-    return (sum + acc) * float(1.0 / 3.3182);
+// The detail copy D of the measured material (#200): four taps at +-r along both axes, no centre. Its
+// response to stripes is (1 + cos(2 pi r / P)) / 2: at r = 1 px (3x) 2 px stripes vanish and 4, 6 and 8 px
+// keep 50, 75 and 85 %, where iOS keeps 0, 49, 73 and about 100 % (the lab stills, #199).
+vec3 detailAt(vec2 p, float r) {
+    if (r < 0.25) return backdropAt(p);
+    return (backdropAt(p + vec2(r, 0.0)) + backdropAt(p - vec2(r, 0.0))
+        + backdropAt(p + vec2(0.0, r)) + backdropAt(p - vec2(0.0, r))) * float(0.25);
 }
 
 float luma(vec3 c) {
@@ -1060,15 +1052,15 @@ vec4 glassMain(vec2 coord) {
     // At Tinted the fine share is 0 and the fine scatter would be thrown away: skip it.
     vec3 soft = (uWideStrip >= 1.0 && uFineShare < 0.02)
         ? sharp
-        : blurredAt(base + push, uBlur * mat * e, rot);
+        : ((uDetailCross >= 0.5) ? detailAt(base + push, uBlur * mat * e) : blurredAt(base + push, uBlur * mat * e, rot));
     float rimSharp = (1.0 - e) * (1.0 - e);
     vec3 bg;
     if (uWideKernel * mat >= 2.0) {
-        // Across a bar the phone keeps no detail at all, in the edge band as in the middle
-        // (FINDINGS 22), so the rim's crisp copy may only contribute its colour fringe. The
-        // fine term is already sharp along the axis here, because its scatter falls to zero at
-        // the rim; mixing the crisp copy back in whole is what drew a step the phone has not
-        // got, 23 levels against 9 over the target's black band.
+        // Within about 5-8 pt of the outline iOS shows content from further inside (the rim band,
+        // #202; the 16 November lab stills): a boundary crossing a bar leaves no step at its true
+        // row there, which is what FINDINGS 22 saw and once read as a detail filter along the bar.
+        // So the rim's crisp copy may only contribute its colour fringe; mixing it back in whole
+        // drew a step the phone has not got, 23 levels against 9 over the target's black band.
         vec3 axis = vec3(backdropAt(base + push));
         bg = soft + (sharp - axis) * float(rimSharp);
     } else {
@@ -1086,26 +1078,16 @@ vec4 glassMain(vec2 coord) {
         bg = mix(bg, echo, float(clamp(mirrorMask * uMirror * mat, 0.0, 1.0)));
     }
 
-    // The measured material is two kernels: a fine one that carries the detail seen through
-    // the glass and a wide one (about 25 pt) that decides its tone, mixed by the fine share.
-    // Sixteen-pixel stripes keep 36% of their contrast at Tint 50 where a single blur wide
-    // enough to explain the tone would leave 3% (MODEL.md section 2a).
+    // The measured material (#199, #200; tools/glass_model.py), fitted on lossless iOS 27 stills at
+    // Tint 50: a wide Gaussian B sets the tone, a sharp copy of the backdrop D is laid over it at the
+    // detail share k, and detail on the glass's own side is favoured by c (positive on light glass,
+    // negative on dark): lin = B + k (D - B) + c |D - B|. Isotropic: iOS keeps the same detail along
+    // and across a bar, and large text shows as one soft copy, never stepped ghosts (#190).
     vec3 wide = bg;
     if (uWideStrip >= 1.0 && mat > 0.001) {
         wide = wideAt(base);
-        // The fine term is a high-pass along the element's long axis, not a share of a second
-        // blurred copy: the tone comes from the wide kernel and the detail is what the backdrop
-        // does along the bar, which is why a boundary running across a bar leaves no step on the
-        // phone (FINDINGS 22). The along-axis average is the wide kernel's own sigma, so where
-        // the backdrop does not vary across the bar the two cancel exactly and the wide kernel
-        // is left alone, and where it does not vary along the bar this is the old two-kernel mix
-        // with no halo. The 0.7 calibrates the seven taps against the strip's own Gaussian: at
-        // 1.0 the step response overshoots by 11 levels, at 0.7 by none.
-        vec3 line = axisMeanAt(base + push, uWideKernel * 0.7 * mat, rot);
-        // A soft copy takes its detail against the wide kernel's own tone: the two-kernel mix,
-        // with no ghost copies of the glyphs along the bar ([GlassStyle.softDetail]).
-        line = mix(line, wide, float(clamp(uSoftDetail, 0.0, 1.0)));
-        bg = wide + (bg - line) * float(clamp(uFineShare, 0.0, 1.0));
+        vec3 detail = bg - wide;
+        bg = wide + detail * float(clamp(uFineShare, 0.0, 1.0)) + abs(detail) * float(clamp(uDetailLift, -1.0, 1.0));
     }
 
     float bgLuma = luma(bg);
@@ -1163,6 +1145,12 @@ vec4 glassMain(vec2 coord) {
         col = mix(blended, medium, float(absorb));
     } else {
         col = blended;
+    }
+    // The measured dark tone curve is concave (#200): the tint blend and the lift give its straight
+    // part, this its bow, uToneCurve x (1 - x) per channel of the material before the tint.
+    if (uToneCurve != 0.0) {
+        vec3 x = clamp(bg, vec3(0.0), vec3(1.0));
+        col += float(uToneCurve * mat * tintCoverage) * x * (vec3(1.0) - x);
     }
     // The measured lift: the dark in-app material is black at its opacity plus a fixed 35/255;
     // the system backdrops lift by 142/255 minus 0.864 of the mean luma behind them, which is

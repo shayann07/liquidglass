@@ -479,6 +479,8 @@ data class GlassStyle(
     val edgeFold: Float = 0f,
     val inkDispersion: Float = Float.NaN,
     val heldInkContinuous: Boolean = false,
+    val detailLift: Float = 0f,
+    val toneCurve: Float = 0f,
 )
 ```
 
@@ -488,7 +490,7 @@ measured in-app material in a light appearance at the default Tint Amount; see
 
 **`profile`** picks the optical model. `Measured` (default): an inward fold lens whose band is
 0.6 of the corner radius when `refractionBand` is unspecified, a two-kernel backdrop (`blurRadius`
-fine, `wideKernel` wide, mixed by `fineShare`), `tint` as `(1 - a) * backdrop + a * tint +
+fine, `wideKernel` wide, combined as `B + fineShare (D - B) + detailLift abs(D - B)`; see [How it works](how-it-works.md)), `tint` as `(1 - a) * backdrop + a * tint +
 tintLift` with `liftAdaptivity` lowering the lift as the wide kernel's luma rises, and
 `dispersion` as a fraction of the band in the mirrored zone only. `refractionDepth`, `mirror`,
 `adaptivity` and `indexOfRefraction` are read by the `Legacy` profile only.
@@ -905,7 +907,10 @@ The `GlassScene` host this section used to open with was removed on 18 October; 
 | `GlassResponse` | `Expressive` preserves historical timing; `Calm` selects slower critical press/pull springs. |
 | `GlassInteraction.response` | Timing parameter, default `Expressive`; existing positional source calls retain their meaning. |
 | `GlassInteraction.pullShape` | Appended parameter, default `GlassPullShape.Adaptive`. `AreaPreserving` couples bounded stretch/narrowing and a material-only directional bias for navigation, without the card size policy; press and layout stay separate. See [generic interaction](generic-interaction.md). |
-| `GlassStyle.softDetail` | Appended parameter, default 0 (the measured along-axis high-pass with a dithered scatter). 1 draws the detail seen through the glass as one soft copy: the wide kernel's tone plus `fineShare` of an unrotated fine blur. Dark `Calm()` uses 1 on its bar and lens. |
+| `GlassStyle.softDetail` | Appended parameter, default 0 (a dithered scatter; the along-axis high-pass it once selected was removed in #200). 1 draws the detail seen through the glass as one soft copy: the wide kernel's tone plus `fineShare` of an unrotated fine blur. Dark `Calm()` uses 1 on its bar and lens. |
+| `GlassStyle.detailLift` | Appended parameter (#200), default 0. The one-sided detail term c of `lin = B + k (D - B) + c abs(D - B)`, with k = `fineShare`: detail on the glass's own side of the surroundings is kept at k + c, the other side at k - c. Measured on iOS 27 at Tint 50: +0.22 light, -0.22 dark; the in-app and toolbar styles blend toward it by an authored Tint weight until #208. |
+| `GlassStyle.toneCurve` | Appended parameter (#200), default 0. The bow `toneCurve * x (1 - x)` added per channel before the tint. Measured: 101.01/255 for dark Tint 50 (a fit of the dark tone table, rms 0.22 levels), 0 for light; scaled by the same authored Tint weight. |
+| `GlassStyle(...)` and `copy(...)` of 1.0 | Kept as hidden deprecated overloads, so the 1.0 binary API is preserved (the ABI dump shows additions only). |
 | `GlassPullShape.Free` | Appended enum value. A free-standing button pulled off its place: the body follows the finger by `pullFollow` (resisted by `pullLimit`), stretches along the pull and thins across it, its content moves with it, and on release it squashes against its own resting edge away from the pull before settling (`GlassMotion.FreeRelease`). Drawing only; layout and hit targets stay put. Measured on iOS 26's Phone search button. |
 | `GlassInteraction.pullLiftShare` | Appended parameter, default 1. Share of the press glow that remains once the finger has moved more than 4 dp (iOS's search button: 0.65 since 18 October; 0.6 on 17 October, 0.7 before). |
 | `Modifier.glassEffect(..., link: GlassAccessoryLink? = null)`, `rememberGlassAccessoryLink()`, `GlassTabBarAccessory(..., link)` | Opt-in. The accessory's glass publishes its animated press and pull; a tab bar given the same link reaches for where the accessory is drawn, so pressing it joins the two through a neck and pulling it away breaks it. Null keeps the laid-out circle. |

@@ -897,11 +897,18 @@ data class GlassStyle(
          * reads 152 where the pill's reads 180. Both are more opaque than the pill at Clear and
          * respond less to Tint Amount.
          */
-        fun toolbar(dark: Boolean, tintAmount: Float = GlassMaterial.DEFAULT_TINT_AMOUNT): GlassStyle {
+        fun toolbar(dark: Boolean, tintAmount: Float = GlassMaterial.DEFAULT_TINT_AMOUNT): GlassStyle =
+            toolbarEarlier(dark, tintAmount).towardLab(dark, tintAmount)
+
+        /**
+         * The toolbar on the earlier fit (before the #200 lab material). The tab bar's bar keeps it: the tab bar is
+         * scored against its own recordings and moves to the lab material in #203.
+         */
+        internal fun toolbarEarlier(dark: Boolean, tintAmount: Float = GlassMaterial.DEFAULT_TINT_AMOUNT): GlassStyle {
             val a = GlassMaterial.toolbarOpacity(dark, tintAmount)
             return inAppEarlier(dark = dark, tintAmount = tintAmount).copy(
                 tint = if (dark) Color.Black.copy(alpha = a) else GlassMaterial.toolbarLightTint.copy(alpha = a),
-            ).towardLab(dark, tintAmount)
+            )
         }
 
         /**

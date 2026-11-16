@@ -17,6 +17,51 @@ function interpolate(table, t) {
 
 function clamp01(v) { return Math.min(1, Math.max(0, v)); }
 
+// GlassStyle.towardLab: the lab fit (#199, #200) laid over the earlier fit by a weight that is 1 at the default
+// Tint Amount and 0 at 0 and 100. The constants are GlassMaterial.lab* in the Compose library.
+var LAB_WIDE_KERNEL = 15.5;
+var LAB_DETAIL_REACH = 1 / 3;
+
+function labWeight(amount) { return clamp01(1 - Math.abs(Math.min(100, Math.max(0, amount)) - 50) / 50); }
+function labOpacity(dark) { return dark ? .3985 : .498; }
+function labLift(dark) { return dark ? 31.72 / 255 : 5.5 / 255; }
+function labDetailShare(dark) { return dark ? .277 : .273; }
+function labDetailLift(dark) { return dark ? -.22 : .22; }
+function labToneCurve(dark) { return dark ? 101.01 / 255 : 0; }
+
+// Compose's Color lerp runs in Oklab and stores 8 bits per channel again; the Oklab intermediate keeps alpha in
+// 10 bits, truncated, which is the step the golden values show.
+function srgbToLinear(c) { return c <= .04045 ? c / 12.92 : Math.pow((c + .055) / 1.055, 2.4); }
+function linearToSrgb(c) { return c <= .0031308 ? c * 12.92 : 1.055 * Math.pow(c, 1 / 2.4) - .055; }
+function q8(x) { return Math.floor(clamp01(x) * 255 + .5) / 255; }
+function cbrt(x) { return Math.pow(x, 1 / 3); }
+
+function toOklab(c) {
+    var r = srgbToLinear(c[0]), g = srgbToLinear(c[1]), b = srgbToLinear(c[2]);
+    var l = cbrt(.4122214708 * r + .5363325363 * g + .0514459929 * b);
+    var m = cbrt(.2119034982 * r + .6806995451 * g + .1073969566 * b);
+    var s = cbrt(.0883024619 * r + .2817188376 * g + .6299787005 * b);
+    return [.2104542553 * l + .793617785 * m - .0040720468 * s,
+            1.9779984951 * l - 2.428592205 * m + .4505937099 * s,
+            .0259040371 * l + .7827717662 * m - .808675766 * s];
+}
+
+function fromOklab(c) {
+    var l = Math.pow(c[0] + .3963377774 * c[1] + .2158037573 * c[2], 3);
+    var m = Math.pow(c[0] - .1055613458 * c[1] - .0638541728 * c[2], 3);
+    var s = Math.pow(c[0] - .0894841775 * c[1] - 1.291485548 * c[2], 3);
+    return [4.0767416621 * l - 3.3077115913 * m + .2309699292 * s,
+            -1.2684380046 * l + 2.6097574011 * m - .3413193965 * s,
+            -.0041960863 * l - .7034186147 * m + 1.707614701 * s].map(function (v) { return linearToSrgb(clamp01(v)); });
+}
+
+function lerpColor(a, b, w) {
+    var p = toOklab(a), q = toOklab(b);
+    var rgb = fromOklab([p[0] + (q[0] - p[0]) * w, p[1] + (q[1] - p[1]) * w, p[2] + (q[2] - p[2]) * w]);
+    var alpha = Math.floor(clamp01(a[3] + (b[3] - a[3]) * w) * 1023) / 1023;
+    return [q8(rgb[0]), q8(rgb[1]), q8(rgb[2]), q8(alpha)];
+}
+
 /**
  * Every material uniform the shader reads, {name: [numbers]}, for a surface of `width` × `height`
  * device pixels (without the padding) at `density` device pixels per logical pixel.
@@ -68,7 +113,6 @@ function uniforms(m, width, height, density) {
     v.uHeldMagnification = [0];
     v.uHeldGlow = [1];
     v.uAberration = [.07];
-    v.uBlur = [(.5 + 1.5 * t * t) / .6 * density];
     v.uWideKernel = [10 * density];
     v.uFineShare = [.95 * Math.pow(1 - t, 1.5)];
     v.uTint = [grey, grey, grey, opacity];
@@ -85,6 +129,23 @@ function uniforms(m, width, height, density) {
     v.uMaterialize = [clamp01(m.materialize === undefined ? 1 : m.materialize)];
     v.uFrost = [clamp01(m.reducedTransparency || 0)];
     v.uContrast = [clamp01(m.increasedContrast || 0)];
+    // The lab fit (GlassStyle.towardLab). The detail reach is the lab's at every tint, which selects the four-tap
+    // detail kernel (uDetailCross: 0 < blurRadius <= 1/3 dp, decided in dp).
+    var w = labWeight(tintAmount);
+    v.uBlur = [LAB_DETAIL_REACH * density];
+    v.uDetailCross = [1];
+    if (w > 0) {
+        var mix = function (a, b) { return a + (b - a) * w; };
+        var labGrey = m.dark ? 0 : 1;
+        v.uTint = lerpColor(v.uTint, [labGrey, labGrey, labGrey, q8(labOpacity(m.dark))], w);
+        v.uLift = [mix(v.uLift[0], labLift(m.dark))];
+        v.uFineShare = [mix(v.uFineShare[0], labDetailShare(m.dark))];
+        v.uWideKernel = [mix(v.uWideKernel[0], LAB_WIDE_KERNEL * density)];
+        v.uDetailLift = [labDetailLift(m.dark) * w];
+        v.uToneCurve = [labToneCurve(m.dark) * w];
+        v.uLegibility = [mix(v.uLegibility[0], 0)];
+        v.uSoftDetail = [mix(0, 1)];
+    }
     if (m.tint) {
         var q = function (c) { return Math.round(c * 255) / 255; };
         v.uTint = [q(m.tint[0]), q(m.tint[1]), q(m.tint[2]), q(m.tint[3])];

@@ -47,6 +47,9 @@ layout(std140, binding = 0) uniform buf {
     float uWideStrip;
     float uWideScale;
     float uFineShare;
+    float uDetailLift;
+    float uToneCurve;
+    float uDetailCross;
     float uWideKernel;
     float uLift;
     float uLiftAdapt;

@@ -1,3 +1,15 @@
+## 16 November 2026 - #200 measured three-term material (Claude)
+
+- `feat/200-material-model`: the along-axis filter (FINDINGS 22) is replaced by `lin = B + k (D - B) + c |D - B|`, wide kernel 15.5 dp,
+  dark tone bow via `GlassStyle.toneCurve`, `detailLift`, four-tap 1/3 dp detail kernel picked by the host when `0 < blurRadius <= 1/3 dp`,
+  wide-kernel pad 1.5 sigma, authored Tint blend (#208). Private lab gate 1.43 / 1.42 levels rms on 89 stills (main 24.2 / 15.2; gate 3.0),
+  measured on 5ed4d37d, re-score on the final commit pending. `GlassLabModelTest` 222 checks. Named residual: 6 px stripes 6.9 / 4.5.
+- Suite at 8155507a: 506 library tests, one failure (`GlassPhoneMaterialReferenceTest`, dark V3 bar), fixed by keeping the tab bar on the
+  earlier toolbar fit (`GlassStyle.toolbarEarlier`, until #203); material3 suite clean.
+- Ports: skia, npm canvas engine, React Native, Qt, Unity, .NET checked; Flutter Dart not compiled; npm HTML/CSS engine and `ports/web` not ported.
+- Pixel 7 (main 0e2f7a63 against 8155507a, six rounds): ghost scroll light 1112 vs 1100 frames in 12 s, dark 1098 vs 1099; calibration animate p90
+  31.8 vs 30.0 ms. Evidence: `review/atlas/material-model-2026-11-16`.
+
 ## 9 November 2026 — narrow-band field build (Claude, from the Argon trial)
 
 - #81 follow-up: `perf/81-narrow-band-edt` replaces #180's bounded transform with a packed one-pass narrow-band transform

@@ -78,13 +78,20 @@ sigma 10 dp (`wideKernel`, rendered once per frame as a quarter-scale blurred co
 padded backdrop in a strip beneath it, sampled with one tap), and `fineShare` w = 0.95 (1 −
 t/100)^1.5 against Tint Amount t: 0.95 at Clear, 0.34 at the default, 0 at Tinted.
 
-The fine term is one-dimensional. The phone keeps detail that runs **along** a bar and none at
-all across it, so what the shader adds is not a share of a second blurred copy but a high-pass
-along the element's long axis: the fine sample minus the backdrop averaged along that axis, five
-taps at 0.7 of the wide sigma. Backdrop that does not vary along the bar cancels and is left to
-the wide kernel, which is why a boundary crossing a bar leaves no step, on the phone or here.
-Backdrop that does not vary across it behaves exactly as the mix above. It applies only where
-`wideKernel` is on, so the fold and the held lens are untouched.
+Since #200 the detail term is the measured three-term mix, the same along and across an element
+(measured at Tint 50; the earlier along-axis high-pass drew ghost copies of sharp text and is gone):
+
+```
+lin = B + k (D - B) + c |D - B|      B: wide kernel (15.5 dp), D: the backdrop softened by about 1 px
+```
+
+`k` is `fineShare` (0.277 dark, 0.273 light) and `c` is `detailLift` (-0.22 dark, +0.22 light). Dark
+glass then bends the tint blend by `toneCurve * x (1 - x)`, the curve measured for the dark tone;
+light stays a straight blend. The detail `D` is a four-tap kernel at 1/3 dp with no centre tap, chosen by the
+host when `blurRadius` is at most 1/3 dp; wider reaches keep the dithered scatter. Tints other than
+50 blend authored values between the earlier fit and the lab values (#208 will measure them). The
+terms apply only where `wideKernel` is on, so the fold and the held lens are untouched. The
+provenance of each constant is in the [measured model](research/measured-model.md), section 2e.
 
 ## 4. Tint — a blend with a lift
 

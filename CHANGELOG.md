@@ -6,6 +6,26 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Regular glass now follows the measured three-term material, `lin = B + k (D - B) + c |D - B|`, and the along-axis detail filter is gone (#200, fixes #190).
+  That filter averaged the backdrop along the element's long axis and drew the stepped ghost copies of sharp text; the lab
+  stills show iOS keeping the same detail along and across a bar, so detail now arrives as one soft copy over a 15.5 dp
+  (46.5 px at 3x) wide kernel, with k 0.277 dark / 0.273 light and c -0.22 dark / +0.22 light, and the dark tone is a
+  fitted curve (31.72 + 254.40x - 101.01x^2, rms 0.22 levels) where light stays linear (132.5 + 0.502 in). On 89 private lab
+  stills at Tint 50 the toolbar pill scores 1.43 dark / 1.42 light levels rms against the stills (gate 3.0; main 24.2 / 15.2;
+  the model itself 1.31 / 1.30); the named residual is 6 px stripes at 6.9 dark / 4.5 light, and 2 px bars at 3.7 / 4.5. Only
+  Tint 50 is measured: tints between 0 and 100 are an authored blend toward the earlier fit until #208. Colour stays on
+  the earlier model until #201, the rim band is #202 and the tab bar keeps its earlier fit until #203. New public
+  `GlassStyle.detailLift` (c, default 0) and `GlassStyle.toneCurve` (the dark tone's bow, default 0); the 1.0 constructor and
+  `copy` stay binary-compatible as hidden overloads. Pixel 7 (Android 17, 90 Hz), main against this branch, six rounds each:
+  90 fps held, ghost-scroll frames in 12 s 1112 against 1100 (light) and 1098 against 1099 (dark), calibration-screen p90 31.8
+  against 30.0 ms; the captures show stepped copies under a card on main and one soft copy here. docs/1 replay: REPLAY_RESULT.
+  Ports updated and checked: Skia, npm canvas engine, React Native, Qt, Unity, .NET; the Flutter Dart port is not compiled
+  (no toolchain here); the npm HTML/CSS engine and `ports/web` are not ported.
+  Default look changed: Regular glass everywhere it is used (`Glass.Regular`, `GlassStyle.Regular`, `inApp`, `toolbar`, the
+  Material 3 control, toolbar and panel glass) at every Tint; every wide-kernel style loses the along-axis term and its
+  wide-kernel recording pad grows from 0.75 to 1.5 sigma; custom styles with `0 < blurRadius <= 1/3 dp` now get the four-tap
+  detail kernel; Tint 0 and 100 take the 1/3 dp detail reach (authored, #208).
+  [Evidence](review/atlas/material-model-2026-11-16/README.md).
 - Calm taps that land on the first or last tab now meet an end wall: the lens's leading end is pushed back once it passes 0.03 bar heights
   past its resting end (a soft limit, not a clamp: a two-slot tap on a three-tab bar stops about 0.055 bar heights past it, asserted with a 0.5 px tolerance), so it stops where iOS's does instead of running 8-10 px past it. The pigment timing is unchanged
   (the tap's appearance reads the spine without the wall), the result does not depend on frame rate, and the wall fades out

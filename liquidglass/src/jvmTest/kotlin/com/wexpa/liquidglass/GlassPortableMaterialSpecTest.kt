@@ -12,7 +12,7 @@ class GlassPortableMaterialSpecTest {
             for (dark in listOf(false, true)) {
                 for (amount in listOf(0f, 17f, 29f, 31f, 50f, 62f, 79f, 86f, 100f)) {
                     val s = GlassStyle.inApp(dark, amount)
-                    add("""{"dark":$dark,"tintAmount":$amount,"values":{"uTint":[${s.tint.red},${s.tint.green},${s.tint.blue},${s.tint.alpha}],"uLift":${s.tintLift},"uBlur":${s.blurRadius.value},"uWideKernel":${s.wideKernel.value},"uFineShare":${s.fineShare},"uAberration":${s.dispersion},"uRefractDepth":${s.refractionDepth.value},"uBevel":${s.bevel.value},"uBevelPeak":${s.bevelPeak},"uSpecular":${s.specular},"uSpecularPow":${s.specularPower},"uCounterLight":${s.counterLight},"uEdgeLight":${s.edgeLight},"uLegibility":${s.legibility},"uSoftDetail":${s.softDetail},"uDetailLift":${s.detailLift},"uToneCurve":${s.toneCurve},"uDetailCross":${if (s.blurRadius > 0.dp && s.blurRadius <= GlassMaterial.labDetailReach) 1f else 0f}}}""")
+                    add("""{"dark":$dark,"tintAmount":$amount,"values":{"uTint":[${s.tint.red},${s.tint.green},${s.tint.blue},${s.tint.alpha}],"uLift":${s.tintLift},"uBlur":${s.blurRadius.value},"uWideKernel":${s.wideKernel.value},"uFineShare":${s.fineShare},"uAberration":${s.dispersion},"uRefractDepth":${s.refractionDepth.value},"uBevel":${s.bevel.value},"uBevelPeak":${s.bevelPeak},"uSpecular":${s.specular},"uSpecularPow":${s.specularPower},"uCounterLight":${s.counterLight},"uEdgeLight":${s.edgeLight},"uLegibility":${s.legibility},"uSoftDetail":${s.softDetail},"uDetailLift":${s.detailLift},"uToneCurve":${s.toneCurve},"uDetailCross":${if (GlassMaterial.usesDetailCross(s.blurRadius)) 1f else 0f}}}""")
                 }
             }
         }.joinToString(",\n", "[\n", "\n]\n")

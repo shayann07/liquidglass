@@ -38,7 +38,7 @@ class GlassSelectorPortMaterialTest {
         "uSoftDetail" to listOf(s.softDetail.coerceIn(0f, 1f)),
         "uDetailLift" to listOf(s.detailLift.coerceIn(-1f, 1f)),
         "uToneCurve" to listOf(s.toneCurve),
-        "uDetailCross" to listOf(if (s.blurRadius > 0.dp && s.blurRadius <= GlassMaterial.labDetailReach) 1f else 0f),
+        "uDetailCross" to listOf(if (GlassMaterial.usesDetailCross(s.blurRadius)) 1f else 0f),
         "uRestMap" to listOf(s.restMap.uniform),
         "uEdgeFold" to listOf(s.edgeFold.coerceIn(0f, 2f)),
         "uInkSplit" to listOf(if (s.inkDispersion.isNaN()) s.dispersion else s.inkDispersion),

@@ -105,7 +105,13 @@ using (var second = Image(320, 200, (_, _) => new SKColor(180, 130, 90)))
     var bounds = SKRect.Create(40, 40, 200, 100);
     painter.SetSource(first); surface.Canvas.DrawImage(first, 0, 0, new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.None)); painter.DrawSurface(surface.Canvas, bounds, 20, new(Dark: true));
     var a = Pixels(surface, 320, 200); var p = (90 * 320 + 140) * 4;
-    for (var c = 0; c < 3; c++) Check(Math.Abs(a[p + c] - ((32 + 32 * c) * (1 - 115f / 255) + 35)) <= 2, "Dark material unexpected measured tone");
+    // The lab fit's dark tone over a flat grey x (GlassMaterial.lab*, #200): 31.72 + 254.40 x - 101.01 x^2 in levels. It was
+    // (32 + 32 c) * (1 - 115 / 255) + 35 under the earlier fit.
+    for (var c = 0; c < 3; c++)
+    {
+        var x = (32 + 32 * c) / 255.0;
+        Check(Math.Abs(a[p + c] - (31.72 + 254.40 * x - 101.01 * x * x)) <= 2, $"Dark material unexpected measured tone: {a[p + c]}");
+    }
     surface.Canvas.DrawImage(first, 0, 0, new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.None)); painter.DrawSurface(surface.Canvas, bounds, 20, new(Dark: true));
     Check(a.SequenceEqual(Pixels(surface, 320, 200)), "Cached repeated draw changed pixels");
     painter.SetSource(second); surface.Canvas.DrawImage(second, 0, 0, new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.None)); painter.DrawSurface(surface.Canvas, bounds, 20, new(Dark: true));

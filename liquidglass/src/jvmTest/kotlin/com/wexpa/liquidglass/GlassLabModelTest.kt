@@ -169,6 +169,21 @@ class GlassLabModelTest {
     }
 
     @Test
+    fun morphBetweenLabStylesKeepsTheDetailKernel() {
+        // A Dp lerp between two equal reaches can land one float step above 1/3 dp; the kernel must not flip.
+        val pairs = listOf(
+            GlassStyle.toolbar(dark = false) to GlassStyle.toolbar(dark = true),
+            GlassStyle.Regular to GlassStyle.toolbar(dark = true),
+            GlassStyle.inApp(dark = false, tintAmount = 0f) to GlassStyle.inApp(dark = true, tintAmount = 100f),
+        )
+        for ((a, b) in pairs) for (i in 0..100) {
+            val reach = lerpGlassStyle(a, b, i / 100f).blurRadius
+            check(GlassMaterial.usesDetailCross(reach), "morph fraction ${i / 100f}: reach ${reach.value} dp leaves the detail kernel")
+        }
+        assertTrue(failures.isEmpty(), failures.joinToString("; "))
+    }
+
+    @Test
     fun morphKeepsOneDetailCopy() {
         // GlassMorph lerps the reach with the rest of the style; past the lab reach the host must leave the four-tap
         // kernel, or a morph toward a wider-reach style draws four displaced copies (#190's ghosts) halfway.

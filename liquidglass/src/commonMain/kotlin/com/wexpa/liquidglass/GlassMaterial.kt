@@ -60,6 +60,13 @@ object GlassMaterial {
      */
     internal val labDetailReach: Dp = (1f / 3f).dp
 
+    /**
+     * Whether [reach] takes the four-tap detail kernel (`uDetailCross`): above zero and at most [labDetailReach],
+     * with 0.1 % slack because a Dp lerp between two equal reaches can land one float step above (884 of 10,001
+     * morph fractions at 1/3 dp), which would flip the kernel for those frames.
+     */
+    internal fun usesDetailCross(reach: Dp): Boolean = reach.value > 0f && reach.value <= labDetailReach.value * 1.001f
+
     /** Lab fit, Tint 50: the detail share k (dark 0.277, light 0.273). */
     internal fun labDetailShare(dark: Boolean): Float = if (dark) 0.277f else 0.273f
 

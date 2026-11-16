@@ -90,6 +90,14 @@ tasks.withType<Test>().configureEach {
         .withPathSensitivity(PathSensitivity.RELATIVE)
     outputs.dir(layout.buildDirectory.dir("reports/atlas"))
     systemProperty("liquidglass.exportShaders", providers.gradleProperty("liquidglass.exportShaders").getOrElse("false"))
+    // Local runs: -Pliquidglass.forks=<n> spreads the test classes over n JVMs (every render is CPU raster, one class
+    // at a time by default; CI keeps the default).
+    providers.gradleProperty("liquidglass.forks").orNull?.toIntOrNull()?.let {
+        maxParallelForks = it.coerceIn(1, Runtime.getRuntime().availableProcessors())
+        maxHeapSize = "2g"
+    }
+    // #200 evidence render (GlassMaterialEvidenceRender), opt-in: -Pliquidglass.evidence=<dir>.
+    (project.findProperty("liquidglass.evidence") as String?)?.let { systemProperty("liquidglass.evidence", it) }
     (project.findProperty("liquidglass.calibration") as String?)?.let { systemProperty("liquidglass.calibration", it) }
     (project.findProperty("liquidglass.wideClamp") as String?)?.let { systemProperty("liquidglass.wideClamp", it) }
     (project.findProperty("liquidglass.restMap") as String?)?.let { systemProperty("liquidglass.restMap", it) }
