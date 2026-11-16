@@ -16,7 +16,7 @@ const bar = () => {
 /** Positions in px; shape and optics in their own units. Float32 (Kotlin) against float64 here. */
 // formation 5e-4: the still-release fade (omega 100, #106) amplifies float32/float64 drift.
 const TOLERANCE = {cx: .05, cy: .05, left: .05, right: .05, top: .05, bottom: .05, formation: 5e-4,
-  transit: 1e-3, heldTravel: 1e-4, a0: 1e-4, a1: 1e-4, a2: 1e-4, a3: 1e-4, spine: .05, radius: .05, band: .05};
+  transit: 1e-3, heldTravel: 1e-4, a0: 1e-4, a1: 1e-4, a2: 1e-4, a3: 1e-4, spine: .05, radius: .05, band: .05, tapFormed: 0};
 
 for (const scenario of fixture.scenarios) {
   test(`Calm selector matches Kotlin: ${scenario.name}`, () => {
@@ -40,7 +40,7 @@ for (const scenario of fixture.scenarios) {
       const e = c.extents(), f = c.frame;
       const ours = {cx: c.centreX, cy: c.centreY, formation: c.formation, transit: c.transitAppearance,
         heldTravel: c.heldTravel, left: e.left, right: e.right, top: e.top, bottom: e.bottom,
-        a0: f.a[0], a1: f.a[1], a2: f.a[2], a3: f.a[3], spine: f.spine, radius: f.radius, band: f.band()};
+        a0: f.a[0], a1: f.a[1], a2: f.a[2], a3: f.a[3], spine: f.spine, radius: f.radius, band: f.band(), tapFormed: c.tapFormed ? 1 : 0};
       assert.equal(c.mode, MODES[frame[field('mode')]], `${scenario.name} t=${tf} mode`);
       for (const [key, tol] of Object.entries(TOLERANCE)) {
         const error = Math.abs(ours[key] - frame[field(key)]);
@@ -136,7 +136,7 @@ const material = JSON.parse(await readFile(new URL('./fixtures/selector-material
 test('material: every Kotlin-computed selector material is reproduced', () => {
   let worst = 0;
   for (const s of material.samples) {
-    const ours = calmSelectorMaterial({dark: s.dark, formation: s.formation, transit: s.transit, heldTravel: s.heldTravel});
+    const ours = calmSelectorMaterial({dark: s.dark, formation: s.formation, transit: s.transit, heldTravel: s.heldTravel, formedTap: s.formedTap ?? false});
     assert.ok(Math.abs(ours.uFormation - s.uFormation) <= 1e-6, `uFormation at ${JSON.stringify(s)}`);
     for (const [key, value] of Object.entries(s.values)) {
       const a = [].concat(value), b = [].concat(ours.values[key]);

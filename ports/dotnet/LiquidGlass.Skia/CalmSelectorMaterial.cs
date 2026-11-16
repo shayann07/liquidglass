@@ -79,7 +79,13 @@ public static class CalmSelectorMaterial
 
     /// <summary>The selector's material for a formation, tap transit appearance and held travel,
     /// as GlassTabBar draws it.</summary>
-    public static CalmMaterial Selector(bool dark, double formation, double transit, double heldTravel)
+    public static CalmMaterial Selector(bool dark, double formation, double transit, double heldTravel) =>
+        Selector(dark, formation, transit, heldTravel, false);
+
+    /// <summary>As <see cref="Selector(bool, double, double, double)"/>; <paramref name="formedTap"/> is
+    /// <see cref="CalmSelectorController.TapFormed"/>: a tap that formed the selector past half keeps the formed lens's
+    /// family in its fold as it settles (#70).</summary>
+    public static CalmMaterial Selector(bool dark, double formation, double transit, double heldTravel, bool formedTap)
     {
         if (!double.IsFinite(formation) || !double.IsFinite(transit) || !double.IsFinite(heldTravel))
             throw new ArgumentOutOfRangeException(nameof(formation));
@@ -121,7 +127,8 @@ public static class CalmSelectorMaterial
                 if (folded > 0)
                 {
                     values["uAberration"] = [fold["movingDispersion"]]; values["uInkSplit"] = [fold["movingDispersion"] * fold["transitInkSplitShare"]];
-                    if (f < .5f) values["uProfile"] = [fold["measuredProfile"]];
+                    // The formed lens's family while formed past half, and for the rest of a tap that formed it (#70).
+                    if (f < .5f && !formedTap) values["uProfile"] = [fold["measuredProfile"]];
                     values["uFoldCorners"] = [fold["transitFoldCorners"]];
                 }
             }

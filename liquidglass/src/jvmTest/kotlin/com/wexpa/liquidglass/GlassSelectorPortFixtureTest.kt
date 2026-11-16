@@ -55,7 +55,8 @@ class GlassSelectorPortFixtureTest {
             val d = floatArrayOf(f.spine, f.radius, f.scaleX, f.band())
             if (frames.isNotEmpty()) frames.append(",\n")
             frames.append("[${"%.5f".format(tf)},\"${c.mode.name}\",${c.centreX},${c.centreY},${c.formation},${c.transitAppearance},${c.heldTravel}," +
-                "${e.left},${e.right},${e.top},${e.bottom},${f.a.joinToString(",")},${f.aInv.joinToString(",")},${f.bx},${f.by},${d.joinToString(",")}]")
+                "${e.left},${e.right},${e.top},${e.bottom},${f.a.joinToString(",")},${f.aInv.joinToString(",")},${f.bx},${f.by},${d.joinToString(",")}," +
+                "${if (c.tapFormed) 1 else 0}]")
         }
         val callJson = calls.joinToString(",") { call -> "[${call.t},\"${call.op}\",${call.args.joinToString(",")}]".replace(",]", "]") }
         return "{\"name\":\"$name\",\"end\":$end,\"calls\":[$callJson],\"frames\":[\n$frames]}"
@@ -111,7 +112,7 @@ class GlassSelectorPortFixtureTest {
     @Test fun calmSelectorTrajectoriesForPorts() {
         val json = "{\"bar\":{\"width\":834,\"height\":186,\"count\":3,\"inset\":24,\"pillWidth\":285,\"pillInset\":12,\"density\":3},\n" +
             "\"frameFields\":[\"t\",\"mode\",\"cx\",\"cy\",\"formation\",\"transit\",\"heldTravel\",\"left\",\"right\",\"top\",\"bottom\"," +
-            "\"a0\",\"a1\",\"a2\",\"a3\",\"i0\",\"i1\",\"i2\",\"i3\",\"bx\",\"by\",\"spine\",\"radius\",\"scaleX\",\"band\"],\n" +
+            "\"a0\",\"a1\",\"a2\",\"a3\",\"i0\",\"i1\",\"i2\",\"i3\",\"bx\",\"by\",\"spine\",\"radius\",\"scaleX\",\"band\",\"tapFormed\"],\n" +
             "\"scenarios\":[\n" + scenarios().joinToString(",\n") + "]}\n"
         val file = File("../ports/skia/fixtures/selector-calm.json")
         if (System.getProperty("liquidglass.exportShaders") == "true") { file.parentFile.mkdirs(); file.writeText(json) }

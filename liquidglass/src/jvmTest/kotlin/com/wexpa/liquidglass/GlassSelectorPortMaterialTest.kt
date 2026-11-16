@@ -99,6 +99,13 @@ class GlassSelectorPortMaterialTest {
                 samples += "{\"dark\":$dark,\"formation\":$formation,\"transit\":$transit,\"heldTravel\":$travel," +
                     "\"uFormation\":${lensFormation.coerceIn(0f, 1f)},\"values\":${json(uniforms(material))}}"
             }
+            // A tap that formed the selector past half, settling below it (#70).
+            for (formation in listOf(.2f, .49f)) for (transit in listOf(.3f, .8f)) for (travel in listOf(0f, .6f)) {
+                val material = glassSelectorMaterial(style, formation, transit, travel, formedTap = true)
+                val lensFormation = glassSelectorFormation(style, formation, transit, travel)
+                samples += "{\"dark\":$dark,\"formation\":$formation,\"transit\":$transit,\"heldTravel\":$travel,\"formedTap\":true," +
+                    "\"uFormation\":${lensFormation.coerceIn(0f, 1f)},\"values\":${json(uniforms(material))}}"
+            }
         }
         val fold = GlassStyle().copy(profile = GlassProfile.Measured)
         val text = "{\"dpFields\":${dpFields.joinToString(",", "[", "]") { "\"$it\"" }},\n" +

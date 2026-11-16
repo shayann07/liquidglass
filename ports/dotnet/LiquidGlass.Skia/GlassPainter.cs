@@ -157,7 +157,13 @@ public sealed class GlassPainter : IDisposable
     /// source holding the backdrop with the bar's glass drawn over it, and a share of the raw backdrop is added
     /// on top; without it the lens sees the backdrop alone. <c>options.TintAmount</c> is not used.</summary>
     public void DrawSelector(SKCanvas canvas, SKRect bar, CalmSelectorPose pose, float formation = 0, GlassSurfaceOptions? options = null,
-        float transit = 0, float heldTravel = 0, SKImage? through = null, float[]? fuse = null, bool shadow = true)
+        float transit = 0, float heldTravel = 0, SKImage? through = null, float[]? fuse = null, bool shadow = true) =>
+        DrawSelector(canvas, bar, pose, formation, transit, heldTravel, false, options, through, fuse, shadow);
+
+    /// <summary>As the overload without it; <paramref name="formedTap"/> is <see cref="CalmSelectorController.TapFormed"/>
+    /// (#70).</summary>
+    public void DrawSelector(SKCanvas canvas, SKRect bar, CalmSelectorPose pose, float formation, float transit, float heldTravel,
+        bool formedTap, GlassSurfaceOptions? options = null, SKImage? through = null, float[]? fuse = null, bool shadow = true)
     {
         Ready(canvas, bar);
         if (!float.IsFinite(formation) || !float.IsFinite(transit) || !float.IsFinite(heldTravel))
@@ -178,7 +184,7 @@ public sealed class GlassPainter : IDisposable
         var pad = fusing
             ? MathF.Ceiling(Math.Max(2, Math.Max(Math.Abs(fuse![0]) + fuse[2] - node.Width / 2, Math.Abs(fuse[1]) + fuse[3] - node.Height / 2)) + fuse[5] / 4 + 2)
             : 2;
-        var calm = CalmSelectorMaterial.Selector(options.Dark, formation, transit, heldTravel);
+        var calm = CalmSelectorMaterial.Selector(options.Dark, formation, transit, heldTravel, formedTap);
         var v = ClearUniforms(material, node.Width, node.Height, pad, 1);
         Apply(v, calm, options);
         Set(v, "uFormation", calm.Formation);
@@ -215,9 +221,15 @@ public sealed class GlassPainter : IDisposable
     /// <summary>Draw the selected ink inside the selector, as Compose's content pass does. <paramref name="ink"/>
     /// is the bar's items drawn in their selected appearance on a transparent ground, in device px with its
     /// origin at the bar's top-left. Only what lies under the selector shows, refracted, colour-split and folded
-    /// by the same body, map and band as <see cref="DrawSelector"/>; draw it right after.</summary>
+    /// by the same body, map and band as <see cref="DrawSelector(SKCanvas, SKRect, CalmSelectorPose, float, GlassSurfaceOptions, float, float, SKImage, float[], bool)"/>; draw it right after.</summary>
     public void DrawSelectorInk(SKCanvas canvas, SKRect bar, CalmSelectorPose pose, SKImage ink, float formation = 0,
-        GlassSurfaceOptions? options = null, float transit = 0, float heldTravel = 0)
+        GlassSurfaceOptions? options = null, float transit = 0, float heldTravel = 0) =>
+        DrawSelectorInk(canvas, bar, pose, ink, formation, transit, heldTravel, false, options);
+
+    /// <summary>As the overload without it; <paramref name="formedTap"/> is <see cref="CalmSelectorController.TapFormed"/>
+    /// (#70).</summary>
+    public void DrawSelectorInk(SKCanvas canvas, SKRect bar, CalmSelectorPose pose, SKImage ink, float formation, float transit,
+        float heldTravel, bool formedTap, GlassSurfaceOptions? options = null)
     {
         Ready(canvas, bar); ArgumentNullException.ThrowIfNull(ink);
         if (!float.IsFinite(formation) || !float.IsFinite(transit) || !float.IsFinite(heldTravel))
@@ -228,7 +240,7 @@ public sealed class GlassPainter : IDisposable
         if (!float.IsFinite(options.Density) || options.Density <= 0) throw new ArgumentOutOfRangeException(nameof(options));
         float mx = bar.Height * .6f, my = bar.Height * .4f;
         var node = SKRect.Create(bar.Left - mx, bar.Top - my, bar.Width + 2 * mx, bar.Height + 2 * my);
-        var calm = CalmSelectorMaterial.Selector(options.Dark, formation, transit, heldTravel);
+        var calm = CalmSelectorMaterial.Selector(options.Dark, formation, transit, heldTravel, formedTap);
         var m = ClearUniforms(material, node.Width, node.Height, 2, 1);
         Apply(m, calm, options);
         Set(m, "uFormation", calm.Formation);
