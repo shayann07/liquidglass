@@ -161,6 +161,12 @@ straight run shows what is under it, plus a few px of inward offset. The blend b
 runs over 0.2 R along the edge. `lensFormation` then carries both toward the full fold while a
 finger tracks the surface.
 
+The measured resting map (`GlassRestMap.Measured`: Regular, `inApp` and `toolbar`; the tab bars keep the legacy map) is
+different on a capsule since 1.1.0: it holds along the straight runs too, because over the Safari
+lab pill's stripes iOS displaces the run's outer band as it does the round end's and nothing
+changes where the end begins. With the corner-only lens, text lines hooked at each cap start.
+Shapes whose corners are short of the half-height keep the corner-only lens.
+
 `GlassEffectContainer` runs the same two paths with one difference: a fused body is chrome at
 rest, so its lens formation is always 0. It also still lacks some terms of the single-element
 shader (legibility, rim fringe, `uTintAbsorb`, the rotated `softDetail` scatter, `Glass.light`;

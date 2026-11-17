@@ -126,6 +126,8 @@ float nearestCornerWeight(float2 p) {
                 float2 q = abs(p - (uRect[i].xy + halfSize)) - halfSize + r;
                 float soft = max(r * 0.2, 1.0);
                 w = smoothstep(-soft, 0.0, min(q.x, q.y));
+                // A capsule member on the measured map rests on that map along its straight runs too (restCorner, #216).
+                if (uRestMap > 0.5) w = mix(w, 1.0, smoothstep(0.9, 1.0, r / max(min(halfSize.x, halfSize.y), 1e-4)));
             }
         }
     }

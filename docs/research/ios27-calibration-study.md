@@ -229,7 +229,10 @@ gone. The library now applies it at corner arcs (with the true radial normal, so
 onto the ring) and nothing along straight runs, and measures back within 2 px at every depth.
 Not measured: how the plateau scales past R = 92 (the dock's 126 px ends over the Home Screen
 wallpaper did not correlate through the warped reference), and the width of the blend where an
-arc meets a run, which vertical stripes cannot show; the library blends over 0.2 R.
+arc meets a run, which vertical stripes cannot show; with the legacy map the library blends over
+0.2 R. (Since 1.1.0 a capsule on the measured map has no blend: the map runs along its straight runs too. The Safari lab
+pill's horizontal stripes of 16 November show the run's outer band displaced as the round end's is, with no change where
+the end begins.)
 
 **The toolbar is its own role.** It reads up to 20 levels from the pill at Tint 0, brighter in
 light and darker in dark. Its capsule sits over stripes only, so its two medians per slider

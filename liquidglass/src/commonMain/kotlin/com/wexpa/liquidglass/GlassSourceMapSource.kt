@@ -70,6 +70,19 @@ float cornerWeight(float2 p, float2 halfSize, float4 r) {
     return smoothstep(-soft, 0.0, min(q.x, q.y));
 }
 
+// The resting corner weight on a capsule (#216). The measured resting map (uRestMap 1) holds along a capsule's
+// straight runs as well as its round ends: over the Safari lab pill's stripes (16 November stills, R = 71.5 px) iOS
+// displaces the run's outer band as it does the round end's, and nothing changes where the end begins. With the
+// corner-only lens the 0.2 R handover hooked text lines at each cap start. Measured on a capsule only: the dock's and
+// a resting sheet's straight edges leave content in place, so a shape whose corners are short of its half-height
+// keeps the corner-only lens. The ramp over the last tenth of the radius is authored, so no shape pops between the two.
+float restCorner(float corner, float2 halfSize, float4 r) {
+    if (uRestMap <= 0.5) return corner;
+    float shortHalf = max(min(halfSize.x, halfSize.y), 1e-4);
+    float smallest = min(min(min(r.x, r.y), min(r.z, r.w)), shortHalf);
+    return mix(corner, 1.0, smoothstep(0.9, 1.0, smallest / shortHalf));
+}
+
 // The measured cover-sheet lens, as a lookup: a pixel at depth u = d/W inside the edge shows
 // backdrop content from depth s = foldSource(u) * W. Fitted on 13k frames of a real finger pull
 // and reproduced at Tint 0, 50 and 100 (MODEL.md section 5): identity from 0.9 W inward; a 2x
