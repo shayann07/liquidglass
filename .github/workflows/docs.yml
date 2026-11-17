@@ -38,7 +38,7 @@ jobs:
       - name: Build the live demo
         if: github.event_name != 'pull_request'
         run: |
-          ./gradlew :web:wasmJsBrowserDistribution --stacktrace
+          .github/scripts/gradle-retry.sh ./gradlew :web:wasmJsBrowserDistribution --stacktrace
           mkdir -p site/demo
           cp -r apps/web/build/dist/wasmJs/productionExecutable/* site/demo/
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
