@@ -2270,7 +2270,9 @@ data class GlassTabBarStyle(
          *
          * The bar of an iOS 27 tab bar is the same role as the Photos toolbar, which was
          * measured through the calibration target at every Tint Amount in both appearances
-         * (`docs/research/measured-model.md`, section 2), so [GlassStyle.toolbar] is the bar. The
+         * (`docs/research/measured-model.md`, section 2), so the bar is the toolbar. Until #203 it uses the
+         * toolbar's earlier style values (the internal `GlassStyle.toolbarEarlier`), not the #200 lab
+         * material [GlassStyle.toolbar] now carries; like every wide-kernel style it has no along-axis term. The
          * resting inset and the held lens keep the 0.1 numbers, which were read off native
          * screenshots of an iOS 26 tab bar rather than through the target; they look through the
          * bar and are independent of its material. A tab bar over the target has not been
@@ -2280,8 +2282,10 @@ data class GlassTabBarStyle(
         fun Measured(dark: Boolean = true, tintAmount: Float = GlassMaterial.DEFAULT_TINT_AMOUNT): GlassTabBarStyle =
             Dark.copy(
                 // The legacy resting-corner map: the tab bar's caps were scored against the recordings with it
-                // and carry their own cap lens (capFold); toolbar() itself moved to the measured map (#97).
-                bar = GlassStyle.toolbar(dark = dark, tintAmount = tintAmount).copy(restMap = GlassRestMap.Legacy),
+                // and carry their own cap lens (capFold); toolbar() itself moved to the measured map (#97). The bar keeps
+                // the toolbar's earlier style values (tint, detail share, detail reach), not the #200 lab material, until
+                // #203; like every wide-kernel style it no longer has the along-axis detail term (#190).
+                bar = GlassStyle.toolbarEarlier(dark = dark, tintAmount = tintAmount).copy(restMap = GlassRestMap.Legacy),
                 pill = RestingInsetMeasured,
                 lens = HeldLensMeasured,
                 // iOS 27, from the Phone and App Store tab bars in the screen recording: the

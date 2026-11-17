@@ -30,6 +30,11 @@ byte[] Pixels(SKSurface surface, int width, int height)
     Check(surface.ReadPixels(bitmap.Info, bitmap.GetPixels(), bitmap.RowBytes, 0, 0), "Pixel read failed");
     var bytes = new byte[width * height * 4]; Marshal.Copy(bitmap.GetPixels(), bytes, 0, bytes.Length); return bytes;
 }
+void DrawOver(SKSurface surface, SKImage page, GlassPainter painter, SKRect bounds, float tint)
+{
+    surface.Canvas.DrawImage(page, 0, 0, new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.None));
+    painter.DrawSurface(surface.Canvas, bounds, 20, new(Dark: true, TintAmount: tint));
+}
 void Save(SKSurface surface, string name)
 {
     using var image = surface.Snapshot(); using var data = image.Encode(SKEncodedImageFormat.Png, 100);
@@ -105,12 +110,24 @@ using (var second = Image(320, 200, (_, _) => new SKColor(180, 130, 90)))
     var bounds = SKRect.Create(40, 40, 200, 100);
     painter.SetSource(first); surface.Canvas.DrawImage(first, 0, 0, new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.None)); painter.DrawSurface(surface.Canvas, bounds, 20, new(Dark: true));
     var a = Pixels(surface, 320, 200); var p = (90 * 320 + 140) * 4;
-    for (var c = 0; c < 3; c++) Check(Math.Abs(a[p + c] - ((32 + 32 * c) * (1 - 115f / 255) + 35)) <= 2, "Dark material unexpected measured tone");
+    // The lab fit's dark tone over a flat grey x (GlassMaterial.lab*, #200): 31.72 + 254.40 x - 101.01 x^2 in levels. It was
+    // (32 + 32 c) * (1 - 115 / 255) + 35 under the earlier fit.
+    for (var c = 0; c < 3; c++)
+    {
+        var x = (32 + 32 * c) / 255.0;
+        Check(Math.Abs(a[p + c] - (31.72 + 254.40 * x - 101.01 * x * x)) <= 2, $"Dark material unexpected measured tone: {a[p + c]}");
+    }
     surface.Canvas.DrawImage(first, 0, 0, new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.None)); painter.DrawSurface(surface.Canvas, bounds, 20, new(Dark: true));
     Check(a.SequenceEqual(Pixels(surface, 320, 200)), "Cached repeated draw changed pixels");
     painter.SetSource(second); surface.Canvas.DrawImage(second, 0, 0, new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.None)); painter.DrawSurface(surface.Canvas, bounds, 20, new(Dark: true));
     var b = Pixels(surface, 320, 200); Check(b[p] > a[p] + 50, "Source replacement retained stale wide kernel");
     Check(first.Handle != IntPtr.Zero && second.Handle != IntPtr.Zero, "Painter consumed source");
+    // Surfaces at Tint 50 and Tint 0 use different wide-kernel sigmas; alternating between them must keep each one's
+    // tone image (a cache keyed by sigma), drawing the same pixels as the first Tint 50 draw.
+    DrawOver(surface, second, painter, bounds, 50); var t50 = Pixels(surface, 320, 200);
+    DrawOver(surface, second, painter, bounds, 0); var t0 = Pixels(surface, 320, 200);
+    DrawOver(surface, second, painter, bounds, 50);
+    Check(!t0.SequenceEqual(t50) && t50.SequenceEqual(Pixels(surface, 320, 200)), "Alternating Tint 50 and 0 changed the Tint 50 surface");
     painter.DrawSurface(surface.Canvas, SKRect.Create(-20, -10, 90, 70), new float[] { 0, 9, 20, 30 }, new(ReducedTransparency: .5f));
     Save(surface, "source-replacement.png");
 }

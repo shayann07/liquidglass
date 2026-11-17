@@ -142,7 +142,10 @@ class GlassEffectTest {
         assertEquals(Glass.Regular.tint(Color.Red), Glass.Regular.tint(Color.Red))
     }
 
-    /** Two 60 dp pieces 12 dp apart over flat grey: is the gap between them glass? */
+    /**
+     * Two 60 dp pieces 12 dp apart over flat grey 64: is the gap between them glass? Not mid-grey: the measured dark
+     * tone (#200) puts Regular glass over grey 128 at 134, too close to the page to tell glass from no glass.
+     */
     private fun gapLevel(container: Boolean): Int {
         val pieces = @Composable {
             Box(Modifier.offset(60.dp, 70.dp).size(60.dp).glassEffect(Glass.Regular, CircleShape))
@@ -150,7 +153,7 @@ class GlassEffectTest {
         }
         val img = capture("container-$container") {
             LiquidGlassTheme(dark = true) {
-                Box(Modifier.size(300.dp, 200.dp).background(Color(0xFF808080))) {
+                Box(Modifier.size(300.dp, 200.dp).background(Color(0xFF404040))) {
                     if (container) GlassEffectContainer(Modifier.fillMaxSize(), spacing = 24.dp) { Box(Modifier.fillMaxSize()) { pieces() } }
                     else pieces()
                 }
@@ -162,9 +165,9 @@ class GlassEffectTest {
     @Test fun piecesInAContainerMergeAcrossASmallGapAndOthersDoNot() {
         val apart = gapLevel(container = false)
         val merged = gapLevel(container = true)
-        println("GLASS_CONTAINER gap level: separate=$apart container=$merged (page 128)")
-        assertTrue(apart in 124..132, "separate pieces touched the gap: $apart")
-        assertTrue(kotlin.math.abs(merged - 128) > 6, "no neck between merged pieces: $merged")
+        println("GLASS_CONTAINER gap level: separate=$apart container=$merged (page 64)")
+        assertTrue(apart in 60..68, "separate pieces touched the gap: $apart")
+        assertTrue(kotlin.math.abs(merged - 64) > 6, "no neck between merged pieces: $merged")
     }
 
     private fun outsideSide(container: Boolean, contour: Float): Int {
@@ -199,7 +202,8 @@ class GlassEffectTest {
         setContent {
             CompositionLocalProvider(LocalDensity provides Density(1f)) {
                 LiquidGlassTheme(dark = true) {
-                    Box(Modifier.size(300.dp, 200.dp).background(Color(0xFF808080)).testTag("scene")) {
+                    // Grey 64, not 128: see gapLevel.
+                    Box(Modifier.size(300.dp, 200.dp).background(Color(0xFF404040)).testTag("scene")) {
                         val ns = rememberGlassNamespace()
                         GlassEffectContainer(Modifier.fillMaxSize()) {
                             Box(Modifier.fillMaxSize()) {
@@ -221,7 +225,7 @@ class GlassEffectTest {
         waitForIdle()
         val end = onNodeWithTag("scene").captureToImage().toAwtImage()
         ImageIO.write(end, "png", File(out, "morph-end.png"))
-        fun glassAt(img: BufferedImage, x: Int) = kotlin.math.abs((img.getRGB(x, 100) shr 8 and 0xFF) - 128) > 6
+        fun glassAt(img: BufferedImage, x: Int) = kotlin.math.abs((img.getRGB(x, 100) shr 8 and 0xFF) - 64) > 6
         val midX = (0 until 300).filter { glassAt(mid, it) }
         println("GLASS_MORPH mid glass x ${midX.minOrNull()}..${midX.maxOrNull()}, end at 250: ${glassAt(end, 250)}")
         assertTrue(midX.isNotEmpty() && midX.average() in 60.0..240.0, "the piece did not travel from its old place: $midX")

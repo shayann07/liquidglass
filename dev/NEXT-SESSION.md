@@ -1,3 +1,12 @@
+## RESUME HERE (16 November): #200 three-term material, merged as #210
+- 17 November: merged as #210 (8b303111). Late changes: merged glass (`GlassEffectContainer`) now draws the three-term material too; the detail kernel and the legibility term fade as the larger of the fine share and `|detailLift|` goes from 0.10 to 0.02 instead of switching off at one tint (worst adjacent whole-tint step 1.80 levels rms; main had 18.4 at Tint 92 to 93); remaining container parity is #211; #190 and #200 closed by #210.
+
+- `feat/200-material-model` carries the measured material (along-axis filter removed,
+  `detailLift`, `toneCurve`, four-tap detail kernel, authored Tint blend). Docs are written; code, ports and tests are described in
+  PROGRESS.md.
+- Lab gate re-scored on 9730618e (1.43 / 1.42), docs/1 replay done (differences inside glass, at most 7 levels), evidence in
+  `review/atlas/material-model-2026-11-16/`. Full suite at 344fcf52: 512 tests, 0 failures.
+
 ## RESUME HERE (9 November): narrow-band field build, Argon trial
 
 - #81 follow-up: `perf/81-narrow-band-edt` replaces #180's bounded transform with a packed one-pass narrow-band transform

@@ -10,11 +10,13 @@ internal static class SelectorChecks
 
     public static object Run()
     {
-        // GlassTabBarStyle.CalmClear: only the dark bar's tint (black at 0.10, 8-bit), legibility (2) and blur (7 dp) differ, light unchanged.
+        // GlassTabBarStyle.CalmClear: only the dark bar's tint (black at 0.10, 8-bit), legibility (2) and blur (7 dp) differ; light unchanged.
         var calmBar = CalmSelectorMaterial.Bar(true, 0).Values; var clearBar = CalmSelectorMaterial.Bar(true, 0, clear: true).Values;
         Check(clearBar["uTint"].SequenceEqual(new[] { 0f, 0f, 0f, 26f / 255 }), $"clear bar tint {string.Join(",", clearBar["uTint"])}");
         Check(clearBar["uLegibility"][0] == 2f, "clear bar legibility");
         Check(clearBar["uBlur"][0] == 7f, "clear bar blur");
+        // The Calm bar keeps the earlier fit (reach 1.46 dp), so neither bar uses the four-tap detail kernel (uDetailCross 0).
+        Check(calmBar["uDetailCross"][0] == 0f && clearBar["uDetailCross"][0] == 0f, "bar detail kernel");
         Check(calmBar.All(p => p.Key is "uTint" or "uLegibility" or "uBlur" || p.Value.SequenceEqual(clearBar[p.Key])), "clear bar differs beyond tint, legibility and blur");
         Check(CalmSelectorMaterial.Bar(false, 0, clear: true).Values.All(p => p.Value.SequenceEqual(CalmSelectorMaterial.Bar(false, 0).Values[p.Key])),
             "light clear bar must equal Calm");

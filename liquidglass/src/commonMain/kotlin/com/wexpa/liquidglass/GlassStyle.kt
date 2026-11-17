@@ -2,8 +2,10 @@ package com.wexpa.liquidglass
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.lerp
 
 /**
  * Which optical model the shader runs.
@@ -35,10 +37,11 @@ enum class GlassProfile {
 /**
  * The physical parameters of a piece of glass.
  *
- * These are the knobs the shader consumes. The constructor defaults are the measured in-app
- * material in a light appearance at the default Tint Amount, so `GlassStyle()` is a navigation
- * pill as iOS 27 draws one; the factories on the companion build the other measured roles, and
- * the [GlassProfile.Legacy] presets keep the 0.1 material for hosts tuned against it.
+ * These are the knobs the shader consumes. The constructor defaults are the earlier measured
+ * in-app fit, before the three-term material of #200 (so [detailLift] and [toneCurve] default to
+ * 0), and `GlassStyle()` is no longer [Regular]. To customise Regular, start from it:
+ * `GlassStyle.Regular.copy(...)`. The factories on the companion build the other measured roles,
+ * and the [GlassProfile.Legacy] presets keep the 0.1 material for hosts tuned against it.
  */
 @Immutable
 data class GlassStyle(
@@ -96,19 +99,21 @@ data class GlassStyle(
      */
     val bodyBandScale: Float = 1f,
     /**
-     * Sigma of the wide kernel, the second of the measured material's two blurs.
-     *
-     * Across a hard edge inside a navigation pill the tone follows a 10 dp kernel while 16 px
-     * stripes under the same glass keep a third of their contrast at the default Tint Amount,
-     * which one blur cannot do. So the backdrop term is a mix of the fine kernel and this one,
-     * weighted by [fineShare]. Rendered once per frame as a quarter-scale blurred copy of the
+     * Sigma of the wide kernel B, the blur that sets the material's tone: `lin = B + k (D - B) + c |D - B|`
+     * with k = [fineShare] and c = [detailLift] (`tools/glass_model.py`). Measured on iOS 27 at Tint 50 as
+     * 15.5 dp (46.5 px at 3x; the fit is flat from 44 to 52 px); [GlassStyle.inApp] uses it there and the
+     * earlier 10 dp at Tint 0 and 100. Rendered once per frame as a quarter-scale blurred copy of the
      * backdrop; set it to 0 to switch it off.
      */
     val wideKernel: Dp = 10.dp,
     /**
-     * Share of the fine kernel in the backdrop term, 0 to 1; the rest is the wide kernel.
-     * Measured as `0.95 (1 - t/100)^1.5` against Tint Amount t: 0.95 at Clear, 0.34 at the
-     * default, 0 at Tinted, the same in both appearances. See [GlassMaterial.fineShare].
+     * The detail share k: how much of the backdrop's own detail is laid over the wide kernel's
+     * tone, 0 to 1. Measured on iOS 27 at Tint 50 as 0.277 (dark) and 0.273 (light), the same for
+     * detail along and across a bar. The earlier fit, `0.95 (1 - t/100)^1.5` ([GlassMaterial.fineShare]),
+     * still applies at Tint 0 and 100. With the wide kernel on, the softened detail copy (which
+     * [legibility] also reads) fades out as the larger of this share and |[detailLift]| falls from
+     * 0.10 to 0.02 (authored), and is not drawn below that, so a share that runs toward 0 near
+     * Tint 100 does not switch the look at one tint.
      */
     val fineShare: Float = 0.34f,
     /**
@@ -186,13 +191,10 @@ data class GlassStyle(
      */
     val heldGlowFloor: Float = 0f,
     /**
-     * How the detail seen through the glass is drawn, 0 to 1. At 0 (the default) it is the measured
-     * high-pass along the element's long axis (FINDINGS 22), sampled through a per-pixel rotated
-     * scatter. At 1 it is a plain soft copy: the wide kernel's tone plus [fineShare] of the fine
-     * blur, sampled without rotation. Read in display colours, iOS 26's Phone bar shows page text
-     * under it as one soft, legible copy; the along-axis high-pass draws ghost copies of every
-     * glyph about 16 and 34 px to either side and the rotation turns the rest into grain
-     * (docs/2, horizontal detail 2.72 against iOS's 2.77, 4.94 at 0; 2026-10-15).
+     * How the fine scatter is sampled, 0 to 1: at 0 through a per-pixel rotation (grain), at 1
+     * unrotated. Since #200 the detail is always one soft copy over the wide kernel's tone; the
+     * along-axis high-pass that drew ghost copies of every glyph about 16 and 34 px to either side
+     * (#190) is gone. [inApp] sets 1 at the measured Tint 50.
      */
     val softDetail: Float = 0f,
     /**
@@ -525,7 +527,273 @@ data class GlassStyle(
      * travelling lens's caps stretch into long petals reaching the rim).
      */
     val rimMirrorGain: Float = 1f,
+    /**
+     * The one-sided detail term c of the measured material, -1 to 1: the glass keeps detail on its
+     * own side of the surroundings at [fineShare] + c and detail on the other side at [fineShare] - c,
+     * `lin = B + k (D - B) + c |D - B|` (`tools/glass_model.py`). Measured on iOS 27 at Tint 50
+     * (#199): +0.22 on light glass, -0.22 on dark. Zero, the default, is the plain two-kernel mix.
+     */
+    val detailLift: Float = 0f,
+    /**
+     * The bow of the material's tone curve, `toneCurve x (1 - x)` per channel, where x is the
+     * backdrop term (the material before the tint). The shader adds it after the tint blend, scaled
+     * by the material and tint coverage but not by the tint opacity, and before [tintLift]; the tint
+     * blend and [tintLift] give the curve's straight part. The dark in-app curve measured on iOS 27
+     * at Tint 50 is concave, 101/255 (#200); zero is straight.
+     */
+    val toneCurve: Float = 0f,
 ) {
+    /** Keeps the 1.0 constructor in the binary API; new code uses the primary constructor. */
+    @Deprecated("Binary compatibility with 1.0", level = DeprecationLevel.HIDDEN)
+    constructor(
+        profile: GlassProfile = GlassProfile.Measured,
+        blurRadius: Dp = 1.5.dp,
+        backdropBlur: Dp = 0.dp,
+        backdropSigma: Dp = Dp.Unspecified,
+        refractionBand: Dp = Dp.Unspecified,
+        refractionDepth: Dp = 14.dp,
+        bodyBandScale: Float = 1f,
+        wideKernel: Dp = 10.dp,
+        fineShare: Float = 0.34f,
+        indexOfRefraction: Float = 1.5f,
+        bevelPower: Float = 2f,
+        cornerPower: Float = 2f,
+        dispersion: Float = 0.07f,
+        heldLens: Float = 0f,
+        heldMagnification: Float = 0f,
+        heldGlow: Float = 1f,
+        heldEdgeRecovery: Dp = 0.dp,
+        heldEdgeTone: Float = 0f,
+        heldGlowFloor: Float = 0f,
+        softDetail: Float = 0f,
+        rawShare: Float = 0f,
+        rawBlur: Dp = 0.dp,
+        mirror: Float = 0f,
+        bevel: Dp = 1.5.dp,
+        tint: Color = Color(0xFFF1F1F1).copy(alpha = 0.565f),
+        tintLift: Float = 0f,
+        liftAdaptivity: Float = 0f,
+        adaptivity: Float = 0f,
+        legibility: Float = 0.6f,
+        specular: Float = 0.55f,
+        specularPower: Float = 6f,
+        counterLight: Float = 0.35f,
+        edgeLight: Float = 1f,
+        bevelPeak: Float = 0f,
+        edgeShadow: Float = 0f,
+        capEdgeShadow: Float = 0f,
+        outerContour: Float = 0f,
+        outerContourFloor: Float = 0f,
+        rimSoftness: Dp = 0.dp,
+        tintAbsorption: Float = 0f,
+        fresnel: Float = 0.10f,
+        highlightChroma: Float = 0.7f,
+        contactShadow: Float = 1f,
+        contactShadowInside: Float = 1f,
+        contactShadowBlur: Dp = Dp.Unspecified,
+        contactShadowOffset: Dp = Dp.Unspecified,
+        innerShadow: Float = 0.07f,
+        fallbackSurface: Color = Color(0xF2141416),
+        invertsWithBackdrop: Boolean = true,
+        dimmingLayer: Float = 0f,
+        restMap: GlassRestMap = GlassRestMap.Legacy,
+        edgeFold: Float = 0f,
+        inkDispersion: Float = Float.NaN,
+        heldInkContinuous: Boolean = false,
+        heldGlowReach: Dp = 0.dp,
+        foldAtCorners: Float = 0f,
+        capFold: Float = 0f,
+        rimMirror: Float = 0f,
+        rimMirrorGain: Float = 1f,
+    ) : this(
+        profile = profile,
+        blurRadius = blurRadius,
+        backdropBlur = backdropBlur,
+        backdropSigma = backdropSigma,
+        refractionBand = refractionBand,
+        refractionDepth = refractionDepth,
+        bodyBandScale = bodyBandScale,
+        wideKernel = wideKernel,
+        fineShare = fineShare,
+        indexOfRefraction = indexOfRefraction,
+        bevelPower = bevelPower,
+        cornerPower = cornerPower,
+        dispersion = dispersion,
+        heldLens = heldLens,
+        heldMagnification = heldMagnification,
+        heldGlow = heldGlow,
+        heldEdgeRecovery = heldEdgeRecovery,
+        heldEdgeTone = heldEdgeTone,
+        heldGlowFloor = heldGlowFloor,
+        softDetail = softDetail,
+        rawShare = rawShare,
+        rawBlur = rawBlur,
+        mirror = mirror,
+        bevel = bevel,
+        tint = tint,
+        tintLift = tintLift,
+        liftAdaptivity = liftAdaptivity,
+        adaptivity = adaptivity,
+        legibility = legibility,
+        specular = specular,
+        specularPower = specularPower,
+        counterLight = counterLight,
+        edgeLight = edgeLight,
+        bevelPeak = bevelPeak,
+        edgeShadow = edgeShadow,
+        capEdgeShadow = capEdgeShadow,
+        outerContour = outerContour,
+        outerContourFloor = outerContourFloor,
+        rimSoftness = rimSoftness,
+        tintAbsorption = tintAbsorption,
+        fresnel = fresnel,
+        highlightChroma = highlightChroma,
+        contactShadow = contactShadow,
+        contactShadowInside = contactShadowInside,
+        contactShadowBlur = contactShadowBlur,
+        contactShadowOffset = contactShadowOffset,
+        innerShadow = innerShadow,
+        fallbackSurface = fallbackSurface,
+        invertsWithBackdrop = invertsWithBackdrop,
+        dimmingLayer = dimmingLayer,
+        restMap = restMap,
+        edgeFold = edgeFold,
+        inkDispersion = inkDispersion,
+        heldInkContinuous = heldInkContinuous,
+        heldGlowReach = heldGlowReach,
+        foldAtCorners = foldAtCorners,
+        capFold = capFold,
+        rimMirror = rimMirror,
+        rimMirrorGain = rimMirrorGain,
+        detailLift = 0f,
+        toneCurve = 0f,
+    )
+
+    /** Keeps the 1.0 `copy` in the binary API; new code uses the generated `copy`. */
+    @Deprecated("Binary compatibility with 1.0", level = DeprecationLevel.HIDDEN)
+    fun copy(
+        profile: GlassProfile = this.profile,
+        blurRadius: Dp = this.blurRadius,
+        backdropBlur: Dp = this.backdropBlur,
+        backdropSigma: Dp = this.backdropSigma,
+        refractionBand: Dp = this.refractionBand,
+        refractionDepth: Dp = this.refractionDepth,
+        bodyBandScale: Float = this.bodyBandScale,
+        wideKernel: Dp = this.wideKernel,
+        fineShare: Float = this.fineShare,
+        indexOfRefraction: Float = this.indexOfRefraction,
+        bevelPower: Float = this.bevelPower,
+        cornerPower: Float = this.cornerPower,
+        dispersion: Float = this.dispersion,
+        heldLens: Float = this.heldLens,
+        heldMagnification: Float = this.heldMagnification,
+        heldGlow: Float = this.heldGlow,
+        heldEdgeRecovery: Dp = this.heldEdgeRecovery,
+        heldEdgeTone: Float = this.heldEdgeTone,
+        heldGlowFloor: Float = this.heldGlowFloor,
+        softDetail: Float = this.softDetail,
+        rawShare: Float = this.rawShare,
+        rawBlur: Dp = this.rawBlur,
+        mirror: Float = this.mirror,
+        bevel: Dp = this.bevel,
+        tint: Color = this.tint,
+        tintLift: Float = this.tintLift,
+        liftAdaptivity: Float = this.liftAdaptivity,
+        adaptivity: Float = this.adaptivity,
+        legibility: Float = this.legibility,
+        specular: Float = this.specular,
+        specularPower: Float = this.specularPower,
+        counterLight: Float = this.counterLight,
+        edgeLight: Float = this.edgeLight,
+        bevelPeak: Float = this.bevelPeak,
+        edgeShadow: Float = this.edgeShadow,
+        capEdgeShadow: Float = this.capEdgeShadow,
+        outerContour: Float = this.outerContour,
+        outerContourFloor: Float = this.outerContourFloor,
+        rimSoftness: Dp = this.rimSoftness,
+        tintAbsorption: Float = this.tintAbsorption,
+        fresnel: Float = this.fresnel,
+        highlightChroma: Float = this.highlightChroma,
+        contactShadow: Float = this.contactShadow,
+        contactShadowInside: Float = this.contactShadowInside,
+        contactShadowBlur: Dp = this.contactShadowBlur,
+        contactShadowOffset: Dp = this.contactShadowOffset,
+        innerShadow: Float = this.innerShadow,
+        fallbackSurface: Color = this.fallbackSurface,
+        invertsWithBackdrop: Boolean = this.invertsWithBackdrop,
+        dimmingLayer: Float = this.dimmingLayer,
+        restMap: GlassRestMap = this.restMap,
+        edgeFold: Float = this.edgeFold,
+        inkDispersion: Float = this.inkDispersion,
+        heldInkContinuous: Boolean = this.heldInkContinuous,
+        heldGlowReach: Dp = this.heldGlowReach,
+        foldAtCorners: Float = this.foldAtCorners,
+        capFold: Float = this.capFold,
+        rimMirror: Float = this.rimMirror,
+        rimMirrorGain: Float = this.rimMirrorGain,
+    ): GlassStyle = copy(
+        profile = profile,
+        blurRadius = blurRadius,
+        backdropBlur = backdropBlur,
+        backdropSigma = backdropSigma,
+        refractionBand = refractionBand,
+        refractionDepth = refractionDepth,
+        bodyBandScale = bodyBandScale,
+        wideKernel = wideKernel,
+        fineShare = fineShare,
+        indexOfRefraction = indexOfRefraction,
+        bevelPower = bevelPower,
+        cornerPower = cornerPower,
+        dispersion = dispersion,
+        heldLens = heldLens,
+        heldMagnification = heldMagnification,
+        heldGlow = heldGlow,
+        heldEdgeRecovery = heldEdgeRecovery,
+        heldEdgeTone = heldEdgeTone,
+        heldGlowFloor = heldGlowFloor,
+        softDetail = softDetail,
+        rawShare = rawShare,
+        rawBlur = rawBlur,
+        mirror = mirror,
+        bevel = bevel,
+        tint = tint,
+        tintLift = tintLift,
+        liftAdaptivity = liftAdaptivity,
+        adaptivity = adaptivity,
+        legibility = legibility,
+        specular = specular,
+        specularPower = specularPower,
+        counterLight = counterLight,
+        edgeLight = edgeLight,
+        bevelPeak = bevelPeak,
+        edgeShadow = edgeShadow,
+        capEdgeShadow = capEdgeShadow,
+        outerContour = outerContour,
+        outerContourFloor = outerContourFloor,
+        rimSoftness = rimSoftness,
+        tintAbsorption = tintAbsorption,
+        fresnel = fresnel,
+        highlightChroma = highlightChroma,
+        contactShadow = contactShadow,
+        contactShadowInside = contactShadowInside,
+        contactShadowBlur = contactShadowBlur,
+        contactShadowOffset = contactShadowOffset,
+        innerShadow = innerShadow,
+        fallbackSurface = fallbackSurface,
+        invertsWithBackdrop = invertsWithBackdrop,
+        dimmingLayer = dimmingLayer,
+        restMap = restMap,
+        edgeFold = edgeFold,
+        inkDispersion = inkDispersion,
+        heldInkContinuous = heldInkContinuous,
+        heldGlowReach = heldGlowReach,
+        foldAtCorners = foldAtCorners,
+        capFold = capFold,
+        rimMirror = rimMirror,
+        rimMirrorGain = rimMirrorGain,
+        detailLift = detailLift,
+        toneCurve = toneCurve,
+    )
     companion object {
         /** Clear standalone lens. [magnification] is the centre zoom, gradually returning to
          * identity at the boundary. No internal fold/seam and no separate foreground zoom.
@@ -544,8 +812,11 @@ data class GlassStyle(
             )
         }
 
-        /** In-app glass, light appearance, default Tint Amount: the measured navigation pill. */
-        val Regular = GlassStyle()
+        /**
+         * In-app glass, light appearance, default Tint Amount: the default style of [liquidGlass]. Its
+         * interior is the material measured on iOS 27 at Tint 50 (#199); its rim is unchanged (#202).
+         */
+        val Regular: GlassStyle by lazy { GlassStyle().towardLab(dark = false, tintAmount = GlassMaterial.DEFAULT_TINT_AMOUNT) }
 
         /**
          * In-app glass — a navigation pill, round buttons, a toolbar — for one appearance and
@@ -553,7 +824,39 @@ data class GlassStyle(
          * 2): opacity from the pill's black and white levels, the fine share from the toolbar's
          * stripes, the tint colour and lift per appearance, the edge line per appearance.
          */
-        fun inApp(dark: Boolean, tintAmount: Float = GlassMaterial.DEFAULT_TINT_AMOUNT): GlassStyle {
+        fun inApp(dark: Boolean, tintAmount: Float = GlassMaterial.DEFAULT_TINT_AMOUNT): GlassStyle =
+            inAppEarlier(dark, tintAmount).towardLab(dark, tintAmount)
+
+        /**
+         * The 16 November lab fit (#199, #200; `tools/glass_model.py`) laid over the earlier fit by
+         * [GlassMaterial.labWeight]: in full at Tint 50, not at all at 0 and 100. The material is
+         * `lin = B + k (D - B) + c |D - B|`, then the appearance's tone; the toolbar, the address pill
+         * and plain in-app glass share it.
+         */
+        private fun GlassStyle.towardLab(dark: Boolean, tintAmount: Float): GlassStyle {
+            val w = GlassMaterial.labWeight(tintAmount)
+            // The detail reach is set at every tint, not blended: the earlier 0.83 to 3.3 dp reach was fitted inside the
+            // along-axis model the lab replaced, and switching it at the first step off Tint 0 drew a 25-level jump.
+            if (w <= 0f) return copy(blurRadius = GlassMaterial.labDetailReach)
+            fun f(a: Float, b: Float) = a + (b - a) * w
+            val labTint = (if (dark) Color.Black else Color.White).copy(alpha = GlassMaterial.labOpacity(dark))
+            return copy(
+                tint = lerp(tint, labTint, w),
+                tintLift = f(tintLift, GlassMaterial.labLift(dark)),
+                fineShare = f(fineShare, GlassMaterial.labDetailShare(dark)),
+                wideKernel = lerp(wideKernel, GlassMaterial.labWideKernel, w),
+                // Held, not blended: at this reach the host picks the four-tap detail kernel (uDetailCross), and a
+                // wider reach would draw four displaced copies.
+                blurRadius = GlassMaterial.labDetailReach,
+                detailLift = GlassMaterial.labDetailLift(dark) * w,
+                toneCurve = GlassMaterial.labToneCurve(dark) * w,
+                // The lab stills show no extra tint over busy content: the stripes keep k at every contrast.
+                legibility = f(legibility, 0f),
+                softDetail = f(softDetail, 1f),
+            )
+        }
+
+        private fun inAppEarlier(dark: Boolean, tintAmount: Float): GlassStyle {
             val a = GlassMaterial.opacity(dark, tintAmount)
             return GlassStyle(
                 // The measured resting-corner map (GlassRestMap.Measured), fitted on the Photos toolbar's
@@ -600,9 +903,16 @@ data class GlassStyle(
          * reads 152 where the pill's reads 180. Both are more opaque than the pill at Clear and
          * respond less to Tint Amount.
          */
-        fun toolbar(dark: Boolean, tintAmount: Float = GlassMaterial.DEFAULT_TINT_AMOUNT): GlassStyle {
+        fun toolbar(dark: Boolean, tintAmount: Float = GlassMaterial.DEFAULT_TINT_AMOUNT): GlassStyle =
+            toolbarEarlier(dark, tintAmount).towardLab(dark, tintAmount)
+
+        /**
+         * The toolbar on the earlier fit (before the #200 lab material). The tab bar's bar keeps it: the tab bar is
+         * scored against its own recordings and moves to the lab material in #203.
+         */
+        internal fun toolbarEarlier(dark: Boolean, tintAmount: Float = GlassMaterial.DEFAULT_TINT_AMOUNT): GlassStyle {
             val a = GlassMaterial.toolbarOpacity(dark, tintAmount)
-            return inApp(dark = dark, tintAmount = tintAmount).copy(
+            return inAppEarlier(dark = dark, tintAmount = tintAmount).copy(
                 tint = if (dark) Color.Black.copy(alpha = a) else GlassMaterial.toolbarLightTint.copy(alpha = a),
             )
         }

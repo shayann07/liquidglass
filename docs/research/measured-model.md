@@ -57,6 +57,8 @@ bar, which is the wrong impression even though the silhouette is right. The lens
 about 5% of its height, gained back along the travel. `GlassFuse` and `GlassTabBarStyle.lensFuse`
 carry the first; `gel` and `gelReference` the second.
 
+**Superseded 16 November 2026 by section 2e (#200): the lab stills show no along-axis term. Kept as the record of the earlier fit.**
+
 Corrected 2026-09-12. The fine term is **one-dimensional, along the element's long axis**. The
 backdrop term is a wide kernel for tone plus a high-pass along the bar for detail:
 
@@ -242,6 +244,65 @@ frames (1700-1780) the calibration. It is not the fold and not the rest lens: a 
   interior 50 against 50; the side step 20 against 17. On the S24+ the held lens shows the same
   band, seam and grown tab; held still between two tabs the two copies of the row coincide;
   mid-drag the copy lags a frame, as the phone's does.
+
+## 2e. The lab model: three terms (16 November 2026, #200; supersedes the along-axis term of 2a)
+
+**Superseded.** The one-dimensional along-axis fine term described in 2a (FINDINGS 22) was fitted to
+one reading of the Photos toolbar. The lab stills, rendered by a page in iOS 27 over synthetic
+backdrops with stripes, bars, steps and flat greys at Tint 50, show that iOS keeps the same detail
+along and across a bar, so the term was an artefact of that one backdrop. In the library the five-tap
+along-axis average is also what drew the stepped ghost copies of sharp text (#190). It is removed.
+Section 2a stays as the record of the earlier fit; the earlier fit still supplies the parameters at
+Tint 0 and 100 (see the authored blend below).
+
+The public specification is `tools/glass_model.py`. The forward model, linear in the backdrop
+term and applied to display code values (0-255), as in `tools/glass_model.py`, before the colour step:
+
+    lin = B + k (D - B) + c |D - B|        out = tone(lin)
+
+- `B`: the backdrop blurred by a Gaussian of sigma **46.5 px at 3x (15.5 pt)**. `D`: the backdrop
+  softened by **0.83 px**. The fit of B is flat from 44 to 52 px.
+- `k` (detail share): **0.277 dark, 0.273 light**. `c` (one-sided detail): **-0.22 dark, +0.22 light**.
+  The glass keeps detail on its own side of the surroundings at k + c and detail on the other side
+  at k - c, the same for detail along and across a bar.
+- Dark tone: a 17-point table, fitted by `31.72 + 254.40 x - 101.01 x^2` (x = input / 255, output in
+  levels; rms 0.22 levels). Light tone: `132.5 + 0.502 in`, clipped at 255.
+
+Provenance, kept apart:
+
+- **Measured**, at Tint 50 only, on the 16 November lab stills: sigma of B, the 0.83 px softening,
+  k and c in both appearances, the dark tone table and light tone line. The model alone scores 1.31
+  (dark) and 1.30 (light) levels rms over the 89 stills. iOS's response to 2, 4, 6 and 8 px stripes
+  (kept contrast 0, 49, 73 and about 100 %) is measured.
+- **Derived from the measured tone**, not separately fitted: in the shader the tone is a tint blend
+  plus a bow. Dark: blend toward black at alpha 0.3985 with a lift of 31.72/255 and a bow
+  `101.01/255 * x (1 - x)`; light: blend toward white at alpha 0.498 with a lift of 5.5/255 and no bow.
+  These reproduce the fitted polynomial and line.
+- **Authored**: the Tint blend. Only Tint 50 is measured. For other tints the weight is
+  `w = 1 - |t - 50| / 50`, and the tint, lift, fine share, wide kernel, legibility and soft-detail
+  share are interpolated from the earlier fit (Tint 0 and 100) toward the lab values; `detailLift = c w`,
+  `toneCurve = bow w`. Measuring tints is #208. The detail reach is 1/3 dp at every in-app tint,
+  including 0 and 100: keeping the earlier 0.83 dp reach at Tint 0 and switching at Tint 1 drew a
+  25-level step, and that reach was fitted inside the falsified along-axis model.
+- **Authored**: the detail kernel's shape. It takes four taps at +-r with no centre tap, r = 1/3 dp
+  (1 px at 3x). It keeps 0, 50, 75 and 85 % of 2, 4, 6 and 8 px stripes against iOS's 0, 49, 73 and
+  about 100 %; the remaining gap is the 6 px stripe residual (rms 6.9 dark / 4.5 light levels) and
+  2 px bars (3.7 / 4.5).
+- **Authored**: the kernel-by-reach rule. The host selects the four-tap kernel (internal uniform
+  `uDetailCross`) when `0 < blurRadius <= 1/3 dp`, with 0.1 % slack so a Dp interpolation between two
+  1/3 dp reaches still selects it. Wider reaches keep the dithered scatter, because the four taps
+  would show as four displaced copies there.
+- **Authored**: the Compose host pads the wide kernel's recording by 1.5 sigma (was 0.75 sigma, which
+  left about 6 % of the Gaussian outside the recording).
+
+Scores on the 89 private lab stills at Tint 50, toolbar pill, interior zones: 1.43 dark / 1.42 light
+levels rms (vertical 1.37 / 1.39, horizontal 1.59 / 1.47), gate 3.0; main scored 24.2 / 15.2. The
+public `GlassLabModelTest` (synthetic backdrops only) runs 222 checks including the Tint 0 to 1 and
+99 to 100 steps (at most 1.34 levels rms) and counts one turning point through a text stem (main 15,
+gate 7). The stills are private and are not in the repository.
+
+Open and named: the 6 px stripe residual; colour (#201); the rim band (#202); the tab bar container
+and selector, which keep the earlier fit until #203; and the Tint 0/100 blend (#208).
 
 ## 3. Shell glass at Tint 50 (over the wallpaper; the wallpaper itself is dimmed x0.773 in Clear-icon mode)
 

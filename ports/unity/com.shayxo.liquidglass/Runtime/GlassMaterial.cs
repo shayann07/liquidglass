@@ -44,6 +44,59 @@ namespace LiquidGlass
 
         static double Clamp01(double v) => Math.Min(1, Math.Max(0, v));
 
+        // GlassStyle.towardLab: the lab fit (#199, #200) laid over the earlier fit by a weight that is 1 at the
+        // default Tint Amount and 0 at 0 and 100. The constants are GlassMaterial.lab* in the Compose library.
+        const double LabWideKernel = 15.5;
+        const double LabDetailReach = 1.0 / 3.0;
+
+        static double LabWeight(double amount) => Clamp01(1 - Math.Abs(Math.Min(100, Math.Max(0, amount)) - 50) / 50);
+        static double LabOpacity(bool dark) => dark ? .3985 : .498;
+        static double LabLift(bool dark) => dark ? 31.72 / 255 : 5.5 / 255;
+        static double LabDetailShare(bool dark) => dark ? .277 : .273;
+        static double LabDetailLift(bool dark) => dark ? -.22 : .22;
+        static double LabToneCurve(bool dark) => dark ? 101.01 / 255 : 0;
+
+        // Compose's Color lerp runs in Oklab and stores 8 bits per channel again; the Oklab intermediate keeps
+        // alpha in 10 bits, truncated, which is the step the golden values show.
+        static double SrgbToLinear(double c) => c <= .04045 ? c / 12.92 : Math.Pow((c + .055) / 1.055, 2.4);
+        static double LinearToSrgb(double c) => c <= .0031308 ? c * 12.92 : 1.055 * Math.Pow(c, 1 / 2.4) - .055;
+        static double Q8(double x) => Math.Floor(Clamp01(x) * 255 + .5) / 255;
+
+        static double[] ToOklab(double[] c)
+        {
+            double r = SrgbToLinear(c[0]), g = SrgbToLinear(c[1]), b = SrgbToLinear(c[2]);
+            double l = Math.Cbrt(.4122214708 * r + .5363325363 * g + .0514459929 * b);
+            double m = Math.Cbrt(.2119034982 * r + .6806995451 * g + .1073969566 * b);
+            double s = Math.Cbrt(.0883024619 * r + .2817188376 * g + .6299787005 * b);
+            return new[]
+            {
+                .2104542553 * l + .793617785 * m - .0040720468 * s,
+                1.9779984951 * l - 2.428592205 * m + .4505937099 * s,
+                .0259040371 * l + .7827717662 * m - .808675766 * s,
+            };
+        }
+
+        static double[] FromOklab(double[] c)
+        {
+            double l = Math.Pow(c[0] + .3963377774 * c[1] + .2158037573 * c[2], 3);
+            double m = Math.Pow(c[0] - .1055613458 * c[1] - .0638541728 * c[2], 3);
+            double s = Math.Pow(c[0] - .0894841775 * c[1] - 1.291485548 * c[2], 3);
+            return new[]
+            {
+                LinearToSrgb(Clamp01(4.0767416621 * l - 3.3077115913 * m + .2309699292 * s)),
+                LinearToSrgb(Clamp01(-1.2684380046 * l + 2.6097574011 * m - .3413193965 * s)),
+                LinearToSrgb(Clamp01(-.0041960863 * l - .7034186147 * m + 1.707614701 * s)),
+            };
+        }
+
+        static double[] LerpColor(double[] a, double[] b, double w)
+        {
+            double[] p = ToOklab(a), q = ToOklab(b);
+            var rgb = FromOklab(new[] { p[0] + (q[0] - p[0]) * w, p[1] + (q[1] - p[1]) * w, p[2] + (q[2] - p[2]) * w });
+            double alpha = Math.Floor(Clamp01(a[3] + (b[3] - a[3]) * w) * 1023) / 1023;
+            return new[] { Q8(rgb[0]), Q8(rgb[1]), Q8(rgb[2]), Q8(alpha) };
+        }
+
         /// <summary>Every material uniform the shader reads, by name, for a surface of
         /// <paramref name="width"/> × <paramref name="height"/> device pixels (without the 2 px padding) at
         /// <paramref name="density"/> device pixels per logical pixel. Uniforms not listed stay 0.</summary>
@@ -93,7 +146,6 @@ namespace LiquidGlass
             v["uHeldMagnification"] = new[] { 0.0 };
             v["uHeldGlow"] = new[] { 1.0 };
             v["uAberration"] = new[] { .07 };
-            v["uBlur"] = new[] { (.5 + 1.5 * t * t) / .6 * density };
             v["uWideKernel"] = new[] { 10 * density };
             v["uFineShare"] = new[] { .95 * Math.Pow(1 - t, 1.5) };
             v["uTint"] = new[] { grey, grey, grey, opacity };
@@ -110,6 +162,24 @@ namespace LiquidGlass
             v["uMaterialize"] = new[] { Clamp01(m.Materialize) };
             v["uFrost"] = new[] { Clamp01(m.ReducedTransparency) };
             v["uContrast"] = new[] { Clamp01(m.IncreasedContrast) };
+            // The lab fit (GlassStyle.towardLab). The detail reach is the lab's at every tint, which selects the
+            // four-tap detail kernel (uDetailCross: 0 < blurRadius <= 1/3 dp, decided in dp).
+            double w = LabWeight(m.TintAmount);
+            v["uBlur"] = new[] { LabDetailReach * density };
+            v["uDetailCross"] = new[] { 1.0 };
+            if (w > 0)
+            {
+                double Mix(double a, double b) => a + (b - a) * w;
+                double labGrey = m.Dark ? 0 : 1;
+                v["uTint"] = LerpColor(v["uTint"], new[] { labGrey, labGrey, labGrey, Q8(LabOpacity(m.Dark)) }, w);
+                v["uLift"] = new[] { Mix(v["uLift"][0], LabLift(m.Dark)) };
+                v["uFineShare"] = new[] { Mix(v["uFineShare"][0], LabDetailShare(m.Dark)) };
+                v["uWideKernel"] = new[] { Mix(v["uWideKernel"][0], LabWideKernel * density) };
+                v["uDetailLift"] = new[] { LabDetailLift(m.Dark) * w };
+                v["uToneCurve"] = new[] { LabToneCurve(m.Dark) * w };
+                v["uLegibility"] = new[] { Mix(v["uLegibility"][0], 0) };
+                v["uSoftDetail"] = new[] { Mix(0, 1) };
+            }
             if (m.HasTint)
             {
                 double Q(double c) => Math.Round(c * 255.0, MidpointRounding.AwayFromZero) / 255;

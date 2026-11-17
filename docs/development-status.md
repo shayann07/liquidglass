@@ -11,6 +11,12 @@ research remains available; this page identifies which later changes supersede i
   top rim fade with the transit instead of vanishing the frame the formation falls below half: on docs/1 the 0 to 2
   plateau ends at about 212 ms (iOS 214, was 178). One-tab taps and light Calm unchanged; Skia and .NET mirrored (#70).
   [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/tap-plateau-2026-11-17/README.md).
+- 16 November: Regular glass follows the measured three-term material (#200, fixes #190): the along-axis detail filter that
+  drew stepped ghost copies of text is removed, detail is one soft copy over a 15.5 dp wide kernel, and the dark tone is a fitted
+  curve; merged glass (`GlassEffectContainer`) draws the same material but lacks the legibility term, rim fringe, `uTintAbsorb`, rotated `softDetail` scatter and `Glass.light` (#211). 1.43 dark / 1.42 light levels rms on 89 private lab stills at Tint 50 (gate 3.0; main 24.2 / 15.2); public `GlassLabModelTest`
+  222 checks. Open: 6 px stripes (6.9 / 4.5), Tint 0/100 authored (#208), colour (#201), rim band (#202), tab bar on the earlier
+  fit (#203); npm HTML/CSS engine and `ports/web` not ported, Flutter Dart not compiled. Pixel 7: 90 fps held, calibration
+  screen not worse. Evidence: `review/atlas/material-model-2026-11-16/README.md`.
 - 16 November: Calm taps that land on the first or last tab meet an end wall (0.03 bar heights past the resting end, authored):
   on docs/1 the lens's end no longer runs 8-10 px past iOS's, and 2 to 0 at 167 ms reads 55.4 (iOS 55.3, was 66.1). Arrival unchanged;
   0 to 2 at 183-217 ms reads 4 levels further from iOS (#94). Internal spec, Skia and .NET mirrored (#70 open). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/tap-end-wall-2026-11-16/README.md).

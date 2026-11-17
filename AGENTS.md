@@ -74,8 +74,10 @@ If the private generator is unavailable, apply the matching addendum manually as
 7. **Renaming folders under `research/` is expensive.** Hundreds of documents and scripts reference
    `analysis/`, `tools/` and their children by path. If you must, rewrite the references in the same
    pass and record it, as `research/analysis/MOVED.md` does.
-8. **Opt-in for new optics.** New behaviour arrives behind a style flag with its default unchanged,
-   so every previously verified path keeps its tolerance.
+8. **New optics are on by default (from 1.1.0).** The owner retired the opt-in rule on 16 November 2026:
+   new behaviour ships as the default, every change to the default look is listed under "Default look
+   changed" in `CHANGELOG.md` with its evidence, and a previously verified path that moves gets its
+   expected value re-stated with the reason, never a silently widened tolerance.
 9. **The record has a generated twin.** `research/README.md` is the source of truth;
    `docs/research/the-record.md` is its copy on the site, with file links rewritten to GitHub.
    After editing the record, run `python research/tools/build_site_record.py --check` — it

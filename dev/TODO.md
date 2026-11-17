@@ -1,3 +1,13 @@
+## #200 measured three-term material (16 November, `feat/200-material-model`)
+
+- [x] Re-score the private lab gate on the final commit: 1.43 / 1.42 on 9730618e.
+- [x] docs/1 replay against a fresh main render: differences inside glass only, at most 7 levels; track unchanged.
+- [x] Full suite after the `toolbarEarlier` change: 512 tests, 0 failures at 344fcf52 (6 forks).
+- [ ] Open items named in the entry: 6 px stripes (6.9 / 4.5), Tint 0/100 (#208), colour (#201), rim band (#202), tab bar (#203).
+- [ ] Not ported: npm HTML/CSS engine, `ports/web`. Not compiled: Flutter Dart.
+- [x] Merged as #210 (8b303111). Late changes: merged glass (`GlassEffectContainer`) now draws the three-term material too; the detail kernel and the legibility term fade as the larger of the fine share and `|detailLift|` goes from 0.10 to 0.02 instead of switching off at one tint (worst adjacent whole-tint step 1.80 levels rms; main had 18.4 at Tint 92 to 93); remaining container parity is #211; #190 and #200 closed by #210.
+- [ ] #211: merged glass still lacks the legibility term, rim fringe, `uTintAbsorb`, rotated `softDetail` scatter and `Glass.light`.
+
 ## 2 November 2026 — Pixel 7 night (Claude)
 
 The owner lent the Pixel 7 (Android 17, API 37, 90 Hz) for this one night; no Android device for the following week.

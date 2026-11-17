@@ -86,6 +86,8 @@ test('clear bar (GlassTabBarStyle.CalmClear): black at 0.10 over the same lift, 
   assert.equal(clear.uLift, calm.uLift);
   assert.equal(clear.uLegibility, 2, 'it darkens over text (GlassStyle.legibility)');
   assert.equal(clear.uBlur, 7, 'it shows text as one soft copy');
+  assert.equal(calm.uDetailCross, 0, 'the Calm bar keeps the earlier fit (reach 1.46 dp): the scatter, not the four taps');
+  assert.equal(clear.uDetailCross, 0, 'so does the clear bar (7 dp)');
   assert.deepEqual({...clear, uTint: calm.uTint, uLegibility: calm.uLegibility, uBlur: calm.uBlur}, calm, 'only tint, legibility and blur differ');
   assert.deepEqual(calmBarMaterial({dark: false, clear: true}), calmBarMaterial({dark: false}));
 });

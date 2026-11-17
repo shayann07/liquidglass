@@ -9,6 +9,8 @@ const SNAP = new Set(['uProfile', 'uRestMap', 'uHeldInk']);
 const OPTIONAL_DP = new Set(['contactShadowBlur', 'contactShadowOffset']);
 /** Host terms, not shader uniforms. */
 const HOST = new Set(['rawShare', 'rawBlur', 'bodyBandScale', 'contactShadow', 'contactShadowInside', 'contactShadowBlur', 'contactShadowOffset']);
+/** GlassMaterial.usesDetailCross: 0 < reach <= labDetailReach (1/3 dp as a float) * 1.001, a slack for Dp lerp rounding. */
+const DETAIL_REACH = Math.fround(1 / 3) * Math.fround(1.001);
 const clamp = (x, lo, hi) => Math.min(Math.max(x, lo), hi);
 // Compose's sRGB Color stores 8 bits per channel.
 const q8 = x => Math.floor(clamp(x, 0, 1) * 255 + .5) / 255;
@@ -30,6 +32,8 @@ function lerpStyle(style, t) {
     else if (SNAP.has(key) || (OPTIONAL_DP.has(key) && (a[key] < 0 || b[key] < 0))) out[key] = t < .5 ? a[key] : b[key];
     else out[key] = t <= 0 ? a[key] : t >= 1 ? b[key] : a[key] + (b[key] - a[key]) * t;
   }
+  // The four-tap detail kernel is chosen from the blended reach in dp, never blended itself (LiquidGlass.kt).
+  if ('uDetailCross' in a) out.uDetailCross = out.uBlur > 0 && out.uBlur <= DETAIL_REACH ? 1 : 0;
   // An ink split that follows dispersion snaps with the identity (GlassMorph `s`).
   const follows = t < .5 ? style.pillInkFollows : style.lensInkFollows;
   if (style.pillInkFollows || style.lensInkFollows) out.uInkSplit = follows ? out.uAberration : (t < .5 ? a : b).uInkSplit;

@@ -63,14 +63,17 @@ uniform float   uFoldCorners;  // 0 folds every edge, 1 only corner arcs (GlassS
 uniform float   uRimMirror;    // reflective rim band fraction for the measured family; 0 the fold (GlassStyle.rimMirror)
 uniform float   uRimMirrorGain; // mirrored depth per unit of band; 0 or 1 the plain mirror (GlassStyle.rimMirrorGain)
 uniform float   uHeldGlowFloor; // 0 adds the held glow, 1 lays it as a floor under darker glass (GlassStyle.heldGlowFloor)
-uniform float   uSoftDetail;   // 0 the along-axis high-pass with a dithered scatter, 1 a plain soft copy (GlassStyle.softDetail)
+uniform float   uSoftDetail;   // 0 a dithered (rotated) fine scatter, 1 an unrotated one (GlassStyle.softDetail)
 uniform float   uHeldEdgeTone; // grey of the held lens's outermost pixels, drawn as a line; 0 off (GlassStyle.heldEdgeTone)
 uniform float   uHeldGlowReach; // px the held glow reaches inward; 0 uses the bevel (GlassStyle.heldGlowReach)
 uniform float   uHeldEdgeRecovery; // layer-pixel recovery length; 0 preserves the narrow side contour
 uniform float   uRestMap;      // resting-corner source map: 0 legacy, 1 the measured table (GlassRestMap)
 uniform float   uWideStrip;    // layer row where a quarter-scale blurred copy of the backdrop starts; 0 disables it
 uniform float   uWideScale;    // scale of that copy (0.25)
-uniform float   uFineShare;    // share of fine detail in the backdrop term, w(t) = 0.78 (1 - t/100)
+uniform float   uFineShare;    // the detail share k in lin = B + k (D - B) + c |D - B| (GlassStyle.fineShare)
+uniform float   uDetailLift;   // the one-sided term c: + light glass, - dark glass (GlassStyle.detailLift)
+uniform float   uToneCurve;    // the tone curve's bow: col += uToneCurve x (1 - x) per channel (GlassStyle.toneCurve)
+uniform float   uDetailCross;  // 1 the measured four-tap detail copy, 0 the scatter; the host sets it from the reach (at most 1/3 dp)
 uniform float   uWideKernel;   // px sigma of the wide kernel; also the fine term's spread across the element
 uniform float   uLift;         // fixed luminance lift after the tint (the dark material's 35/255)
 uniform float   uLiftAdapt;    // how far the lift falls with the wide-kernel luma (system backdrops: 0.864)
@@ -255,24 +258,13 @@ half3 blurredAt(float2 p, float radius, float2 rot) {
     return sum * half(1.0 / 19.0);
 }
 
-// The measured material's fine term is one-dimensional (MODEL.md section 2a, FINDINGS 22): it
-// carries detail along a bar and none at all across it. Two readings of the Photos toolbar pill
-// pin it down. Where the target's 8 px stripe band ends under the pill the detail stops within
-// two rows, so nothing is averaged across; and the target's 20-row black band under the same
-// pill leaves no step at all, though it is a 122-level boundary. Content that does not vary
-// along the bar produces no fine term, which is what a high-pass along one axis does.
-//
-// So the detail is the fine sample minus the backdrop averaged along the element's long axis,
-// five taps spanning the along-axis wide kernel, jittered per pixel so periodic content does not
-// beat against the tap spacing. Five rather than seven: the pair at 2.25 sigma carries 5% of the
-// weight and cost 1.5 ms a frame on an S24.
-half3 axisMeanAt(float2 p, float span, float2 rot) {
-    float2 t = (uSize.x >= uSize.y) ? float2(1.0, 0.0) : float2(0.0, 1.0);
-    float k = span * (0.85 + 0.3 * abs(rot.x));
-    half3 sum = backdropAt(p);
-    half3 acc = (backdropAt(p + t * (0.75 * k)) + backdropAt(p - t * (0.75 * k))) * half(0.7548);
-    acc += (backdropAt(p + t * (1.60 * k)) + backdropAt(p - t * (1.60 * k))) * half(0.4043);
-    return (sum + acc) * half(1.0 / 3.3182);
+// The detail copy D of the measured material (#200): four taps at +-r along both axes, no centre. Its
+// response to stripes is (1 + cos(2 pi r / P)) / 2: at r = 1 px (3x) 2 px stripes vanish and 4, 6 and 8 px
+// keep 50, 75 and 85 %, where iOS keeps 0, 49, 73 and about 100 % (the lab stills, #199).
+half3 detailAt(float2 p, float r) {
+    if (r < 0.25) return backdropAt(p);
+    return (backdropAt(p + float2(r, 0.0)) + backdropAt(p - float2(r, 0.0))
+        + backdropAt(p + float2(0.0, r)) + backdropAt(p - float2(0.0, r))) * half(0.25);
 }
 
 float luma(half3 c) {
@@ -603,18 +595,32 @@ half4 main(float2 coord) {
     // A soft copy ([GlassStyle.softDetail]) samples its scatter unrotated: the rotation is what
     // turns a sparse kernel's ghosts into grain.
     float2 rot = (uSoftDetail >= 0.5) ? float2(1.0, 0.0) : tapRotation(coord);
-    // At Tinted the fine share is 0 and the fine scatter would be thrown away: skip it.
-    half3 soft = (uWideStrip >= 1.0 && uFineShare < 0.02)
-        ? sharp
-        : blurredAt(base + push, uBlur * mat * e, rot);
+    // The softened copy is read by the share k, by the one-sided term c |D - B| and by the legibility contrast below.
+    // Toward Tinted k and c both approach 0 and the copy would be thrown away, so it fades out (authored): its weight
+    // rises from 0 to 1 as the larger of k and |c| goes from 0.02 to 0.10, and at weight 0 the sharp copy stands in and
+    // the kernel is skipped. The legibility contrast it feeds fades with the same weight. A hard switch at 0.02 turned
+    // both off in one tint step (12.8 dark, 14.4 light levels rms over 6 px stripes at Tint 97 to 98). Without the
+    // wide kernel the copy is always drawn at full weight.
+    float detailWeight = (uWideStrip >= 1.0) ? smoothstep(0.02, 0.10, max(uFineShare, abs(uDetailLift))) : 1.0;
+    half3 soft = sharp;
+    float contrast = 0.0;
+    if (detailWeight > 0.0) {
+        half3 detailCopy = (uDetailCross >= 0.5) ? detailAt(base + push, uBlur * mat * e) : blurredAt(base + push, uBlur * mat * e, rot);
+        soft = (detailWeight < 1.0) ? mix(sharp, detailCopy, half(detailWeight)) : detailCopy;
+        // Local contrast, free: the rim sample and the interior sample already bracket the backdrop's high
+        // frequencies, so their luma difference stands in for text scrolling underneath. Apple raises tint and
+        // dynamic range exactly then, to keep controls legible. Scaled by the weight rather than read from the
+        // faded copy: the clamp would otherwise saturate midway and steepen the fade.
+        contrast = detailWeight * clamp(abs(luma(sharp) - luma(detailCopy)) * 4.0, 0.0, 1.0);
+    }
     float rimSharp = (1.0 - e) * (1.0 - e);
     half3 bg;
     if (uWideKernel * mat >= 2.0) {
-        // Across a bar the phone keeps no detail at all, in the edge band as in the middle
-        // (FINDINGS 22), so the rim's crisp copy may only contribute its colour fringe. The
-        // fine term is already sharp along the axis here, because its scatter falls to zero at
-        // the rim; mixing the crisp copy back in whole is what drew a step the phone has not
-        // got, 23 levels against 9 over the target's black band.
+        // Within about 5-8 pt of the outline iOS shows content from further inside (the rim band,
+        // #202; the 16 November lab stills): a boundary crossing a bar leaves no step at its true
+        // row there, which is what FINDINGS 22 saw and once read as a detail filter along the bar.
+        // So the rim's crisp copy may only contribute its colour fringe; mixing it back in whole
+        // drew a step the phone has not got, 23 levels against 9 over the target's black band.
         half3 axis = half3(backdropAt(base + push));
         bg = soft + (sharp - axis) * half(rimSharp);
     } else {
@@ -632,34 +638,19 @@ half4 main(float2 coord) {
         bg = mix(bg, echo, half(clamp(mirrorMask * uMirror * mat, 0.0, 1.0)));
     }
 
-    // The measured material is two kernels: a fine one that carries the detail seen through
-    // the glass and a wide one (about 25 pt) that decides its tone, mixed by the fine share.
-    // Sixteen-pixel stripes keep 36% of their contrast at Tint 50 where a single blur wide
-    // enough to explain the tone would leave 3% (MODEL.md section 2a).
+    // The measured material (#199, #200; tools/glass_model.py), fitted on lossless iOS 27 stills at
+    // Tint 50: a wide Gaussian B sets the tone, a sharp copy of the backdrop D is laid over it at the
+    // detail share k, and detail on the glass's own side is favoured by c (positive on light glass,
+    // negative on dark): lin = B + k (D - B) + c |D - B|. Isotropic: iOS keeps the same detail along
+    // and across a bar, and large text shows as one soft copy, never stepped ghosts (#190).
     half3 wide = bg;
     if (uWideStrip >= 1.0 && mat > 0.001) {
         wide = wideAt(base);
-        // The fine term is a high-pass along the element's long axis, not a share of a second
-        // blurred copy: the tone comes from the wide kernel and the detail is what the backdrop
-        // does along the bar, which is why a boundary running across a bar leaves no step on the
-        // phone (FINDINGS 22). The along-axis average is the wide kernel's own sigma, so where
-        // the backdrop does not vary across the bar the two cancel exactly and the wide kernel
-        // is left alone, and where it does not vary along the bar this is the old two-kernel mix
-        // with no halo. The 0.7 calibrates the seven taps against the strip's own Gaussian: at
-        // 1.0 the step response overshoots by 11 levels, at 0.7 by none.
-        half3 line = axisMeanAt(base + push, uWideKernel * 0.7 * mat, rot);
-        // A soft copy takes its detail against the wide kernel's own tone: the two-kernel mix,
-        // with no ghost copies of the glyphs along the bar ([GlassStyle.softDetail]).
-        line = mix(line, wide, half(clamp(uSoftDetail, 0.0, 1.0)));
-        bg = wide + (bg - line) * half(clamp(uFineShare, 0.0, 1.0));
+        half3 detail = bg - wide;
+        bg = wide + detail * half(clamp(uFineShare, 0.0, 1.0)) + abs(detail) * half(clamp(uDetailLift, -1.0, 1.0));
     }
 
     float bgLuma = luma(bg);
-
-    // Local contrast, free: the rim sample and the interior sample already bracket the
-    // backdrop's high frequencies, so their luma difference stands in for text scrolling
-    // underneath. Apple raises tint and dynamic range exactly then, to keep controls legible.
-    float contrast = clamp(abs(luma(sharp) - luma(soft)) * 4.0, 0.0, 1.0);
 
     half3 tinted = (measured > 0.5)
         ? half3(uTint.rgb)
@@ -709,6 +700,12 @@ half4 main(float2 coord) {
         col = mix(blended, medium, half(absorb));
     } else {
         col = blended;
+    }
+    // The measured dark tone curve is concave (#200): the tint blend and the lift give its straight
+    // part, this its bow, uToneCurve x (1 - x) per channel of the material before the tint.
+    if (uToneCurve != 0.0) {
+        half3 x = clamp(bg, half3(0.0), half3(1.0));
+        col += half(uToneCurve * mat * tintCoverage) * x * (half3(1.0) - x);
     }
     // The measured lift: the dark in-app material is black at its opacity plus a fixed 35/255;
     // the system backdrops lift by 142/255 minus 0.864 of the mean luma behind them, which is
