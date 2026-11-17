@@ -6,6 +6,14 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Skia and .NET ports: render a frame at any time (#193). `bakeNavigation(bar, events, {step, duration})` runs a scripted gesture
+  through the scene's own navigation motion (now one shared driver, `createNavigationDriver`, used by `addNavigation` and the bake) at a
+  fixed step, and `track.sample(t)` gives the bar's state at any time, in any order, any worker (`toJSON()` / `navigationTrack(json)`
+  for plain data); `drawNavigation(kit, painter, canvas, view, sample, options)` draws that state, and is what `scene.draw` calls for a
+  navigation layer (`layer.feedback` is new, beside `layer.selector`). .NET: `NavigationBaker.Bake(bar, events, duration)` and
+  `NavigationTrack.Sample(t)` for the same, stepping `CalmNavigation` and `CalmInteraction` (the painter's draw methods are already
+  stateless). Exact at a step, linear between (the pose's inverse recomputed; decisions keep the earlier step); not a second drawing method
+  on the scene. Default look changed: none; the scene's frames are byte-identical (the existing scene tests pass unchanged).
 - Skia and .NET ports: a free-standing lens can have the Compose clear-lens preset (#191). `painter.drawLens(canvas, bounds,
   {lighting: true})`, `scene.addLens(bounds, {lighting: true})` and `GlassPainter.DrawLens(..., options)` draw `GlassStyle.clearLens`'s
   rim highlight (specular 0.28, fresnel 0.02, counter light 0.35, bevel 1.2 dp), a thin white tint (1.5 %) and a contact shadow

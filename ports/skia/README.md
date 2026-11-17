@@ -156,6 +156,41 @@ ground, device px, the bar's origin) and pass it with `layer.setSelectedInk(imag
 `painter.drawSelectorInk(...)`: it is drawn through the production content pass, so it shows only
 under the selector, refracted and folded with it. Labels and accessibility stay with the host. [Evidence](../../review/atlas/ports-selector-2026-10-14/README.md).
 
+## Render a frame at any time (offline, tests, scrubbing)
+
+A live scene only moves forward: `scene.draw(canvas, time)` and every layer call reject an earlier time, and the
+selector's state at `t` depends on every frame before it. To render a frame out of order, in parallel or at a fixed
+time (video export, screenshot tests, a scrubber, a server), bake the gesture once and draw from the baked state:
+
+```js
+import { bakeNavigation, drawNavigation, createGlassPainter } from './index.mjs';
+
+const bar = { bounds: { x: 24, y: 520, width: 300, height: 62 }, count: 3, viewport: { width: 390, height: 844 } };
+const events = [ // logical page px and seconds, as the scene's layer takes them
+  { type: 'down', x: 60, y: 551, time: 0.5 }, { type: 'move', x: 60, y: 551, time: 1.2 },
+  { type: 'move', x: 180, y: 551, time: 1.6 }, { type: 'up', x: 180, y: 551, time: 1.9 },
+];
+const track = bakeNavigation(bar, events, { duration: 4 });            // steps 1/240 s; the same motion code as the scene
+const sample = track.sample(3.2);                                       // any time, any order, any worker
+const painter = createGlassPainter(CanvasKit); painter.setSource(page); // page: the device-px image
+canvas.drawImage(page, 0, 0);
+drawNavigation(CanvasKit, painter, canvas, { bounds: bar.bounds, pixelRatio: 2, source: page }, sample,
+  { material: { dark: true }, ink });                                   // ink: optional selected-ink image
+```
+
+`bakeNavigation(bar, events, {step = 1/240, duration})` runs the scene's own navigation (the same driver, `createCalmNavigation`
+and the bar's press feedback) one step at a time and stores every step; the selection a gesture commits is applied as the
+host's `onSelect` + `select` would. `track.sample(t)` is exact at a step and, between steps, interpolates linearly (the pose's
+inverse is recomputed from the interpolated matrix; `held`, `tapFormed`, `selected` and `active` keep the earlier step's value);
+before 0 and after the last step it clamps. `track.toJSON()` is plain data and `navigationTrack(json)` rebuilds it, so a worker
+or another process can share one baked track. `drawNavigation(kit, painter, canvas, {bounds, pixelRatio, source}, sample,
+{material, ink})` is the scene's own bar, selector and ink drawing with no clock: `scene.draw` calls it, and `{selector:
+layer.selector, feedback: layer.feedback}` of a live layer draws the same way. The scene itself gets no second drawing method.
+
+Limits: the track is that script at that step, so a live run at another frame cadence differs slightly, as any two live runs do;
+labels and the selected-ink image stay with the host; free surfaces and lenses have no bake (their press feedback is
+`createCalmInteraction` state a host can sample itself). Draw the page first; `drawNavigation` draws only the bar.
+
 ## A free button (the Phone search button)
 
 `createFreeButton({size, density})` is Compose's `GlassInteraction.Pullable` with `GlassPullShape.Free`:

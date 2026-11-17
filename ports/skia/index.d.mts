@@ -138,6 +138,8 @@ export interface GlassNavigationLayer {
   readonly bounds: Readonly<GlassRect>;
   readonly selected: number;
   readonly selector: CalmSelectorState;
+  /** The bar's own press feedback (matrix, offset): with `selector`, the state `drawNavigation` draws. */
+  readonly feedback: GlassFeedback;
   down(x: number, y: number, time: number): void;
   move(x: number, y: number, time: number): void;
   up(x: number, y: number, time: number): void;
@@ -162,6 +164,16 @@ export interface GlassScene {
   dispose(): void;
 }
 export function createGlassScene(kit: CanvasKit, options: GlassSceneOptions): GlassScene;
+
+export type {NavigationEvent, NavigationBar, NavigationSample, NavigationTrack, NavigationTrackData} from './bake.mjs';
+export {bakeNavigation, navigationTrack} from './bake.mjs';
+/** Draw a navigation bar, its selector and optional selected ink from a state, with no clock and no scene: the scene's own
+ * drawing for any state a host holds (a baked `NavigationTrack` sample, or a live layer's `{selector, feedback}`). `view` is the
+ * bar's logical bounds, the canvas's pixel ratio (default 1) and the page image (device px); draw the page first, labels after. */
+export function drawNavigation(kit: CanvasKit, painter: GlassPainter, canvas: Canvas,
+  view: {bounds: GlassRect; pixelRatio?: number; source: Image},
+  sample: {selector: CalmSelectorState; feedback: GlassFeedback},
+  options?: {material?: GlassMaterial; ink?: Image | null}): void;
 
 /** Compose's GlassTabBarAccessory link: the rect a Calm bar's outline fuses with, beside it, from a free
  * button's press and pull (createFreeButton's sample). Bar-local px; returns drawCalmBar's `fuse`:

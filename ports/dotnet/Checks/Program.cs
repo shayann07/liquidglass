@@ -12,6 +12,8 @@ results.Add(SelectorChecks.Run());
 results.Add(FreeButtonChecks.Run());
 results.Add(FuseChecks.Run());
 results.Add(OwnerChecks.Run());
+results.Add(LensChecks.Run());
+results.Add(NavigationTrackChecks.Run());
 void Check(bool condition, string message) { if (!condition) throw new Exception(message); }
 void Throws<T>(Action action) where T : Exception
 {

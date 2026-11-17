@@ -1,6 +1,7 @@
 import type {Canvas, CanvasKit, Image} from 'canvaskit-wasm';
 import {createGlassScene, createGlassPainter, createCalmInteraction, calmSelectorBar, createCalmNavigation,
-  CalmSelectorController, calmSelectorMaterial, calmBarMaterial} from 'liquidglass-skia-preview';
+  CalmSelectorController, calmSelectorMaterial, calmBarMaterial, bakeNavigation, navigationTrack, drawNavigation} from 'liquidglass-skia-preview';
+import {bakeNavigation as bakeSubpath} from 'liquidglass-skia-preview/bake';
 import {createGlassScene as subpathScene} from 'liquidglass-skia-preview/scene';
 import {createCalmInteraction as subpathInteraction} from 'liquidglass-skia-preview/interaction';
 
@@ -47,4 +48,12 @@ const standalone = createCalmNavigation({bar}); standalone.frame(.1);
 new CalmSelectorController().attach(bar);
 // @ts-expect-error A navigation layer needs its item count.
 scene.addNavigation({x: 0, y: 0, width: 100, height: 40}, {});
+const track = bakeNavigation({bounds: {x: 20, y: 250, width: 300, height: 62}, count: 3, viewport: {width: 480, height: 320}},
+  [{type: 'down', x: 60, y: 280, time: .1}, {type: 'move', x: 200, y: 280, time: .9}, {type: 'up', x: 200, y: 280, time: 1}, {type: 'cancel', time: 1.5}], {duration: 2});
+const moment = track.sample(1.3); const held: boolean = moment.selector.held; const same = navigationTrack(track.toJSON()).sample(1.3);
+drawNavigation(kit, painter, canvas, {bounds: nav.bounds, pixelRatio: 2, source: image}, moment, {material: {dark: true}, ink: null});
+drawNavigation(kit, painter, canvas, {bounds: nav.bounds, source: image}, {selector: nav.selector, feedback: nav.feedback});
+void held; void same; void bakeSubpath;
+// @ts-expect-error An event needs a known type.
+bakeNavigation({bounds: nav.bounds, count: 3, viewport: {width: 1, height: 1}}, [{type: 'tap', time: 0}], {duration: 1});
 scene.dispose(); painter.dispose(); void nextFrame; void formed;

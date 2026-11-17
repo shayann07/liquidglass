@@ -273,6 +273,28 @@ in their selected appearance into an image at the bar's origin and pass it to
 selector, through the production content pass. Labels, accessibility and the WinForms control wiring
 stay with the host.
 
+### Render a frame at any time
+
+`CalmNavigation` only moves forward in time, so a frame at `t = 3.2 s` of a gesture would otherwise mean replaying it from zero.
+Bake the gesture once, then ask for any moment, in any order or from any thread:
+
+```csharp
+var bar = CalmSelectorBar.Create(width: 300, height: 62, count: 3);
+var events = new List<NavigationEvent> {   // bar-local px and seconds, as CalmNavigation takes them
+    new(NavigationEventType.Down, 0.5, 60, 31), new(NavigationEventType.Move, 1.2, 60, 31),
+    new(NavigationEventType.Move, 1.6, 180, 31), new(NavigationEventType.Up, 1.9, 180, 31) };
+var track = NavigationBaker.Bake(bar, events, duration: 4);          // steps 1/240 s: CalmNavigation + CalmInteraction
+NavigationSample s = track.Sample(3.2);
+painter.DrawCalmBar(canvas, barRect, (float)s.Formation, options, (float)s.Touch);   // press feedback: s.Feedback
+painter.DrawSelector(canvas, barRect, s.Pose, (float)s.Formation, options, (float)s.TransitAppearance, (float)s.HeldTravel, through);
+var data = track.ToData();  // plain numbers: serialize it, then NavigationTrack.FromData(data) elsewhere
+```
+
+The bake steps the motion, never jumps; a selection a gesture commits is applied as an `onSelect` handler would. `Sample` is exact
+at a step and interpolates linearly between steps (the pose's inverse is recomputed; `Held`, `TapFormed`, `Selected` and `Active`
+keep the earlier step's value), and clamps before 0 and after the last step. A live run at another frame cadence differs
+slightly, as any two live runs do. The painter's draw methods are already stateless, so there is no separate draw call.
+
 ## Geometry, options and lifetime
 
 ### Calm press and pull
@@ -335,6 +357,8 @@ capture remains Windows-specific; GPU and other host frameworks remain unverifie
 | `SetSource(image)` | Borrows a live opaque sRGB image; caller keeps it alive until replacement/disposal. Never disposed by the painter. |
 | `RecordBackdrop(...)` | Owns the new opaque snapshot. Replacing it or disposing the painter releases it. |
 | `DrawLens(..., magnification)` | Continuous lens, 1–2.5 magnification. At 1 it is pixel-identical to the source. |
+| `DrawLens(..., new GlassLensOptions(Lighting: true), magnification)` | Opt-in Compose clear-lens preset (`GlassStyle.clearLens`): rim highlight, a thin white tint and a contact shadow, so the lens reads as glass over flat content. `Shadow`, `Density`, `LightX`/`LightY` are optional; with `Lighting` false it is exactly the bare lens. Authored in Compose, not an iOS measurement. |
+| `NavigationBaker.Bake(bar, events, duration, step)` | Runs a scripted gesture through `CalmNavigation` and the bar's `CalmInteraction` at a fixed step (default 1/240 s) and keeps every step; `track.Sample(t)` is the bar's state at any time, in any order, for `DrawCalmBar` / `DrawSelector`. See below. |
 | `DrawSurface(..., radius)` | Rounded in-app material; one radius or four values in top-left, top-right, bottom-right, bottom-left order. |
 | `Dark`, `TintAmount` | Default false / 50; tint is 0–100 and follows the production in-app calibration. |
 | `Density` | Default 1; scales dp material constants. Bounds and radii remain physical pixels. |
