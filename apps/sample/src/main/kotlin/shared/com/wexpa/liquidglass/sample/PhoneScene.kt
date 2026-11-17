@@ -118,12 +118,16 @@ fun PhoneScene(
     // The red count badge on Calls (#99 item 72). IMG_6756 shows "2" and docs/2 none, so it is off by default
     // and the replay asks for it ("+badge").
     callsBadge: Int = 0,
+    // A flat page under the real bar instead of the list or keypad (#203 PR A): the replay's "+flat=" reads the bar's
+    // tone off the real GlassTabBar draw path over a known backdrop. Null keeps the scene as it was.
+    flatPage: Color? = null,
 ) {
-    LiquidGlassTheme(background = palette.page, renderScale = renderScale) {
-    Box(modifier.size(PhoneGeometry.width, PhoneGeometry.height).background(palette.page)) {
+    LiquidGlassTheme(background = flatPage ?: palette.page, renderScale = renderScale) {
+    Box(modifier.size(PhoneGeometry.width, PhoneGeometry.height).background(flatPage ?: palette.page)) {
         Box(Modifier.fillMaxSize()) {
-            when (selected) {
-                2 -> Keypad(palette)
+            when {
+                flatPage != null -> Unit
+                selected == 2 -> Keypad(palette)
                 else -> CallList(palette, contacts = selected == 1, scroll = scroll)
             }
         }
