@@ -166,9 +166,10 @@ The corner lens of chrome at rest has two source maps, selected by `GlassStyle.r
 the outer band. `GlassRestMap.Measured` is the resting-corner table fitted in the closeout on
 190 display-to-source landmark pairs read off the Photos toolbar's 72 px ends (24 pt on the phone, the library's 24 dp design unit by convention) in both
 appearances over both calibration targets; against the same pairs the shipping map is 6-7 px
-off at every depth from 6 to 26 px and the table is within 1 px. It changes only the resting
-corner: the fully formed fold, the straight-run term, the held-lens family, coverage, padding,
-normals, dispersion and lighting are untouched, and formation blends it toward the same fold.
+off at every depth from 6 to 26 px and the table is within 1 px. As fitted it changed only the
+resting corner; since 1.1.0 it also replaces the straight-run term (see below). The fully formed
+fold, the held-lens family, coverage, padding, normals, dispersion and lighting are untouched, and
+formation blends it toward the same fold.
 `GlassStyle.inApp` and `toolbar` use it by default since 26 October: over the calibration chart it
 gives their caps the dark fold iOS shows ([evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/inapp-rest-map-2026-10-26/README.md)).
 
