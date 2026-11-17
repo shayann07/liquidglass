@@ -20,7 +20,7 @@ import kotlin.test.assertTrue
 class GlassCapJunctionTest {
 
     @Test
-    fun theRunHandsOverToTheCapGently() {
+    fun aCapsuleRestsOnTheMeasuredMapAlongItsRuns() {
         val pad = 40
         val r = 93f // a 31 dp cap at 3x
         val w = 660
@@ -73,5 +73,32 @@ class GlassCapJunctionTest {
         println("cap junction: worst ${"%.3f".format(worst)} rows/px at $at; run vs tip ${"%.2f".format(apart)} rows")
         assertTrue(worst < 1.0, "the shown row moves ${"%.2f".format(worst)} rows per pixel along the run at $at: a hook")
         assertTrue(apart <= 2.0, "mid-run shows ${"%.2f".format(apart)} rows away from what the cap's tip shows at the same depth")
+    }
+
+    /** A card (corners short of the half-height) keeps the corner-only lens: what the dock and a resting sheet show. */
+    @Test
+    fun aCardKeepsItsStraightRunsInPlace() {
+        val pad = 40
+        val r = 30f
+        val w = 660
+        val h = 186
+        val lh = h + 2 * pad
+        val band = GlassMaterial.BEVEL_RATIO * r
+        val levelPerRow = 255.0 / (lh - 1)
+        val px = GlassRender.render(
+            width = w, height = h, pad = pad, refractBand = band,
+            radii = FloatArray(4) { r }, profile = 1f, formation = 0f, restMap = 1f,
+            edgeLight = 0f, counterLight = 0f, bevel = 0f,
+            backdrop = { _, y -> (y * 255 / (lh - 1)).let { (it shl 16) or (it shl 8) or it } },
+        )
+        val lw = w + 2 * pad
+        var worst = 0.0
+        for (d in 2 until band.toInt()) {
+            val shown = GlassRender.luma(px[(pad + d) * lw + pad + w / 2]) / levelPerRow
+            worst = maxOf(worst, abs(shown - (pad + d)))
+        }
+        println("card run: worst inward offset ${"%.2f".format(worst)} rows (band ${"%.1f".format(band)})")
+        // The straight-run term moves a row by at most 0.06 of the band (1.1 px here); the corner map would move it ~0.7.
+        assertTrue(worst <= 2.0, "a card's straight run moved content ${"%.2f".format(worst)} rows: it took the capsule rule")
     }
 }

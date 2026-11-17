@@ -530,7 +530,9 @@ half4 main(float2 coord) {
         // The fold family, or the held-lens family blended from identity (GlassProfile.Held).
         float heldFamily = step(1.5, uProfile);
         float held = heldFamily * clamp(uHeldLens, 0.0, 1.0);
-        float src = mix(measuredSource(u, uFormation * mix(1.0, corner, clamp(uFoldCorners, 0.0, 1.0)), corner), mix(u, heldMirror(u, heldSourceSmooth(u), corner), held), heldFamily);
+        // The resting map's weight: corner arcs, plus a capsule's straight runs on the measured map (#216).
+        float restW = (uBodyKind < 0.5 && uShapeKind < 0.5) ? restCorner(corner, halfSize, uRadii) : corner;
+        float src = mix(measuredSource(u, uFormation * mix(1.0, corner, clamp(uFoldCorners, 0.0, 1.0)), restW), mix(u, heldMirror(u, heldSourceSmooth(u), corner), held), heldFamily);
         // GlassStyle.capFold (uFoldCorners above 1): the rounded ends of a resting bar lens what lies
         // beyond them, as the held lens does, while its straight runs keep the rest offset.
         float capLens = clamp(uFoldCorners - 1.0, 0.0, 1.0) * corner * (1.0 - heldFamily);

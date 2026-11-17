@@ -123,6 +123,8 @@ float nearestCornerWeight(float2 p) {
                 float2 q = abs(p - (uRect[i].xy + halfSize)) - halfSize + r;
                 float soft = max(r * 0.2, 1.0);
                 w = smoothstep(-soft, 0.0, min(q.x, q.y));
+                // A capsule member on the measured map rests on that map along its straight runs too (restCorner, #216).
+                if (uRestMap > 0.5) w = mix(w, 1.0, smoothstep(0.9, 1.0, r / max(min(halfSize.x, halfSize.y), 1e-4)));
             }
         }
     }
@@ -268,13 +270,7 @@ float foldSource(float u, float formation, float corner) {
     // under it in place. A corner arc at rest shows the measured rest lens (restSource). Both
     // give way to the full fold as the lens forms under a tracked drag.
     float straight = u + 0.06 * (1.0 - u) * (1.0 - u);
-    // The measured resting map (uRestMap 1) holds all the way round the outline, straight runs included: over the
-    // Safari lab pill's stripes (16 November stills, R = 71.5 px) iOS shows the run's outer band displaced as its round
-    // end is, and nothing changes where the end begins. Running it along the run scores 4.5-12 levels rms in the run's
-    // outer band against 12-26 for the near-identity run map, and removes the hook the 0.2 R handover drew at each cap
-    // start (GlassCapJunctionTest). The legacy map keeps the corner-only lens.
-    float restWeight = (uRestMap > 0.5) ? 1.0 : clamp(corner, 0.0, 1.0);
-    float rest = mix(straight, restSource(u), restWeight);
+    float rest = mix(straight, restSource(u), clamp(corner, 0.0, 1.0));
     return mix(rest, full, clamp(formation, 0.0, 1.0));
 }
 

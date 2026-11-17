@@ -180,9 +180,10 @@ Vitals nav bar's 31 dp corner, not measured against the phone there. The shallow
 the rim (`d < 6` reference px) is a constant extension of the first knot, also unmeasured. The
 width of the blend between an arc and a straight run cannot be seen over vertical stripes; for
 the legacy map the library blends over 0.2 R along the edge. Since 1.1.0 the measured map holds
-along straight runs too, as the Safari lab pill's horizontal stripes show (16 November stills); that
-is one element at one radius (R = 71.5 px), and the dock's straight edge (section 2b of the measured
-model) leaves content in place. Larger arcs (the dock's 126 px ends) did not measure
+along a capsule's straight runs too, as the Safari lab pill's horizontal stripes show (16 November
+stills); that is one element at one radius (R = 71.5 px). Cards and other shapes with smaller
+corners keep the corner-only lens, because the dock's and a resting sheet's straight edges were
+measured in place; no non-capsule panel has been measured at rest over lines. Larger arcs (the dock's 126 px ends) did not measure
 through the Home Screen wallpaper's warped reference. All three are on the capture list.
 
 Two things the closeout's render comparison also shows and this map does not fix: the library's

@@ -10,14 +10,17 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   (`GlassRestMap.Measured`) lensed only its corner arcs and showed a straight run nearly as it is, blending the two over
   0.2 of the corner radius; near the rim the maps show rows about 0.7 of the band apart, so lines under the junction drew
   a short tick at each cap start. Over the Safari lab pill's stripes (16 November stills) iOS displaces the run's outer
-  band as it does the round end's, and nothing changes where the end begins, so the measured map now holds all the way
-  round the outline. In the run's outer band the stripe edges move from 5 px off iOS to within 2, and luma rms against
+  band as it does the round end's, and nothing changes where the end begins, so on a capsule (corners at its
+  half-height) the measured map now holds along the straight runs too; the last tenth of the radius ramps between the
+  two (authored). Shapes with smaller corners keep the corner-only lens, as the dock's and a resting sheet's straight
+  edges were measured in place. In the run's outer band the stripe edges move from 5 px off iOS to within 2, and luma rms against
   the stills falls from 12.0-25.6 to 4.5-12.0 levels (junction 16.9-23.8 to 13.0-16.5; round end unchanged).
-  `GlassCapJunctionTest`. The legacy map, which every tab bar uses, is unchanged (docs/1 replay identical to main).
+  `GlassCapJunctionTest`, `GlassContainerMaterialTest`. The legacy map, which every tab bar uses, is unchanged (docs/1
+  replay identical to main).
   Mirrored in every port.
-  Default look changed: `Glass.Regular`, `inApp`, `toolbar`, containers and custom styles with `restMap = Measured`
-  fold content along their straight edges at rest, as their round ends already did, instead of hooking where the round
-  end begins (#216). [Evidence](review/atlas/cap-junction-2026-11-17/README.md).
+  Default look changed: capsules on the measured map (`Glass.Regular`, `inApp`, `toolbar`, container members and custom
+  styles with `restMap = Measured`) fold content along their straight edges at rest, as their round ends already did,
+  instead of hooking where the round end begins; cards and other shapes are unchanged (#216). [Evidence](review/atlas/cap-junction-2026-11-17/README.md).
 - Calm taps of two tabs or more keep the formed lens's look until they settle (#70). Such a tap forms the selector past
   half (about 0.76); in the frame its formation fell back below half, the transit fold switched from the formed lens's
   map to the measured one, and the destination's ink, stretched into teardrops along the top rim, vanished in one frame.

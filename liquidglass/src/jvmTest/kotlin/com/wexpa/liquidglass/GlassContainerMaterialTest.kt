@@ -69,4 +69,30 @@ class GlassContainerMaterialTest {
         }
         assertTrue(failures.isEmpty(), failures.joinToString("; "))
     }
+
+    @Test
+    fun aContainerCapsuleFoldsAlongItsRunAsALonePieceDoes() {
+        // #216: a capsule on the measured resting map rests on that map along its straight runs. Over 24 px horizontal
+        // stripes the run's outer band of a container's member must match the lone piece's; before the container carried
+        // the rule its run showed the stripes nearly in place, tens of levels from the lone piece.
+        for (dark in listOf(true, false)) {
+            val app = if (dark) "dark" else "light"
+            val style = GlassStyle.inApp(dark = dark)
+            fun band(scene: GlassLabScene): List<Int> {
+                val stripes = IntArray(scene.width * scene.height) { i ->
+                    if (((i / scene.width) / 24) % 2 == 0) GlassLabScene.grey(0) else GlassLabScene.grey(255)
+                }
+                val out = scene.render(stripes)
+                val r = scene.pillH / 2
+                val xs = scene.pillX + r + 30 until scene.pillX + r + 130
+                val ys = (scene.pillY + 4 until scene.pillY + 40) + (scene.pillY + scene.pillH - 40 until scene.pillY + scene.pillH - 4)
+                return ys.flatMap { y -> xs.map { x -> (out[y * scene.width + x] ushr 8) and 0xFF } }
+            }
+            val alone = GlassLabScene(style).use { band(it) }
+            val merged = GlassLabScene(style, container = true).use { band(it) }
+            val rms = kotlin.math.sqrt(alone.indices.sumOf { i -> (alone[i] - merged[i]).toDouble().let { it * it } } / alone.size)
+            check(rms <= 3.0, "$app capsule run over stripes: container differs from the lone piece by %.2f levels rms".format(rms))
+        }
+        assertTrue(failures.isEmpty(), failures.joinToString("; "))
+    }
 }

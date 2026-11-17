@@ -695,6 +695,19 @@ float cornerWeight(float2 p, float2 halfSize, float4 r) {
     return smoothstep(-soft, 0.0, min(q.x, q.y));
 }
 
+// The resting corner weight on a capsule (#216). The measured resting map (uRestMap 1) holds along a capsule's
+// straight runs as well as its round ends: over the Safari lab pill's stripes (16 November stills, R = 71.5 px) iOS
+// displaces the run's outer band as it does the round end's, and nothing changes where the end begins. With the
+// corner-only lens the 0.2 R handover hooked text lines at each cap start. Measured on a capsule only: the dock's and
+// a resting sheet's straight edges leave content in place, so a shape whose corners are short of its float-height
+// keeps the corner-only lens. The ramp over the last tenth of the radius is authored, so no shape pops between the two.
+float restCorner(float corner, float2 halfSize, float4 r) {
+    if (uRestMap <= 0.5) return corner;
+    float shortHalf = max(min(halfSize.x, halfSize.y), 1e-4);
+    float smallest = min(min(min(r.x, r.y), min(r.z, r.w)), shortHalf);
+    return lerp(corner, 1.0, smoothstep(0.9, 1.0, smallest / shortHalf));
+}
+
 // The measured cover-sheet lens, as a lookup: a pixel at depth u = d/W inside the edge shows
 // backdrop content from depth s = foldSource(u) * W. Fitted on 13k frames of a real finger pull
 // and reproduced at Tint 0, 50 and 100 (MODEL.md section 5): identity from 0.9 W inward; a 2x
@@ -727,13 +740,7 @@ float foldSource(float u, float formation, float corner) {
     float straight = (uEdgeFold > 0.0)
         ? (u + uEdgeFold * v * v * v)
         : (u + 0.06 * v * v);
-    // The measured resting map (uRestMap 1) holds all the way round the outline, straight runs included: over the
-    // Safari lab pill's stripes (16 November stills, R = 71.5 px) iOS shows the run's outer band displaced as its round
-    // end is, and nothing changes where the end begins. Running it along the run scores 4.5-12 levels rms in the run's
-    // outer band against 12-26 for the near-identity run map, and removes the hook the 0.2 R handover drew at each cap
-    // start (GlassCapJunctionTest). The legacy map keeps the corner-only lens.
-    float restWeight = (uRestMap > 0.5) ? 1.0 : clamp(corner, 0.0, 1.0);
-    float rest = lerp(straight, restSource(u), restWeight);
+    float rest = lerp(straight, restSource(u), clamp(corner, 0.0, 1.0));
     return lerp(rest, full, clamp(formation, 0.0, 1.0));
 }
 
@@ -975,7 +982,9 @@ float4 glassMain(float2 coord) {
         // The fold family, or the held-lens family blended from identity (GlassProfile.Held).
         float heldFamily = step(1.5, uProfile);
         float held = heldFamily * clamp(uHeldLens, 0.0, 1.0);
-        float src = lerp(measuredSource(u, uFormation * lerp(1.0, corner, clamp(uFoldCorners, 0.0, 1.0)), corner), lerp(u, heldMirror(u, heldSourceSmooth(u), corner), held), heldFamily);
+        // The resting map's weight: corner arcs, plus a capsule's straight runs on the measured map (#216).
+        float restW = (uBodyKind < 0.5 && uShapeKind < 0.5) ? restCorner(corner, halfSize, uRadii) : corner;
+        float src = lerp(measuredSource(u, uFormation * lerp(1.0, corner, clamp(uFoldCorners, 0.0, 1.0)), restW), lerp(u, heldMirror(u, heldSourceSmooth(u), corner), held), heldFamily);
         // GlassStyle.capFold (uFoldCorners above 1): the rounded ends of a resting bar lens what lies
         // beyond them, as the held lens does, while its straight runs keep the rest offset.
         float capLens = clamp(uFoldCorners - 1.0, 0.0, 1.0) * corner * (1.0 - heldFamily);
