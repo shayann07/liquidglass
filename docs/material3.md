@@ -77,8 +77,8 @@ The glass `Scaffold` is the root: it records the screen once and every glass com
 | `FloatingActionButton`, `SmallFloatingActionButton`, `LargeFloatingActionButton`, `ExtendedFloatingActionButton` | prominent glass tinted with `containerColor` |
 | `Card` (both), `ElevatedCard`, `OutlinedCard` | frosted glass panels; a clickable card is interactive glass |
 | `AssistChip`, `FilterChip`, `InputChip`, `SuggestionChip` | glass capsules; a selected chip is prominent glass |
-| `Switch` | an iOS switch: the thumb turns into a glass lens while pressed |
-| `Slider` | iOS's thin continuous track in the primary colour, running under the thumb's whole travel; the thumb turns into a glass lens while dragged |
+| `Switch` | an iOS switch: a 63 x 28 dp track and a 37 x 24 dp knob (measured) that turns into a clear glass lens 1.75 x 1.6 times larger while pressed |
+| `Slider` | iOS's thin continuous 4 dp track in the primary colour, running under the thumb's whole travel, and a 24 x 16 dp opaque white thumb that does not change while dragged (measured on Safari's slider) |
 | `SingleChoiceSegmentedButtonRow`, `SegmentedButton` | iOS's segmented control: a glass capsule with a lens selection |
 | `MultiChoiceSegmentedButtonRow`, `SegmentedButton(checked)` | a glass capsule; checked segments are prominent glass |
 | `PrimaryTabRow`, `SecondaryTabRow`, `TabRow`, `Tab` | the same segmented control |
@@ -90,7 +90,7 @@ The glass `Scaffold` is the root: it records the screen once and every glass com
 | `Snackbar` (both) | a glass capsule |
 | `IconToggleButton`, `FilledIconToggleButton`, `FilledTonalIconToggleButton`, `OutlinedIconToggleButton` | round glass buttons: plain glass when off, prominent glass when on |
 | `ElevatedAssistChip`, `ElevatedFilterChip`, `ElevatedSuggestionChip` | the glass chips (glass carries its own depth) |
-| `RangeSlider` | iOS's thin track filled between two thumbs, each a glass lens while dragged |
+| `RangeSlider` | iOS's thin track filled between two thumbs, each like `Slider`'s |
 | `Surface` (both) | a frosted glass panel; `color` tints it |
 | `TooltipBox`, `PlainTooltip`, `RichTooltip` | a glass capsule or panel in the app's window, placed by Material's position provider; long press or hover shows it |
 | `ModalDrawerSheet`, `DismissibleDrawerSheet`, `PermanentDrawerSheet`, `NavigationDrawerItem` | iPadOS's sidebar: a floating frosted panel inside Material's drawer; the selected item is a prominent glass capsule |
