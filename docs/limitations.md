@@ -178,7 +178,7 @@ extrapolation, verified for implementation consistency on the JVM and on a Pixel
 Vitals nav bar's 31 dp corner, not measured against the phone there. The shallow region under
 the rim (`d < 6` reference px) is a constant extension of the first knot, also unmeasured. The
 width of the blend between an arc and a straight run cannot be seen over vertical stripes; the
-library blends over 0.2 R along the edge. Larger arcs (the dock's 126 px ends) did not measure
+library blends over one radius along the run (authored; 0.2 R before 1.1.0 hooked text lines there). Larger arcs (the dock's 126 px ends) did not measure
 through the Home Screen wallpaper's warped reference. All three are on the capture list.
 
 Two things the closeout's render comparison also shows and this map does not fix: the library's

@@ -229,7 +229,7 @@ gone. The library now applies it at corner arcs (with the true radial normal, so
 onto the ring) and nothing along straight runs, and measures back within 2 px at every depth.
 Not measured: how the plateau scales past R = 92 (the dock's 126 px ends over the Home Screen
 wallpaper did not correlate through the warped reference), and the width of the blend where an
-arc meets a run, which vertical stripes cannot show; the library blends over 0.2 R.
+arc meets a run, which vertical stripes cannot show; the library blends over one radius (0.2 R before 1.1.0).
 
 **The toolbar is its own role.** It reads up to 20 levels from the pill at Tint 0, brighter in
 light and darker in dark. Its capsule sits over stripes only, so its two medians per slider

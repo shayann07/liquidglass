@@ -144,7 +144,8 @@ At rest the lens lives at the corner arcs only. A pixel in an arc's own quadrant
 backdrop from the ring 0.33 R inside — the same ring for the whole outer third, which turns
 anything under the corner into concentric arcs — easing to identity by 0.46 R; a pixel along a
 straight run shows what is under it, plus a few px of inward offset. The blend between the two
-runs over 0.2 R along the edge. `lensFormation` then carries both toward the full fold while a
+runs over one radius along the run (authored): over 0.2 R, text lines crossing the junction hooked
+where the cap began. `lensFormation` then carries both toward the full fold while a
 finger tracks the surface.
 
 `GlassEffectContainer` runs the same two paths with one difference: a fused body is chrome at

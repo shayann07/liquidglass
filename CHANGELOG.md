@@ -6,6 +6,15 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Text lines no longer hook where a resting capsule's round end begins. At rest the glass hands over from the straight
+  run's shallow offset to the measured resting-corner map, and near the rim the two show rows about 0.7 of the band
+  apart; the handover ran over 0.2 of the corner radius, so lines under the junction jumped by about 3.5 rows per pixel
+  and drew a short vertical tick at each cap start. It now runs over one radius along the run (authored: the width of
+  this blend was never measured), which keeps the shown row moving under one row per pixel (0.69 on a 31 dp cap;
+  `GlassCapJunctionTest`). The cap itself keeps the full measured map; tab-bar bodies, which use their own corner
+  weight, are unchanged. Mirrored in every port.
+  Default look changed: resting rounded glass (Regular, `inApp`, `toolbar`, containers, and custom styles on the measured
+  profile) bends lines gently over the last cap radius of each straight run instead of hooking at the cap start. [Evidence](review/atlas/cap-junction-2026-11-17/README.md).
 - Calm taps of two tabs or more keep the formed lens's look until they settle (#70). Such a tap forms the selector past
   half (about 0.76); in the frame its formation fell back below half, the transit fold switched from the formed lens's
   map to the measured one, and the destination's ink, stretched into teardrops along the top rim, vanished in one frame.

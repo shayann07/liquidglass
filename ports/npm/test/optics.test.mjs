@@ -20,7 +20,7 @@ test('scalar ports agree with the production SkSL text evaluated directly', {ski
   // The shapes and maps the ports implement are still the shipped ones.
   const sourceMap = await kotlin('sourceMap');
   assert.match(sourceMap, /: \(u \+ 0\.06 \* v \* v\);/, 'straight-run rest offset');
-  assert.match(sourceMap, /float soft = max\(radius \* 0\.2, 1\.0\);\n    return smoothstep\(-soft, 0\.0, min\(q\.x, q\.y\)\);/, 'cornerWeight');
+  assert.match(sourceMap, /float soft = max\(radius, 1\.0\);\n    return smoothstep\(-soft, 0\.0, min\(q\.x, q\.y\)\);/, 'cornerWeight');
   assert.match(await kotlin('normal'), /return gradRoundRect\(p, halfSize, r, power, mix\(1\.5, 1\.0, step\(0\.5, profile\)\)\);/);
   assert.match(shader, /return min\(max\(q\.x, q\.y\), 0\.0\) \+ lnNorm\(max\(q, float2\(0\.0\)\), uCornerPower\) - radius;/);
   assert.match(shader, /shift = mix\(max\(shift, 0\.0\), shift, max\(heldFamily, capLens\)\) \* mat \* axisFade \* smoothstep\(0\.0, 1\.5, depth\);/);
