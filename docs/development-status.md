@@ -14,6 +14,10 @@ research remains available; this page identifies which later changes supersede i
   unchanged (0 of 1934 frames). Open: the sRGB gamut (saturated iOS colours outside it read up to 7 levels off), Tint 0/100
   authored (#208), a dark-to-light morph dips toward the grey tone at its midpoint, Pixel 7 capture of the colour fixture
   pending. [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/colour-transfer-2026-11-17/README.md).
+- 17 November: Calm taps of two tabs or more keep the formed lens's map as they settle, so the ink's teardrops along the
+  top rim fade with the transit instead of vanishing the frame the formation falls below half: on docs/1 the 0 to 2
+  plateau ends at about 212 ms (iOS 214, was 178). One-tab taps and light Calm unchanged; Skia and .NET mirrored (#70).
+  [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/tap-plateau-2026-11-17/README.md).
 - 16 November: Regular glass follows the measured three-term material (#200, fixes #190): the along-axis detail filter that
   drew stepped ghost copies of text is removed, detail is one soft copy over a 15.5 dp wide kernel, and the dark tone is a fitted
   curve; merged glass (`GlassEffectContainer`) draws the same material but lacks the legibility term, rim fringe, `uTintAbsorb`, rotated `softDetail` scatter and `Glass.light` (#211). 1.43 dark / 1.42 light levels rms on 89 private lab stills at Tint 50 (gate 3.0; main 24.2 / 15.2); public `GlassLabModelTest`

@@ -11,9 +11,11 @@
 
 - [x] Re-score the private lab gate on the final commit: 1.43 / 1.42 on 9730618e.
 - [x] docs/1 replay against a fresh main render: differences inside glass only, at most 7 levels; track unchanged.
-- [ ] Full suite after the `toolbarEarlier` change (last run at 8155507a: 506 tests, 1 failure now addressed).
+- [x] Full suite after the `toolbarEarlier` change: 512 tests, 0 failures at 344fcf52 (6 forks).
 - [ ] Open items named in the entry: 6 px stripes (6.9 / 4.5), Tint 0/100 (#208), colour (#201), rim band (#202), tab bar (#203).
 - [ ] Not ported: npm HTML/CSS engine, `ports/web`. Not compiled: Flutter Dart.
+- [x] Merged as #210 (8b303111). Late changes: merged glass (`GlassEffectContainer`) now draws the three-term material too; the detail kernel and the legibility term fade as the larger of the fine share and `|detailLift|` goes from 0.10 to 0.02 instead of switching off at one tint (worst adjacent whole-tint step 1.80 levels rms; main had 18.4 at Tint 92 to 93); remaining container parity is #211; #190 and #200 closed by #210.
+- [ ] #211: merged glass still lacks the legibility term, rim fringe, `uTintAbsorb`, rotated `softDetail` scatter and `Glass.light`.
 
 ## 2 November 2026 — Pixel 7 night (Claude)
 
@@ -32,6 +34,7 @@ Merged tonight: #173 (#111 landing lift), #171 (#128 light held outline), #172 (
 | #173 | Device: a thrown lens stays milky 2-3 recorded frames (~60-90 ms) longer as it lands. |
 | #70 | #176: Calm's tap clock runs 1.2× for two-tab trips (internal; Skia and .NET mirrored). docs/1 two-tab arrival +6 ms against iOS (was +39); JGEY2190 +65 (was +98, its remainder is not the clock). Device: blue-ink arrival 134 → 111 ms over 10 taps. The pill's level over 100-300 ms is unchanged (4.5 levels rms), so #70 stays open for the 150-167 ms bump. |
 | #70 | 16 November: Calm taps landing on the first or last tab meet an end wall (reach 0.03 bar heights, authored; Skia and .NET mirrored). Lens end at 163 ms matches iOS (x 900 reads 0, main 20); 2 to 0 at 167 ms 55.4 (iOS 55.3, main 66.1); arrival unchanged. 0 to 2 at 183-217 ms reads 4 levels further from iOS (38 against 42), which is #94 item 23. Evidence: `review/atlas/tap-end-wall-2026-11-16`. #70 stays open. |
+| #70 | 17 November (`fix/70-plateau`): a Calm tap that formed the selector past half keeps the formed lens's map in its fold until it settles (internal `tapKeepsFormedLens`, on in Calm; Skia and .NET mirrored). Cause of the early plateau end: the fold switched to the measured map the frame the formation fell below 0.5. 0 to 2 plateau end docs/1 212 ms (iOS 214, was 178), JGEY2190 215 (iOS 210, was 178); one-tab taps unchanged. Left: iOS fades its teardrops over ~3 frames, ours within one; five-tab longer trips unchanged. Evidence `review/atlas/tap-plateau-2026-11-17`. |
 | #94 | Item 24 (label cut in a tap transit) resolved and ticked: the label stays whole; iOS's 1.6-1.9× larger label is item 23's stretch. |
 | #149 | Measured: docs/2's short holds (0.7-0.8 s) release with a swell and settle ~250 ms; IMG_6756's long holds (1.3-1.5 s) shrink with no swell and settle at 100-150 ms. A recording with both is on #126. |
 | #109 | Item 115 measured: the search button's rim is one lobe (exponent ~4.4) where iOS's is a sharp lobe on a broad tail; no single constant fits. |
@@ -238,7 +241,9 @@ description fix alone.
   a 265-286 ms Vulkan pipeline for the glass shader. GlassPadFloor holds the largest pad: first-tap slowest
   frame 326-352 -> 67-91 ms (measure.sh CLEAR=1), cold start medians 135.5 / 136 ms (alternated).
   Baseline profile removed (no measurable gain with or without the fix). review/atlas/first-tap-fix-2026-10-20.
-- [ ] **#70 two-tab taps arrive ~40 ms late.** Re-measured 1 Nov on main (docs/1): the plateau now holds through
+- [ ] **#70 two-tab taps arrive ~40 ms late.** 17 Nov: arrival fixed by #176, the end wall by #198, and the plateau's one-frame
+  end (the fold switching map at formation 0.5) by `fix/70-plateau` (0 to 2 ends ~212 ms, iOS 214). Still open: iOS's three-frame
+  fade of the teardrops, and the five-tab recording's longer trips. Re-measured 1 Nov on main (docs/1): the plateau now holds through
   183 ms as iOS's does (the ~50 ms early end of 20 Oct is gone). What remains is a +10 bump at 150-167 ms that comes
   only from two-tab taps, whose selector arrives ~40 ms after iOS's (220 against 170 ms); one-tab taps line up.
   A distance-dependent tap duration needs fitting against all recordings (#94 transit). Scored with `.local/sxs` (main checkout):

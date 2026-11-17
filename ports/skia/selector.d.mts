@@ -25,6 +25,9 @@ export interface CalmSelectorState {
   /** The bar's touch lift amount, 0 to 1 (GlassTabBarStyle.touchLift). */
   touch: number;
   transitAppearance: number; heldTravel: number; held: boolean; protrusion: number; pose: CalmSelectorPose;
+  /** The tap in transit formed the selector past half and has not settled (Compose's tapFormed, #70): pass it to the
+   * selector material as `formedTap`. */
+  tapFormed: boolean;
   /** How much of a press transform the host applies to the bar its items should share, 0 to 1: 0 on a
    * tap, rising to 1 as a hold forms the lens (Compose's GlassTabBarStyle.itemsFollowBarPress = false). */
   itemFollow: number;
@@ -40,7 +43,7 @@ export class CalmSelectorController {
   constructor(spec?: Partial<CalmSelectorSpec>);
   motionEnabled: boolean;
   readonly mode: 'rest' | 'tap' | 'pending' | 'held' | 'released';
-  readonly formation: number; readonly transitAppearance: number; readonly heldTravel: number;
+  readonly formation: number; readonly transitAppearance: number; readonly heldTravel: number; readonly tapFormed: boolean;
   readonly isHeld: boolean; readonly isIdle: boolean; readonly centreX: number; readonly centreY: number;
   attach(bar: CalmSelectorBar, itemBounds?: ArrayLike<number> | null, itemCentres?: ArrayLike<number> | null, inkHalfHeight?: number): void;
   snapToRest(index: number): void;

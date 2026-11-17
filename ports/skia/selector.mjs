@@ -36,7 +36,7 @@ const DEFAULT_SPEC = Object.freeze({
   tapShortTripRate: 1, tapAppearanceArea: 0, tapAppearanceSpine: 0,
   tapAppearanceFallOmega: 0, releaseFormationSpeed: 0, releaseStillHoldSeconds: 0,
   releaseStillFadeOmega: 0,
-  releaseMovingFadeOmega: 0, tapLongTripRate: 1, tapEndWallReach: -1, tapEndWallKnee: .025, tapEndWallOneSided: false,
+  releaseMovingFadeOmega: 0, tapLongTripRate: 1, tapEndWallReach: -1, tapEndWallKnee: .025, tapEndWallOneSided: false, tapKeepsFormedLens: false,
   heldSquircle: 0, squircleExponent: 3,
 });
 
@@ -54,7 +54,7 @@ export const CALM_SELECTOR_SPEC = Object.freeze({
   graspOmega: 120, heldFormRiseOmega: 26, pressFormation: 0, holdThresholdSeconds: .11,
   releaseTrailingEdge: true, releaseRecoveryOmega: 13,
   releaseTrailingInOmega: 9, releaseTrailingInZeta: .3, releaseTrailingCarry: .1, releaseWallGive: .35,
-  releaseTrailingStiffening: .5, releaseStillHoldSeconds: .035, releaseStillFadeOmega: 100, releaseMovingFadeOmega: 12, tapLongTripRate: 1.2, tapEndWallReach: .03,
+  releaseTrailingStiffening: .5, releaseStillHoldSeconds: .035, releaseStillFadeOmega: 100, releaseMovingFadeOmega: 12, tapLongTripRate: 1.2, tapEndWallReach: .03, tapKeepsFormedLens: true,
   heldTravelStrain: .6, heldTravelStrainOmega: 10,
   heldSquircle: .7,
 });
@@ -291,7 +291,7 @@ export class CalmSelectorController {
     this.form = new Spring(); this.transit = new Spring(); this.travel = new Spring(); this.tapArea = new Spring();
     this.strainDrive = new Spring(); this.heldTravelDirection = 0; this.reversalInterval = 1;
     this.tapAreaActive = false; this.tapDistance = 0; this.releaseImpactActive = false;
-    this.tapFreeDx = 0; this.tapFreeDxVelocity = 0; this.tapWallEngaged = false;
+    this.tapFreeDx = 0; this.tapFreeDxVelocity = 0; this.tapWallEngaged = false; this.tapFormedLatch = false; this.tapFormedArmed = false;
     this.releaseEdge = new Spring(); this.releaseTrail = new Spring(); this.releaseEdgeActive = false; this.trailImpact = false;
     this.releasedAt = 0; this.releasedStill = false;
     this.now = 0; this.pressStart = 0; this.downX = 0; this.downY = 0; this.downOnBody = false;
@@ -314,6 +314,8 @@ export class CalmSelectorController {
 
   get formation() { return clamp(this.form.value, 0, 1); }
   get transitAppearance() { return clamp(this.transit.value, 0, .95); }
+  /** Compose's GlassPoseController.tapFormed: the tap in transit formed the selector past half and has not settled (#70). */
+  get tapFormed() { return this.tapFormedLatch && (this.transit.value > 1e-4 || this.form.value > 1e-3); }
   get heldTravel() { return clamp(this.travel.value, 0, 1); }
   get isHeld() { return this.mode === MODE.Held; }
   get centreX() { return this.pose.cx; }
@@ -350,7 +352,7 @@ export class CalmSelectorController {
   }
 
   snapToRest(index) {
-    this.releaseEdgeActive = false; this.tapAreaActive = false; this.tapWallEngaged = false; this.tapDistance = 0; this.releaseImpactActive = false;
+    this.releaseEdgeActive = false; this.tapAreaActive = false; this.tapWallEngaged = false; this.tapFormedLatch = false; this.tapFormedArmed = false; this.tapDistance = 0; this.releaseImpactActive = false;
     this.requestedIndex = index; this.restIndex = clamp(index, 0, Math.max(this.bar.count - 1, 0));
     resetPose(this.pose); resetPose(this.velocity);
     this.pose.cx = centreOf(this.bar, this.restIndex); this.pose.cy = this.bar.height / 2;
@@ -364,8 +366,11 @@ export class CalmSelectorController {
 
   retarget(index) {
     const n = Math.max(this.bar.count - 1, 0);
-    if (index !== this.requestedIndex && this.mode !== MODE.Held && this.mode !== MODE.Released)
+    if (index !== this.requestedIndex && this.mode !== MODE.Held && this.mode !== MODE.Released) {
       this.tapDistance = Math.abs(centreOf(this.bar, clamp(index, 0, n)) - this.pose.cx);
+      // A new trip keeps the formed lens only if its own formation rises through half, not on the formation it inherits.
+      this.tapFormedLatch = false; this.tapFormedArmed = this.formation < .5;
+    }
     this.requestedIndex = index; this.restIndex = clamp(index, 0, n);
     if (Math.abs(this.pose.cx - centreOf(this.bar, this.restIndex)) >= .25) {
       this.quietSteps = 0; if (this.mode === MODE.Rest) this.mode = MODE.TapTransit;
@@ -389,7 +394,7 @@ export class CalmSelectorController {
     this.hasPointerTime = true; this.pointerVx = 0; this.pointerVy = 0; this.accelX = 0; this.accelY = 0;
     this.lastVx = 0; this.lastVy = 0; this.lastSampleAt = this.now; this.quietSteps = 0;
     const regrab = this.mode === MODE.Released && eligible && this.motionEnabled && this.form.value > REGRAB_FORMATION;
-    this.mode = MODE.PressPending;
+    this.mode = MODE.PressPending; this.tapFormedLatch = false; this.tapFormedArmed = this.formation < .5;
     if (regrab) { this.acquireGrasp(x, y, this.downOnBody); this.mode = MODE.Held; }
   }
 
@@ -605,6 +610,11 @@ export class CalmSelectorController {
       ? s.releaseStillFadeOmega
       : this.mode === MODE.Released && !this.releasedStill && s.releaseMovingFadeOmega > 0 ? s.releaseMovingFadeOmega : s.formOmega;
     this.form.step(dt, formTarget > this.form.value ? riseOmega : fallOmega, s.formZeta);
+    // A tap that formed the selector past half keeps the formed lens's family until it settles (#70).
+    if (!s.tapKeepsFormedLens || !this.motionEnabled || this.mode === MODE.Held || this.mode === MODE.Released ||
+      (this.transit.value <= 1e-4 && this.form.value <= 1e-3)) this.tapFormedLatch = false;
+    else if (coupleTapArea && this.tapFormedArmed && this.formation >= .5) this.tapFormedLatch = true;
+    if (this.formation < .5) this.tapFormedArmed = true; // this trip's formation has been below half
 
     // ---- equilibria
     const formation = this.formation;
@@ -1162,7 +1172,7 @@ export function createCalmNavigation({bar, selected = 0, onSelect = () => {}, sp
     state(originX = 0, originY = 0) {
       const e = controller.extents();
       return {centreX: controller.centreX, centreY: controller.centreY, extents: e,
-        formation: controller.formation, transitAppearance: controller.transitAppearance, touch: touchAt(clock),
+        formation: controller.formation, transitAppearance: controller.transitAppearance, tapFormed: controller.tapFormed, touch: touchAt(clock),
         heldTravel: controller.heldTravel, held: controller.isHeld, protrusion: controller.protrusion(),
         // GlassTabBarStyle.itemsFollowBarPress = false: items share the bar's press only as the lens forms.
         itemFollow: (() => { const f = clamp((controller.formation - .5) / .5, 0, 1); return f * f * (3 - 2 * f); })(),

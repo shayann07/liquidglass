@@ -552,7 +552,7 @@ internal fun GlassTabBar(
         val fringeSpeed = (abs(if (dragging) liveVelocity else settleVelocity) /
             with(density) { GlassSelectorFringeSpeed.toPx() }).coerceIn(0f, 1f)
         val selectorStyle = glassSelectorMaterial(style, lift, transitAppearance, max(poseHandle?.heldTravel ?: 0f, fringeSpeed),
-            heldLensTravel = poseHandle?.heldTravel ?: 0f)
+            heldLensTravel = poseHandle?.heldTravel ?: 0f, formedTap = poseHandle?.tapFormed ?: false)
 
         // The V3 body owns its own centre; offsetX follows it so semantics, the press glow and
         // the diagnostics all read one number.
@@ -2520,7 +2520,9 @@ internal fun glassAccessoryYield(formation: Float, endEdge: Float, barWidth: Flo
 internal fun glassSelectorMaterial(style: GlassTabBarStyle, formation: Float, transitAppearance: Float,
                                    heldTravel: Float = 0f,
                                    /** The held lens's own travel, without the tap's speed signal folded into [heldTravel] (#121). */
-                                   heldLensTravel: Float = heldTravel): GlassStyle {
+                                   heldLensTravel: Float = heldTravel,
+                                   /** [GlassPoseController.tapFormed]: this tap formed the selector past half (#70). */
+                                   formedTap: Boolean = false): GlassStyle {
     val pigment = glassTransitStyle(lerpGlassStyle(style.pill, style.lens, formation), transitAppearance, style.tapTintFade)
     if (style.tapOptics <= 0f) return pigment
     // Optics follow the transit appearance; tint keeps its own measured fade and recovery, so
@@ -2540,8 +2542,12 @@ internal fun glassSelectorMaterial(style: GlassTabBarStyle, formation: Float, tr
     val transitSoft = fringe?.getOrNull(5) ?: GlassSelectorTransitRimSoft
     val heldMoving = fringe?.getOrNull(6) ?: GlassSelectorHeldFringeMoving
     val fold = glassSelectorFold(style, formation, transitAppearance, heldTravel)
+    // The fold keeps the formed lens's family (the held map, whose band stretches the ink it carries into teardrops)
+    // while the selector is formed past half, and for the rest of a tap that formed it (#70: switching to the measured
+    // map as the formation fell through half dropped the teardrops in one frame, 35 ms before iOS's go); else the
+    // measured map.
     return if (fold > 0f)
-        material.copy(profile = if (formation >= 0.5f) material.profile else GlassProfile.Measured, foldAtCorners = foldCorners, rimMirror = rimMirror, rimMirrorGain = rimGain, dispersion = moving, inkDispersion = moving * (fringe?.getOrNull(7) ?: GlassSelectorTransitInkSplitShare),
+        material.copy(profile = if (formation >= 0.5f || formedTap) material.profile else GlassProfile.Measured, foldAtCorners = foldCorners, rimMirror = rimMirror, rimMirrorGain = rimGain, dispersion = moving, inkDispersion = moving * (fringe?.getOrNull(7) ?: GlassSelectorTransitInkSplitShare),
             rimSoftness = if (transitSoft > 0f) transitSoft.dp else material.rimSoftness)
     // A held lens keeps the measured held map when still and blends toward the same rim mirror
     // at its caps as it travels ([glassSelectorFormation] carries the travel amount).

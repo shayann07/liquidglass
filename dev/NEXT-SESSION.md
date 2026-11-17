@@ -1,19 +1,19 @@
 ## RESUME HERE (17 November): #201 colour transfer, PR open
 
-- `feat/201-colour` merged with main after #210, pushed, PR "Glass colour transfer: measured per-channel chroma gain (#201)".
+- `feat/201-colour` merged with main after #212, pushed, PR "Glass colour transfer: measured per-channel chroma gain (#201)".
   `tone(y) + (g0 + g1 y) (x - y)` per channel after the tint blend, uniforms `uChromaGain`, `uChromaSlope`, `uChromaWeight`,
   derived from `detailLift` (no style field); panel and container shaders and every port. Gates and numbers in PROGRESS.md.
 - Next: Pixel 7 capture of `adb shell am start -n com.wexpa.liquidglass.sample/.ColourTransferActivity [--ez dark false]`,
   main against the PR build (blocks merge); owner review of the morph-midpoint dip.
 
-## RESUME HERE (16 November): #200 three-term material awaiting final checks
+## RESUME HERE (16 November): #200 three-term material, merged as #210
+- 17 November: merged as #210 (8b303111). Late changes: merged glass (`GlassEffectContainer`) now draws the three-term material too; the detail kernel and the legibility term fade as the larger of the fine share and `|detailLift|` goes from 0.10 to 0.02 instead of switching off at one tint (worst adjacent whole-tint step 1.80 levels rms; main had 18.4 at Tint 92 to 93); remaining container parity is #211; #190 and #200 closed by #210.
 
 - `feat/200-material-model` carries the measured material (along-axis filter removed,
   `detailLift`, `toneCurve`, four-tap detail kernel, authored Tint blend). Docs are written; code, ports and tests are described in
   PROGRESS.md.
 - Lab gate re-scored on 9730618e (1.43 / 1.42), docs/1 replay done (differences inside glass, at most 7 levels), evidence in
-  `review/atlas/material-model-2026-11-16/`. Next: the full suite on the final commit, then the PR.
-- No commit, push or tag has been made for this work.
+  `review/atlas/material-model-2026-11-16/`. Full suite at 344fcf52: 512 tests, 0 failures.
 
 ## RESUME HERE (9 November): narrow-band field build, Argon trial
 
@@ -51,9 +51,10 @@ Merged: #180 (#81), #181 (#78), #182 (#101). No Pixel check has happened for any
    colour-space transform or plain matrix on an input image and in decal/clamp helpers) or shrink the shader. Gate it on pixel identity
    against the desktop renders (the desktop JVM runs the same Skiko code), then re-time with `tools/measure_web_demo_shaders.mjs`.
    Brotli/CDN is the owner's decision. Firefox, Safari and phones are unmeasured.
-2. **#70:** the end wall is built (16 November, `fix/70-leading-end-wall`; evidence `review/atlas/tap-end-wall-2026-11-16`): lens end and
-   2 to 0 at 167 ms now match iOS. Open: on 0 to 2 the level after 183 ms reads 36-38 against iOS 105.7-63.5, the destination ink's
-   magnification timing (#94 item 23, rows 470-490 read that ink); trips of three or more slots and a Pixel look at a last-tab tap are unchecked.
+2. **#70:** end wall merged (#198); 17 November `fix/70-plateau` keeps the formed lens's map as a two-tab tap settles, so the
+   0 to 2 plateau ends at ~212 ms on docs/1 (iOS 214, was 178; evidence `review/atlas/tap-plateau-2026-11-17`). Open: iOS fades the
+   teardrops over ~3 frames where ours go in one (their size is steep in the lens strength); the five-tab recording's longer
+   trips (iOS teardrops past 300 ms) are not moved; no Pixel look.
 3. **#114 / 130:** a diagonal press ramp (iOS TL 96 to BR 80) and pull-distance dimming (iOS 19-21 levels darker than ours at 3-4 s);
    new opt-in uniform through every port. Owner's call: material or search accessory only.
 4. **#104:** optional retune, `edgeShadow` 0.12 to about 0.07 with `capEdgeShadow` raised to keep the end caps' 178-182; the bar geometry
