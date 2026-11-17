@@ -1,3 +1,11 @@
+## 18 November 2026 - #203 PR A, tab bar tone on the real draw path (Claude)
+
+- `feat/203a-tone-table`: replay knob `+flat=<levels>[+flatstep=<ms>]` (flat page under the real `GlassTabBar`; `PhoneScene.flatPage`),
+  `+barlab` (public `GlassStyle.toolbar(dark)` with Calm's bar-only fields) and `measured` / `v3` variants. No library change.
+- Table in `review/atlas/tab-bar-tone-2026-11-18/` (`tools/tab_bar_tone.py`, baseline pin `tone.json`): `Calm` and `CalmClear` reproduce the
+  plan's "today" columns exactly; `Calm+barlab` is within 1 level of the lab curve at all 8 levels and within the card tolerances
+  (blue 122,170,220 vs iOS 116,167,219; orange 211,164,85 vs 209,162,79). `+barshade` (inner band) not built: needs PR B.
+
 ## 17 November 2026 - #201 colour transfer (Claude)
 
 - `feat/201-colour`: over colour the tone applies to the Rec. 709 luma and the chroma keeps a measured per-channel gain

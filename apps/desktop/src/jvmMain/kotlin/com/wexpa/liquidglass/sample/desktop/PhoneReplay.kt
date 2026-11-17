@@ -12,6 +12,7 @@ import androidx.compose.ui.platform.FrameRecomposer
 import androidx.compose.ui.scene.ComposeScene
 import androidx.compose.ui.scene.ComposeScenePointer
 import androidx.compose.ui.unit.Density
+import com.wexpa.liquidglass.GlassStyle
 import com.wexpa.liquidglass.GlassTabBarStyle
 import com.wexpa.liquidglass.sample.AppStoreGeometry
 import com.wexpa.liquidglass.sample.AppStoreScene
@@ -87,6 +88,8 @@ private fun replay(args: Array<String>) {
     val style = when (baseVariant) {
         "v3" -> GlassTabBarStyle.V3().copy(height = PhoneGeometry.barHeight)
         // The 2026-10-13 scene geometry (slot-wide pill, 6 dp ends), for before/after renders.
+        // The earlier-fit presets by name, for the flat-backdrop tone table (#203): "measured", "v3".
+        "measured" -> PhoneGeometry.style(GlassTabBarStyle.Measured())
         "calm-slot" -> GlassTabBarStyle.Calm().copy(height = PhoneGeometry.barHeight)
         // The material calibrated on the wrongly decoded recordings, with their dimmed palette.
         "calm-recorded" -> PhoneGeometry.style(GlassTabBarStyle.CalmRecordedSpace())
@@ -159,6 +162,12 @@ private fun replay(args: Array<String>) {
         if (br.size < 2) base else base.copy(bar = base.bar.copy(specular = br[0], bevelPeak = br[1],
             edgeLight = br.getOrElse(2) { base.bar.edgeLight }))
     }.let { base ->
+        // "+barlab": the bar on the #200 lab material (#203 PR A, measurement only): the public GlassStyle.toolbar(dark)
+        // with Calm's bar-only fields copied onto it.
+        if ("+barlab" !in variant) base else base.copy(bar = GlassStyle.toolbar(dark = "light" !in baseVariant).copy(
+            restMap = base.bar.restMap, capFold = base.bar.capFold, specular = base.bar.specular,
+            bevelPeak = base.bar.bevelPeak, edgeFold = base.bar.edgeFold, softDetail = base.bar.softDetail))
+    }.let { base ->
         // "+capedge=<c>": the bar's extra edge shadow where its outline faces sideways.
         val ce = variant.substringAfter("+capedge=", "").substringBefore('+').toFloatOrNull()
         if (ce == null) base else base.copy(bar = base.bar.copy(capEdgeShadow = ce))
@@ -188,6 +197,15 @@ private fun replay(args: Array<String>) {
     val palette = if (baseVariant.endsWith("recorded")) PhonePalette.Recorded
         else if ("light" in baseVariant) PhonePalette.Light else PhonePalette.Natural
 
+    // "+flat=<levels>[+flatstep=<ms>]": a flat page under the real bar (PhoneScene.flatPage). <levels> is one or more
+    // colours separated by ';', each a grey "128" or "r,g,b"; colour n shows from n * flatstep ms (default 500) of the
+    // scripted time, the last one thereafter, so one replay covers a whole backdrop ladder. flat.csv lists the level per frame.
+    val flatLevels = variant.substringAfter("+flat=", "").substringBefore('+').split(';').filter { it.isNotBlank() }.map { spec ->
+        val v = spec.split(',').map { it.trim().toFloat() / 255f }
+        if (v.size == 1) androidx.compose.ui.graphics.Color(v[0], v[0], v[0]) else androidx.compose.ui.graphics.Color(v[0], v[1], v[2])
+    }
+    val flatStepMs = variant.substringAfter("+flatstep=", "").substringBefore('+').toDoubleOrNull() ?: 500.0
+    val flatIndex = androidx.compose.runtime.mutableIntStateOf(0)
     lateinit var scene: ImageComposeScene
     lateinit var composeScene: ComposeScene
     lateinit var recomposer: FrameRecomposer
@@ -211,6 +229,7 @@ private fun replay(args: Array<String>) {
                     style = WhatsAppGeometry.style(style), card = "+plain" !in variant, light = "light" in variant)
                 else PhoneScene(selected, { selected = it }, palette = palette, style = style,
                     callsBadge = if ("+badge" in variant) 2 else 0,
+                    flatPage = flatLevels.getOrNull(flatIndex.intValue),
                     lensFusion = androidx.compose.ui.unit.Dp(variant.substringAfter("+lfuse=", "").substringBefore('+').toFloatOrNull() ?: 0f),
                     search = if ("+passive" in variant) null else com.wexpa.liquidglass.GlassInteraction.Pullable.copy(
                         pullShape = com.wexpa.liquidglass.GlassPullShape.Free, pullLiftShare = 0.65f).let { base ->
@@ -263,6 +282,7 @@ private fun replay(args: Array<String>) {
     Thread.sleep(500)
     println("REPLAY renderer ${layer.renderApi} ${layer.renderInfo.lines().firstOrNull { "Video card" in it } ?: ""}")
     val trace = File(out, "trace.csv").bufferedWriter()
+    val flatTrace = if (flatLevels.isEmpty()) null else File(out, "flat.csv").bufferedWriter().apply { write("frame,level,r,g,b\n") }
     trace.write("frame,ms,selectorX,bodyWidth,held,formation,protrusion,dragIndex,transit,heldTravel\n")
     var next = 0
     var pressed = false
@@ -282,6 +302,13 @@ private fun replay(args: Array<String>) {
                 )
             }
             nanos = target * 1_000_000
+            if (flatLevels.isNotEmpty()) {
+                val level = (target / flatStepMs).toInt().coerceAtMost(flatLevels.size - 1)
+                flatIndex.intValue = level
+                androidx.compose.runtime.snapshots.Snapshot.sendApplyNotifications()
+                val c = flatLevels[level]
+                flatTrace!!.write("$index,$level,${Math.round(c.red * 255)},${Math.round(c.green * 255)},${Math.round(c.blue * 255)}\n")
+            }
             val t0 = System.nanoTime()
             layer.renderImmediately()
             val t1 = System.nanoTime()
@@ -308,6 +335,7 @@ private fun replay(args: Array<String>) {
         if (index % 120 == 0) { trace.flush(); println("REPLAY frame $index/$frames ${(System.nanoTime() - started) / 1_000_000} ms") }
     }
     trace.close()
+    flatTrace?.close()
     SwingUtilities.invokeAndWait { frame.dispose(); scene.close() }
     println("REPLAY done $frames frames in ${(System.nanoTime() - started) / 1_000_000} ms")
     kotlin.system.exitProcess(0)

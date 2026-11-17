@@ -1,3 +1,9 @@
+## #203 PR A (18 November, `feat/203a-tone-table`)
+
+- [x] Flat-backdrop knob, `+barlab`, tone table for Calm, CalmClear, Measured, V3, CalmRecordedSpace at 8 levels, card colours.
+- [ ] `+barshade=<amount>,<dp>` (inner band) with PR B; Step 0 measurements (m13 full bar, avatar re-read) still open.
+- [ ] Owner question 1 (Calm onto the lab material) once the Phone-gate replays run on `+barlab`.
+
 ## #201 colour transfer (17 November, `feat/201-colour`)
 
 - [x] Fit (per-channel gains, sRGB), shader, 27 cube assertions, private gates (cube, colour-pair stripes, grey lab).
