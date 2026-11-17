@@ -12,9 +12,12 @@ import kotlin.math.roundToLong
  * record, 190 measured display-to-source landmark pairs, both appearances, both calibration targets),
  * compiled as the table in [GlassRestMapTable]. It is a scoped candidate, not a global replacement:
  *
- *  - It changes only the resting-corner contribution. The fully formed sheet fold, the straight-run
- *    formula, the held-lens family, coverage, padding, normals, corner weighting, dispersion, blur and
- *    lighting are untouched, and the existing formation blend carries it toward the same full fold.
+ *  - It changes only the resting contribution. Since 1.1.0 it holds all the way round the outline, straight
+ *    runs included (the Safari lab pill's horizontal stripes, 16 November stills, show the run's outer band
+ *    displaced as the round end's is, with no change where the end begins); [Legacy] keeps the corner-only
+ *    lens and the straight-run formula. The fully formed sheet fold, the held-lens family, coverage,
+ *    padding, normals, dispersion, blur and lighting are untouched, and the existing formation blend
+ *    carries it toward the same full fold.
  *  - It was measured at one radius: 72 reference px on the iPhone 13's 3 px/pt screen, which the
  *    library carries as its 24 dp design unit by convention (a point is not a measured Android dp
  *    equivalence). At any other radius the shader evaluates the same normalised table, which is a scale

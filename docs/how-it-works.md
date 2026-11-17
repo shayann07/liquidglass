@@ -144,9 +144,14 @@ At rest the lens lives at the corner arcs only. A pixel in an arc's own quadrant
 backdrop from the ring 0.33 R inside — the same ring for the whole outer third, which turns
 anything under the corner into concentric arcs — easing to identity by 0.46 R; a pixel along a
 straight run shows what is under it, plus a few px of inward offset. The blend between the two
-runs over one radius along the run (authored): over 0.2 R, text lines crossing the junction hooked
-where the cap began. `lensFormation` then carries both toward the full fold while a
+runs over 0.2 R along the edge. `lensFormation` then carries both toward the full fold while a
 finger tracks the surface.
+
+The measured resting map (`GlassRestMap.Measured`: Regular, `inApp` and `toolbar`; the tab bars keep the legacy map) is
+different since 1.1.0: it holds all the way round the outline, straight runs included, because
+over the Safari lab pill's stripes iOS displaces the run's outer band as it does the round end's
+and nothing changes where the end begins. With the corner-only lens, text lines hooked at each
+cap start.
 
 `GlassEffectContainer` runs the same two paths with one difference: a fused body is chrome at
 rest, so its lens formation is always 0. It also still lacks some terms of the single-element

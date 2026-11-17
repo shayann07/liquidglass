@@ -6,15 +6,18 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
-- Text lines no longer hook where a resting capsule's round end begins. At rest the glass hands over from the straight
-  run's shallow offset to the measured resting-corner map, and near the rim the two show rows about 0.7 of the band
-  apart; the handover ran over 0.2 of the corner radius, so lines under the junction jumped by about 3.5 rows per pixel
-  and drew a short vertical tick at each cap start. It now runs over one radius along the run (authored: the width of
-  this blend was never measured), which keeps the shown row moving under one row per pixel (0.69 on a 31 dp cap;
-  `GlassCapJunctionTest`). The cap itself keeps the full measured map; tab-bar bodies, which use their own corner
-  weight, are unchanged. Mirrored in every port.
-  Default look changed: resting rounded glass (Regular, `inApp`, `toolbar`, containers, and custom styles on the measured
-  profile) bends lines gently over the last cap radius of each straight run instead of hooking at the cap start. [Evidence](review/atlas/cap-junction-2026-11-17/README.md).
+- Text lines no longer hook where a resting capsule's round end begins. Glass on the measured resting map
+  (`GlassRestMap.Measured`) lensed only its corner arcs and showed a straight run nearly as it is, blending the two over
+  0.2 of the corner radius; near the rim the maps show rows about 0.7 of the band apart, so lines under the junction drew
+  a short tick at each cap start. Over the Safari lab pill's stripes (16 November stills) iOS displaces the run's outer
+  band as it does the round end's, and nothing changes where the end begins, so the measured map now holds all the way
+  round the outline. In the run's outer band the stripe edges move from 5 px off iOS to within 2, and luma rms against
+  the stills falls from 12.0-25.6 to 4.5-12.0 levels (junction 16.9-23.8 to 13.0-16.5; round end unchanged).
+  `GlassCapJunctionTest`. The legacy map, which every tab bar uses, is unchanged (docs/1 replay identical to main).
+  Mirrored in every port.
+  Default look changed: `Glass.Regular`, `inApp`, `toolbar`, containers and custom styles with `restMap = Measured`
+  fold content along their straight edges at rest, as their round ends already did, instead of hooking where the round
+  end begins (#216). [Evidence](review/atlas/cap-junction-2026-11-17/README.md).
 - Calm taps of two tabs or more keep the formed lens's look until they settle (#70). Such a tap forms the selector past
   half (about 0.76); in the frame its formation fell back below half, the transit fold switched from the formed lens's
   map to the measured one, and the destination's ink, stretched into teardrops along the top rim, vanished in one frame.

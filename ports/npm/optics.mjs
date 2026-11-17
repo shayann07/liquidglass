@@ -46,8 +46,7 @@ export function gradRoundRect(px, py, hx, hy, radius, widen) {
 export function cornerWeight(px, py, hx, hy, radius) {
   const r = Math.min(radius, Math.min(hx, hy));
   const qx = Math.abs(px) - hx + r, qy = Math.abs(py) - hy + r;
-  // One radius along the run (authored): a shorter blend hooked lines where the cap began.
-  const soft = Math.max(r, 1);
+  const soft = Math.max(r * 0.2, 1);
   return smoothstep(-soft, 0, Math.min(qx, qy));
 }
 

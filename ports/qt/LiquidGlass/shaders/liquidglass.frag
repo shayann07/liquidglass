@@ -698,19 +698,15 @@ float restSource(float u) {
 
 
 // Whether a point's nearest bit of outline is a corner arc (1) or a straight run (0), with a
-// blend along the run so the rest lens does not begin at a seam. Inside a corner's own
+// short blend along the run so the rest lens does not begin at a seam. Inside a corner's own
 // quadrant both q components are positive; along a run one is negative by the distance to the
 // arc. A circle is all arc. Radii are clamped as sdRoundRect clamps them.
-// The blend runs one radius along the run (authored). Near the rim the run's shallow offset and
-// the resting-corner map show rows about 0.7 of the band apart, and the earlier 0.2-radius blend
-// moved the shown row by about 3.5 rows per pixel there: lines hooked where the cap began.
-// Over one radius it moves under one row per pixel (GlassCapJunctionTest). The cap keeps the full map.
 float cornerWeight(vec2 p, vec2 halfSize, vec4 r) {
     vec2 rr = (p.x > 0.0) ? r.yz : r.xw;
     float radius = (p.y > 0.0) ? rr.y : rr.x;
     radius = min(radius, min(halfSize.x, halfSize.y));
     vec2 q = abs(p) - halfSize + radius;
-    float soft = max(radius, 1.0);
+    float soft = max(radius * 0.2, 1.0);
     return smoothstep(-soft, 0.0, min(q.x, q.y));
 }
 
@@ -746,7 +742,13 @@ float foldSource(float u, float formation, float corner) {
     float straight = (uEdgeFold > 0.0)
         ? (u + uEdgeFold * v * v * v)
         : (u + 0.06 * v * v);
-    float rest = mix(straight, restSource(u), clamp(corner, 0.0, 1.0));
+    // The measured resting map (uRestMap 1) holds all the way round the outline, straight runs included: over the
+    // Safari lab pill's stripes (16 November stills, R = 71.5 px) iOS shows the run's outer band displaced as its round
+    // end is, and nothing changes where the end begins. Running it along the run scores 4.5-12 levels rms in the run's
+    // outer band against 12-26 for the near-identity run map, and removes the hook the 0.2 R handover drew at each cap
+    // start (GlassCapJunctionTest). The legacy map keeps the corner-only lens.
+    float restWeight = (uRestMap > 0.5) ? 1.0 : clamp(corner, 0.0, 1.0);
+    float rest = mix(straight, restSource(u), restWeight);
     return mix(rest, full, clamp(formation, 0.0, 1.0));
 }
 
