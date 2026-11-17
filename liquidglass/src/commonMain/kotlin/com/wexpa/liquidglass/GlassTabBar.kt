@@ -2676,7 +2676,8 @@ internal class GlassFocusRingState {
     var pointerSinceKey by mutableStateOf(false)
     /** A pointer pressed the bar since focus last left it: focus that returns without one is not the pointer's. */
     var pointerSinceBlur = false
-    /** A pointer gesture on the bar is under way, from its press until two frames after its release. Focus moving from
+    /** A pointer gesture on the bar is under way, from its press until two frames after its release (or until a blur that
+     * outlasts a frame, since a cancelled press sends no release). Focus moving from
      * one tab to another passes through a moment with no tab focused; inside a gesture that is the pointer's own focus
      * move, not focus leaving the bar (#218). */
     var pointerGesture = false
