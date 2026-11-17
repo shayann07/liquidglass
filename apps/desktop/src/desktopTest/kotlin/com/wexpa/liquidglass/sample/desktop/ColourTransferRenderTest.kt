@@ -13,6 +13,8 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.runDesktopComposeUiTest
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import com.wexpa.liquidglass.Glass
+import com.wexpa.liquidglass.GlassStyle
 import com.wexpa.liquidglass.sample.ColourTransferScene
 import java.io.File
 import javax.imageio.ImageIO
@@ -30,13 +32,13 @@ class ColourTransferRenderTest {
 
     private val requested = System.getProperty("atlas.colourTransfer") == "true"
 
-    private fun shoot(name: String, dark: Boolean, width: Int = 390, height: Int = 844, density: Float = 3f) {
+    private fun shoot(name: String, dark: Boolean, width: Int = 390, height: Int = 844, density: Float = 3f, glass: Glass = Glass.Regular) {
         if (!requested) return
         out.mkdirs()
         runDesktopComposeUiTest((width * density).toInt(), (height * density).toInt(), testTimeout = 6.minutes) {
             setContent {
                 CompositionLocalProvider(LocalDensity provides Density(density)) {
-                    Box(Modifier.size(width.dp, height.dp).testTag("app")) { ColourTransferScene(dark = dark) }
+                    Box(Modifier.size(width.dp, height.dp).testTag("app")) { ColourTransferScene(dark = dark, glass = glass) }
                 }
             }
             waitForIdle()
@@ -46,4 +48,7 @@ class ColourTransferRenderTest {
 
     @Test fun dark() = shoot("colour-transfer-dark", dark = true)
     @Test fun light() = shoot("colour-transfer-light", dark = false)
+    // #206: the Control Center tile glass on the same bands, at the Pixel 7's 411 x 914 dp and density 2.625, for the device check.
+    @Test fun controlCenterTile() = shoot("colour-transfer-cc", dark = true, width = 411, height = 914, density = 2.625f,
+        glass = Glass(GlassStyle.controlCenterTile()))
 }

@@ -4,6 +4,7 @@
 - [x] `controlCenterTile(active)`; `GlassControlCenterTileTest` (greys, 8 hues, active, container, morph, unset routing).
 - [x] Docs, CHANGELOG, evidence `review/atlas/control-center-tile-2026-11-18`.
 - [x] Full `:liquidglass:jvmTest --rerun` on the merged head: 531 tests, 0 failures.
+- [x] Pixel 7 device check: tile interior within 1 level of the desktop render in 9 of 9 bands (`ColourTransferActivity --ez cc true`).
 - [ ] Owner review of the authored rim and the active tile's chroma 0.5.
 - [ ] Not measured: light appearance, press and hold, Tint Amount, active-tile rim, slider fill and thumb (#205), glyph vibrancy.
 
