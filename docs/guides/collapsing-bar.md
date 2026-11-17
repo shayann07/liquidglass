@@ -57,6 +57,9 @@ Notes:
 [`GlassScrollEdge`](../adaptation.md#the-scroll-edge-effect), the composable, stays for a chrome that does not sit on a
 scrolling container. It is always drawn and its numbers are authored.
 
+Before and after renders, with their captions and limits:
+[`review/atlas/scroll-edge-2026-11-18`](https://github.com/shayann07/liquidglass/blob/main/review/atlas/scroll-edge-2026-11-18/README.md).
+
 ## A large title that collapses
 
 Material already does this, scroll-driven, so there is nothing to measure and no new API: use

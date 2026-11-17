@@ -134,3 +134,7 @@ on a panel they take the panel's frost, because glass on glass samples the page 
   ([limitations](limitations.md)).
 
 Evidence: [review/atlas/material3-2026-10-18](https://github.com/shayann07/liquidglass/blob/main/review/atlas/material3-2026-10-18/README.md).
+
+Evidence for the measured controls and menu, with captions, sources and limits: the Switch and Slider
+([`review/atlas/switch-slider-2026-11-18`](https://github.com/shayann07/liquidglass/blob/main/review/atlas/switch-slider-2026-11-18/README.md)) and the menu panel
+([`review/atlas/menu-panel-2026-11-18`](https://github.com/shayann07/liquidglass/blob/main/review/atlas/menu-panel-2026-11-18/README.md)).
