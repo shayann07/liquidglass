@@ -147,6 +147,7 @@ public final class com/wexpa/liquidglass/material3/GlassMaterialDefaults {
 	public static final field ProminentAlpha F
 	public final fun forContainer-ek8zF_U (JLandroidx/compose/runtime/Composer;I)Lcom/wexpa/liquidglass/Glass;
 	public final fun getControl ()Lcom/wexpa/liquidglass/Glass;
+	public final fun getMenu ()Lcom/wexpa/liquidglass/Glass;
 	public final fun getPanel ()Lcom/wexpa/liquidglass/Glass;
 	public final fun getPanelBackdropSigma-D9Ej5fM ()F
 	public final fun getRegular (Landroidx/compose/runtime/Composer;I)Lcom/wexpa/liquidglass/Glass;

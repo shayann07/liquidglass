@@ -86,7 +86,7 @@ The glass `Scaffold` is the root: it records the screen once and every glass com
 | `SearchBar`, `DockedSearchBar` | a glass capsule field and, while active, a glass results panel (the classic `query`/`active` parameters) |
 | `AlertDialog`, `BasicAlertDialog` | an iOS alert: a glass panel over a light scrim |
 | `ModalBottomSheet`, `rememberModalBottomSheetState` | an iOS sheet: a floating glass panel; drag down or tap outside to dismiss |
-| `DropdownMenu`, `DropdownMenuItem` | an iOS menu: a glass panel under its anchor |
+| `DropdownMenu`, `DropdownMenuItem` | an iOS menu: a glass panel under its anchor, in the measured menu material (`GlassMaterialDefaults.menu`: a 9.9 / 11.8 dp blur and a compressed tone, no detail term); pass `glass = GlassMaterialDefaults.panel` for the card-like look before 1.1.0 |
 | `Snackbar` (both) | a glass capsule |
 | `IconToggleButton`, `FilledIconToggleButton`, `FilledTonalIconToggleButton`, `OutlinedIconToggleButton` | round glass buttons: plain glass when off, prominent glass when on |
 | `ElevatedAssistChip`, `ElevatedFilterChip`, `ElevatedSuggestionChip` | the glass chips (glass carries its own depth) |

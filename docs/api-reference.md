@@ -531,8 +531,18 @@ extrapolation at any other radius. Ignored by the legacy profile and by the held
 buttons; `toolbar(dark, tintAmount)` for a toolbar or tab bar, the pill's kernels with the
 toolbar's own tint (white at 0.55-0.67 in light; black at 0.41-0.63 over the 35/255 lift in
 dark, more opaque than the pill at Clear and less responsive to Tint Amount);
-`systemBackdrop(tintAmount)` for a full-screen layer such as Control Center; `menu()`;
+`systemBackdrop(tintAmount)` for a full-screen layer such as Control Center; `menu(dark)` for a menu or popover (below) and `menu()`, the earlier dark-only fit;
 `shellIcon()`; `dock()`; `coverSheet()`; `controlCenterTile(active)` for a Control Center tile (below). `Regular` is `inApp(dark = false)`.
+
+**Menus** (#204): `GlassStyle.menu(dark)` is the panel of iOS 27's Safari `<select>` popup, fitted on that panel's
+interior only: a pure blur (9.9 dp sigma dark, 11.8 dp light) and then a compressed tone, with no detail term (Regular
+keeps 0.277 of the fine detail). Dark: black at 0.6354, lift 29.59/255, bow 155.87/255 (the 17 measured greys within 1.0
+level rms); light: white at 0.5143, lift 3.91/255, bow 35.25/255 (1.4 rms). Stripes score 2.1 (dark) and 3.1 (light)
+levels rms. Rim, shadow and corner are not measured; the rim fields are `inApp`'s. **Open known difference:** the Photos
+context menu (dark, `COSG3073`) reads 10 to 18 levels lighter than this fit predicts over plain patches, so it is a
+different material or state; it is not fitted and `menu()` without an argument remains the earlier fit on it. A host
+that wants iOS's 0.52 dim behind a menu draws it itself. Material 3's `DropdownMenu` draws
+`GlassMaterialDefaults.menu` by default; `GlassMaterialDefaults.panel` is the look before 1.1.0.
 
 **Control Center tiles** (#206): `GlassStyle.controlCenterTile(active = false)` is the glass of an iOS 27 Control Center
 tile (a round toggle, a wide Focus pill, the media tile, a slider track) over the Control Center layer, measured on

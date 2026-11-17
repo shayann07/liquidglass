@@ -547,6 +547,7 @@ final class com.wexpa.liquidglass/GlassStyle { // com.wexpa.liquidglass/GlassSty
         final fun dock(): com.wexpa.liquidglass/GlassStyle // com.wexpa.liquidglass/GlassStyle.Companion.dock|dock(){}[0]
         final fun inApp(kotlin/Boolean, kotlin/Float = ...): com.wexpa.liquidglass/GlassStyle // com.wexpa.liquidglass/GlassStyle.Companion.inApp|inApp(kotlin.Boolean;kotlin.Float){}[0]
         final fun menu(): com.wexpa.liquidglass/GlassStyle // com.wexpa.liquidglass/GlassStyle.Companion.menu|menu(){}[0]
+        final fun menu(kotlin/Boolean): com.wexpa.liquidglass/GlassStyle // com.wexpa.liquidglass/GlassStyle.Companion.menu|menu(kotlin.Boolean){}[0]
         final fun shellIcon(): com.wexpa.liquidglass/GlassStyle // com.wexpa.liquidglass/GlassStyle.Companion.shellIcon|shellIcon(){}[0]
         final fun systemBackdrop(kotlin/Float = ...): com.wexpa.liquidglass/GlassStyle // com.wexpa.liquidglass/GlassStyle.Companion.systemBackdrop|systemBackdrop(kotlin.Float){}[0]
         final fun toolbar(kotlin/Boolean, kotlin/Float = ...): com.wexpa.liquidglass/GlassStyle // com.wexpa.liquidglass/GlassStyle.Companion.toolbar|toolbar(kotlin.Boolean;kotlin.Float){}[0]

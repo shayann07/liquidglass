@@ -1212,9 +1212,33 @@ data class GlassStyle(
         )
 
         /**
-         * A menu or popover: the system blur (9.5 dp sigma) with a dark tint, gain 0.24 and a
-         * lift of 48/255 that does not adapt to its backdrop, on a screen the host has dimmed to
-         * 0.52 behind it (`dimmingLayer` is drawn under the panel, so the host dims the screen).
+         * A menu or popover on iOS 27's Safari `<select>` panel (#204): a pure blur (9.9 dp sigma dark, 11.8 dp light),
+         * then a compressed tone, with no detail term (Regular keeps 0.277 of the fine detail; the menu keeps none).
+         * Fitted on that one panel's interior over flat greys and stripes, 2.1 levels rms dark and 3.1 light over 12
+         * stripe cases, and the tone within 3 levels of the 17 measured greys. Rim, shadow and corner are not
+         * measured: the rim fields are [inApp]'s. Open known difference: the Photos context menu (`COSG3073`, dark)
+         * reads 10 to 18 levels lighter than this fit predicts over plain patches (32 on the worst of seven), a different material or state that
+         * is not fitted here; [menu] without an argument is the earlier fit on that menu. The host dims the screen
+         * behind a menu (0.52 measured on the context menu, not on the `<select>`), and this style does not.
+         */
+        fun menu(dark: Boolean): GlassStyle = inAppEarlier(dark, GlassMaterial.DEFAULT_TINT_AMOUNT).copy(
+            tint = (if (dark) Color.Black else Color.White).copy(alpha = GlassMaterial.menuOpacity(dark)),
+            tintLift = GlassMaterial.menuLift(dark),
+            toneCurve = GlassMaterial.menuToneCurve(dark),
+            wideKernel = GlassMaterial.menuWideKernel(dark),
+            fineShare = 0f,
+            detailLift = 0f,
+            // As the lab material: one short reach, so the host takes the four-tap detail kernel.
+            blurRadius = GlassMaterial.labDetailReach,
+            legibility = 0f,
+            softDetail = 1f,
+        )
+
+        /**
+         * A menu or popover, the earlier fit on the Photos context menu: the system blur (9.5 dp sigma) with a dark
+         * tint, gain 0.24 and a lift of 48/255 that does not adapt to its backdrop, on a screen the host has dimmed
+         * to 0.52 behind it (`dimmingLayer` is drawn under the panel, so the host dims the screen). Dark only; see
+         * [menu] with `dark` for the lab-form panel fitted on the Safari `<select>` popup in both appearances.
          */
         fun menu(): GlassStyle = GlassStyle(
             contactShadow = 0f,

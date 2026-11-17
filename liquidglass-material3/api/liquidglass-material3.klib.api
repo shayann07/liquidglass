@@ -50,6 +50,8 @@ final object com.wexpa.liquidglass.material3/GlassMaterialDefaults { // com.wexp
         final fun <get-PanelBackdropSigma>(): androidx.compose.ui.unit/Dp // com.wexpa.liquidglass.material3/GlassMaterialDefaults.PanelBackdropSigma.<get-PanelBackdropSigma>|<get-PanelBackdropSigma>(){}[0]
     final val control // com.wexpa.liquidglass.material3/GlassMaterialDefaults.control|{}control[0]
         final fun <get-control>(): com.wexpa.liquidglass/Glass // com.wexpa.liquidglass.material3/GlassMaterialDefaults.control.<get-control>|<get-control>(){}[0]
+    final val menu // com.wexpa.liquidglass.material3/GlassMaterialDefaults.menu|{}menu[0]
+        final fun <get-menu>(): com.wexpa.liquidglass/Glass // com.wexpa.liquidglass.material3/GlassMaterialDefaults.menu.<get-menu>|<get-menu>(){}[0]
     final val panel // com.wexpa.liquidglass.material3/GlassMaterialDefaults.panel|{}panel[0]
         final fun <get-panel>(): com.wexpa.liquidglass/Glass // com.wexpa.liquidglass.material3/GlassMaterialDefaults.panel.<get-panel>|<get-panel>(){}[0]
     final val regular // com.wexpa.liquidglass.material3/GlassMaterialDefaults.regular|{}regular[0]
