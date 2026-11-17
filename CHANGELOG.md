@@ -6,6 +6,18 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- New: `GlassStyle.controlCenterTile(active = false)` and `GlassStyle.chromaGain` (#206). The factory is the glass of an iOS 27
+  Control Center tile over the Control Center layer, measured on `CC-over-lab-dark.MP4` (shell glass: no `dark`, no tint amount):
+  inactive is black at 0.097 with a 51.1/255 lift, no blur and 1.58 times the layer's chroma, so the interior is `51.1 + 0.903 G`
+  over grey (within 1 level of the measured map at six greys, rms 0.41) and the eight hues within 0.7 levels of Y and 4 per
+  channel; active is a white body at 250 keeping 0.50 of the chroma (fitted from the active readings). The rim and contour are
+  authored, and light appearance, press, hold and Tint Amount are not measured. `chromaGain` is an output-referred chroma ratio:
+  unset (`Float.NaN`, the default) keeps the colour transfer `detailLift` selects, byte-identical to before; set to g the finished
+  glass keeps g times the backdrop's chroma about its luma (flat, clamped to 0..4). Panel and merged glass both read it; a morph
+  snaps it at the midpoint when only one end sets it. Binary-compatible: the constructor and `copy` before the field stay as hidden
+  deprecated overloads, and the ABI dump only gains the field, `component62`, the new `copy` and the factory. Not a default-look
+  change: no existing style sets the field. Ports need no change (they set `uChromaGain`, `uChromaSlope`, `uChromaWeight` already
+  and have no style layer).
 - Regular glass now keeps and boosts colour the way iOS does (#201). Over flat colour the glass applies its grey tone to the
   colour's Rec. 709 luma and keeps the chroma about it at a measured gain, `tone(y) + (g0 + g1 y) (x - y)` per channel
   (dark g0 1.317 / 1.256 / 1.314, g1 -0.427 / -0.351 / -0.429; light g0 0.988 / 0.952 / 0.979, g1 -0.076 / 0.028 / -0.045),

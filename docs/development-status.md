@@ -7,6 +7,14 @@ research remains available; this page identifies which later changes supersede i
 
 ## Main after 1.0 (24 October)
 
+- 18 November: Control Center tile glass and a public colour-boost setting (#206): `GlassStyle.controlCenterTile(active)` and
+  `GlassStyle.chromaGain` (unset = unchanged). Measured on `CC-over-lab-dark.MP4`: the inactive tile is black 0.097 plus a 51.1/255
+  lift with no blur and 1.58 times the layer's chroma; over six greys the interior is within 0 to 1 level of the measured map
+  (rms 0.41) and over eight hues within 0.7 levels of Y and 4 levels per channel, chroma ratio 1.56 to 1.59 (gate 1.58 +/- 0.10).
+  The active tile is a white body at 250 keeping 0.50 of the chroma (fitted on the active readings, n = 8). Rim and contour are
+  authored; light appearance, press, hold and Tint Amount are not measured. Merged glass carries it; ports already take the
+  three uniforms and have no style layer, so no port changes. No existing style changes (the host passes the same uniforms when
+  unset). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/control-center-tile-2026-11-18/README.md).
 - 17 November: Regular glass keeps and boosts colour (#201): the grey tone applies to the luma and the chroma about it keeps a
   measured per-channel gain, fitted on the private 125-point RGB cube converted from Display P3 to sRGB. Rendered at Tint 50 the
   cube is within 1.05 / 0.85 levels rms (at most 7.1 / 4.8), the colour-pair stripe stills within 1.7 / 1.5, and the grey lab

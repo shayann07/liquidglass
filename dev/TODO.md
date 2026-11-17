@@ -1,3 +1,11 @@
+## #206 Control Center tile (18 November, `feat/206-control-center`)
+
+- [x] `GlassStyle.chromaGain` (unset = byte-identical), host routing in panel and container, morph, hidden overloads, ABI dump.
+- [x] `controlCenterTile(active)`; `GlassControlCenterTileTest` (greys, 8 hues, active, container, morph, unset routing).
+- [x] Docs, CHANGELOG, evidence `review/atlas/control-center-tile-2026-11-18`.
+- [ ] Full `:liquidglass:jvmTest --rerun`; owner review of the authored rim and the active tile's chroma 0.5.
+- [ ] Not measured: light appearance, press and hold, Tint Amount, active-tile rim, slider fill and thumb (#205), glyph vibrancy.
+
 ## #201 colour transfer (17 November, `feat/201-colour`)
 
 - [x] Fit (per-channel gains, sRGB), shader, 27 cube assertions, private gates (cube, colour-pair stripes, grey lab).
