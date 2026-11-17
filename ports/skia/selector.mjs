@@ -394,7 +394,7 @@ export class CalmSelectorController {
     this.hasPointerTime = true; this.pointerVx = 0; this.pointerVy = 0; this.accelX = 0; this.accelY = 0;
     this.lastVx = 0; this.lastVy = 0; this.lastSampleAt = this.now; this.quietSteps = 0;
     const regrab = this.mode === MODE.Released && eligible && this.motionEnabled && this.form.value > REGRAB_FORMATION;
-    this.mode = MODE.PressPending; this.tapFormedLatch = false;
+    this.mode = MODE.PressPending; this.tapFormedLatch = false; this.tapFormedArmed = this.formation < .5;
     if (regrab) { this.acquireGrasp(x, y, this.downOnBody); this.mode = MODE.Held; }
   }
 

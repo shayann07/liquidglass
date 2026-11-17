@@ -884,7 +884,9 @@ internal class GlassPoseController(
         val regrab = mode == GlassPoseMode.Released && eligible && motionEnabled &&
             form.value > REGRAB_FORMATION
         mode = GlassPoseMode.PressPending
+        // A press clears the latch; like a retarget, it may set it again only on a fresh rise through half (#70).
         tapFormedLatch = false
+        tapFormedArmed = formation < .5f
         // A pending DOWN records eligibility and pointer data. It does NOT take kinematic
         // ownership: the grasp is acquired at the moment the press actually becomes a hold, from
         // the body as it is then. The one exception is a re-grab: a finger landing on a body that

@@ -202,6 +202,26 @@ class GlassPhoneTapOpticsTest {
         }
     }
 
+    @Test fun aSameTabPressRequalifiesOnAFreshCrossing() {
+        // A press on the tab the selector is already heading to clears the latch (no retarget runs): like a retarget, it
+        // may set it again only after formation rises through half anew, never on the formation already reached.
+        val b=bar(); val c=GlassPoseController(GlassPoseSpec.Calm)
+        c.attach(b,null,null); c.snapToRest(0)
+        c.pointerDown(b.centreOf(2),b.centreY,0.0,true); c.retarget(2)
+        c.advanceTo(.04f); c.pointerUp(2)
+        var t=.04f
+        while(c.formation<.6f && t<.5f){t+=1/240f;c.advanceTo(t)}
+        assertTrue(c.tapFormed && c.formation>=.5f,"the 0->2 tap formed past half: ${c.formation}")
+        c.pointerDown(b.centreOf(2),b.centreY,t.toDouble(),true)
+        var below=false; var crossed=false
+        repeat(60) { i ->
+            t+=1/60f; c.advanceTo(t); assertFalse(c.solverFailed)
+            if(i==2) c.pointerUp(2)
+            if(c.formation<.5f) below=true else if(below) crossed=true
+            assertTrue(!c.tapFormed || crossed, "t=$t: the press kept the formed lens on inherited formation ${c.formation}")
+        }
+    }
+
     @Test fun appearanceDoesNotChangeThePoseOrHeldFormation() {
         for(target in listOf(1,2)) {
             val b=bar()

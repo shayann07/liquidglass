@@ -420,7 +420,7 @@ public sealed class CalmSelectorController
         pointerSimulationOrigin = now; hasPointerTime = true; pointerVx = pointerVy = 0; accelX = accelY = 0; lastVx = lastVy = 0;
         lastSampleAt = now; quietSteps = 0;
         var regrab = Mode == CalmSelectorMode.Released && eligible && MotionEnabled && form.Value > RegrabFormation;
-        Mode = CalmSelectorMode.PressPending; tapFormedLatch = false;
+        Mode = CalmSelectorMode.PressPending; tapFormedLatch = false; tapFormedArmed = Formation < .5;
         if (regrab) { AcquireGrasp(x, y, downOnBody); Mode = CalmSelectorMode.Held; }
     }
 
