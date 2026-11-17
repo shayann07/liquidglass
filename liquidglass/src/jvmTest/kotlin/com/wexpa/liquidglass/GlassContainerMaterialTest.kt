@@ -95,4 +95,37 @@ class GlassContainerMaterialTest {
         }
         assertTrue(failures.isEmpty(), failures.joinToString("; "))
     }
+
+    private fun GlassLabScene.zoneColour(argb: Int): DoubleArray {
+        val out = render(IntArray(width * height) { argb })
+        val zone = zoneRows.flatMap { y -> zoneColumns.flatMap { xs -> xs.map { x -> out[y * width + x] } } }
+        return DoubleArray(3) { ch -> zone.map { ((it ushr (16 - 8 * ch)) and 0xFF).toDouble() }.average() }
+    }
+
+    @Test
+    fun aContainerKeepsColourLikeALonePiece() {
+        // The measured colour transfer (#201) over flat saturated colour: the container must carry the panel shader's
+        // correction, or its member falls back to the per-channel grey tone (12 to 102 levels away on these pages, 17
+        // November); without the bow taken on the luma, dark glass misses by up to 21.
+        val pages = listOf(
+            "red" to 0xFFFF0000.toInt(), "green" to 0xFF00FF00.toInt(), "blue" to 0xFF0000FF.toInt(),
+            "magenta" to 0xFFFF00FF.toInt(), "yellow" to 0xFFFFFF00.toInt(), "dark magenta" to 0xFF800080.toInt(),
+        )
+        for (dark in listOf(true, false)) {
+            val app = if (dark) "dark" else "light"
+            val style = GlassStyle.inApp(dark = dark)
+            val alone = GlassLabScene(style).use { s -> pages.map { s.zoneColour(it.second) } }
+            val merged = GlassLabScene(style, container = true).use { s -> pages.map { s.zoneColour(it.second) } }
+            pages.forEachIndexed { i, (name, _) ->
+                val worst = (0..2).maxOf { abs(alone[i][it] - merged[i][it]) }
+                check(
+                    worst <= 2.0,
+                    "$app over $name: alone %.1f %.1f %.1f, container %.1f %.1f %.1f".format(
+                        alone[i][0], alone[i][1], alone[i][2], merged[i][0], merged[i][1], merged[i][2],
+                    ),
+                )
+            }
+        }
+        assertTrue(failures.isEmpty(), "${failures.size} container colour checks failed:\n" + failures.joinToString("\n"))
+    }
 }

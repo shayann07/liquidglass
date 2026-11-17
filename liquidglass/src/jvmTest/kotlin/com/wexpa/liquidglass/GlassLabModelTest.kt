@@ -10,7 +10,7 @@ import kotlin.test.assertTrue
  * Regular glass against the measured model of #199 (`tools/glass_model.py`), with no private data: the
  * toolbar style at Tint 50 drawn through the production modifier over synthetic backdrops, read in the
  * interior zones the lab stills were scored in, and compared with the model over the same backdrop.
- * Gates from #200. Greys only (colour is #201); the rim band (#202) is outside the zones.
+ * Gates from #200, and the colour transfer of #201 over flat colour; the rim band (#202) is outside the zones.
  */
 class GlassLabModelTest {
     private class Case(val name: String, val values: (Int, Int) -> Int)
@@ -144,6 +144,49 @@ class GlassLabModelTest {
     }
 
     @Test
+    fun regularGlassKeepsAndBoostsColour() {
+        // The 27 points of the RGB cube at 0, 128 and 255 (#201): every channel of the interior within 2 levels of the
+        // model's colour transfer, the greys among them at the grey tone. The model itself is within 0.99 / 0.83 levels
+        // rms (at most 7.1 / 5.3) of the measured 125-point cube in sRGB, dark / light (tools/glass_model.py).
+        val levels = listOf(0, 128, 255)
+        for (dark in listOf(true, false)) {
+            val app = if (dark) "dark" else "light"
+            GlassLabScene(GlassStyle.toolbar(dark = dark)).use { s ->
+                val zone = s.zone()
+                for (r in levels) for (g in levels) for (b in levels) {
+                    val argb = (0xFF shl 24) or (r shl 16) or (g shl 8) or b
+                    val out = s.render(IntArray(s.width * s.height) { argb })
+                    val got = DoubleArray(3) { ch -> zone.map { ((out[it] ushr (16 - 8 * ch)) and 0xFF).toDouble() }.average() }
+                    val want = GlassLabModel.colour(doubleArrayOf(r.toDouble(), g.toDouble(), b.toDouble()), dark)
+                    val worst = (0..2).maxOf { abs(got[it] - want[it]) }
+                    check(
+                        worst <= 2.0,
+                        "$app colour $r,$g,$b: ours %.1f %.1f %.1f, model %.1f %.1f %.1f".format(got[0], got[1], got[2], want[0], want[1], want[2]),
+                    )
+                }
+            }
+        }
+        assertTrue(failures.isEmpty(), "${failures.size} colour gates failed:\n" + failures.joinToString("\n"))
+    }
+
+    @Test
+    fun colourTransferFollowsTheLabWeight() {
+        // Derived from detailLift (no style field): in full at Tint 50, none at 0 and 100, and none on the tab bar's
+        // earlier fit, which moves to the lab material in #203.
+        for (dark in listOf(true, false)) {
+            val full = GlassMaterial.chromaOf(GlassStyle.toolbar(dark = dark).detailLift)
+            check(full[6] == 1f && full[0] == GlassMaterial.labChromaGain(dark)[0], "${if (dark) "dark" else "light"} Tint 50: ${full.toList()}")
+            check(abs(GlassMaterial.chromaOf(GlassStyle.inApp(dark = dark, tintAmount = 75f).detailLift)[6] - 0.5f) < 1e-5f, "Tint 75 weight")
+            for (tint in listOf(0f, 100f)) {
+                check(GlassMaterial.chromaOf(GlassStyle.toolbar(dark = dark, tintAmount = tint).detailLift)[6] == 0f, "Tint $tint weight")
+            }
+            check(GlassMaterial.chromaOf(GlassStyle.toolbarEarlier(dark).detailLift).all { it == 0f }, "tab bar earlier fit")
+        }
+        check(GlassMaterial.chromaOf(GlassStyle().detailLift).all { it == 0f }, "default constructor")
+        assertTrue(failures.isEmpty(), failures.joinToString("; "))
+    }
+
+    @Test
     fun noGhostCopiesAtOtherTints() {
         // Between the measured Tint 50 and the earlier fit at 0 and 100 the material is blended (authored); the
         // detail copy must stay one soft copy throughout.
@@ -254,6 +297,55 @@ class GlassLabModelTest {
                 }
             }
         }
+        assertTrue(failures.isEmpty(), failures.joinToString("; "))
+    }
+    @Test
+    fun appearanceMorphMidpointColour() {
+        // The colour transfer is derived from detailLift (#201), and a dark-to-light morph (GlassMorph between
+        // toolbar(dark) and toolbar(light), Tint 50) passes c = 0 halfway, where the glass draws the per-channel
+        // grey tone with no transfer. Each channel's chroma (the channel minus the output's Rec. 709 luma) at the
+        // midpoint is reported against both ends. Gate: no channel overshoots both ends (its chroma further from zero
+        // than either end's by more than 0.5). Falling below both, a dip toward the grey tone, is only reported; the
+        // CHANGELOG states it (20 of these 24 channels on 17 November).
+        val pages = listOf(
+            "red" to intArrayOf(255, 0, 0), "green" to intArrayOf(0, 255, 0), "blue" to intArrayOf(0, 0, 255),
+            "magenta" to intArrayOf(255, 0, 255), "yellow" to intArrayOf(255, 255, 0), "cyan" to intArrayOf(0, 255, 255),
+            "dark magenta" to intArrayOf(128, 0, 128), "orange" to intArrayOf(255, 128, 0),
+        )
+        val dark = GlassStyle.toolbar(dark = true)
+        val light = GlassStyle.toolbar(dark = false)
+        val fractions = listOf(0f, 0.5f, 1f)
+        fun chroma(c: DoubleArray): DoubleArray {
+            val y = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
+            return DoubleArray(3) { c[it] - y }
+        }
+        var below = 0
+        GlassLabScene(dark).use { s ->
+            val zone = s.zone()
+            for ((name, rgb) in pages) {
+                val argb = (0xFF shl 24) or (rgb[0] shl 16) or (rgb[1] shl 8) or rgb[2]
+                val colours = fractions.map { f ->
+                    s.style = lerpGlassStyle(dark, light, f)
+                    val out = s.render(IntArray(s.width * s.height) { argb })
+                    DoubleArray(3) { ch -> zone.map { ((out[it] ushr (16 - 8 * ch)) and 0xFF).toDouble() }.average() }
+                }
+                val (d, m, l) = colours.map { chroma(it) }
+                for (ch in 0..2) {
+                    val lo = minOf(d[ch], l[ch])
+                    val hi = maxOf(d[ch], l[ch])
+                    val outside = m[ch] < lo - 0.5 || m[ch] > hi + 0.5
+                    // An overshoot: the midpoint's chroma further from zero than both ends, on the same side.
+                    val overshoot = abs(m[ch]) > maxOf(abs(d[ch]), abs(l[ch])) + 0.5
+                    if (outside && !overshoot) below++
+                    check(
+                        !overshoot,
+                        "morph midpoint $name channel ${"RGB"[ch]}: chroma dark %.1f, mid %.1f, light %.1f (colours %.1f / %.1f / %.1f)%s"
+                            .format(d[ch], m[ch], l[ch], colours[0][ch], colours[1][ch], colours[2][ch], if (outside) " outside both" else ""),
+                    )
+                }
+            }
+        }
+        println("LAB morph midpoint: $below channel(s) below both ends, ${failures.size} overshoot(s)")
         assertTrue(failures.isEmpty(), failures.joinToString("; "))
     }
 }

@@ -33,7 +33,7 @@ class GlassShaderTest {
             .toSet()
 
         val setByHost = setOf(
-            "uHeldEdgeRecovery", "uHeldEdgeTone", "uHeldGlowFloor", "uSoftDetail", "uDetailLift", "uToneCurve", "uDetailCross", "uHeldGlowReach", "uFoldCorners", "uRimMirror", "uRimMirrorGain",
+            "uHeldEdgeRecovery", "uHeldEdgeTone", "uHeldGlowFloor", "uSoftDetail", "uDetailLift", "uToneCurve", "uDetailCross", "uChromaGain", "uChromaSlope", "uChromaWeight", "uHeldGlowReach", "uFoldCorners", "uRimMirror", "uRimMirrorGain",
             "uSize", "uRadii", "uRefractBand", "uBandBottom", "uBackdrop", "uAberration", "uBase", "uBlur", "uIor", "uBevelPower", "uMirror",
             "uFresnel", "uHiChroma", "uLegibility", "uCornerPower", "uTouch", "uTouchAmt",
             "uMaterialize", "uFrost", "uContrast", "uDebugCoverage", "uShapeKind", "uFieldRange", "uFieldScale", "uRefractDepth", "uBevel",
@@ -139,6 +139,7 @@ class GlassContainerShaderTest {
             "uInnerShadow", "uAdaptive", "uCounterLight", "uEdgeLight", "uBevelPeak", "uEdgeShadow", "uOuterContour", "uRimSoft", "uTintAbsorb",
             "uProfile", "uFormation", "uHeldLens", "uRestMap", "uWideStrip", "uWideScale", "uFineShare", "uWideKernel", "uLift", "uLiftAdapt",
             "uDetailLift", "uToneCurve", "uDetailCross",
+            "uChromaGain", "uChromaSlope", "uChromaWeight",
         )
 
         val unset = declared - setByHost

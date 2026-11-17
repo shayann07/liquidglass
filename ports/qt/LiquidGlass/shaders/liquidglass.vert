@@ -50,6 +50,9 @@ layout(std140, binding = 0) uniform buf {
     float uDetailLift;
     float uToneCurve;
     float uDetailCross;
+    vec3 uChromaGain;
+    vec3 uChromaSlope;
+    float uChromaWeight;
     float uWideKernel;
     float uLift;
     float uLiftAdapt;

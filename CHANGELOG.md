@@ -21,6 +21,29 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   Default look changed: capsules on the measured map (`Glass.Regular`, `inApp`, `toolbar`, container members and custom
   styles with `restMap = Measured`) fold content along their straight edges at rest, as their round ends already did,
   instead of hooking where the round end begins; cards and other shapes are unchanged (#216). [Evidence](review/atlas/cap-junction-2026-11-17/README.md).
+- Regular glass now keeps and boosts colour the way iOS does (#201). Over flat colour the glass applies its grey tone to the
+  colour's Rec. 709 luma and keeps the chroma about it at a measured gain, `tone(y) + (g0 + g1 y) (x - y)` per channel
+  (dark g0 1.317 / 1.256 / 1.314, g1 -0.427 / -0.351 / -0.429; light g0 0.988 / 0.952 / 0.979, g1 -0.076 / 0.028 / -0.045),
+  where it used to run each channel through the grey curve, which missed the measured 125-point RGB cube by 36 (dark) and
+  29 (light) levels rms. The cube was captured in Display P3 and is converted once to sRGB, the library's working space, and
+  clipped to the sRGB gamut. Rendered through the toolbar at Tint 50: the cube within 1.05 / 0.85 levels rms (at most 7.1 /
+  4.8; gate 3 / 10), the eight colour-pair stripe stills within 1.66 / 1.53 (gate 5), the 89 grey lab stills unchanged at 1.43
+  / 1.42. The issue proposed one chroma gain; the gains are per channel because one shared gain reached 9.5 levels in the model
+  and 10.1 rendered on dark magenta, failing the cube's max-10 gate (1.11 / 0.94 rms in the model). The detail mix stays per
+  channel (on luma it misses the stripe stills by 7-31 levels). Greys are unchanged by construction. The transfer is derived
+  from `GlassStyle.detailLift` (sign for the appearance, `abs(detailLift) / 0.22` clamped to 0-1 for the weight), so there is no
+  new style field; the authored Tint blend fades it toward the per-channel tone at Tint 0 and 100, and the tab bar's earlier fit
+  is unchanged (#203). Merged glass (`GlassEffectContainer`) carries the same block, bow included; a container member reads
+  within 2 levels per channel of a lone piece over six saturated pages in both appearances. Ports: Skia, npm canvas engine,
+  React Native, Qt, Unity, .NET and Flutter set the three uniforms on every call, zeros included. docs/1 replay against main
+  after #212 on the same GPU: 0 of 1934 frames differ (every glass there has weight 0).
+  Default look changed: Regular glass over coloured content everywhere it is used (`Glass.Regular`, `GlassStyle.Regular`,
+  `inApp`, `toolbar`, the Material 3 control, toolbar and panel glass) at every Tint except 0 and 100, and custom styles with a
+  non-zero `detailLift`; colours read more saturated, most on dark glass (over pure red, dark glass reads 255, 17, 15 where it
+  read 185, 32, 32). A morph between dark and light Regular glass (`GlassMorph`, `lerpGlassStyle`) passes `detailLift` 0 at its
+  midpoint, where the transfer is off: over saturated colour the midpoint reads less saturated than both ends (20 of 24
+  channels over eight saturated pages; over pure red dark 255, 17, 15, midpoint 222, 82, 82, light 255, 108, 107), and never
+  more saturated than both. [Evidence](review/atlas/colour-transfer-2026-11-17/README.md).
 - Calm taps of two tabs or more keep the formed lens's look until they settle (#70). Such a tap forms the selector past
   half (about 0.76); in the frame its formation fell back below half, the transit fold switched from the formed lens's
   map to the measured one, and the destination's ink, stretched into teardrops along the top rim, vanished in one frame.

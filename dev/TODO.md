@@ -1,3 +1,13 @@
+## #201 colour transfer (17 November, `feat/201-colour`)
+
+- [x] Fit (per-channel gains, sRGB), shader, 27 cube assertions, private gates (cube, colour-pair stripes, grey lab).
+- [x] Ports: every port sets the three uniforms on every call, zeros included; generated shaders carry the correction.
+- [x] Merge main after #210; container shader carries the block; saturated container guard; zero-diff docs/1 replay (0 frames).
+- [x] Merge main after #212; final suite (520, 0 failures), material3, ABI, scores and replay against f212 (0 of 1934).
+- [ ] Owner review: derivation from `detailLift` (a dark-to-light morph dips toward the grey tone at its midpoint: 20 of 24
+  channels below both ends, numbers in GlassLabModelTest.appearanceMorphMidpointColour).
+- [x] Pixel 7 capture of `ColourTransferActivity` (18 Nov): 0 levels in all 18 cells against the desktop render; #213 merged.
+
 ## #200 measured three-term material (16 November, `feat/200-material-model`)
 
 - [x] Re-score the private lab gate on the final commit: 1.43 / 1.42 on 9730618e.

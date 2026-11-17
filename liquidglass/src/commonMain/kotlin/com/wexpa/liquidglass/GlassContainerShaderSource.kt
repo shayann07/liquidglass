@@ -68,6 +68,9 @@ uniform float   uDetailCross;  // 1 the measured four-tap detail copy, 0 the sca
 uniform float   uWideKernel;   // px sigma of the wide kernel; also the fine term's spread across the element
 uniform float   uLift;         // fixed luminance lift after the tint
 uniform float   uLiftAdapt;    // how far the lift falls with the wide-kernel luma
+uniform float3  uChromaGain;   // the measured colour transfer (#201), as in the panel shader
+uniform float3  uChromaSlope;
+uniform float   uChromaWeight;
 
 $GLASS_OKLAB_SOURCE
 
@@ -394,10 +397,22 @@ half4 main(float2 coord) {
         ? half3(uTint.rgb)
         : toneMappedTint(half3(uTint.rgb), bgLuma, uAdaptive);
     half3 col = mix(bg, tinted, half(clamp(uTint.a, 0.0, 1.0)));
-    // The measured dark tone curve's bow, as in the panel shader.
+    // The measured dark tone curve's bow, as in the panel shader. A container has no materialise fade and no
+    // tint mask, so the panel's mat * tintCoverage is 1 here.
     if (uToneCurve != 0.0) {
         half3 x = clamp(bg, half3(0.0), half3(1.0));
         col += half(uToneCurve) * x * (half3(1.0) - x);
+    }
+    // The measured colour transfer (#201), the panel shader's block: the blend's chroma gain 1 - uTint.a
+    // becomes the measured per-channel one and the bow is taken on the luma. Zero over grey.
+    if (uChromaWeight > 0.0) {
+        half3 x = clamp(bg, half3(0.0), half3(1.0));
+        float y = luma(x);
+        half3 d = x - half3(half(y));
+        float bow = uToneCurve;
+        half3 gain = half3(uChromaGain + uChromaSlope * y) - half3(half(1.0 - clamp(uTint.a, 0.0, 1.0)));
+        half3 chroma = d * gain - half(bow) * d * (half3(half(1.0 - y)) - x);
+        col += half(uChromaWeight) * chroma;
     }
     float lift = uLift - uLiftAdapt * luma(wide);
     col += half3(half((uLiftAdapt > 0.0) ? max(lift, 0.0) : lift));

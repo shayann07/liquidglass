@@ -92,6 +92,8 @@ internal object GlassRender {
         density: Float = 3f,
         /** `uDetailCross`: the four-tap detail kernel, chosen from the reach as the host does ([GlassMaterial.usesDetailCross]). */
         detailCross: Float = if (GlassMaterial.usesDetailCross((blur / density).dp)) 1f else 0f,
+        /** The measured colour transfer the host derives from [detailLift] ([GlassMaterial.chromaOf]). */
+        chroma: FloatArray = GlassMaterial.chromaOf(detailLift),
         lift: Float = 0f,
         liftAdapt: Float = 0f,
         bevel: Float = 2f,
@@ -228,6 +230,9 @@ internal object GlassRender {
         b.uniform("uDetailLift", detailLift)
         b.uniform("uToneCurve", toneCurve)
         b.uniform("uDetailCross", detailCross)
+        b.uniform("uChromaGain", chroma[0], chroma[1], chroma[2])
+        b.uniform("uChromaSlope", chroma[3], chroma[4], chroma[5])
+        b.uniform("uChromaWeight", chroma[6])
         b.uniform("uWideKernel", wide)
         b.uniform("uLift", lift)
         b.uniform("uLiftAdapt", liftAdapt)

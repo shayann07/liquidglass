@@ -1,3 +1,11 @@
+## RESUME HERE (17 November): #201 colour transfer, PR open
+
+- `feat/201-colour` merged with main after #212, pushed, PR "Glass colour transfer: measured per-channel chroma gain (#201)".
+  `tone(y) + (g0 + g1 y) (x - y)` per channel after the tint blend, uniforms `uChromaGain`, `uChromaSlope`, `uChromaWeight`,
+  derived from `detailLift` (no style field); panel and container shaders and every port. Gates and numbers in PROGRESS.md.
+- Done 18 Nov: Pixel 7 capture of `ColourTransferActivity` (0 levels in all 18 cells against the desktop render); #213
+  merged. Open: owner review of the morph-midpoint dip.
+
 ## RESUME HERE (16 November): #200 three-term material, merged as #210
 - 17 November: merged as #210 (8b303111). Late changes: merged glass (`GlassEffectContainer`) now draws the three-term material too; the detail kernel and the legibility term fade as the larger of the fine share and `|detailLift|` goes from 0.10 to 0.02 instead of switching off at one tint (worst adjacent whole-tint step 1.80 levels rms; main had 18.4 at Tint 92 to 93); remaining container parity is #211; #190 and #200 closed by #210.
 

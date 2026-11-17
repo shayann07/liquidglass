@@ -49,6 +49,9 @@ layout(std140, binding = 0) uniform buf {
     float uDetailLift;
     float uToneCurve;
     float uDetailCross;
+    vec3 uChromaGain;
+    vec3 uChromaSlope;
+    float uChromaWeight;
     float uWideKernel;
     float uLift;
     float uLiftAdapt;
@@ -1175,6 +1178,20 @@ vec4 glassMain(vec2 coord) {
     if (uToneCurve != 0.0) {
         vec3 x = clamp(bg, vec3(0.0), vec3(1.0));
         col += float(uToneCurve * mat * tintCoverage) * x * (vec3(1.0) - x);
+    }
+    // The measured colour transfer (#201): over flat colour iOS keeps and boosts saturation. The glass is
+    // tone(y) + (g0 + g1 y) (x - y) per channel about the luma y of the material, where the tone path above
+    // runs each channel through the grey curve. So the difference is added here: the blend's chroma gain
+    // (1 - strength) becomes the measured one and the bow is taken on the luma, not per channel. It is zero
+    // over grey.
+    if (uChromaWeight > 0.0) {
+        vec3 x = clamp(bg, vec3(0.0), vec3(1.0));
+        float y = luma(x);
+        vec3 d = x - vec3(float(y));
+        float bow = uToneCurve * mat * tintCoverage;
+        vec3 gain = vec3(uChromaGain + uChromaSlope * y) - vec3(float(1.0 - strength));
+        vec3 chroma = d * gain - float(bow) * d * (vec3(float(1.0 - y)) - x);
+        col += float(uChromaWeight * mat * tintCoverage) * chroma;
     }
     // The measured lift: the dark in-app material is black at its opacity plus a fixed 35/255;
     // the system backdrops lift by 142/255 minus 0.864 of the mean luma behind them, which is

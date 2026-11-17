@@ -21,8 +21,23 @@ Per channel, in display code values 0-255, for the interior of the glass (away f
 
 Scores of this model (rms in levels of 255): the 89 fitted stills 1.31 dark / 1.30 light; held out, checkers
 1.2-2.3, the calibration chart at 7 offsets 0.7-2.8 (colour-bar row excluded), the Photos toolbar 0.9 / 2.5.
-Not covered: colour (#201; per-channel tone misses the RGB cube by 26-32 rms), the rim band (#202), the tab bar
-(#203), the menu panel (#204), tints other than 50 (#208).
+Colour (#201). Over colour the mix above runs per channel as written, and the tone becomes a colour transfer
+about the Rec. 709 luma y of the sRGB code values, with the chroma kept and boosted:
+
+    y   = 0.2126 R + 0.7152 G + 0.0722 B
+    out = clip(tone(y) + (g0 + g1 y / 255) (lin - y), 0, 255)       per channel, g0 and g1 per channel
+
+    g0, g1  CHROMA_DARK / CHROMA_LIGHT (R, G, B), fitted on the 125-point RGB cube (5 levels per channel, flat colour)
+
+The cube was drawn in sRGB and captured in Display P3 code values. It is converted once to sRGB (P3 code values to
+linear light, the P3-to-sRGB matrix through D65 XYZ, sRGB encoding) and clipped to the sRGB gamut, which is all an
+sRGB render can show. In sRGB the transfer is within 0.99 levels rms (at most 7.1) of the cube on dark glass and
+0.83 (at most 5.3) on light; per-channel tone misses it by 36 / 29. Read back in P3 it is 4.0 / 2.9 rms, of which
+3.9 / 2.8 is the sRGB gamut itself. Held out, 18 colours from another lab program: 1.5 / 1.0 rms (at most 7.1 / 5.3).
+One gain for all three channels does almost as well (1.11 / 0.94 rms) but reaches 9.5 levels on dark magenta. Running
+the detail term on luma instead of per channel misses the colour-pair stripe stills by 7-31 levels; per channel, 1.5.
+
+Not covered: the rim band (#202), the tab bar (#203), the menu panel (#204), tints other than 50 (#208).
 
     python tools/glass_model.py            prints the predictions GlassLabModelTest asserts
 """
@@ -37,6 +52,9 @@ DARK_TONE = [32, 47, 62, 76, 89, 102, 113, 124, 134, 143, 152, 159, 166, 172, 17
 # Fit of DARK_TONE: rms 0.22, at most 0.42 levels from any measured point.
 DARK_QUAD = (31.72, 254.40, -101.01)
 LIGHT_TONE = (132.5, 0.502)
+LUMA = (0.2126, 0.7152, 0.0722)
+CHROMA_DARK = ((1.317, 1.256, 1.314), (-0.427, -0.351, -0.429))
+CHROMA_LIGHT = ((0.988, 0.952, 0.979), (-0.076, 0.028, -0.045))
 
 
 def dark_tone(v):
@@ -50,6 +68,14 @@ def light_tone(v):
 
 def tone(v, dark):
     return dark_tone(v) if dark else light_tone(v)
+
+
+def colour(rgb, dark):
+    """The transfer over a flat colour, sRGB code values 0-255 in and out (#201). Over grey it is tone()."""
+    x = [min(max(v, 0.0), 255.0) for v in rgb]
+    y = sum(w * v for w, v in zip(LUMA, x))
+    g0, g1 = CHROMA_DARK if dark else CHROMA_LIGHT
+    return [min(max(tone(y, dark) + (a + b * y / 255.0) * (v - y), 0.0), 255.0) for v, a, b in zip(x, g0, g1)]
 
 
 def gaussian_1d(row, sigma):
@@ -93,3 +119,5 @@ if __name__ == '__main__':
             for p in (4, 8, 16, 64):
                 a, b = plateaus(predict_1d(stripes(lo, hi, p), dark), p)
                 print(f'{app} stripes {lo}-{hi} period {p}: low {a:.1f} high {b:.1f}')
+        for rgb in ((255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 0, 255), (128, 128, 128)):
+            print(f'{app} colour {rgb}: ' + ' '.join(f'{v:.1f}' for v in colour(rgb, dark)))

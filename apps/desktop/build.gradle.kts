@@ -86,4 +86,6 @@ tasks.withType<Test>().configureEach {
     if (providers.gradleProperty("atlas.skipShowcase").getOrElse("false").toBoolean()) {
         filter { excludeTestsMatching("*MaterialShowcaseRenderTest") }
     }
+    // The colour-transfer evidence renders (#201) draw only when asked for: -Patlas.colourTransfer=true.
+    providers.gradleProperty("atlas.colourTransfer").orNull?.let { systemProperty("atlas.colourTransfer", it) }
 }

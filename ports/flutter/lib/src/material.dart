@@ -27,6 +27,18 @@ double _labLift(bool dark) => dark ? 31.72 / 255 : 5.5 / 255;
 double _labDetailShare(bool dark) => dark ? .277 : .273;
 double _labDetailLift(bool dark) => dark ? -.22 : .22;
 double _labToneCurve(bool dark) => dark ? 101.01 / 255 : 0;
+// GlassMaterial.labChromaGain / labChromaSlope (#201): the colour transfer's g0 and g1 per channel (R, G, B).
+List<double> _labChromaGain(bool dark) => dark ? [1.317, 1.256, 1.314] : [.988, .952, .979];
+List<double> _labChromaSlope(bool dark) => dark ? [-.427, -.351, -.429] : [-.076, .028, -.045];
+
+/// GlassMaterial.chromaOf: [g0 R, G, B, g1 R, G, B, weight] from GlassStyle.detailLift. The sign picks the appearance
+/// and |c| / |labDetailLift| is the weight; zero lift is seven zeros (the per-channel tone alone).
+List<double> _chromaOf(double detailLift) {
+  final dark = detailLift < 0;
+  final weight = (detailLift.abs() / _labDetailLift(dark).abs()).clamp(0.0, 1.0);
+  if (weight <= 0) return List<double>.filled(7, 0);
+  return [..._labChromaGain(dark), ..._labChromaSlope(dark), weight];
+}
 
 // Compose's Color lerp runs in Oklab and stores 8 bits per channel again; the Oklab intermediate keeps alpha in
 // 10 bits, truncated, which is the step the golden values show.
@@ -153,6 +165,10 @@ Map<String, List<double>> glassMaterialUniforms(GlassMaterial m, Size size, doub
     set('uLegibility', [mix(.6, 0)]);
     set('uSoftDetail', [mix(0, 1)]);
   }
+  final chroma = _chromaOf(values['uDetailLift']?[0] ?? 0);
+  set('uChromaGain', chroma.sublist(0, 3));
+  set('uChromaSlope', chroma.sublist(3, 6));
+  set('uChromaWeight', [chroma[6]]);
   final tint = m.tint;
   if (tint != null) {
     double q(double c) => (c * 255).roundToDouble() / 255;

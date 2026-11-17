@@ -243,15 +243,22 @@ them is #208.
 - **6 px stripes.** Over 6 px stripes the toolbar pill reads 6.9 (dark) and 4.5 (light) levels rms from the
   measured stills; 2 px bars read 3.7 and 4.5. The four-tap detail kernel keeps 0, 50, 75 and 85 %
   of 2, 4, 6 and 8 px stripes where iOS keeps 0, 49, 73 and about 100 %.
-- **Colour** is unchanged until #201, and the **rim band** is #202.
+- **Colour** (#201, section 2f) is measured at Tint 50 only and, like the rest, blends toward the
+  per-channel tone at 0 and 100 (authored). It works in sRGB: where iOS shows a saturated colour
+  outside the sRGB gamut (dark glass over pure red reads 255, 62, 46 in Display P3), the library
+  shows the nearest sRGB colour, and the zero channels of such colours read up to 7 levels from iOS.
+  The transfer rides on `detailLift`, so a style morphing between the light and dark lab materials
+  passes through the per-channel tone at the midpoint, where c is zero. The **rim band** is #202.
 - **The tab bar** still uses the earlier toolbar fit (`GlassTabBarStyle.Measured`) until #203. It
   already runs the new shader (no along-axis term), as do the V3 tab bar and merged glass.
-- **Merged glass** (`GlassEffectContainer`) now draws the same three-term material, but still lacks
-  the legibility term, the rim fringe, `uTintAbsorb`, the rotated `softDetail` scatter and
-  `Glass.light`. Tracked by #211.
+- **Merged glass** (`GlassEffectContainer`) now draws the same three-term material and colour
+  transfer, but still lacks the legibility term, the rim fringe, `uTintAbsorb`, the rotated
+  `softDetail` scatter and `Glass.light`. Tracked by #211.
 - **Ports.** The npm HTML/CSS engine and `ports/web` keep their own two-kernel approximation and are
   not ported to the three-term material. The Flutter Dart port carries the change but has not been
-  compiled.
+  compiled. Every port that carries the three-term material also carries the colour transfer (#201):
+  each sets `uChromaGain`, `uChromaSlope` and `uChromaWeight` from the detail lift on every call, zeros
+  included, so Qt, which keeps uniforms between calls, never keeps a stale value.
 
 ## The detail's sharp axis is assumed to be the element's long one (superseded)
 
