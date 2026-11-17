@@ -5,7 +5,7 @@ import CanvasKitInit from 'canvaskit-wasm';
 import {createGlassPainter} from 'liquidglass-skia-preview';
 import {createCalmInteraction} from '../web/interaction.mjs';
 import {createBackdropSampler} from './backdrop.mjs';
-import {inAppMaterialUniforms} from './material.mjs';
+import {inAppMaterialUniforms, chromaOf} from './material.mjs';
 import {compileGlassEffects} from './renderer.mjs';
 
 const kit = await CanvasKitInit();
@@ -44,6 +44,27 @@ test('in-app surface parameters agree with the actual Kotlin factory across both
         expected.forEach((x,i)=>assert(Math.abs(x-got[i])<=1e-6,`${key}[${i}] dark${dark} tint${tintAmount}: ${got[i]} vs Kotlin${x}`));
       }
     }
+  } finally {effects.dispose();}
+});
+
+test('the colour transfer uniforms are GlassMaterial.chromaOf: dark, light and Tint 0 (#201)', () => {
+  const effects=compileGlassEffects(kit,sources);
+  try {
+    const near=(got,want,label)=>want.forEach((x,i)=>assert(Math.abs(x-got[i])<=1e-6,`${label}[${i}]: ${got[i]} vs ${x}`));
+    const at=(dark,tintAmount)=>inAppMaterialUniforms(effects,{width:240,height:80,dark,tintAmount});
+    const dark=at(true,50),light=at(false,50),flat=at(true,0),flatLight=at(false,0);
+    near(dark.uChromaGain,[1.317,1.256,1.314],'dark gain');
+    near(dark.uChromaSlope,[-.427,-.351,-.429],'dark slope');
+    near([dark.uChromaWeight],[1],'dark weight');
+    near(light.uChromaGain,[.988,.952,.979],'light gain');
+    near(light.uChromaSlope,[-.076,.028,-.045],'light slope');
+    near([light.uChromaWeight],[1],'light weight');
+    for(const m of [flat,flatLight]) {
+      near(m.uChromaGain,[0,0,0],'Tint 0 gain');near(m.uChromaSlope,[0,0,0],'Tint 0 slope');
+      assert.equal(m.uChromaWeight,0);
+    }
+    assert.deepEqual(chromaOf(0),Array(7).fill(0));
+    near(chromaOf(-.11),[1.317,1.256,1.314,-.427,-.351,-.429,.5],'half-weight dark');
   } finally {effects.dispose();}
 });
 

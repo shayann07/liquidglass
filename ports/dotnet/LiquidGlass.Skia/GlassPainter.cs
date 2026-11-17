@@ -117,7 +117,21 @@ public sealed class GlassPainter : IDisposable
         Set(v, "uScale", Math.Clamp((Math.Min(bounds.Width, bounds.Height) / o.Density - 56) / 264, 0, 1));
         Set(v, "uMaterialize", o.Materialize); Set(v, "uFrost", o.ReducedTransparency); Set(v, "uContrast", o.IncreasedContrast);
         TowardLab(v, o);
+        // The colour transfer (#201), always written, zeros included.
+        var chroma = ChromaOf(v["uDetailLift"][0]);
+        Set(v, "uChromaGain", chroma[0], chroma[1], chroma[2]); Set(v, "uChromaSlope", chroma[3], chroma[4], chroma[5]);
+        Set(v, "uChromaWeight", chroma[6]);
         return v;
+    }
+
+    // GlassMaterial.chromaOf: g0 (R, G, B), g1 (R, G, B) and the weight from GlassStyle.detailLift. The sign picks the
+    // appearance and |c| / |labDetailLift| is the weight; zero lift is seven zeros (the per-channel tone alone).
+    internal static float[] ChromaOf(float detailLift)
+    {
+        var dark = detailLift < 0;
+        var weight = Math.Clamp(MathF.Abs(detailLift) / .22f, 0, 1);
+        if (weight <= 0) return new float[7];
+        return dark ? [1.317f, 1.256f, 1.314f, -.427f, -.351f, -.429f, weight] : [.988f, .952f, .979f, -.076f, .028f, -.045f, weight];
     }
 
     // GlassStyle.towardLab: the lab fit (#199, #200) laid over the earlier fit by a weight that is 1 at the default

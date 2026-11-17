@@ -18,6 +18,17 @@ void Throws<T>(Action action) where T : Exception
     try { action(); } catch (T) { return; }
     throw new Exception($"Expected {typeof(T).Name}");
 }
+// The lab fit's tone and colour transfer over flat sRGB colour (GlassMaterial.lab*, chromaOf; #200, #201): tone(y) +
+// (g0 + g1 y) (x - y) per channel about the Rec. 709 luma y of the code values, clipped; dark tone 31.72 + 254.40 y - 101.01 y^2
+// in levels, light 132.5 + 0.502 y. Greys are unchanged by the transfer.
+static double[] Expected(bool dark, byte r, byte g, byte b)
+{
+    double[] x = [r / 255.0, g / 255.0, b / 255.0];
+    double[] g0 = dark ? [1.317, 1.256, 1.314] : [.988, .952, .979], g1 = dark ? [-.427, -.351, -.429] : [-.076, .028, -.045];
+    var y = .2126 * x[0] + .7152 * x[1] + .0722 * x[2];
+    var tone = dark ? 31.72 + 254.40 * y - 101.01 * y * y : 132.5 + .502 * y * 255;
+    return x.Select((c, i) => Math.Clamp(tone + 255 * (g0[i] + g1[i] * y) * (c - y), 0, 255)).ToArray();
+}
 SKImage Image(int width, int height, Func<int, int, SKColor> pixel)
 {
     using var bitmap = new SKBitmap(new SKImageInfo(width, height, SKColorType.Rgba8888, SKAlphaType.Opaque));
@@ -110,13 +121,11 @@ using (var second = Image(320, 200, (_, _) => new SKColor(180, 130, 90)))
     var bounds = SKRect.Create(40, 40, 200, 100);
     painter.SetSource(first); surface.Canvas.DrawImage(first, 0, 0, new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.None)); painter.DrawSurface(surface.Canvas, bounds, 20, new(Dark: true));
     var a = Pixels(surface, 320, 200); var p = (90 * 320 + 140) * 4;
-    // The lab fit's dark tone over a flat grey x (GlassMaterial.lab*, #200): 31.72 + 254.40 x - 101.01 x^2 in levels. It was
-    // (32 + 32 c) * (1 - 115 / 255) + 35 under the earlier fit.
+    // The lab fit's dark material over the flat colour (32, 64, 96): the tone curve plus the colour transfer (#200, #201). It was
+    // the per-channel tone 31.72 + 254.40 x - 101.01 x^2 before the transfer.
+    var darkWant = Expected(true, 32, 64, 96);
     for (var c = 0; c < 3; c++)
-    {
-        var x = (32 + 32 * c) / 255.0;
-        Check(Math.Abs(a[p + c] - (31.72 + 254.40 * x - 101.01 * x * x)) <= 2, $"Dark material unexpected measured tone: {a[p + c]}");
-    }
+        Check(Math.Abs(a[p + c] - darkWant[c]) <= 3, $"Dark material unexpected measured tone: {a[p + c]} vs {darkWant[c]:0.#}");
     surface.Canvas.DrawImage(first, 0, 0, new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.None)); painter.DrawSurface(surface.Canvas, bounds, 20, new(Dark: true));
     Check(a.SequenceEqual(Pixels(surface, 320, 200)), "Cached repeated draw changed pixels");
     painter.SetSource(second); surface.Canvas.DrawImage(second, 0, 0, new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.None)); painter.DrawSurface(surface.Canvas, bounds, 20, new(Dark: true));
@@ -132,6 +141,29 @@ using (var second = Image(320, 200, (_, _) => new SKColor(180, 130, 90)))
     Save(surface, "source-replacement.png");
 }
 results.Add(new { check = "in-app material, cached redraw, source replacement, partial surface", passed = true });
+
+// The colour transfer (#201), over flat colour at the lab's Tint 50: tone(y) + (g0 + g1 y) (x - y) per channel, about the
+// Rec. 709 luma y of the sRGB code values (GlassMaterial.chromaOf), clipped. The checks at Tint 50 and the zeros at Tint 0 are the Kotlin chromaOf's.
+{
+    byte[] RenderFlat(bool dark, float tintAmount, byte r, byte g, byte b)
+    {
+        using var surface = SKSurface.Create(new SKImageInfo(320, 200, SKColorType.Rgba8888, SKAlphaType.Premul));
+        using var painter = new GlassPainter();
+        using var image = Image(320, 200, (_, _) => new SKColor(r, g, b));
+        painter.SetSource(image);
+        surface.Canvas.DrawImage(image, 0, 0, new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.None));
+        painter.DrawSurface(surface.Canvas, SKRect.Create(40, 40, 200, 100), 20, new(Dark: dark, TintAmount: tintAmount));
+        return Pixels(surface, 320, 200);
+    }
+    var at = (90 * 320 + 140) * 4;
+    foreach (var dark in new[] { true, false })
+    {
+        var pixels = RenderFlat(dark, 50, 200, 60, 40);
+        var want = Expected(dark, 200, 60, 40);
+        for (var c = 0; c < 3; c++)
+            Check(Math.Abs(pixels[at + c] - want[c]) <= 4, $"{(dark ? "Dark" : "Light")} colour transfer channel {c}: {pixels[at + c]} vs {want[c]:0.#}");
+    }
+}
 
 using (var surface = SKSurface.Create(new SKImageInfo(80, 80, SKColorType.Rgba8888, SKAlphaType.Premul)))
 using (var painter = new GlassPainter())

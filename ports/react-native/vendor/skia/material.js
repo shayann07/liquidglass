@@ -23,6 +23,17 @@ const labLift=dark=>dark?31.72/255:5.5/255;
 const labDetailShare=dark=>dark?.277:.273;
 const labDetailLift=dark=>dark?-.22:.22;
 const labToneCurve=dark=>dark?101.01/255:0;
+// GlassMaterial.labChromaGain / labChromaSlope (#201): the colour transfer's g0 and g1 per channel (R, G, B).
+const labChromaGain=dark=>dark?[1.317,1.256,1.314]:[.988,.952,.979];
+const labChromaSlope=dark=>dark?[-.427,-.351,-.429]:[-.076,.028,-.045];
+/** GlassMaterial.chromaOf: [g0 R,G,B, g1 R,G,B, weight] from GlassStyle.detailLift. The sign picks the appearance and
+ * |c| / |labDetailLift| is the weight; zero lift is seven zeros (the per-channel tone alone). */
+export function chromaOf(detailLift) {
+  const r=Math.fround,dark=detailLift<0;
+  const weight=Math.min(1,Math.max(0,r(r(Math.abs(r(detailLift)))/r(Math.abs(labDetailLift(dark))))));
+  if(weight<=0) return Array(7).fill(0);
+  return [...labChromaGain(dark).map(r),...labChromaSlope(dark).map(r),weight];
+}
 // Compose's Color lerp runs in Oklab and stores 8 bits per channel again (androidx.compose.ui.graphics.lerp).
 // The Oklab intermediate keeps alpha in 10 bits, truncated: that is the step the golden values show.
 const clamp01=x=>Math.min(1,Math.max(0,x));
@@ -104,6 +115,8 @@ export function inAppMaterialUniforms(effects, {width,height,pad=2,radius=20,den
       uLegibility:f(values.uLegibility,0),uSoftDetail:f(values.uSoftDetail,1),
     });
   }
+  const chroma=chromaOf(values.uDetailLift??0);
+  Object.assign(values,{uChromaGain:chroma.slice(0,3),uChromaSlope:chroma.slice(3,6),uChromaWeight:chroma[6]});
   if(tintColor)values.uTint=tintColor.map(x=>Math.round(x*255)/255);
   return values;
 }

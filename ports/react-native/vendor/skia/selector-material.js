@@ -2,6 +2,7 @@
 // lens and bar styles (exported by GlassSelectorPortMaterialTest) blended by the same rules as
 // glassSelectorMaterial / glassSelectorFormation in GlassTabBar.kt.
 import {CALM_SELECTOR_MATERIAL_DATA as DATA} from './selector-material-data.js';
+import {chromaOf} from './material.js';
 
 /** Decisions, not quantities: they snap at the midpoint (lerpGlassStyle). */
 const SNAP = new Set(['uProfile', 'uRestMap', 'uHeldInk']);
@@ -30,10 +31,16 @@ function lerpStyle(style, t) {
   for (const key of Object.keys(a)) {
     if (key === 'uTint') out.uTint = lerpTint(a.uTint, b.uTint, t);
     else if (SNAP.has(key) || (OPTIONAL_DP.has(key) && (a[key] < 0 || b[key] < 0))) out[key] = t < .5 ? a[key] : b[key];
+    else if (key.startsWith('uChroma')) continue; // derived below from the blended detail lift
     else out[key] = t <= 0 ? a[key] : t >= 1 ? b[key] : a[key] + (b[key] - a[key]) * t;
   }
   // The four-tap detail kernel is chosen from the blended reach in dp, never blended itself (LiquidGlass.kt).
   if ('uDetailCross' in a) out.uDetailCross = out.uBlur > 0 && out.uBlur <= DETAIL_REACH ? 1 : 0;
+  // The colour transfer is derived from the blended detail lift, as LiquidGlass.kt does (GlassMaterial.chromaOf).
+  if ('uChromaGain' in a) {
+    const chroma = chromaOf(out.uDetailLift);
+    Object.assign(out, {uChromaGain: chroma.slice(0, 3), uChromaSlope: chroma.slice(3, 6), uChromaWeight: chroma[6]});
+  }
   // An ink split that follows dispersion snaps with the identity (GlassMorph `s`).
   const follows = t < .5 ? style.pillInkFollows : style.lensInkFollows;
   if (style.pillInkFollows || style.lensInkFollows) out.uInkSplit = follows ? out.uAberration : (t < .5 ? a : b).uInkSplit;

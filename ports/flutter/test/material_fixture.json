@@ -143,6 +143,19 @@
    "uDetailCross": [
     1
    ],
+   "uChromaGain": [
+    0.9879999756813049,
+    0.9520000219345093,
+    0.9789999723434448
+   ],
+   "uChromaSlope": [
+    -0.07599999755620956,
+    0.02800000086426735,
+    -0.04500000178813934
+   ],
+   "uChromaWeight": [
+    1
+   ],
    "uWideKernel": [
     40.6875
    ],
@@ -444,6 +457,19 @@
     0.3961176470588236
    ],
    "uDetailCross": [
+    1
+   ],
+   "uChromaGain": [
+    1.3170000314712524,
+    1.25600004196167,
+    1.3140000104904175
+   ],
+   "uChromaSlope": [
+    -0.4269999861717224,
+    -0.35100001096725464,
+    -0.42899999022483826
+   ],
+   "uChromaWeight": [
     1
    ],
    "uWideKernel": [
@@ -758,6 +784,19 @@
    "uDetailCross": [
     1
    ],
+   "uChromaGain": [
+    0.9879999756813049,
+    0.9520000219345093,
+    0.9789999723434448
+   ],
+   "uChromaSlope": [
+    -0.07599999755620956,
+    0.02800000086426735,
+    -0.04500000178813934
+   ],
+   "uChromaWeight": [
+    0.6000000238418579
+   ],
    "uWideKernel": [
     13.300000190734863
    ],
@@ -863,6 +902,638 @@
    ],
    "uContrast": [
     0.75
+   ],
+   "uDebugCoverage": [
+    0
+   ],
+   "uBody": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "uBodyY": [
+    0
+   ],
+   "uBodyKind": [
+    0
+   ],
+   "uPoseA": [
+    1,
+    0,
+    0,
+    1
+   ],
+   "uPoseAInv": [
+    1,
+    0,
+    0,
+    1
+   ],
+   "uPoseC": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "uPoseD": [
+    1,
+    1,
+    1,
+    0
+   ],
+   "uPoseE": [
+    0,
+    3,
+    0,
+    0
+   ],
+   "uEndpointAlpha": [
+    0
+   ],
+   "uEdgeFold": [
+    0
+   ]
+  }
+ },
+ {
+  "input": {
+   "width": 200,
+   "height": 64,
+   "radius": 24,
+   "density": 1,
+   "dark": true,
+   "tintAmount": 0,
+   "light": [
+    -0.35,
+    -0.94
+   ]
+  },
+  "uniforms": {
+   "uSize": [
+    200,
+    64
+   ],
+   "uPad": [
+    2
+   ],
+   "uBackdrop": [
+    0,
+    0,
+    204,
+    68
+   ],
+   "uBase": [
+    0,
+    0,
+    0
+   ],
+   "uRadii": [
+    24,
+    24,
+    24,
+    24
+   ],
+   "uFuse": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "uFuseShape": [
+    0,
+    0
+   ],
+   "uRefractBand": [
+    14.399999999999999
+   ],
+   "uRefractDepth": [
+    14
+   ],
+   "uIor": [
+    1.5
+   ],
+   "uBevelPower": [
+    2
+   ],
+   "uCornerPower": [
+    2
+   ],
+   "uShapeKind": [
+    0
+   ],
+   "uFieldRange": [
+    1
+   ],
+   "uFieldScale": [
+    1
+   ],
+   "uAberration": [
+    0.07
+   ],
+   "uMirror": [
+    0
+   ],
+   "uBlur": [
+    0.3333333333333333
+   ],
+   "uProfile": [
+    1
+   ],
+   "uFormation": [
+    0
+   ],
+   "uHeldLens": [
+    0
+   ],
+   "uBandBottom": [
+    0
+   ],
+   "uHeldMagnification": [
+    0
+   ],
+   "uHeldGlow": [
+    1
+   ],
+   "uFoldCorners": [
+    0
+   ],
+   "uRimMirror": [
+    0
+   ],
+   "uRimMirrorGain": [
+    0
+   ],
+   "uHeldGlowFloor": [
+    0
+   ],
+   "uSoftDetail": [
+    0
+   ],
+   "uHeldEdgeTone": [
+    0
+   ],
+   "uHeldGlowReach": [
+    0
+   ],
+   "uHeldEdgeRecovery": [
+    0
+   ],
+   "uRestMap": [
+    0
+   ],
+   "uWideStrip": [
+    0
+   ],
+   "uWideScale": [
+    0.25
+   ],
+   "uFineShare": [
+    0.95
+   ],
+   "uDetailLift": [
+    0
+   ],
+   "uToneCurve": [
+    0
+   ],
+   "uDetailCross": [
+    1
+   ],
+   "uChromaGain": [
+    0,
+    0,
+    0
+   ],
+   "uChromaSlope": [
+    0,
+    0,
+    0
+   ],
+   "uChromaWeight": [
+    0
+   ],
+   "uWideKernel": [
+    10
+   ],
+   "uLift": [
+    0.13725490196078433
+   ],
+   "uLiftAdapt": [
+    0
+   ],
+   "uBevel": [
+    1.33
+   ],
+   "uLight": [
+    -0.35,
+    -0.94
+   ],
+   "uSpecular": [
+    0.25
+   ],
+   "uSpecularPow": [
+    6
+   ],
+   "uCounterLight": [
+    1
+   ],
+   "uEdgeLight": [
+    0
+   ],
+   "uBevelPeak": [
+    0.25
+   ],
+   "uEdgeShadow": [
+    0
+   ],
+   "uTopShade": [
+    0,
+    0
+   ],
+   "uCapEdgeShadow": [
+    0
+   ],
+   "uOuterContour": [
+    0,
+    0
+   ],
+   "uRimSoft": [
+    0
+   ],
+   "uTintAbsorb": [
+    0
+   ],
+   "uFresnel": [
+    0
+   ],
+   "uHiChroma": [
+    0
+   ],
+   "uInnerShadow": [
+    0
+   ],
+   "uTint": [
+    0,
+    0,
+    0,
+    0.41568627450980394
+   ],
+   "uTintMaskX": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "uTintMaskY": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "uAdaptive": [
+    0
+   ],
+   "uLegibility": [
+    0.6
+   ],
+   "uScale": [
+    0.030303030303030304
+   ],
+   "uFlip": [
+    0
+   ],
+   "uTouch": [
+    100,
+    32
+   ],
+   "uTouchAmt": [
+    0
+   ],
+   "uMaterialize": [
+    1
+   ],
+   "uFrost": [
+    0
+   ],
+   "uContrast": [
+    0
+   ],
+   "uDebugCoverage": [
+    0
+   ],
+   "uBody": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "uBodyY": [
+    0
+   ],
+   "uBodyKind": [
+    0
+   ],
+   "uPoseA": [
+    1,
+    0,
+    0,
+    1
+   ],
+   "uPoseAInv": [
+    1,
+    0,
+    0,
+    1
+   ],
+   "uPoseC": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "uPoseD": [
+    1,
+    1,
+    1,
+    0
+   ],
+   "uPoseE": [
+    0,
+    3,
+    0,
+    0
+   ],
+   "uEndpointAlpha": [
+    0
+   ],
+   "uEdgeFold": [
+    0
+   ]
+  }
+ },
+ {
+  "input": {
+   "width": 200,
+   "height": 64,
+   "radius": 24,
+   "density": 1,
+   "dark": false,
+   "tintAmount": 0,
+   "light": [
+    -0.35,
+    -0.94
+   ]
+  },
+  "uniforms": {
+   "uSize": [
+    200,
+    64
+   ],
+   "uPad": [
+    2
+   ],
+   "uBackdrop": [
+    0,
+    0,
+    204,
+    68
+   ],
+   "uBase": [
+    0,
+    0,
+    0
+   ],
+   "uRadii": [
+    24,
+    24,
+    24,
+    24
+   ],
+   "uFuse": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "uFuseShape": [
+    0,
+    0
+   ],
+   "uRefractBand": [
+    14.399999999999999
+   ],
+   "uRefractDepth": [
+    14
+   ],
+   "uIor": [
+    1.5
+   ],
+   "uBevelPower": [
+    2
+   ],
+   "uCornerPower": [
+    2
+   ],
+   "uShapeKind": [
+    0
+   ],
+   "uFieldRange": [
+    1
+   ],
+   "uFieldScale": [
+    1
+   ],
+   "uAberration": [
+    0.07
+   ],
+   "uMirror": [
+    0
+   ],
+   "uBlur": [
+    0.3333333333333333
+   ],
+   "uProfile": [
+    1
+   ],
+   "uFormation": [
+    0
+   ],
+   "uHeldLens": [
+    0
+   ],
+   "uBandBottom": [
+    0
+   ],
+   "uHeldMagnification": [
+    0
+   ],
+   "uHeldGlow": [
+    1
+   ],
+   "uFoldCorners": [
+    0
+   ],
+   "uRimMirror": [
+    0
+   ],
+   "uRimMirrorGain": [
+    0
+   ],
+   "uHeldGlowFloor": [
+    0
+   ],
+   "uSoftDetail": [
+    0
+   ],
+   "uHeldEdgeTone": [
+    0
+   ],
+   "uHeldGlowReach": [
+    0
+   ],
+   "uHeldEdgeRecovery": [
+    0
+   ],
+   "uRestMap": [
+    0
+   ],
+   "uWideStrip": [
+    0
+   ],
+   "uWideScale": [
+    0.25
+   ],
+   "uFineShare": [
+    0.95
+   ],
+   "uDetailLift": [
+    0
+   ],
+   "uToneCurve": [
+    0
+   ],
+   "uDetailCross": [
+    1
+   ],
+   "uChromaGain": [
+    0,
+    0,
+    0
+   ],
+   "uChromaSlope": [
+    0,
+    0,
+    0
+   ],
+   "uChromaWeight": [
+    0
+   ],
+   "uWideKernel": [
+    10
+   ],
+   "uLift": [
+    0
+   ],
+   "uLiftAdapt": [
+    0
+   ],
+   "uBevel": [
+    1.33
+   ],
+   "uLight": [
+    -0.35,
+    -0.94
+   ],
+   "uSpecular": [
+    0.25
+   ],
+   "uSpecularPow": [
+    6
+   ],
+   "uCounterLight": [
+    1
+   ],
+   "uEdgeLight": [
+    0
+   ],
+   "uBevelPeak": [
+    0.25
+   ],
+   "uEdgeShadow": [
+    0
+   ],
+   "uTopShade": [
+    0,
+    0
+   ],
+   "uCapEdgeShadow": [
+    0
+   ],
+   "uOuterContour": [
+    0,
+    0
+   ],
+   "uRimSoft": [
+    0
+   ],
+   "uTintAbsorb": [
+    0
+   ],
+   "uFresnel": [
+    0
+   ],
+   "uHiChroma": [
+    0
+   ],
+   "uInnerShadow": [
+    0
+   ],
+   "uTint": [
+    0.9450980392156862,
+    0.9450980392156862,
+    0.9450980392156862,
+    0.43529411764705883
+   ],
+   "uTintMaskX": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "uTintMaskY": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "uAdaptive": [
+    0
+   ],
+   "uLegibility": [
+    0.6
+   ],
+   "uScale": [
+    0.030303030303030304
+   ],
+   "uFlip": [
+    0
+   ],
+   "uTouch": [
+    100,
+    32
+   ],
+   "uTouchAmt": [
+    0
+   ],
+   "uMaterialize": [
+    1
+   ],
+   "uFrost": [
+    0
+   ],
+   "uContrast": [
+    0
    ],
    "uDebugCoverage": [
     0

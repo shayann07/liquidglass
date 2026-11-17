@@ -56,6 +56,24 @@ namespace LiquidGlass
         static double LabDetailLift(bool dark) => dark ? -.22 : .22;
         static double LabToneCurve(bool dark) => dark ? 101.01 / 255 : 0;
 
+        // GlassMaterial.labChromaGain / labChromaSlope (#201): the colour transfer's g0 and g1 per channel (R, G, B).
+        static double[] LabChromaGain(bool dark) => dark ? new[] { 1.317, 1.256, 1.314 } : new[] { .988, .952, .979 };
+        static double[] LabChromaSlope(bool dark) => dark ? new[] { -.427, -.351, -.429 } : new[] { -.076, .028, -.045 };
+
+        /// <summary>
+        /// GlassMaterial.chromaOf: g0 (R, G, B), g1 (R, G, B) and the weight from GlassStyle.detailLift. The sign picks
+        /// the appearance and |c| / |labDetailLift| is the weight; zero lift is seven zeros (the per-channel tone alone).
+        /// </summary>
+        public static double[] ChromaOf(double detailLift)
+        {
+            bool dark = detailLift < 0;
+            double weight = Clamp01(Math.Abs(detailLift) / Math.Abs(LabDetailLift(dark)));
+            if (weight <= 0) return new double[7];
+            var g0 = LabChromaGain(dark);
+            var g1 = LabChromaSlope(dark);
+            return new[] { g0[0], g0[1], g0[2], g1[0], g1[1], g1[2], weight };
+        }
+
         // Compose's Color lerp runs in Oklab and stores 8 bits per channel again; the Oklab intermediate keeps
         // alpha in 10 bits, truncated, which is the step the golden values show.
         static double SrgbToLinear(double c) => c <= .04045 ? c / 12.92 : Math.Pow((c + .055) / 1.055, 2.4);
@@ -180,6 +198,11 @@ namespace LiquidGlass
                 v["uLegibility"] = new[] { Mix(v["uLegibility"][0], 0) };
                 v["uSoftDetail"] = new[] { Mix(0, 1) };
             }
+            // The colour transfer (#201), always written, zeros included.
+            var chroma = ChromaOf(v.TryGetValue("uDetailLift", out var lift) ? lift[0] : 0);
+            v["uChromaGain"] = new[] { chroma[0], chroma[1], chroma[2] };
+            v["uChromaSlope"] = new[] { chroma[3], chroma[4], chroma[5] };
+            v["uChromaWeight"] = new[] { chroma[6] };
             if (m.HasTint)
             {
                 double Q(double c) => Math.Round(c * 255.0, MidpointRounding.AwayFromZero) / 255;
