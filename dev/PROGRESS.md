@@ -4,7 +4,7 @@
   `+barlab` (public `GlassStyle.toolbar(dark)` with Calm's bar-only fields) and `measured` / `v3` variants. No library change.
 - Table in `review/atlas/tab-bar-tone-2026-11-18/` (`tools/tab_bar_tone.py`, baseline pin `tone.json`): `Calm` and `CalmClear` reproduce the
   plan's "today" columns exactly; `Calm+barlab` is within 1 level of the lab curve at all 8 levels and within the card tolerances
-  (blue 122,170,220 vs iOS 116,167,219; orange 211,164,85 vs 209,162,79). `+barshade` (inner band) not built: needs PR B.
+  (blue 122,170,220 vs iOS 116,167,219; orange 211,164,85 vs 209,162,79). No inner band: the earlier "bar darkens 4-6 levels inside its rim" reading averaged in columns that sat inside the selected pill; on bar-only columns iOS and ours both read 32 flat over black (Step 0), so `+barshade` is dropped. docs/1 `calm` replay with this branch: 0 of 1934 frames differ from main.
 
 ## 17 November 2026 - #201 colour transfer (Claude)
 

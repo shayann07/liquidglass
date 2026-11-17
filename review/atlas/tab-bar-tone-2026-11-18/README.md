@@ -73,5 +73,5 @@ lift, so it follows the bar; the pill gate (section 2 of the plan) is a later PR
 `tone-sheet.png`: bar crop of each replay at each level (columns 0, 10, 23, 28, 128, 184, 199, 255; rows as the table).
 `tone.json` is the baseline `--check` pins (tolerance 0.5 level). Limits: Windows Direct3D render, not a device; one
 selected tab; flat pages carry no text under the bar (the detail terms are not exercised); `+barlab` is a candidate, not a
-shipped style; the plan's `+barshade` (inner band) is not built here, it needs a library shader change or a new knob in
-PR B.
+shipped style. The plan's `+barshade` (inner band) is dropped: on bar-only columns the bar reads 32 flat over black in
+iOS and here; the earlier band came from columns inside the selected pill.
