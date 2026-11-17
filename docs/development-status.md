@@ -7,13 +7,17 @@ research remains available; this page identifies which later changes supersede i
 
 ## Main after 1.0 (24 October)
 
+- 17 November: capsules on the measured resting map (Regular, `inApp`, `toolbar`) fold content along their straight
+  edges at rest as their round ends do (cards unchanged), so text lines no longer hook where a capsule's round end begins. Scored on the Safari lab
+  pill's stripes: the run's outer band 4.5-12.0 levels rms (was 12.0-25.6). Tab bars (legacy map) unchanged (#216).
+  [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/cap-junction-2026-11-17/README.md).
 - 17 November: Regular glass keeps and boosts colour (#201): the grey tone applies to the luma and the chroma about it keeps a
   measured per-channel gain, fitted on the private 125-point RGB cube converted from Display P3 to sRGB. Rendered at Tint 50 the
   cube is within 1.05 / 0.85 levels rms (at most 7.1 / 4.8), the colour-pair stripe stills within 1.7 / 1.5, and the grey lab
   stills stay at 1.43 / 1.42; `GlassLabModelTest` asserts 27 cube points. Merged glass and every port carry it; docs/1 replay
   unchanged (0 of 1934 frames). Open: the sRGB gamut (saturated iOS colours outside it read up to 7 levels off), Tint 0/100
-  authored (#208), a dark-to-light morph dips toward the grey tone at its midpoint, Pixel 7 capture of the colour fixture
-  pending. [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/colour-transfer-2026-11-17/README.md).
+  authored (#208), a dark-to-light morph dips toward the grey tone at its midpoint. Pixel 7: the colour fixture's pill interiors match the
+  desktop render (0 levels in all 18 cells). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/colour-transfer-2026-11-17/README.md).
 - 17 November: Calm taps of two tabs or more keep the formed lens's map as they settle, so the ink's teardrops along the
   top rim fade with the transit instead of vanishing the frame the formation falls below half: on docs/1 the 0 to 2
   plateau ends at about 212 ms (iOS 214, was 178). One-tab taps and light Calm unchanged; Skia and .NET mirrored (#70).

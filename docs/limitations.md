@@ -166,9 +166,10 @@ The corner lens of chrome at rest has two source maps, selected by `GlassStyle.r
 the outer band. `GlassRestMap.Measured` is the resting-corner table fitted in the closeout on
 190 display-to-source landmark pairs read off the Photos toolbar's 72 px ends (24 pt on the phone, the library's 24 dp design unit by convention) in both
 appearances over both calibration targets; against the same pairs the shipping map is 6-7 px
-off at every depth from 6 to 26 px and the table is within 1 px. It changes only the resting
-corner: the fully formed fold, the straight-run term, the held-lens family, coverage, padding,
-normals, dispersion and lighting are untouched, and formation blends it toward the same fold.
+off at every depth from 6 to 26 px and the table is within 1 px. As fitted it changed only the
+resting corner; since 1.1.0 it also replaces the straight-run term (see below). The fully formed
+fold, the held-lens family, coverage, padding, normals, dispersion and lighting are untouched, and
+formation blends it toward the same fold.
 `GlassStyle.inApp` and `toolbar` use it by default since 26 October: over the calibration chart it
 gives their caps the dark fold iOS shows ([evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/inapp-rest-map-2026-10-26/README.md)).
 
@@ -177,8 +178,12 @@ another radius the shader evaluates the same curve scaled by the band — an exp
 extrapolation, verified for implementation consistency on the JVM and on a Pixel 7 at the
 Vitals nav bar's 31 dp corner, not measured against the phone there. The shallow region under
 the rim (`d < 6` reference px) is a constant extension of the first knot, also unmeasured. The
-width of the blend between an arc and a straight run cannot be seen over vertical stripes; the
-library blends over 0.2 R along the edge. Larger arcs (the dock's 126 px ends) did not measure
+width of the blend between an arc and a straight run cannot be seen over vertical stripes; for
+the legacy map the library blends over 0.2 R along the edge. Since 1.1.0 the measured map holds
+along a capsule's straight runs too, as the Safari lab pill's horizontal stripes show (16 November
+stills); that is one element at one radius (R = 71.5 px). Cards and other shapes with smaller
+corners keep the corner-only lens, because the dock's and a resting sheet's straight edges were
+measured in place; no non-capsule panel has been measured at rest over lines. Larger arcs (the dock's 126 px ends) did not measure
 through the Home Screen wallpaper's warped reference. All three are on the capture list.
 
 Two things the closeout's render comparison also shows and this map does not fix: the library's
