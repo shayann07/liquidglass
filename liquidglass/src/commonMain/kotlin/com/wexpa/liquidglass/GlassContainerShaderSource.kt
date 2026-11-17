@@ -20,6 +20,13 @@ internal const val MAX_GLASS_MEMBERS = 8
  * The optics match [GLASS_SHADER_SOURCE] — both profiles, the measured fold and the measured
  * three-term material (#200) included — so a member looks like the same material whether or not it
  * happens to be inside a container. A container is chrome at rest, so its lens formation is 0.
+ *
+ * Carried from the panel shader (#211): the legibility term, the rim band's colour-fringe branch, the absorbing tint
+ * (`uTintAbsorb`), the unrotated soft scatter (`uSoftDetail`), and the light direction, which the host takes from the
+ * container's [Glass]. Deliberately not carried, because a container has nothing to drive them: the legacy
+ * profile's mirrored edge echo and the per-size tint scale (`uScale`), the tint mask, the inversion flip (`uFlip`),
+ * the Reduce Transparency frost (`uFrost`), the touch magnifier, the materialise fade, and the held-lens, cap-fold,
+ * pose and V3 body paths. A merged body is chrome at rest and takes one style, so these are all zero or one there.
  */
 internal val GLASS_CONTAINER_SHADER_SOURCE = """
 uniform shader content;
@@ -52,6 +59,8 @@ uniform float   uEdgeShadow;   // dark separating contour at the outermost pixel
 uniform float2  uOuterContour;  // the contour outside the outline: side strength, share at the poles (GlassStyle.outerContour)
 uniform float   uRimSoft;      // px the compressed rim image is smeared along the normal
 uniform float   uTintAbsorb;   // 0 tint as a blend, 1 tint as an absorbing medium
+uniform float   uLegibility;   // how far busy content under the glass raises its tint (GlassStyle.legibility)
+uniform float   uSoftDetail;   // 1 scatters the soft copy unrotated, 0 rotated per pixel (GlassStyle.softDetail)
 uniform float4  uTint;
 uniform float   uInnerShadow;
 uniform float   uAdaptive;
@@ -376,13 +385,27 @@ half4 main(float2 coord) {
     // The panel shader's choice: the four-tap detail copy at the lab reach, the scatter otherwise, faded out (authored)
     // as the larger of the detail share and the one-sided term goes from 0.10 to 0.02, and none below that.
     float detailWeight = (uWideStrip >= 1.0) ? smoothstep(0.02, 0.10, max(uFineShare, abs(uDetailLift))) : 1.0;
+    // A soft copy ([GlassStyle.softDetail]) samples its scatter unrotated, as the panel shader does.
+    float2 rot = (uSoftDetail >= 0.5) ? float2(1.0, 0.0) : tapRotation(coord);
     half3 soft = sharp;
+    float contrast = 0.0;
     if (detailWeight > 0.0) {
-        half3 detailCopy = (uDetailCross >= 0.5) ? detailAt(coord + push, uBlur * e) : blurredAt(coord + push, uBlur * e, tapRotation(coord));
+        half3 detailCopy = (uDetailCross >= 0.5) ? detailAt(coord + push, uBlur * e) : blurredAt(coord + push, uBlur * e, rot);
         soft = (detailWeight < 1.0) ? mix(sharp, detailCopy, half(detailWeight)) : detailCopy;
+        // Local contrast, as in the panel shader: the rim sample and the interior sample bracket the backdrop's high
+        // frequencies, so their luma difference stands in for text scrolling underneath (legibility term below).
+        contrast = detailWeight * clamp(abs(luma(sharp) - luma(detailCopy)) * 4.0, 0.0, 1.0);
     }
     float rimSharp = (1.0 - e) * (1.0 - e);
-    half3 bg = mix(soft, sharp, half(rimSharp));
+    half3 bg;
+    if (uWideKernel >= 2.0) {
+        // The rim band (#202), as in the panel shader: within about 5-8 pt of the outline the crisp copy may only
+        // contribute its colour fringe, so no step is drawn at the true row.
+        half3 axis = half3(backdropAt(coord + push));
+        bg = soft + (sharp - axis) * half(rimSharp);
+    } else {
+        bg = mix(soft, sharp, half(rimSharp));
+    }
 
     // The measured material, lin = B + k (D - B) + c |D - B|; see the panel shader.
     half3 wide = bg;
@@ -396,7 +419,21 @@ half4 main(float2 coord) {
     half3 tinted = (measured > 0.5)
         ? half3(uTint.rgb)
         : toneMappedTint(half3(uTint.rgb), bgLuma, uAdaptive);
-    half3 col = mix(bg, tinted, half(clamp(uTint.a, 0.0, 1.0)));
+    // The panel's strength: the tint's alpha, raised by the legibility term where the backdrop is busy. A container
+    // has no materialise fade, tint mask or Reduce Transparency control, so the rest of the panel's terms are 1 or 0.
+    float strength = clamp(clamp(uTint.a, 0.0, 1.0) + contrast * uLegibility * 0.25, 0.0, 0.95);
+    half3 blended = mix(bg, tinted, half(strength));
+    half3 col;
+    float absorb = clamp(uTintAbsorb, 0.0, 1.0);
+    if (absorb > 0.001) {
+        // The tint as an absorbing medium; see the panel shader.
+        half3 absorbed = bg * mix(half3(1.0), tinted, half(0.85));
+        half3 scattered = tinted * half(0.38 * (1.0 - clamp(bgLuma, 0.0, 1.0)));
+        half3 medium = mix(bg, clamp(absorbed + scattered, half3(0.0), half3(1.0)), half(strength));
+        col = mix(blended, medium, half(absorb));
+    } else {
+        col = blended;
+    }
     // The measured dark tone curve's bow, as in the panel shader. A container has no materialise fade and no
     // tint mask, so the panel's mat * tintCoverage is 1 here.
     if (uToneCurve != 0.0) {
@@ -410,7 +447,7 @@ half4 main(float2 coord) {
         float y = luma(x);
         half3 d = x - half3(half(y));
         float bow = uToneCurve;
-        half3 gain = half3(uChromaGain + uChromaSlope * y) - half3(half(1.0 - clamp(uTint.a, 0.0, 1.0)));
+        half3 gain = half3(uChromaGain + uChromaSlope * y) - half3(half(1.0 - strength));
         half3 chroma = d * gain - half(bow) * d * (half3(half(1.0 - y)) - x);
         col += half(uChromaWeight) * chroma;
     }
