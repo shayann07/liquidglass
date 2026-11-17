@@ -201,7 +201,7 @@ export function createGlassScene(kit, options) {
           // As in Compose, the lens looks through the bar: the page with the bar's glass over it.
           const through = barThrough(canvas, layer, deviceBounds, ratio);
           const barRect = {x: bounds.x * r, y: bounds.y * r, width: bounds.width * r, height: bounds.height * r};
-          const state = {pose, formation: s.formation, transit: s.transitAppearance, heldTravel: s.heldTravel};
+          const state = {pose, formation: s.formation, transit: s.transitAppearance, heldTravel: s.heldTravel, formedTap: s.tapFormed};
           try {
             painter.drawSelector(canvas, barRect, state, {...navMaterial(layer, ratio), through});
             if (layer.ink) painter.drawSelectorInk(canvas, barRect, state, layer.ink, navMaterial(layer, ratio));

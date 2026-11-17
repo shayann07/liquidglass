@@ -6,6 +6,17 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Calm taps of two tabs or more keep the formed lens's look until they settle (#70). Such a tap forms the selector past
+  half (about 0.76); in the frame its formation fell back below half, the transit fold switched from the formed lens's
+  map to the measured one, and the destination's ink, stretched into teardrops along the top rim, vanished in one frame.
+  The tap now keeps the formed lens's map (its strength still follows the transit appearance), so the teardrops fade with
+  the transit. On docs/1's ten 0 to 2 taps the travelling pill's level reads 110.6 / 105.7 / 49.3 at 183 / 200 / 217 ms
+  (iOS 105.7 / 85.7 / 63.5; before 38.0 / 37.0 / 36.0), and its plateau ends at about 212 ms (iOS about 214, before
+  about 178). One-tab taps and light `Calm` are unchanged; the all-tap profile over 100-300 ms moves from 3.3 to 2.9
+  levels rms. A trip retargeted while the selector is still formed past half qualifies on its own formation, not the
+  one it inherits. Mirrored in the Skia and .NET Calm selectors (`tapFormed`, `formedTap`; additive).
+  Default look changed: dark Calm taps of two tabs or more keep the ink's teardrops along the lens's top rim for about
+  two more frames (to about 212 ms instead of 178 on docs/1). [Evidence](review/atlas/tap-plateau-2026-11-17/README.md).
 - Regular glass now follows the measured three-term material, `lin = B + k (D - B) + c |D - B|`, and the along-axis detail filter is gone (#200, fixes #190).
   That filter averaged the backdrop along the element's long axis and drew the stepped ghost copies of sharp text; the lab
   stills show iOS keeping the same detail along and across a bar, so detail now arrives as one soft copy over a 15.5 dp
@@ -18,8 +29,9 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   `GlassStyle.detailLift` (c, default 0) and `GlassStyle.toneCurve` (the dark tone's bow, default 0); the 1.0 constructor and
   `copy` stay binary-compatible as hidden overloads. Pixel 7 (Android 17, 90 Hz), main against this branch (8155507a, six
   rounds each): 90 fps held, ghost-scroll frames in 12 s 1112 against 1100 (light) and 1098 against 1099 (dark),
-  calibration-screen p90 31.8 against 30.0 ms; on the final commit the Calm tab bar's timing is unchanged (p50 13.5-15.5
-  against 13.8-16.4 ms, GPU p50 9.1-10.1 against 9.6-10.4); the captures show stepped copies under a card on main and one soft
+  calibration-screen p90 31.8 against 30.0 ms; on the final commit (three alternating rounds, 344fcf52 first and
+  main second) calibration-screen p90 reads 33.33 and 33.75 ms and GPU p50 14.59 and 15.50, and the Calm tab bar without an
+  accessory p50 15.19 and 15.28 ms and p90 18.74 and 19.03, every difference inside the round spread; the captures show stepped copies under a card on main and one soft
   copy here. docs/1 replay against main on the same GPU: 1934 frames differ, every difference is inside glass and at most
   7 levels, and the tab bar's track is unchanged (45.4 px rms on both). The search button changes because of the wide-kernel
   recording pad (0.75 to 1.5 sigma), not because of a material split: with the pad factor reset to 0.75 the render is
@@ -32,9 +44,9 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   style loses the along-axis term, including the Measured and V3 tab bars (the Calm bar had already cancelled it), which keep
   their earlier style values until #203; the wide-kernel recording pad grows from 0.75 to 1.5 sigma; custom styles with `0 < blurRadius <= 1/3 dp` now get the four-tap
   detail kernel; Tint 0 and 100 take the 1/3 dp detail reach (authored, #208). Near the top of the Tint range the detail
-  copy and the legibility term it feeds now fade out as the larger of the detail share and `detailLift` falls from 0.10 to
-  0.02 (authored) instead of switching off at one tint; this applies to every wide-kernel style with a share in that band,
-  custom styles included. Main switched at Tint 92 to 93 with an 18-level step; now no adjacent pair of whole tints steps
+  copy and the legibility term it feeds now fade out as the larger of the detail share and `|detailLift|` falls from 0.10 to
+  0.02 (authored) instead of switching off at one tint; this applies to every wide-kernel style whose fine share or
+  `|detailLift|` lies between 0.02 and 0.10, custom styles included. Main switched at Tint 92 to 93 with an 18-level step; now no adjacent pair of whole tints steps
   more than 1.80 levels rms (dark) or 1.65 (light), and Tints 98 to 100 render as before.
   [Evidence](review/atlas/material-model-2026-11-16/README.md).
 - Scoring tools: `tools/measure_rim_fringe.py --content-split --content-core PX` also scores the page's colour split only at

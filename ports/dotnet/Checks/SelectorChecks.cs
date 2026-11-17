@@ -31,7 +31,7 @@ internal static class SelectorChecks
         {
             ["cx"] = .05, ["cy"] = .05, ["left"] = .05, ["right"] = .05, ["top"] = .05, ["bottom"] = .05,
             ["formation"] = 5e-4, ["transit"] = 1e-3, ["heldTravel"] = 1e-4, ["a0"] = 1e-4, ["a1"] = 1e-4, ["a2"] = 1e-4,
-            ["a3"] = 1e-4, ["spine"] = .05, ["radius"] = .05, ["band"] = .05,
+            ["a3"] = 1e-4, ["spine"] = .05, ["radius"] = .05, ["band"] = .05, ["tapFormed"] = 0,
         };
         var scenarios = 0; var frames = 0; double worstPx = 0;
         foreach (var scenario in root.GetProperty("scenarios").EnumerateArray())
@@ -66,7 +66,7 @@ internal static class SelectorChecks
                     ["cx"] = c.CentreX, ["cy"] = c.CentreY, ["formation"] = c.Formation, ["transit"] = c.TransitAppearance,
                     ["heldTravel"] = c.HeldTravel, ["left"] = e.Left, ["right"] = e.Right, ["top"] = e.Top, ["bottom"] = e.Bottom,
                     ["a0"] = pose.A[0], ["a1"] = pose.A[1], ["a2"] = pose.A[2], ["a3"] = pose.A[3],
-                    ["spine"] = pose.D[0], ["radius"] = pose.D[1], ["band"] = pose.D[3],
+                    ["spine"] = pose.D[0], ["radius"] = pose.D[1], ["band"] = pose.D[3], ["tapFormed"] = c.TapFormed ? 1 : 0,
                 };
                 foreach (var (key, tol) in tolerance)
                 {
@@ -108,7 +108,8 @@ internal static class SelectorChecks
         foreach (var sample in materialJson.RootElement.GetProperty("samples").EnumerateArray())
         {
             var ours = CalmSelectorMaterial.Selector(sample.GetProperty("dark").GetBoolean(), sample.GetProperty("formation").GetDouble(),
-                sample.GetProperty("transit").GetDouble(), sample.GetProperty("heldTravel").GetDouble());
+                sample.GetProperty("transit").GetDouble(), sample.GetProperty("heldTravel").GetDouble(),
+                sample.TryGetProperty("formedTap", out var formedTap) && formedTap.GetBoolean());
             Check(Math.Abs(ours.Formation - sample.GetProperty("uFormation").GetDouble()) <= 1e-5, $"Selector material band at {sample}");
             foreach (var field in sample.GetProperty("values").EnumerateObject())
             {

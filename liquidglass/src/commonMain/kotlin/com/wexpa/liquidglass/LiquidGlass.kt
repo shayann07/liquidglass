@@ -1778,6 +1778,9 @@ object LiquidGlassDiagnostics {
      */
     var tapEndWall: FloatArray? = null
 
+    /** When set, [GlassPoseSpec.tapKeepsFormedLens] in place of the spec's, for before/after replays (#70); null in production. */
+    var tapKeepsFormedLens: Boolean? = null
+
     /**
      * When set, [LocalGlassAdaptiveQuality] counts a frame as missed once it runs past this fraction of its deadline,
      * so a rig can drive the governor's steps on a device that meets its deadlines (#118); null in production.
@@ -1795,6 +1798,7 @@ object LiquidGlassDiagnostics {
         lensSquircle = null
         tapLongTripRate = null
         tapEndWall = null
+        tapKeepsFormedLens = null
         adaptiveDeadlineScale = null
         adaptiveQualityListener = null
     }
