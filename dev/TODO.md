@@ -1,10 +1,11 @@
 ## #201 colour transfer (17 November, `feat/201-colour`)
 
 - [x] Fit (per-channel gains, sRGB), shader, 27 cube assertions, private gates (cube, colour-pair stripes, grey lab).
-- [ ] Ports: set `uChromaGain`, `uChromaSlope`, `uChromaWeight` from `detailLift` in every port (Skia, npm canvas, React Native,
-  Qt, Unity, .NET, Flutter) and add the correction to the hand-written shaders (Flutter, Qt, Unity HLSL).
-- [ ] Owner review: derivation from `detailLift` (a light-to-dark morph passes through the per-channel tone at c = 0).
-- [ ] Device capture over coloured content (Pixel 7) once #200 lands.
+- [x] Ports: every port sets the three uniforms on every call, zeros included; generated shaders carry the correction.
+- [x] Merge main after #210; container shader carries the block; saturated container guard; zero-diff docs/1 replay (0 frames).
+- [ ] Owner review: derivation from `detailLift` (a dark-to-light morph dips toward the grey tone at its midpoint: 20 of 24
+  channels below both ends, numbers in GlassLabModelTest.appearanceMorphMidpointColour).
+- [ ] Pixel 7 capture of `ColourTransferActivity` (dark and light), main against the PR build; blocks merge.
 
 ## #200 measured three-term material (16 November, `feat/200-material-model`)
 

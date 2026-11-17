@@ -4,8 +4,15 @@
   (fitted on the private 125-point cube, converted from Display P3 to sRGB and clipped). Model: cube 0.99 / 0.83 rms (max 7.1 / 5.3),
   held-out colours 1.5 / 1.0. Render (toolbar, Tint 50): cube 1.05 / 0.85 (max 7.1 / 4.8), colour-pair stripes at most 1.7 / 1.5,
   grey lab 1.43 / 1.42 unchanged. One shared gain reached 9.5 (10.1 rendered) on dark magenta, so the gains are per channel.
-- `GlassLabModelTest`: 27 cube points within 2 levels of the model (all within 1) and the lab-weight derivation. Port fixtures and
-  `ports/skia/shaders/material.sksl` re-exported; no port sets the new uniforms yet (they read zero, the per-channel tone).
+- `GlassLabModelTest`: 27 cube points within 2 levels of the model (all within 1) and the lab-weight derivation. Every port sets
+  `uChromaGain`, `uChromaSlope`, `uChromaWeight` on every call (Skia, npm canvas, React Native, Qt, Unity, .NET, Flutter).
+- Merged main after #210 (merge 2f4518e9: main plus the two #201 commits; generated shaders and vendored copies regenerated).
+  The container shader carries the panel's block, bow on the luma included. `GlassContainerMaterialTest` over six saturated
+  pages: container within 2 levels of a lone piece (fails by 12-102 levels without the block, up to 21 without its bow).
+- Final head: cube 1.05 / 0.85 rms (max 7.1 / 4.8), colour-pair stripes 1.66 / 1.53, grey lab 1.43 / 1.42; docs/1 replay
+  0 of 1934 frames differ from main after #210. Dark-to-light morph midpoint: 20 of 24 channels below both ends (a dip toward
+  the grey tone, stated in the CHANGELOG), no overshoot. Sample fixture `ColourTransferActivity`; desktop renders in
+  `review/atlas/colour-transfer-2026-11-17`. Pixel 7 capture pending (lead schedules).
 
 ## 16 November 2026 - #200 measured three-term material (Claude)
 

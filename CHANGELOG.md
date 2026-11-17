@@ -12,15 +12,23 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   where it used to run each channel through the grey curve, which missed the measured 125-point RGB cube by 36 (dark) and
   29 (light) levels rms. The cube was captured in Display P3 and is converted once to sRGB, the library's working space, and
   clipped to the sRGB gamut. Rendered through the toolbar at Tint 50: the cube within 1.05 / 0.85 levels rms (at most 7.1 /
-  4.8; gate 3 / 10), the eight colour-pair stripe stills within 1.7 / 1.5 (gate 5), the 89 grey lab stills unchanged at 1.43
-  / 1.42. The detail mix stays per channel (on luma it misses the stripe stills by 7-31 levels). Greys are unchanged by
-  construction. The transfer is derived from `GlassStyle.detailLift`, so there is no new style field; the authored Tint blend
-  fades it toward the per-channel tone at Tint 0 and 100, and the tab bar's earlier fit is unchanged (#203). Merged glass
-  (`LiquidGlassContainer`) applies the same correction to its own tone path. Not in any port
-  yet: `ports/skia/shaders/material.sksl` declares the new uniforms and the in-app and selector fixtures carry their values.
+  4.8; gate 3 / 10), the eight colour-pair stripe stills within 1.66 / 1.53 (gate 5), the 89 grey lab stills unchanged at 1.43
+  / 1.42. The issue proposed one chroma gain; the gains are per channel because one shared gain reached 9.5 levels in the model
+  and 10.1 rendered on dark magenta, failing the cube's max-10 gate (1.11 / 0.94 rms in the model). The detail mix stays per
+  channel (on luma it misses the stripe stills by 7-31 levels). Greys are unchanged by construction. The transfer is derived
+  from `GlassStyle.detailLift` (sign for the appearance, `abs(detailLift) / 0.22` clamped to 0-1 for the weight), so there is no
+  new style field; the authored Tint blend fades it toward the per-channel tone at Tint 0 and 100, and the tab bar's earlier fit
+  is unchanged (#203). Merged glass (`GlassEffectContainer`) carries the same block, bow included; a container member reads
+  within 2 levels per channel of a lone piece over six saturated pages in both appearances. Ports: Skia, npm canvas engine,
+  React Native, Qt, Unity, .NET and Flutter set the three uniforms on every call, zeros included. docs/1 replay against main
+  after #200 on the same GPU: 0 of 1934 frames differ (every glass there has weight 0).
   Default look changed: Regular glass over coloured content everywhere it is used (`Glass.Regular`, `GlassStyle.Regular`,
   `inApp`, `toolbar`, the Material 3 control, toolbar and panel glass) at every Tint except 0 and 100, and custom styles with a
-  non-zero `detailLift`; colours read more saturated, most on dark glass (over pure red, dark glass reads 255, 17, 15 where it read 185, 32, 32).
+  non-zero `detailLift`; colours read more saturated, most on dark glass (over pure red, dark glass reads 255, 17, 15 where it
+  read 185, 32, 32). A morph between dark and light Regular glass (`GlassMorph`, `lerpGlassStyle`) passes `detailLift` 0 at its
+  midpoint, where the transfer is off: over saturated colour the midpoint reads less saturated than both ends (20 of 24
+  channels over eight saturated pages; over pure red dark 255, 17, 15, midpoint 222, 82, 82, light 255, 108, 107), and never
+  more saturated than both. [Evidence](review/atlas/colour-transfer-2026-11-17/README.md).
 - Regular glass now follows the measured three-term material, `lin = B + k (D - B) + c |D - B|`, and the along-axis detail filter is gone (#200, fixes #190).
   That filter averaged the backdrop along the element's long axis and drew the stepped ghost copies of sharp text; the lab
   stills show iOS keeping the same detail along and across a bar, so detail now arrives as one soft copy over a 15.5 dp

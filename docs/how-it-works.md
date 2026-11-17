@@ -110,6 +110,20 @@ settled: shell glass (icons, dock, Control Center, cards) ignores the Light/Dark
 its tone from the wallpaper, and in-app glass follows the app's scheme strongly. The legacy tone
 mapping (`adaptivity`) is off on this path.
 
+Over colour, Regular glass does not run each channel through that grey tone (#201). It takes the
+tone of the colour's Rec. 709 luma `y` and keeps the chroma about it at a measured per-channel gain:
+
+```
+out = tone(y) + (g0 + g1 y) (x - y)      per channel x, sRGB code values
+```
+
+Dark glass boosts saturation (g0 about 1.3) and light glass keeps it (about 0.97): over pure red, dark
+Regular glass reads 255, 17, 15 where the per-channel tone read 185, 32, 32. Greys are unchanged. The
+gains are measured at Tint 50 and fade with the same authored weight as the rest of the lab material; they
+are derived from `detailLift` (its sign picks the appearance, its size the weight), so a style with no
+`detailLift`, such as the tab bar's earlier fit, keeps the per-channel tone. Merged glass applies the same
+correction. Section 2f of the [measured model](research/measured-model.md) has the fit and its provenance.
+
 ## 5. Lighting
 
 The bevel is lit, not outlined. A navigation pill's edge over black reads +33 at 2 px, +13 at

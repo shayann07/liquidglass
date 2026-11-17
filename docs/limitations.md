@@ -251,8 +251,9 @@ them is #208.
   `softDetail` scatter and `Glass.light`. Tracked by #211.
 - **Ports.** The npm HTML/CSS engine and `ports/web` keep their own two-kernel approximation and are
   not ported to the three-term material. The Flutter Dart port carries the change but has not been
-  compiled. No port carries the colour transfer yet (#201): `ports/skia/shaders/material.sksl` declares
-  its uniforms, and a port that leaves them unset draws the per-channel tone.
+  compiled. Every port that carries the three-term material also carries the colour transfer (#201):
+  each sets `uChromaGain`, `uChromaSlope` and `uChromaWeight` from the detail lift on every call, zeros
+  included, so Qt, which keeps uniforms between calls, never keeps a stale value.
 
 ## The detail's sharp axis is assumed to be the element's long one (superseded)
 

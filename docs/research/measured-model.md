@@ -337,7 +337,8 @@ Provenance, kept apart:
   held-out colours better (0.65 / 0.18 rms) but bends the greys between its nodes by up to 7.8 levels on
   light glass, where the tone clips at 255 from about 242. The analytic form leaves every grey on the
   grey curve. One gain for all three channels does almost as well (1.11 / 0.94 rms) but reaches 9.5
-  levels on dark magenta, at the gate's edge before the render's own rounding.
+  levels on dark magenta in the model and 10.1 rendered, failing the cube's max-10 gate; so the gains are
+  per channel, a deviation from the single gain the issue proposed.
 - **Checked: the detail term stays per channel.** On the eight colour-pair stripe stills (16 px,
   red-black to yellow-blue) the per-channel mix with this transfer scores 1.6 dark / 1.4 light levels
   rms in the model, at most 1.9; the one-sided term on luma scores 7.3-11.5 and the whole detail term
@@ -350,7 +351,9 @@ Provenance, kept apart:
 In the shader the transfer is added after the tint blend as a correction that is zero over grey: the
 blend's chroma gain `1 - strength` is replaced by `g0 + g1 y`, and the dark bow is taken on the luma
 instead of per channel (uniforms `uChromaGain`, `uChromaSlope`, `uChromaWeight`). The merged-glass
-container shader carries the same correction against its own blend, which has no bow.
+container shader carries the same block against its own blend (gain `1 - uTint.a`, its own bow; it has no
+materialise fade or tint mask), and `GlassContainerMaterialTest` holds a container member within 2 levels
+per channel of a lone piece over six saturated pages in both appearances.
 
 Rendered through the toolbar style at Tint 50, scored privately in the pill's interior zones (sRGB):
 the 125 cube colours within 1.05 dark / 0.85 light levels rms, at most 7.1 / 4.8, greys within 1.0;
