@@ -13,6 +13,11 @@
   0 of 1934 frames differ from main after #210. Dark-to-light morph midpoint: 20 of 24 channels below both ends (a dip toward
   the grey tone, stated in the CHANGELOG), no overshoot. Sample fixture `ColourTransferActivity`; desktop renders in
   `review/atlas/colour-transfer-2026-11-17`. Pixel 7 capture pending (lead schedules).
+- Final, after merging main with #212 (4efbc163, selector fixture and vendored copies regenerated): library suite 520 tests,
+  0 failures (27 skipped, opt-in renders); material3 suite and `checkKotlinAbi` pass; docs/1 replay 0 of 1934 frames differ
+  from main after #212; cube 1.05 / 0.85 (max 7.1 / 4.8), stripes 1.66 / 1.53, grey lab 1.43 / 1.42, unchanged. Ports: Skia 48,
+  npm 28, Qt 6, .NET 16 checks pass; generator and vendor checks pass. Review: the desktop renders are opt-in
+  (`-Patlas.colourTransfer=true`); the evidence README reproduces the before render in a fresh worktree.
 
 ## 16 November 2026 - #200 measured three-term material (Claude)
 

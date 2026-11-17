@@ -21,7 +21,7 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   is unchanged (#203). Merged glass (`GlassEffectContainer`) carries the same block, bow included; a container member reads
   within 2 levels per channel of a lone piece over six saturated pages in both appearances. Ports: Skia, npm canvas engine,
   React Native, Qt, Unity, .NET and Flutter set the three uniforms on every call, zeros included. docs/1 replay against main
-  after #200 on the same GPU: 0 of 1934 frames differ (every glass there has weight 0).
+  after #212 on the same GPU: 0 of 1934 frames differ (every glass there has weight 0).
   Default look changed: Regular glass over coloured content everywhere it is used (`Glass.Regular`, `GlassStyle.Regular`,
   `inApp`, `toolbar`, the Material 3 control, toolbar and panel glass) at every Tint except 0 and 100, and custom styles with a
   non-zero `detailLift`; colours read more saturated, most on dark glass (over pure red, dark glass reads 255, 17, 15 where it
