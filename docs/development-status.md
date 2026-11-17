@@ -7,6 +7,10 @@ research remains available; this page identifies which later changes supersede i
 
 ## Main after 1.0 (24 October)
 
+- 18 November: Skia and .NET ports: a free-standing lens can have the Compose clear-lens preset (#191, `lighting: true`; rim, thin tint,
+  contact shadow; off by default, authored in Compose, no iOS claim), and a navigation gesture can be baked and drawn at any time (#193,
+  `bakeNavigation` / `drawNavigation`, .NET `NavigationBaker`; frames byte-identical to the scene's). Under review in PR #221.
+  [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/skia-lens-and-bake-2026-11-18/README.md).
 - 17 November: Regular glass keeps and boosts colour (#201): the grey tone applies to the luma and the chroma about it keeps a
   measured per-channel gain, fitted on the private 125-point RGB cube converted from Display P3 to sRGB. Rendered at Tint 50 the
   cube is within 1.05 / 0.85 levels rms (at most 7.1 / 4.8), the colour-pair stripe stills within 1.7 / 1.5, and the grey lab

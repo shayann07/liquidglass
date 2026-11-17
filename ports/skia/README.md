@@ -258,6 +258,7 @@ const lens = scene.addLens({ x: 80, y: 100, width: 180 }, { lighting: true }); /
 lens.setMaterial({ shadow: false });
 ```
 
+[Render: lighting false against true, over flat grey and stripes](../../review/atlas/skia-lens-and-bake-2026-11-18/README.md).
 The preset is authored in Compose (its KDoc: "Authored, not an Apple calibration"), not measured, and the port makes
 no iOS claim for it. Over a flat grey 128 backdrop the rim reads up to +64 levels at the top and +22 at the bottom
 and the interior stays within 4 levels of the page; over black +42 and +15; over pure white it is invisible (white

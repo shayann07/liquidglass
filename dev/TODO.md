@@ -1,3 +1,9 @@
+## #191 lens preset, #193 frame at any time (18 November, `feat/191-193-skia`, PR #221)
+
+- [x] Skia and .NET: `lighting` option for free-standing lenses (off by default); bake, stateless draw and `NavigationBaker`; tests, README, CHANGELOG, evidence render.
+- [ ] After #217 merges: merge main into the branch, re-vendor ports/npm and ports/react-native, re-run the Skia suite.
+- [ ] Follow-ups named in the PR: Kotlin export of `clearLens` as a parity fixture, React Native `GlassLens` `lighting` prop, the lens's inside shadow share.
+
 ## #201 colour transfer (17 November, `feat/201-colour`)
 
 - [x] Fit (per-channel gains, sRGB), shader, 27 cube assertions, private gates (cube, colour-pair stripes, grey lab).

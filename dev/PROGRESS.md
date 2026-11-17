@@ -1,3 +1,12 @@
+## 18 November 2026 - #191 lens preset and #193 frame at any time, Skia and .NET ports (Claude)
+
+- `feat/191-193-skia` (PR #221): #191, `drawLens` / `addLens` take `{lighting: true}` for the Compose clear-lens preset (rim, 1.5 % tint,
+  contact shadow); off by default, byte-identical bare lens. Rim over grey 128 +64 / +22, black +42 / +15, white 0. Values read from
+  `GlassStyle.clearLens`, no Kotlin fixture (Kotlin untouched). .NET `DrawLens(..., GlassLensOptions)`.
+- #193: `bakeNavigation` / `navigationTrack` / `drawNavigation`, one shared navigation driver for the scene and the bake; bake equals the
+  live scene, stateless frames byte-identical in any order. .NET `NavigationBaker` / `NavigationTrack`. Skia 59 tests, npm 28, React Native 3,
+  .NET 18 checks pass. Evidence `review/atlas/skia-lens-and-bake-2026-11-18`. Waits for #217 (shaders) before merging main and re-vendoring.
+
 ## 17 November 2026 - #201 colour transfer (Claude)
 
 - `feat/201-colour`: over colour the tone applies to the Rec. 709 luma and the chroma keeps a measured per-channel gain
