@@ -35,9 +35,14 @@ sits at the centre of each band, with no content, so the pill's interior shows t
   git -C "$dir" checkout 8b303111 -- liquidglass/src
   git -C "$dir" commit -q -m "Colour-transfer before render: main's library"
   (cd "$dir" && ./gradlew :desktop:desktopTest --tests "*ColourTransferRenderTest*" -Patlas.colourTransfer=true)
-  cp "$dir"/apps/desktop/build/reports/atlas/colour-transfer/*.png .
+  out="$(mktemp -d)"
+  cp "$dir"/apps/desktop/build/reports/atlas/colour-transfer/*.png "$out"
   git worktree remove "$dir"
+  echo "before renders in $out"
   ```
+
+  Compare the renders in that new directory with the right half of the images here; the steps never write into the
+  repository.
 
   `set -e` stops at the first failure, and `git worktree remove` without `--force` refuses a worktree with changes
   (build output is ignored, so it does not count).
