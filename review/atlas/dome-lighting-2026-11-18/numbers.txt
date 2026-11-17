@@ -1,0 +1,1 @@
+flat grey 128, old vs new: worst channel difference 83 levels, 3516 differing channel values
