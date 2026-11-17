@@ -244,7 +244,9 @@ half4 main(float2 coord) {
         float heldFamily = step(1.5, uProfile);
         float held = heldFamily * clamp(uHeldLens, 0.0, 1.0);
         float heldMap = (uHeldInk > 0.5) ? heldSourceContinuous(u) : heldSource(u);
-        float src = mix(measuredSource(u, uFormation * mix(1.0, corner, clamp(uFoldCorners, 0.0, 1.0)), corner), mix(u, heldMirror(u, heldMap, corner), held), heldFamily);
+        // The resting map's weight: corner arcs, plus a capsule's straight runs on the measured map (#216).
+        float restW = (uBodyKind < 0.5 && uShapeKind < 0.5) ? restCorner(corner, halfSize, uRadii) : corner;
+        float src = mix(measuredSource(u, uFormation * mix(1.0, corner, clamp(uFoldCorners, 0.0, 1.0)), restW), mix(u, heldMirror(u, heldMap, corner), held), heldFamily);
         float capLens = clamp(uFoldCorners - 1.0, 0.0, 1.0) * corner * (1.0 - heldFamily);
         src = mix(src, heldMap, capLens);
         float shift = (depth < W) ? (src * W - depth) : 0.0;

@@ -50,8 +50,10 @@ sits at the centre of each band, with no content, so the pill's interior shows t
   - These are not GPU or device frames and not a comparison with iOS.
   - The bands are 94 dp tall, so the 15.5 dp wide kernel mixes in a little of the neighbouring band near the pill's
     top and bottom edges.
-  - The Pixel 7 capture of the same activity is pending:
-    `adb shell am start -n com.wexpa.liquidglass.sample/.ColourTransferActivity [--ez dark false]`.
+  - Device check, 18 November (Pixel 7, Android 17, portrait, the merged PR's build): the pill interiors of all nine
+    bands match these renders with a max channel difference of 0 levels in all 18 cells, dark and light; main's render
+    differs from the device by up to 70 (dark) and 102 (light) levels in the same cells. The rim and edges were not
+    compared. The device frames are not published here; numbers only.
 
 ![Colour fixture, dark, desktop JVM Skia CPU raster: main | #201](colour-transfer-dark.png)
 

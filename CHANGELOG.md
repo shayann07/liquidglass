@@ -28,6 +28,21 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   Default look changed: free-standing lenses in the Skia, .NET and React Native ports now draw the clear-lens rim, tint and shadow by default;
   pass lighting false for the bare lens. [Evidence](review/atlas/skia-lens-and-bake-2026-11-18/README.md).
 
+- Text lines no longer hook where a resting capsule's round end begins. Glass on the measured resting map
+  (`GlassRestMap.Measured`) lensed only its corner arcs and showed a straight run nearly as it is, blending the two over
+  0.2 of the corner radius; near the rim the maps show rows about 0.7 of the band apart, so lines under the junction drew
+  a short tick at each cap start. Over the Safari lab pill's stripes (16 November stills) iOS displaces the run's outer
+  band as it does the round end's, and nothing changes where the end begins, so on a capsule (corners at its
+  half-height) the measured map now holds along the straight runs too; the last tenth of the radius ramps between the
+  two (authored). Shapes with smaller corners keep the corner-only lens, as the dock's and a resting sheet's straight
+  edges were measured in place. In the run's outer band the stripe edges move from 5 px off iOS to within 2, and luma rms against
+  the stills falls from 12.0-25.6 to 4.5-12.0 levels (junction 16.9-23.8 to 13.0-16.5; round end unchanged).
+  `GlassCapJunctionTest`, `GlassContainerMaterialTest`. The legacy map, which every tab bar uses, is unchanged (docs/1
+  replay identical to main).
+  Mirrored in every port.
+  Default look changed: capsules on the measured map (`Glass.Regular`, `inApp`, `toolbar`, container members and custom
+  styles with `restMap = Measured`) fold content along their straight edges at rest, as their round ends already did,
+  instead of hooking where the round end begins; cards and other shapes are unchanged (#216). [Evidence](review/atlas/cap-junction-2026-11-17/README.md).
 - Regular glass now keeps and boosts colour the way iOS does (#201). Over flat colour the glass applies its grey tone to the
   colour's Rec. 709 luma and keeps the chroma about it at a measured gain, `tone(y) + (g0 + g1 y) (x - y)` per channel
   (dark g0 1.317 / 1.256 / 1.314, g1 -0.427 / -0.351 / -0.429; light g0 0.988 / 0.952 / 0.979, g1 -0.076 / 0.028 / -0.045),
