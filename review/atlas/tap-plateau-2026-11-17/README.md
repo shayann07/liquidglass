@@ -74,6 +74,10 @@ The end of the 0 to 2 plateau: the time the level falls below half-way between i
 All-tap median profile (`tapprofile.py`, every tap), 100-300 ms, levels rms against iOS: docs/1 3.3 before, 2.9 after;
 JGEY2190 5.7 before, 3.3 after.
 
+Re-scored on docs/1 after merging main `8b303111` (#210, the three-term material): main's render and this branch's
+read the same levels as the pre-merge renders at every sampled time (0 to 2 plateau end about 178 / 212 ms, all-tap rms 3.3 / 2.9).
+JGEY2190 was not re-rendered after that merge.
+
 What is left: iOS's teardrops fade over about three frames (0 to 2, docs/1: 105.7, 85.7, 63.5 at 183-217 ms); ours hold
 full and go within one (110.6, 105.7, 49.3). The teardrops' size depends steeply on the lens's strength (they are nearly
 gone once it falls below about 0.9), so a fade cannot be shaped through that strength; see the rejected candidates.
