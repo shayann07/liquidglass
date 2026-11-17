@@ -43,7 +43,7 @@ jobs:
           build-mode: ${{ matrix.language == 'java-kotlin' && 'manual' || 'none' }}
       - name: Compile JVM source for analysis
         if: matrix.language == 'java-kotlin'
-        run: ./gradlew :desktop:compileKotlinDesktop --no-build-cache --rerun-tasks --no-configuration-cache
+        run: .github/scripts/gradle-retry.sh ./gradlew :desktop:compileKotlinDesktop --no-build-cache --rerun-tasks --no-configuration-cache
       - uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
         with:
           category: /language:${{ matrix.language }}

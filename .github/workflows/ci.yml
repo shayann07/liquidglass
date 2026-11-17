@@ -18,7 +18,9 @@ jobs:
     # timeouts and optical tolerances are unchanged.
     # The JVM render suite alone takes about 42 min on a hosted runner (1 Nov), so 55 cancelled builds
     # whose tests had passed.
-    timeout-minutes: 90
+    # #213 ran 79 min on a slow runner (41 on main) and was cancelled at 90 after every library test had
+    # passed; 120 keeps the 2x runner spread inside the limit.
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
@@ -35,7 +37,7 @@ jobs:
         # showcase), in parallel.
         # checkKotlinAbi: the public API of liquidglass and liquidglass-material3 equals its committed dump
         # (api/); changing it needs `./gradlew updateKotlinAbi` and a changelog entry.
-        run: ./gradlew build checkKotlinAbi -x :liquidglass-material3:jvmTest -Patlas.skipShowcase=true --stacktrace
+        run: .github/scripts/gradle-retry.sh ./gradlew build checkKotlinAbi -x :liquidglass-material3:jvmTest -Patlas.skipShowcase=true --stacktrace
       - name: Upload test reports and rendered evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
@@ -62,7 +64,7 @@ jobs:
         with:
           cache-read-only: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
       - name: Material 3 glass components (renders and interaction)
-        run: ./gradlew :liquidglass-material3:jvmTest --stacktrace
+        run: .github/scripts/gradle-retry.sh ./gradlew :liquidglass-material3:jvmTest --stacktrace
       - name: Upload Material 3 renders
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
@@ -88,7 +90,7 @@ jobs:
         with:
           cache-read-only: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
       - name: Desktop showcase renders
-        run: ./gradlew :desktop:desktopTest --tests "*MaterialShowcaseRenderTest*" --stacktrace
+        run: .github/scripts/gradle-retry.sh ./gradlew :desktop:desktopTest --tests "*MaterialShowcaseRenderTest*" --stacktrace
       - name: Upload showcase renders
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
@@ -112,7 +114,7 @@ jobs:
         with:
           cache-read-only: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
       - name: Gradle plugin (codemod unit tests, TestKit builds)
-        run: ./gradlew -p gradle-plugin test --stacktrace
+        run: .github/scripts/gradle-retry.sh ./gradlew -p gradle-plugin test --stacktrace
   dependency-review:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-24.04
