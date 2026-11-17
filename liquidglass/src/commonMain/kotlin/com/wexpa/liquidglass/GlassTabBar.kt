@@ -218,6 +218,7 @@ internal fun GlassTabBar(
     // The keyboard focus ring (#117) is drawn over everything the bar draws, the selector included:
     // drawn on the interactive row it sat under the pill or lens of the selected tab.
     val focusRing = remember { GlassFocusRingState() }
+    val focusScope = androidx.compose.runtime.rememberCoroutineScope()
     androidx.compose.runtime.CompositionLocalProvider(LocalGlassFocusRing provides focusRing) {
     // Nothing here clips: the lens stands proud of the bar while it is held.
     BoxWithConstraints(
@@ -264,7 +265,15 @@ internal fun GlassTabBar(
             .onFocusChanged {
                 focusRing.barFocused = it.hasFocus
                 // A blur inside a pointer gesture is focus passing between two tabs, not focus leaving the bar (#218).
-                if (!it.hasFocus) { if (!focusRing.pointerGesture) focusRing.pointerSinceBlur = false }
+                if (!it.hasFocus) {
+                    if (!focusRing.pointerGesture) focusRing.pointerSinceBlur = false
+                    // Inside a gesture, wait a frame: focus passing between two tabs is back by then. Still gone, it was a
+                    // real blur, and the gesture is over too (a cancelled press sends this bar no release to end it).
+                    else focusScope.launch {
+                        androidx.compose.runtime.withFrameNanos { }
+                        if (!focusRing.barFocused) { focusRing.pointerSinceBlur = false; focusRing.pointerGesture = false }
+                    }
+                }
                 else if (!focusRing.pointerSinceBlur) focusRing.pointerSinceKey = false
             }
             .drawWithContent {

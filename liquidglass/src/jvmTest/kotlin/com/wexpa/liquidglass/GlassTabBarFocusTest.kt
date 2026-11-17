@@ -186,4 +186,18 @@ class GlassTabBarFocusTest {
         waitForIdle()
         assertEquals(0, ringPixels(), "a stepped touch tap left a focus ring")
     }
+
+    /** #218: a cancelled press sends the bar no release, so its gesture never ends by itself. Focus then leaving the bar
+     * and coming back without a pointer must still show the ring, as it did before the gesture marker existed. */
+    @Test fun keyboardFocusAfterACancelledPressShowsTheRing() = runComposeUiTest(testTimeout = 4.minutes) {
+        bar(); waitForIdle()
+        onAllNodes(tab)[1].performTouchInput { down(center); cancel() }
+        waitForIdle()
+        assertEquals(0, ringPixels(), "a cancelled press drew a focus ring")
+        onNodeWithTag("other").requestFocus()
+        waitForIdle()
+        onAllNodes(tab)[4].requestFocus()
+        waitForIdle()
+        assertTrue(ringPixels() > 200, "keyboard focus after a cancelled press showed no ring: ${ringPixels()}")
+    }
 }
