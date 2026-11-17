@@ -238,12 +238,14 @@ internal fun GlassTabBar(
                                 cleanup?.cancel()
                                 focusRing.pointerSinceKey = true
                                 focusRing.pointerSinceBlur = true
+                                focusRing.pointerGesture = true
                             }
                             // A press that ends with no tab focused (the row's padding) leaves nothing to suppress: clear
                             // it two frames on, after any tab the press clicked has taken focus.
                             if (e.changes.none { it.pressed } && e.changes.any { it.previousPressed }) cleanup = watcher.launch {
                                 androidx.compose.runtime.withFrameNanos { }
                                 androidx.compose.runtime.withFrameNanos { }
+                                focusRing.pointerGesture = false
                                 if (!focusRing.barFocused) {
                                     focusRing.pointerSinceKey = false
                                     focusRing.pointerSinceBlur = false
@@ -259,7 +261,8 @@ internal fun GlassTabBar(
             // reaches this bar (Initial pass) before the tab it presses takes focus.
             .onFocusChanged {
                 focusRing.barFocused = it.hasFocus
-                if (!it.hasFocus) focusRing.pointerSinceBlur = false
+                // A blur inside a pointer gesture is focus passing between two tabs, not focus leaving the bar (#218).
+                if (!it.hasFocus) { if (!focusRing.pointerGesture) focusRing.pointerSinceBlur = false }
                 else if (!focusRing.pointerSinceBlur) focusRing.pointerSinceKey = false
             }
             .drawWithContent {
@@ -2662,6 +2665,10 @@ internal class GlassFocusRingState {
     var pointerSinceKey by mutableStateOf(false)
     /** A pointer pressed the bar since focus last left it: focus that returns without one is not the pointer's. */
     var pointerSinceBlur = false
+    /** A pointer gesture on the bar is under way, from its press until two frames after its release. Focus moving from
+     * one tab to another passes through a moment with no tab focused; inside a gesture that is the pointer's own focus
+     * move, not focus leaving the bar (#218). */
+    var pointerGesture = false
     /** Whether a tab of the bar has focus. */
     var barFocused = false
     val target = mutableStateOf<GlassFocusRingTarget?>(null)

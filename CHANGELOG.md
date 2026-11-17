@@ -6,6 +6,12 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Desktop and web: tapping a second tab no longer leaves the keyboard focus ring around it (#218). Focus moving from one
+  tab to another passes through a moment with no tab focused; the bar read that as focus leaving and coming back without
+  a pointer, so the ring showed after every tap but the first (every desktop touch replay showed it at rest). A blur inside
+  the pointer's own gesture, from its press to two frames after its release, is no longer taken as focus leaving the bar.
+  Keyboard focus, and focus that really returns without a pointer, still show the ring (`GlassTabBarFocusTest`). Android
+  touch never showed it.
 - Regular glass now keeps and boosts colour the way iOS does (#201). Over flat colour the glass applies its grey tone to the
   colour's Rec. 709 luma and keeps the chroma about it at a measured gain, `tone(y) + (g0 + g1 y) (x - y)` per channel
   (dark g0 1.317 / 1.256 / 1.314, g1 -0.427 / -0.351 / -0.429; light g0 0.988 / 0.952 / 0.979, g1 -0.076 / 0.028 / -0.045),
