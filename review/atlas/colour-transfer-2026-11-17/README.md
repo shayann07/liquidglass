@@ -25,14 +25,22 @@ sits at the centre of each band, with no content, so the pill's interior shows t
   test runs skip it). PNGs land in `apps/desktop/build/reports/atlas/colour-transfer/`.
 - **Method:** desktop JVM, Skia CPU raster in the Compose UI test harness, 390 x 844 dp at density 3 (1170 x 2532 px).
   The "before" render is the same scene and test over the library at `8b303111`. To reproduce it without touching your
-  working tree, use a separate worktree that takes this branch's sample and test files and main's library:
+  working tree or any existing worktree, make a fresh one in a new temporary directory, with this branch's sample and
+  test files and main's library committed on a detached HEAD, and remove only that worktree:
 
   ```sh
-  git worktree add ../lg-before HEAD
-  git -C ../lg-before checkout 8b303111 -- liquidglass/src
-  (cd ../lg-before && ./gradlew :desktop:desktopTest --tests "*ColourTransferRenderTest*" -Patlas.colourTransfer=true)
-  git worktree remove --force ../lg-before
+  set -e
+  dir="$(mktemp -d)/lg-before"
+  git worktree add --detach "$dir" HEAD
+  git -C "$dir" checkout 8b303111 -- liquidglass/src
+  git -C "$dir" commit -q -m "Colour-transfer before render: main's library"
+  (cd "$dir" && ./gradlew :desktop:desktopTest --tests "*ColourTransferRenderTest*" -Patlas.colourTransfer=true)
+  cp "$dir"/apps/desktop/build/reports/atlas/colour-transfer/*.png .
+  git worktree remove "$dir"
   ```
+
+  `set -e` stops at the first failure, and `git worktree remove` without `--force` refuses a worktree with changes
+  (build output is ignored, so it does not count).
 - **Limits:**
   - These are not GPU or device frames and not a comparison with iOS.
   - The bands are 94 dp tall, so the 15.5 dp wide kernel mixes in a little of the neighbouring band near the pill's
