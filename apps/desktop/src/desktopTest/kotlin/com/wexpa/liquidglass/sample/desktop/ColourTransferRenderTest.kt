@@ -21,13 +21,18 @@ import kotlin.time.Duration.Companion.minutes
 
 /**
  * The colour-transfer fixture (the sample's ColourTransferActivity), rendered at a phone's size for the review
- * evidence of #201: 390 x 844 dp at density 3, dark and light.
+ * evidence of #201: 390 x 844 dp at density 3, dark and light. Opt-in, so ordinary test runs skip both renders:
+ * `:desktop:desktopTest --tests "*ColourTransferRenderTest*" -Patlas.colourTransfer=true`.
  */
 @OptIn(ExperimentalTestApi::class)
 class ColourTransferRenderTest {
-    private val out = File("build/reports/atlas/colour-transfer").apply { mkdirs() }
+    private val out = File("build/reports/atlas/colour-transfer")
 
-    private fun shoot(name: String, dark: Boolean, width: Int = 390, height: Int = 844, density: Float = 3f) =
+    private val requested = System.getProperty("atlas.colourTransfer") == "true"
+
+    private fun shoot(name: String, dark: Boolean, width: Int = 390, height: Int = 844, density: Float = 3f) {
+        if (!requested) return
+        out.mkdirs()
         runDesktopComposeUiTest((width * density).toInt(), (height * density).toInt(), testTimeout = 6.minutes) {
             setContent {
                 CompositionLocalProvider(LocalDensity provides Density(density)) {
@@ -37,6 +42,7 @@ class ColourTransferRenderTest {
             waitForIdle()
             ImageIO.write(onNodeWithTag("app").captureToImage().toAwtImage(), "png", File(out, "$name.png"))
         }
+    }
 
     @Test fun dark() = shoot("colour-transfer-dark", dark = true)
     @Test fun light() = shoot("colour-transfer-light", dark = false)

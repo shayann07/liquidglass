@@ -82,12 +82,10 @@ tasks.register<JavaExec>("phoneReplay") {
 tasks.withType<Test>().configureEach {
     systemProperty("kotlinx.coroutines.test.default_timeout", "15m")
     // The showcase renders (two phone screens at density 3) run in CI's own showcase job;
-    // -Patlas.skipShowcase=true leaves them out of the main build, and with them the colour-transfer
-    // evidence renders (#201), which run only when asked for with --tests "*ColourTransferRenderTest*".
+    // -Patlas.skipShowcase=true leaves them out of the main build.
     if (providers.gradleProperty("atlas.skipShowcase").getOrElse("false").toBoolean()) {
-        filter {
-            excludeTestsMatching("*MaterialShowcaseRenderTest")
-            excludeTestsMatching("*ColourTransferRenderTest")
-        }
+        filter { excludeTestsMatching("*MaterialShowcaseRenderTest") }
     }
+    // The colour-transfer evidence renders (#201) draw only when asked for: -Patlas.colourTransfer=true.
+    providers.gradleProperty("atlas.colourTransfer").orNull?.let { systemProperty("atlas.colourTransfer", it) }
 }

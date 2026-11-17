@@ -21,10 +21,18 @@ orange, yellow, green, cyan, blue, magenta, dark magenta and grey 128. A Regular
 sits at the centre of each band, with no content, so the pill's interior shows the material alone.
 
 - **Source:** the app's own scene through the public `glassEffect` modifier, rendered by `ColourTransferRenderTest`
-  (desktop, opt-in: `:desktop:desktopTest --tests "*ColourTransferRenderTest*"`).
+  (desktop, opt-in: `:desktop:desktopTest --tests "*ColourTransferRenderTest*" -Patlas.colourTransfer=true`; ordinary
+  test runs skip it). PNGs land in `apps/desktop/build/reports/atlas/colour-transfer/`.
 - **Method:** desktop JVM, Skia CPU raster in the Compose UI test harness, 390 x 844 dp at density 3 (1170 x 2532 px).
-  The "before" render uses the same scene with the library sources checked out at `8b303111` (`git checkout 8b303111 --
-  liquidglass/src`, rendered, then restored with `git checkout HEAD -- liquidglass/src`).
+  The "before" render is the same scene and test over the library at `8b303111`. To reproduce it without touching your
+  working tree, use a separate worktree that takes this branch's sample and test files and main's library:
+
+  ```sh
+  git worktree add ../lg-before HEAD
+  git -C ../lg-before checkout 8b303111 -- liquidglass/src
+  (cd ../lg-before && ./gradlew :desktop:desktopTest --tests "*ColourTransferRenderTest*" -Patlas.colourTransfer=true)
+  git worktree remove --force ../lg-before
+  ```
 - **Limits:**
   - These are not GPU or device frames and not a comparison with iOS.
   - The bands are 94 dp tall, so the 15.5 dp wide kernel mixes in a little of the neighbouring band near the pill's
@@ -32,9 +40,9 @@ sits at the centre of each band, with no content, so the pill's interior shows t
   - The Pixel 7 capture of the same activity is pending:
     `adb shell am start -n com.wexpa.liquidglass.sample/.ColourTransferActivity [--ez dark false]`.
 
-![Colour fixture, dark: main | #201](colour-transfer-dark.png)
+![Colour fixture, dark, desktop JVM Skia CPU raster: main | #201](colour-transfer-dark.png)
 
-![Colour fixture, light: main | #201](colour-transfer-light.png)
+![Colour fixture, light, desktop JVM Skia CPU raster: main | #201](colour-transfer-light.png)
 
 Mean of the pill's middle (330 x 72 px) in each render, R, G, B levels of 255. This is a regression read of the images
 above, not a comparison with iOS:
