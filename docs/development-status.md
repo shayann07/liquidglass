@@ -13,7 +13,7 @@ research remains available; this page identifies which later changes supersede i
   stills stay at 1.43 / 1.42; `GlassLabModelTest` asserts 27 cube points. Merged glass and every port carry it; docs/1 replay
   unchanged (0 of 1934 frames). Open: the sRGB gamut (saturated iOS colours outside it read up to 7 levels off), Tint 0/100
   authored (#208), a dark-to-light morph dips toward the grey tone at its midpoint, Pixel 7 capture of the colour fixture
-  pending. Evidence: `review/atlas/colour-transfer-2026-11-17/README.md`.
+  pending. [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/colour-transfer-2026-11-17/README.md).
 - 16 November: Regular glass follows the measured three-term material (#200, fixes #190): the along-axis detail filter that
   drew stepped ghost copies of text is removed, detail is one soft copy over a 15.5 dp wide kernel, and the dark tone is a fitted
   curve; merged glass (`GlassEffectContainer`) draws the same material but lacks the legibility term, rim fringe, `uTintAbsorb`, rotated `softDetail` scatter and `Glass.light` (#211). 1.43 dark / 1.42 light levels rms on 89 private lab stills at Tint 50 (gate 3.0; main 24.2 / 15.2); public `GlassLabModelTest`
