@@ -31,21 +31,47 @@ class GlassPhoneMaterialReferenceTest {
     }
 
     @Test fun theClearBarPassesWhatsAppsAndTheAppStoresPage() {
-        // Display colours, 17 October: iOS's WhatsApp and App Store bars at rest over plain pages
-        // (App Store black 0, WhatsApp chats 10, WhatsApp card 23, App Store card 28). The chats
-        // page carries text under the bar, so it is given more room.
+        // Display colours: iOS's WhatsApp and App Store bars at rest over plain pages (App Store black 0, WhatsApp chats
+        // 10, WhatsApp card 23, App Store card 28), with the #203 tolerances. The chats page carries text under the bar,
+        // so it is given more room.
         val clear = GlassTabBarStyle.CalmClear(dark = true)
-        for ((page, ios, tol) in listOf(Triple(0, 32.0, 1.5), Triple(10, 43.0, 3.0), Triple(23, 54.0, 1.5), Triple(28, 57.0, 1.5)))
+        for ((page, ios, tol) in listOf(Triple(0, 32.0, 2.0), Triple(10, 43.0, 3.0), Triple(23, 54.0, 2.0), Triple(28, 58.0, 3.0)))
             assertEquals(ios, restingBar(clear, page), tol, "CalmClear bar over page $page")
+        // The App Store's bright cards (#203): blue (145, 192, 242) under the bar reads (116, 167, 219), luma 157.6;
+        // orange (242, 194, 113) reads (209, 162, 79), luma 166.6. Luma within 6, each channel within 8.
+        for ((card, ios) in listOf(
+            Triple(145, 192, 242) to Triple(116.0, 167.0, 219.0),
+            Triple(242, 194, 113) to Triple(209.0, 162.0, 79.0),
+        )) {
+            val ours = restingBarRgb(clear, card)
+            val luma = { c: Triple<Double, Double, Double> -> .299 * c.first + .587 * c.second + .114 * c.third }
+            assertEquals(luma(ios), luma(ours), 6.0, "CalmClear bar luma over card $card")
+            assertEquals(ios.first, ours.first, 8.0, "red over card $card")
+            assertEquals(ios.second, ours.second, 8.0, "green over card $card")
+            assertEquals(ios.third, ours.third, 8.0, "blue over card $card")
+        }
         // Calm keeps the Phone bar's glass: the same black level, 0.59 of the page.
         assertEquals(32.0, restingBar(GlassTabBarStyle.Calm(dark = true), 0), 1.5)
         assertEquals(46.0, restingBar(GlassTabBarStyle.Calm(dark = true), 23), 1.5)
-        // Only the bar's tint differs, and light appearance has no recording.
+        // Dark: the measured in-app material with Calm's bar-only fields; everything else is Calm.
         val calm = GlassTabBarStyle.Calm(dark = true)
-        assertEquals(calm.copy(bar = calm.bar.copy(tint = clear.bar.tint, legibility = 2f, blurRadius = 7.dp)), clear)
+        assertEquals(calm.copy(bar = GlassStyle.toolbar(dark = true).copy(restMap = calm.bar.restMap, capFold = calm.bar.capFold,
+            specular = calm.bar.specular, bevelPeak = calm.bar.bevelPeak, edgeFold = calm.bar.edgeFold,
+            softDetail = calm.bar.softDetail)), clear)
         // Light: the same bar, WhatsApp's pill (236 over white against the Phone's 245).
         val lightCalm = GlassTabBarStyle.Calm(dark = false)
         assertEquals(lightCalm.copy(pill = lightCalm.pill.copy(tintLift = -19f / 255f)), GlassTabBarStyle.CalmClear(dark = false))
+    }
+
+    @Test fun thePhoneBarKeepsItsEarlierMaterial() {
+        // #203: only CalmClear's dark bar moved to the lab material. Calm, its recorded-space preset and every light bar
+        // keep the earlier toolbar fit, which has no tone curve and no colour transfer.
+        for (style in listOf(GlassTabBarStyle.Calm(dark = true), GlassTabBarStyle.Calm(dark = false),
+            GlassTabBarStyle.CalmRecordedSpace(dark = true), GlassTabBarStyle.CalmRecordedSpace(dark = false),
+            GlassTabBarStyle.CalmClear(dark = false))) {
+            assertEquals(0f, style.bar.toneCurve, "toneCurve")
+            assertEquals(0f, style.bar.detailLift, "detailLift")
+        }
     }
 
     @Test fun theCalmLensAddsTheRawPageBlurred() {
@@ -85,17 +111,24 @@ class GlassPhoneMaterialReferenceTest {
         assertEquals(false, GlassTabBarStyle.CalmRecordedSpace(dark = false).touchLift)
     }
 
-    private fun restingBar(style: GlassTabBarStyle, page: Int): Double {
+    private fun restingBar(style: GlassTabBarStyle, page: Int): Double =
+        restingBarRgb(style, Triple(page, page, page)).let { .299 * it.first + .587 * it.second + .114 * it.third }
+
+    /** The bar's interior over a flat page, with the material's tone curve and colour transfer as the host passes them. */
+    private fun restingBarRgb(style: GlassTabBarStyle, page: Triple<Int, Int, Int>): Triple<Double, Double, Double> {
         val s = style.bar
-        val grey = (0xFF shl 24) or (page shl 16) or (page shl 8) or page
+        val colour = (0xFF shl 24) or (page.first shl 16) or (page.second shl 8) or page.third
         val pixels = GlassRender.render(
             width = 834, height = 186, pad = 24, profile = 2f,
             tintAlpha = s.tint.alpha,
             tint = Triple(s.tint.red, s.tint.green, s.tint.blue),
             lift = s.tintLift,
-            backdrop = { _, _ -> grey },
+            detailLift = s.detailLift.coerceIn(-1f, 1f),
+            toneCurve = s.toneCurve,
+            backdrop = { _, _ -> colour },
         )
-        return GlassRender.luma(pixels[(93+24)*(834+48)+350+24])
+        val p = pixels[(93+24)*(834+48)+350+24]
+        return Triple(((p shr 16) and 0xFF).toDouble(), ((p shr 8) and 0xFF).toDouble(), (p and 0xFF).toDouble())
     }
 
     private fun heldBar(calm: GlassTabBarStyle): Double {
