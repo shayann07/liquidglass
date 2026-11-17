@@ -62,7 +62,7 @@ class GlassTabBarFocusTest {
     @Test fun aKeyboardFocusedTabShowsARing() = runComposeUiTest(testTimeout = 4.minutes) {
         bar(); waitForIdle()
         assertEquals(0, ringPixels(), "no ring before focus")
-        onAllNodes(tab)[2].requestFocus()
+        onAllNodes(tab)[4].requestFocus()
         waitForIdle()
         assertTrue(ringPixels() > 200, "focused tab draws no ring: ${ringPixels()}")
     }
@@ -86,7 +86,7 @@ class GlassTabBarFocusTest {
     /** Keyboard focus, then a mouse click on another tab: no ring stays behind. */
     @Test fun aClickAfterKeyboardFocusClearsTheRing() = runComposeUiTest(testTimeout = 4.minutes) {
         bar(); waitForIdle()
-        onAllNodes(tab)[2].requestFocus()
+        onAllNodes(tab)[4].requestFocus()
         waitForIdle()
         assertTrue(ringPixels() > 200, "no ring after keyboard focus")
         onAllNodes(tab)[3].performMouseInput { click(center) }

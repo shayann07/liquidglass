@@ -226,7 +226,9 @@ internal fun GlassTabBar(
             // A pointer press anywhere on the bar hides the ring until the next key: the desktop stays in keyboard
             // input mode under touch and synthetic presses, which focus the tab they press (#143 regression in replays).
             .pointerInput(Unit) {
-                kotlinx.coroutines.coroutineScope {
+                // A cancelled gesture (another handler took the pointer, or the bar left) cancels this whole block and
+                // its pending check: the gesture is over either way, so it must not keep blurs from counting (#218).
+                try { kotlinx.coroutines.coroutineScope {
                     val watcher = this
                     var cleanup: kotlinx.coroutines.Job? = null
                     awaitPointerEventScope {
@@ -253,7 +255,7 @@ internal fun GlassTabBar(
                             }
                         }
                     }
-                }
+                } } finally { focusRing.pointerGesture = false }
             }
             .onPreviewKeyEvent { focusRing.pointerSinceKey = false; false }
             // Focus that comes back with no pointer press on the bar since it left came from the keyboard (a Tab from a
