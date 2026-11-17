@@ -867,6 +867,30 @@ beneath the chrome.
 a fade to the ground colour over dark content does nothing visible, so without it the effect
 silently stops working exactly when it is needed.
 
+### `glassScrollEdge`
+
+```kotlin
+enum class GlassScrollEdges { Top, Bottom, Both }
+
+fun Modifier.glassScrollEdge(
+    ground: Color, edges: GlassScrollEdges = GlassScrollEdges.Top, height: Dp = 35.dp,
+    style: GlassScrollEdgeStyle = GlassScrollEdgeStyle.Soft, inverted: Boolean = false,
+    topIntensity: () -> Float, bottomIntensity: () -> Float = topIntensity,
+): Modifier
+fun Modifier.glassScrollEdge(state: ScrollState, ground: Color, edges: ..., height: Dp, style: ..., inverted: Boolean): Modifier
+fun Modifier.glassScrollEdge(state: LazyListState, ground: Color, edges: ..., height: Dp, style: ..., inverted: Boolean): Modifier
+// liquidglass-material3
+fun Modifier.glassScrollEdge(scrollBehavior: TopAppBarScrollBehavior, ground: Color, edges: ..., height: Dp, style: ..., inverted: Boolean): Modifier
+```
+
+iOS 27's scroll edge effect on the scrolling container (#207): progressive blur over the first 35 dp from the edge
+(both appearances) and, with `inverted` (the dark appearance), a blend toward grey 124 at 0.41, measured on Safari's
+top edge. The intensity (0 to 1) is read in the draw phase, so scrolling never recomposes; at zero it draws as if
+absent. The blur needs a render effect (Android 12+, desktop, web). The fade-in (24 dp of scroll) and the bottom edge
+(a mirror of the top) are authored. `ground` is used by `GlassScrollEdgeStyle.Hard` only. The Material 3 overload
+follows `scrollBehavior.state.overlappedFraction`, which is experimental in Material 3. Guide:
+[the scroll edge effect and the collapsing bar](guides/collapsing-bar.md).
+
 ---
 
 ## Platform

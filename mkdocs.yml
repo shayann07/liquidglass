@@ -133,6 +133,7 @@ nav:
       - Flutter: flutter.md
       - .NET (WinForms, WPF, Avalonia, MAUI): native-dotnet.md
       - Adaptation: adaptation.md
+      - Scroll edge and collapsing bar: guides/collapsing-bar.md
       - Tab bar: tab-bar.md
       - Accessibility: accessibility.md
       - Performance: performance.md

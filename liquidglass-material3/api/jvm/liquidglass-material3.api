@@ -190,6 +190,11 @@ public final class com/wexpa/liquidglass/material3/ScaffoldKt {
 	public static final fun Scaffold-TvnljyQ (Landroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;IJJLandroidx/compose/foundation/layout/WindowInsets;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
 }
 
+public final class com/wexpa/liquidglass/material3/ScrollEdgeKt {
+	public static final fun glassScrollEdge-u6trifg (Landroidx/compose/ui/Modifier;Landroidx/compose/material3/TopAppBarScrollBehavior;JLcom/wexpa/liquidglass/GlassScrollEdges;FLcom/wexpa/liquidglass/GlassScrollEdgeStyle;Z)Landroidx/compose/ui/Modifier;
+	public static synthetic fun glassScrollEdge-u6trifg$default (Landroidx/compose/ui/Modifier;Landroidx/compose/material3/TopAppBarScrollBehavior;JLcom/wexpa/liquidglass/GlassScrollEdges;FLcom/wexpa/liquidglass/GlassScrollEdgeStyle;ZILjava/lang/Object;)Landroidx/compose/ui/Modifier;
+}
+
 public final class com/wexpa/liquidglass/material3/SearchBarKt {
 	public static final fun DockedSearchBar (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ZLkotlin/jvm/functions/Function1;Landroidx/compose/ui/Modifier;ZLkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Landroidx/compose/ui/graphics/Shape;Lcom/wexpa/liquidglass/Glass;Lcom/wexpa/liquidglass/Glass;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;III)V
 	public static final fun SearchBar (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ZLkotlin/jvm/functions/Function1;Landroidx/compose/ui/Modifier;ZLkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Landroidx/compose/ui/graphics/Shape;Lcom/wexpa/liquidglass/Glass;Lcom/wexpa/liquidglass/Glass;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;III)V
