@@ -18,6 +18,29 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   deprecated overloads, and the ABI dump only gains the field, `component62`, the new `copy` and the factory. Not a default-look
   change: no existing style sets the field. Ports need no change (they set `uChromaGain`, `uChromaSlope`, `uChromaWeight` already
   and have no style layer).
+
+- Skia and .NET ports: render a frame at any time (#193). `bakeNavigation(bar, events, {step, duration})` runs a scripted gesture
+  through the scene's own navigation motion (now one shared driver, `createNavigationDriver`, used by `addNavigation` and the bake) at a
+  fixed step, and `track.sample(t)` gives the bar's state at any time, in any order, any worker (`toJSON()` / `navigationTrack(json)`
+  for plain data); `drawNavigation(kit, painter, canvas, view, sample, options)` draws that state, and is what `scene.draw` calls for a
+  navigation layer (`layer.feedback` is new, beside `layer.selector`). .NET: `NavigationBaker.Bake(bar, events, duration)` and
+  `NavigationTrack.Sample(t)` for the same, stepping `CalmNavigation` and `CalmInteraction` (the painter's draw methods are already
+  stateless). Exact at a step, linear between (the pose's inverse recomputed; decisions keep the earlier step); not a second drawing method
+  on the scene. The scene's navigation drawing now passes the selector pose's superellipse blend (`pose.e`) on to the painter, which it used to drop.
+  Default look changed: the Skia scene's held navigation lens (and the baked and stateless drawing) takes the pose's superellipse blend as
+  Compose's does, where it used to fall back to the painter's default blend; a resting or tapped selector is unchanged (blend 0 at formation 0).
+- Skia and .NET ports: a free-standing lens has the Compose clear-lens preset by default (#191). `painter.drawLens(canvas, bounds)`,
+  `scene.addLens(bounds)` and `GlassPainter.DrawLens(...)` draw `GlassStyle.clearLens`'s
+  rim highlight (specular 0.28, fresnel 0.02, counter light 0.35, bevel 1.2 dp), a thin white tint (1.5 %) and a contact shadow
+  (0.14 x 0.15) around the magnified content, so the lens reads as glass over flat or low-detail content. `shadow`, `density`
+  and `light` are optional. Authored in Compose, not an iOS measurement; over a flat grey 128 page the rim reads +64 / +22
+  levels (top / bottom), over black +42 / +15, over pure white nothing (as in Compose). The values were read from
+  `GlassStyle.clearLens`, not exported from Kotlin, so there is no Kotlin parity fixture for them yet.
+  `{lighting: false}` / `new GlassLensOptions(Lighting: false)` is the bare magnification map, byte-identical to the earlier lens. React Native
+  `GlassLens` gets the preset too (at its pixel ratio).
+  Default look changed: free-standing lenses in the Skia, .NET and React Native ports now draw the clear-lens rim, tint and shadow by default;
+  pass lighting false for the bare lens. [Evidence](review/atlas/skia-lens-and-bake-2026-11-18/README.md).
+
 - Text lines no longer hook where a resting capsule's round end begins. Glass on the measured resting map
   (`GlassRestMap.Measured`) lensed only its corner arcs and showed a straight run nearly as it is, blending the two over
   0.2 of the corner radius; near the rim the maps show rows about 0.7 of the band apart, so lines under the junction drew

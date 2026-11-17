@@ -15,6 +15,10 @@ research remains available; this page identifies which later changes supersede i
   authored; light appearance, press, hold and Tint Amount are not measured. Merged glass carries it; ports already take the
   three uniforms and have no style layer, so no port changes. No existing style changes (the host passes the same uniforms when
   unset). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/control-center-tile-2026-11-18/README.md).
+- 18 November: Skia and .NET ports: a free-standing lens has the Compose clear-lens preset by default (#191, `lighting: false` for the bare lens; rim, thin tint,
+  contact shadow; authored in Compose, no iOS claim), and a navigation gesture can be baked and drawn at any time (#193,
+  `bakeNavigation` / `drawNavigation`, .NET `NavigationBaker`; frames byte-identical to the scene's). A Compose render of `GlassStyle.clearLens` measured the same way reads +62 / +20 over grey 128 and +42 / +15 over black against the port's +64 / +22 and +42 / +15.
+  [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/skia-lens-and-bake-2026-11-18/README.md).
 - 17 November: capsules on the measured resting map (Regular, `inApp`, `toolbar`) fold content along their straight
   edges at rest as their round ends do (cards unchanged), so text lines no longer hook where a capsule's round end begins. Scored on the Safari lab
   pill's stripes: the run's outer band 4.5-12.0 levels rms (was 12.0-25.6). Tab bars (legacy map) unchanged (#216).

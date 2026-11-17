@@ -13,6 +13,12 @@
 - [x] Step 0 (a)(b)(d): no inner band on the bar (the earlier reading averaged in pill columns), so `+barshade` is dropped. Open: the avatar re-read (touched bar, backdrop under it not yet measured) and the pill's edge falloff over black (iOS starts 1.5-2 dp further out; separate from #203).
 - [ ] Owner question 1 (Calm onto the lab material) once the Phone-gate replays run on `+barlab`.
 
+## #191 lens preset, #193 frame at any time (18 November, `feat/191-193-skia`, PR #221)
+
+- [x] Skia and .NET: `lighting` option for free-standing lenses (on by default); bake, stateless draw and `NavigationBaker`; tests, README, CHANGELOG, evidence render.
+- [ ] After #217 merges: merge main into the branch, re-vendor ports/npm and ports/react-native, re-run the Skia suite.
+- [ ] Follow-ups named in the PR: Kotlin export of `clearLens` as a parity fixture, React Native `GlassLens` `lighting` prop, the lens's inside shadow share.
+
 ## #201 colour transfer (17 November, `feat/201-colour`)
 
 - [x] Fit (per-channel gains, sRGB), shader, 27 cube assertions, private gates (cube, colour-pair stripes, grey lab).

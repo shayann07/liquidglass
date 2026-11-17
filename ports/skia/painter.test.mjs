@@ -265,7 +265,8 @@ test('positioned lenses sample the page, preserve host transforms and borrow sou
     const channel=(buffer,x,y,c=0)=>buffer[(y*w+x)*4+c];
     for(const [x,y,width,height] of [[10,15,80,80],[100,75,110,60],[-20,-10,80,80]]) {
       canvas.clear(kit.TRANSPARENT);
-      painter.drawLens(canvas,{x,y,width,height,magnification:1.25});
+      // This test is about page mapping, so it uses the bare map (the default lens adds the preset's tint and rim).
+      painter.drawLens(canvas,{x,y,width,height,magnification:1.25},{lighting:false});
       surface.flush();
       const actual=canvas.readPixels(0,0,info),cx=x+width/2,cy=y+height/2;
       assert.ok(Math.abs(channel(actual,cx,cy)-cx)<=1,'lens sampled the wrong horizontal page origin');
