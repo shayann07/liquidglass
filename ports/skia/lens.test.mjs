@@ -59,16 +59,19 @@ test('the preset binds only known uniforms, scales its dp terms and leaves the b
   } finally { effects.dispose(); }
 });
 
-test('a lens is the bare magnifier unless lighting is asked for', () => {
+test('a lens has the clear-lens preset by default and lighting:false is the bare magnifier', () => {
   const f = flat(320, 320, 128), painter = createGlassPainter(kit), bounds = {x: 70, y: 70, width: 180};
   try {
     painter.setSource(f.image);
     const render = options => { f.canvas.clear(kit.TRANSPARENT); f.canvas.drawImage(f.image, 0, 0);
-      painter.drawLens(f.canvas, bounds, options); return Array.from(f.read()); };
-    const plain = render(), off = render({lighting: false, shadow: true, density: 3});
-    assert.deepEqual(off, plain, 'lighting:false must not change a pixel');
-    assert.equal(at(plain, 320, 160, 71), 128, 'the bare lens draws nothing over a flat page');
-    assert.notDeepEqual(render({lighting: true}), plain);
+      painter.drawLens(f.canvas, bounds, options); return f.read(); };
+    const same = (x, y) => x.length === y.length && x.every((v, i) => v === y[i]);
+    const dflt = render(), on = render({lighting: true}), bare = render({lighting: false, shadow: true, density: 3});
+    assert(same(dflt, on), 'the default lens is the preset');
+    assert(!same(dflt, bare));
+    assert.equal(at(bare, 320, 160, 71), 128, 'the bare lens draws nothing over a flat page');
+    assert(same(bare, render({lighting: false})), 'the bare lens ignores shadow and density');
+    assert(at(dflt, 320, 160, 71) > 128, 'the default lens has a rim');
   } finally { painter.dispose(); f.close(); }
 });
 
@@ -107,26 +110,25 @@ test('a scene lens takes the same options as the painter and scales them by the 
     const scene = createGlassScene(kit, {width: 240, height: 160, pixelRatio: ratio}), painter = createGlassPainter(kit);
     try {
       scene.setSource(f.image); painter.setSource(g.image);
-      const lens = scene.addLens({x: 40, y: 20, width: 100, magnification: 1.5}, {lighting: true});
+      scene.addLens({x: 40, y: 20, width: 100, magnification: 1.5});   // the default: the preset
       scene.draw(f.canvas, 0);
       g.canvas.drawImage(g.image, 0, 0);
       painter.drawLens(g.canvas, {x: 40 * ratio, y: 20 * ratio, width: 100 * ratio, height: 100 * ratio, magnification: 1.5},
-        {lighting: true, density: ratio});
-      assert.deepEqual(Array.from(f.read()), Array.from(g.read()), `scene and painter differ at ratio ${ratio}`);
-      // A scene lens without options stays the bare map; setMaterial switches the preset.
-      const bare = scene.addLens({x: 150, y: 20, width: 60});
-      void bare, lens;
-    } catch (error) { if (!/removed/.test(String(error))) throw error; }
-    finally { scene.dispose(); painter.dispose(); f.close(); g.close(); }
+        {density: ratio});
+      const x = f.read(), y = g.read();
+      assert(x.every((v, i) => v === y[i]), `scene and painter differ at ratio ${ratio}`);
+    } finally { scene.dispose(); painter.dispose(); f.close(); g.close(); }
   }
   const f = flat(240, 160, 100), scene = createGlassScene(kit, {width: 240, height: 160});
   try {
     scene.setSource(f.image);
     const lens = scene.addLens({x: 40, y: 20, width: 100});
-    scene.draw(f.canvas, 0); const plain = Array.from(f.read());
-    lens.setMaterial({lighting: true}); scene.draw(f.canvas, 0.1);
-    assert.notDeepEqual(Array.from(f.read()), plain);
-    lens.setMaterial({lighting: false}); f.canvas.clear(kit.TRANSPARENT); scene.draw(f.canvas, 0.2);
-    assert.deepEqual(Array.from(f.read()), plain);
+    const read = time => { f.canvas.clear(kit.TRANSPARENT); scene.draw(f.canvas, time); return f.read(); };
+    const same = (x, y) => x.every((v, i) => v === y[i]);
+    const preset = read(0);
+    lens.setMaterial({lighting: false}); const bare = read(0.1);
+    assert(!same(bare, preset), 'lighting:false changed nothing');
+    assert.equal(at(bare, 240, 90, 21), 100, 'the bare scene lens draws nothing over a flat page');
+    lens.setMaterial({lighting: true}); assert(same(read(0.2), preset), 'setMaterial back to the preset');
   } finally { scene.dispose(); f.close(); }
 });

@@ -98,11 +98,11 @@ export function createGlassPainter(kit, sources = glassShaderSources) {
     },
 
     /**
-     * Draw a clear magnifier, preserving the host canvas transform and clip. By default it is the bare
-     * magnification map. `lighting: true` gives it the Compose clear-lens preset (GlassStyle.clearLens): the
-     * rim highlight, the thin white tint and the contact shadow under it, which is what makes a free-standing
-     * lens read as glass over flat or low-detail content. Authored in Compose, not an iOS measurement.
-     * With it, `density` is px per dp (the dp terms scale), `shadow: false` skips the contact shadow and
+     * Draw a clear magnifier, preserving the host canvas transform and clip. By default it is the Compose
+     * clear-lens preset (GlassStyle.clearLens): the rim highlight, the thin white tint and the contact shadow
+     * under it, which is what makes a free-standing lens read as glass over flat or low-detail content.
+     * Authored in Compose, not an iOS measurement. `lighting: false` is the bare magnification map.
+     * With the preset, `density` is px per dp (the dp terms scale), `shadow: false` skips the contact shadow and
      * `light` ([x, y], toward the light, y up negative) is Compose's GlassLight (default [-0.35, -0.94]).
      */
     drawLens(canvas, {x, y, width, height = width, magnification = 1.25}, options = {}) {
@@ -111,7 +111,7 @@ export function createGlassPainter(kit, sources = glassShaderSources) {
       if (![x,y,width,height,magnification].every(Number.isFinite) || width <= 0 || height <= 0 ||
           magnification < 1 || magnification > 2.5)
         throw new RangeError('Lens requires finite geometry, positive dimensions and 1–2.5 magnification');
-      const {lighting = false, density = 1, shadow = true, light = CLEAR_LENS.light} = options ?? {};
+      const {lighting = true, density = 1, shadow = true, light = CLEAR_LENS.light} = options ?? {};
       // The material's local padded coordinates must sample the same global page coordinates
       // that the host drew. A local shader matrix is inverted by Skia during sampling.
       const pad = 2;

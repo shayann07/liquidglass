@@ -1,4 +1,4 @@
-// Apache-2.0. The clear-lens preset (#191): off by default, the bare lens unchanged; on, Compose's GlassStyle.clearLens.
+// Apache-2.0. The clear-lens preset (#191): on by default (Compose's GlassStyle.clearLens); Lighting false is the bare lens.
 using System.Runtime.InteropServices;
 using LiquidGlass.Skia;
 using SkiaSharp;
@@ -45,11 +45,16 @@ internal static class LensChecks
             Check(bare["uBevel"][0] == 2 && bare["uSpecular"][0] == 0 && bare["uTint"][3] == 0, "The bare set changed");
             Throws<ArgumentOutOfRangeException>(() => GlassPainter.ClearLensUniforms(effect, 180, 180, 2, 1.4f, 0));
         }
-        // Off by default: the options overload without Lighting draws the same pixels as the bare lens.
+        // On by default: the no-options overload and a default GlassLensOptions are the preset; Lighting false is the bare lens.
         var plain = Render(128, (p, c) => p.DrawLens(c, bounds, 1.4f));
-        var off = Render(128, (p, c) => p.DrawLens(c, bounds, new GlassLensOptions(Lighting: false, Shadow: true, Density: 3), 1.4f));
-        Check(plain.SequenceEqual(off), "Lighting false changed the bare lens");
-        Check(plain[((160) * 320 + 160) * 4 + 0] == 128 && plain[(71 * 320 + 160) * 4] == 128, "The bare lens drew something over a flat page");
+        var dflt = Render(128, (p, c) => p.DrawLens(c, bounds, new GlassLensOptions(), 1.4f));
+        var on = Render(128, (p, c) => p.DrawLens(c, bounds, new GlassLensOptions(Lighting: true), 1.4f));
+        var bareLens = Render(128, (p, c) => p.DrawLens(c, bounds, new GlassLensOptions(Lighting: false), 1.4f));
+        var bareExtras = Render(128, (p, c) => p.DrawLens(c, bounds, new GlassLensOptions(Lighting: false, Shadow: true, Density: 3), 1.4f));
+        Check(plain.SequenceEqual(dflt) && dflt.SequenceEqual(on), "The default lens is not the preset");
+        Check(!bareLens.SequenceEqual(dflt) && bareLens.SequenceEqual(bareExtras), "Lighting false is not the bare lens");
+        Check(bareLens[160 * 320 * 4 + 160 * 4] == 128 && bareLens[(71 * 320 + 160) * 4] == 128, "The bare lens drew something over a flat page");
+        Check(plain[(71 * 320 + 160) * 4] > 128, "The default lens has no rim");
 
         // On: a rim over flat grey and black, a clean interior, a contact shadow under the lens.
         int Rim(byte[] px, int level, int dy)
@@ -74,6 +79,6 @@ internal static class LensChecks
         var noShadow = Render(128, (p, c) => p.DrawLens(c, bounds, new GlassLensOptions(Lighting: true, Shadow: false), 1.25f));
         Check(noShadow[(262 * 320 + 160) * 4] == 128, "Shadow false still cast a shadow");
         Throws<ArgumentOutOfRangeException>(() => Render(128, (p, c) => p.DrawLens(c, bounds, new GlassLensOptions(Density: 0))));
-        return new { check = "clear-lens preset: off by default and byte-identical, rim over grey and black, clean interior, contact shadow", passed = true };
+        return new { check = "clear-lens preset: default, with Lighting false the bare lens, rim over grey and black, clean interior, contact shadow", passed = true };
     }
 }

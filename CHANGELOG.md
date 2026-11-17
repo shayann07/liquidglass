@@ -13,15 +13,20 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   navigation layer (`layer.feedback` is new, beside `layer.selector`). .NET: `NavigationBaker.Bake(bar, events, duration)` and
   `NavigationTrack.Sample(t)` for the same, stepping `CalmNavigation` and `CalmInteraction` (the painter's draw methods are already
   stateless). Exact at a step, linear between (the pose's inverse recomputed; decisions keep the earlier step); not a second drawing method
-  on the scene. Default look changed: none; the scene's frames are byte-identical (the existing scene tests pass unchanged).
-- Skia and .NET ports: a free-standing lens can have the Compose clear-lens preset (#191). `painter.drawLens(canvas, bounds,
-  {lighting: true})`, `scene.addLens(bounds, {lighting: true})` and `GlassPainter.DrawLens(..., options)` draw `GlassStyle.clearLens`'s
+  on the scene. The scene's navigation drawing now passes the selector pose's superellipse blend (`pose.e`) on to the painter, which it used to drop.
+  Default look changed: the Skia scene's held navigation lens (and the baked and stateless drawing) takes the pose's superellipse blend as
+  Compose's does, where it used to fall back to the painter's default blend; a resting or tapped selector is unchanged (blend 0 at formation 0).
+- Skia and .NET ports: a free-standing lens has the Compose clear-lens preset by default (#191). `painter.drawLens(canvas, bounds)`,
+  `scene.addLens(bounds)` and `GlassPainter.DrawLens(...)` draw `GlassStyle.clearLens`'s
   rim highlight (specular 0.28, fresnel 0.02, counter light 0.35, bevel 1.2 dp), a thin white tint (1.5 %) and a contact shadow
   (0.14 x 0.15) around the magnified content, so the lens reads as glass over flat or low-detail content. `shadow`, `density`
   and `light` are optional. Authored in Compose, not an iOS measurement; over a flat grey 128 page the rim reads +64 / +22
   levels (top / bottom), over black +42 / +15, over pure white nothing (as in Compose). The values were read from
   `GlassStyle.clearLens`, not exported from Kotlin, so there is no Kotlin parity fixture for them yet.
-  Default look changed: none; `lighting` is off by default and the bare lens is byte-identical.
+  `{lighting: false}` / `new GlassLensOptions(Lighting: false)` is the bare magnification map, byte-identical to the earlier lens. React Native
+  `GlassLens` gets the preset too (at its pixel ratio).
+  Default look changed: free-standing lenses in the Skia, .NET and React Native ports now draw the clear-lens rim, tint and shadow by default;
+  pass lighting false for the bare lens. [Evidence](review/atlas/skia-lens-and-bake-2026-11-18/README.md).
 
 - Regular glass now keeps and boosts colour the way iOS does (#201). Over flat colour the glass applies its grey tone to the
   colour's Rec. 709 luma and keeps the chroma about it at a measured gain, `tone(y) + (g0 + g1 y) (x - y)` per channel

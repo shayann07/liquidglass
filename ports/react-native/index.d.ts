@@ -45,7 +45,9 @@ export interface GlassRect { x: number; y: number; width: number; height: number
 export interface GlassPainter {
   drawSurface(canvas: GlassCanvas, bounds: GlassRect & {radius?: number | readonly [number, number, number, number]},
     material?: Omit<GlassSurfaceProps, 'source' | 'x' | 'y' | 'width' | 'height' | 'radius' | 'pixelRatio'> & {density?: number}): void;
-  drawLens(canvas: GlassCanvas, bounds: {x: number; y: number; width: number; height?: number; magnification?: number}): void;
+  /** With the Compose clear-lens preset (rim, thin tint, contact shadow) unless `lighting` is false. */
+  drawLens(canvas: GlassCanvas, bounds: {x: number; y: number; width: number; height?: number; magnification?: number},
+    options?: {lighting?: boolean; shadow?: boolean; density?: number; light?: readonly [number, number]}): void;
   drawCalmBar(canvas: GlassCanvas, bar: GlassRect, options?: {dark?: boolean; density?: number; formation?: number;
     touch?: number; clear?: boolean; materialize?: number}): void;
   dispose(): void;

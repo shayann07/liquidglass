@@ -3,12 +3,12 @@ using SkiaSharp;
 
 namespace LiquidGlass.Skia;
 
-/// <summary>A lens's options. By default (<c>Lighting</c> false) <see cref="GlassPainter.DrawLens(SKCanvas, SKRect, float)"/> is the
-/// bare magnification map. <c>Lighting</c> opts in to the Compose clear-lens preset (<c>GlassStyle.clearLens</c>, what
-/// <c>Glass.Lens</c> draws): a rim highlight, a thin white tint and a contact shadow, so a free-standing lens reads as glass over
-/// flat or low-detail content. It is authored in Compose, not an iOS measurement. <c>Shadow</c> false skips the contact shadow;
+/// <summary>A lens's options. By default (<c>Lighting</c> true) a lens has the Compose clear-lens preset (<c>GlassStyle.clearLens</c>,
+/// what <c>Glass.Lens</c> draws): a rim highlight, a thin white tint and a contact shadow, so a free-standing lens reads as glass over
+/// flat or low-detail content. It is authored in Compose, not an iOS measurement. <c>Lighting</c> false is the bare magnification
+/// map (the lens before 1.1.0). <c>Shadow</c> false skips the contact shadow;
 /// <c>Density</c> is px per dp (the preset's dp terms scale); <c>LightX</c>/<c>LightY</c> point toward the light (y up is negative).</summary>
-public sealed record GlassLensOptions(bool Lighting = false, bool Shadow = true, float Density = 1,
+public sealed record GlassLensOptions(bool Lighting = true, bool Shadow = true, float Density = 1,
     float LightX = -.35f, float LightY = -.94f);
 
 /// <summary>A surface's options. <c>LightX</c>/<c>LightY</c> point toward the light (y up is negative):
@@ -75,20 +75,13 @@ public sealed class GlassPainter : IDisposable
         catch { next.Dispose(); throw; }
     }
 
-    public void DrawLens(SKCanvas canvas, SKRect bounds, float magnification = 1.25f)
-    {
-        Ready(canvas, bounds);
-        if (!float.IsFinite(magnification) || magnification < 1 || magnification > 2.5)
-            throw new ArgumentOutOfRangeException(nameof(magnification));
-        var values = ClearUniforms(material, bounds.Width, bounds.Height, 2, magnification);
-        var origin = new SKPoint(bounds.Left - 2, bounds.Top - 2);
-        using var shader = source!.ToShader(SKShaderTileMode.Clamp, SKShaderTileMode.Clamp, Sampling,
-            SKMatrix.CreateTranslation(-origin.X, -origin.Y));
-        Draw(canvas, values, shader, origin);
-    }
+    /// <summary>Draw a clear magnifier with the default <see cref="GlassLensOptions"/>: the Compose clear-lens preset. Pass
+    /// <c>new GlassLensOptions(Lighting: false)</c> for the bare magnification map.</summary>
+    public void DrawLens(SKCanvas canvas, SKRect bounds, float magnification = 1.25f) =>
+        DrawLens(canvas, bounds, new GlassLensOptions(), magnification);
 
-    /// <summary>Draw a clear magnifier with <see cref="GlassLensOptions"/>: with <c>Lighting</c> it is the Compose clear-lens
-    /// preset (rim, thin tint, contact shadow); without it, exactly <see cref="DrawLens(SKCanvas, SKRect, float)"/>.</summary>
+    /// <summary>Draw a clear magnifier with <see cref="GlassLensOptions"/>: with <c>Lighting</c> (the default) it is the Compose clear-lens
+    /// preset (rim, thin tint, contact shadow); without it, the bare magnification map.</summary>
     public void DrawLens(SKCanvas canvas, SKRect bounds, GlassLensOptions options, float magnification = 1.25f)
     {
         Ready(canvas, bounds); ArgumentNullException.ThrowIfNull(options);

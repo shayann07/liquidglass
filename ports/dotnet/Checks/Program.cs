@@ -97,10 +97,10 @@ using (var painter = new GlassPainter())
     painter.SetSource(source);
     surface.Canvas.DrawImage(source, 0, 0, new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.None));
     var before = Pixels(surface, 256, 192); var matrix = surface.Canvas.TotalMatrix; var saves = surface.Canvas.SaveCount;
-    painter.DrawLens(surface.Canvas, SKRect.Create(40, 20, 120, 120), 1);
+    painter.DrawLens(surface.Canvas, SKRect.Create(40, 20, 120, 120), new GlassLensOptions(Lighting: false), 1);
     var identity = Pixels(surface, 256, 192);
     Check(before.SequenceEqual(identity), "Identity lens changed the backdrop");
-    painter.DrawLens(surface.Canvas, SKRect.Create(40, 20, 120, 120), 1.25f);
+    painter.DrawLens(surface.Canvas, SKRect.Create(40, 20, 120, 120), new GlassLensOptions(Lighting: false), 1.25f);
     var zoom = Pixels(surface, 256, 192);
     int Red(int x, int y) => zoom[(y * 256 + x) * 4];
     Check(Math.Abs(Red(100, 80) - 100) <= 1, "Lens local origin does not map to backdrop");

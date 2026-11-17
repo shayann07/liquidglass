@@ -172,3 +172,19 @@ test('bad scripts and bars are rejected', () => {
   bad(config({bounds: {x: 0, y: 0, width: 0, height: 10}}), [], {duration: 1}, /bounds/);
   assert.equal(bakeNavigation(config(), [], {duration: 0}).length, 1);
 });
+
+test('the held selector\'s superellipse blend (pose.e) reaches the painter unchanged', () => {
+  const track = bakeNavigation(config(), events, {step: 1 / 60, duration: DURATION});
+  // A hold that has formed the lens carries a non-default blend; the default [0, 3, 0, 0] is what a dropped `e` would give.
+  const held = track.sample(1.0);
+  assert(held.selector.held && held.selector.pose.e[0] > 0, `no held lens at 1.0 s: ${held.selector.pose.e}`);
+  const seen = [];
+  const painter = {drawCalmBar() {}, drawSelector(_c, _b, state) { seen.push(state); }, drawSelectorInk(_c, _b, state) { seen.push(state); }};
+  const canvas = {save() {}, restore() {}, translate() {}, concat() {}, makeSurface: () => null};
+  for (const pixelRatio of [1, 2]) {
+    seen.length = 0;
+    drawNavigation(kit, painter, canvas, {bounds: BAR, pixelRatio, source: {width: () => 1, height: () => 1}}, held, {ink: {}});
+    assert.equal(seen.length, 2);
+    for (const state of seen) assert.deepEqual(state.pose.e, held.selector.pose.e, `pose.e changed at ratio ${pixelRatio}`);
+  }
+});

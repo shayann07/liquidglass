@@ -1,8 +1,8 @@
-# Skia port: the opt-in clear-lens preset (#191), 18 November 2026
+# Skia port: the clear-lens preset, now the default (#191), 18 November 2026
 
 ![drawLens with lighting false (left) and true (right), over a flat grey page (top) and a striped page (bottom)](lens.png)
 
-Left column `lighting: false` (the bare magnifier, unchanged), right column `lighting: true` (the Compose clear-lens preset: rim
+Left column `lighting: false` (the bare magnifier, the lens before 1.1.0), right column `lighting: true`, which is now the default (the Compose clear-lens preset: rim
 highlight, thin white tint, contact shadow). Top row a flat grey 128 page, bottom row 8 px black-and-white stripes (45 / 210).
 A 160 px lens at magnification 1.4, density 1.
 

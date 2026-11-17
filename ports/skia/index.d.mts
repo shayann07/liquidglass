@@ -23,11 +23,11 @@ export interface GlassRect { x: number; y: number; width: number; height: number
 export interface GlassSurfaceBounds extends GlassRect { radius?: CornerRadii }
 export interface GlassLensBounds { x: number; y: number; width: number; height?: number; magnification?: number }
 /** What `drawLens` takes beyond its bounds, and what a scene lens takes as its material. All optional; the default is the
- * bare magnifier, unchanged. */
+ * clear-lens preset, and `lighting: false` the bare magnifier. */
 export interface GlassLensMaterial {
-  /** Opt in to the Compose clear-lens preset (GlassStyle.clearLens, `Glass.Lens`): rim highlight, a thin white tint and a
-   * contact shadow, so a free-standing lens reads as glass over flat or low-detail content. Authored, not an iOS
-   * measurement. Default false. */
+  /** The Compose clear-lens preset (GlassStyle.clearLens, `Glass.Lens`): rim highlight, a thin white tint and a contact
+   * shadow, so a free-standing lens reads as glass over flat or low-detail content. Authored, not an iOS measurement.
+   * Default true; false is the bare magnification map. */
   lighting?: boolean;
   /** With `lighting`: false skips the contact shadow under the lens. Default true. */
   shadow?: boolean;

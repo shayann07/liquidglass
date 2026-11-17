@@ -81,7 +81,8 @@ export function drawNavigation(kit, painter, canvas, {bounds, pixelRatio = 1, so
   } finally { canvas.restore(); }
   // The selector in device px: positions and lengths scale, the dimensionless map does not.
   const p = s.pose, r = ratio;
-  const pose = {a: p.a, aInv: p.aInv, c: [p.c[0] * r, p.c[1] * r, p.c[2] / r, p.c[3] / r],
+  // `e` (the held lens's superellipse blend) is dimensionless: it is passed on unchanged.
+  const pose = {a: p.a, aInv: p.aInv, e: p.e, c: [p.c[0] * r, p.c[1] * r, p.c[2] / r, p.c[3] / r],
     d: [p.d[0] * r, p.d[1] * r, p.d[2], p.d[3] * r]};
   // As in Compose, the lens looks through the bar: the page with the bar's glass over it.
   const through = barThrough(kit, painter, canvas, source, feedback, deviceBounds, {ratio, bar});

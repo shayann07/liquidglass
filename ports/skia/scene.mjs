@@ -51,8 +51,8 @@ export function createGlassScene(kit, options) {
       remove() { layers.delete(layer); },
     };
   }
-  // A lens's options (all optional): `lighting` opts in to the Compose clear-lens preset, scaled by the pixel ratio.
-  const lensOptions = (m, ratio) => ({lighting: m.lighting ?? false, shadow: m.shadow ?? true,
+  // A lens's options (all optional): `lighting` (default true) is the Compose clear-lens preset, false the bare lens; density scales by the pixel ratio.
+  const lensOptions = (m, ratio) => ({lighting: m.lighting ?? true, shadow: m.shadow ?? true,
     density: (m.density ?? 1) * ratio, ...(m.light ? {light: m.light} : {})});
   /** A Calm navigation bar: bar glass, the ported selector and its gestures. Logical px. */
   function addNavigation(input, {count, selected = 0, inset = 6, pillWidth, pillInset = 4,

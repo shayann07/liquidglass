@@ -356,8 +356,8 @@ capture remains Windows-specific; GPU and other host frameworks remain unverifie
 | --- | --- |
 | `SetSource(image)` | Borrows a live opaque sRGB image; caller keeps it alive until replacement/disposal. Never disposed by the painter. |
 | `RecordBackdrop(...)` | Owns the new opaque snapshot. Replacing it or disposing the painter releases it. |
-| `DrawLens(..., magnification)` | Continuous lens, 1–2.5 magnification. At 1 it is pixel-identical to the source. |
-| `DrawLens(..., new GlassLensOptions(Lighting: true), magnification)` | Opt-in Compose clear-lens preset (`GlassStyle.clearLens`): rim highlight, a thin white tint and a contact shadow, so the lens reads as glass over flat content. `Shadow`, `Density`, `LightX`/`LightY` are optional; with `Lighting` false it is exactly the bare lens. Authored in Compose, not an iOS measurement. |
+| `DrawLens(..., magnification)` | Continuous lens, 1–2.5 magnification, with the Compose clear-lens preset (`GlassStyle.clearLens`) by default: rim highlight, a thin white tint and a contact shadow, so it reads as glass over flat content. Authored in Compose, not an iOS measurement. |
+| `DrawLens(..., new GlassLensOptions(Lighting, Shadow, Density, LightX, LightY), magnification)` | `Lighting: false` is the bare magnification map (at magnification 1 pixel-identical to the source, the lens before 1.1.0); `Shadow` false skips the contact shadow; `Density` is px per dp; `LightX`/`LightY` point toward the light. |
 | `NavigationBaker.Bake(bar, events, duration, step)` | Runs a scripted gesture through `CalmNavigation` and the bar's `CalmInteraction` at a fixed step (default 1/240 s) and keeps every step; `track.Sample(t)` is the bar's state at any time, in any order, for `DrawCalmBar` / `DrawSelector`. See below. |
 | `DrawSurface(..., radius)` | Rounded in-app material; one radius or four values in top-left, top-right, bottom-right, bottom-left order. |
 | `Dark`, `TintAmount` | Default false / 50; tint is 0–100 and follows the production in-app calibration. |
