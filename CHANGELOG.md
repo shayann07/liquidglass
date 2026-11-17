@@ -41,6 +41,12 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   Default look changed: free-standing lenses in the Skia, .NET and React Native ports now draw the clear-lens rim, tint and shadow by default;
   pass lighting false for the bare lens. [Evidence](review/atlas/skia-lens-and-bake-2026-11-18/README.md).
 
+- Desktop and web: tapping a second tab no longer leaves the keyboard focus ring around it (#218). Focus moving from one
+  tab to another passes through a moment with no tab focused; the bar read that as focus leaving and coming back without
+  a pointer, so the ring showed after every tap but the first (every desktop touch replay showed it at rest). A blur inside
+  the pointer's own gesture, from its press to two frames after its release, is no longer taken as focus leaving the bar.
+  Keyboard focus, and focus that really returns without a pointer, still show the ring (`GlassTabBarFocusTest`). Android
+  touch never showed it.
 - Text lines no longer hook where a resting capsule's round end begins. Glass on the measured resting map
   (`GlassRestMap.Measured`) lensed only its corner arcs and showed a straight run nearly as it is, blending the two over
   0.2 of the corner radius; near the rim the maps show rows about 0.7 of the band apart, so lines under the junction drew
