@@ -108,6 +108,20 @@ object GlassMaterial {
         return labChromaGain(dark) + labChromaSlope(dark) + floatArrayOf(weight)
     }
 
+    /**
+     * The colour transfer a style asks for: [chromaOf] of its [GlassStyle.detailLift] when [GlassStyle.chromaGain] is
+     * unset (NaN), else the flat output-referred gain g on all three channels with no slope and full weight, the shader
+     * then leaving the finished colour at g times the backdrop's chroma about its luma.
+     */
+    internal fun chromaOf(detailLift: Float, chromaGain: Float): FloatArray {
+        if (chromaGain.isNaN()) return chromaOf(detailLift)
+        val g = chromaGain.coerceIn(0f, MAX_CHROMA_GAIN)
+        return floatArrayOf(g, g, g, 0f, 0f, 0f, 1f)
+    }
+
+    /** The largest [GlassStyle.chromaGain] the host passes on, authored as a guard (the measured Control Center value is 1.58). */
+    internal const val MAX_CHROMA_GAIN: Float = 4f
+
     /** The light in-app tint colour: a constant 241/255 at every slider position. */
     val lightTint: Color = Color(0xFFF1F1F1)
 

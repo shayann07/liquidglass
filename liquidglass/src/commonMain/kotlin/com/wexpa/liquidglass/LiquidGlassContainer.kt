@@ -177,7 +177,7 @@ internal fun LiquidGlassContainer(
                             detailCross = if (GlassMaterial.usesDetailCross(style.blurRadius)) 1f else 0f,
                             tintLift = style.tintLift,
                             liftAdapt = style.liftAdaptivity,
-                            chroma = GlassMaterial.chromaOf(style.detailLift.coerceIn(-1f, 1f)),
+                            chroma = GlassMaterial.chromaOf(style.detailLift.coerceIn(-1f, 1f), style.chromaGain),
                             backdropSigma = if (style.backdropSigma.isSpecified) style.backdropSigma.toPx() else 0f,
                             refractDepth = style.refractionDepth.toPx(),
                             aberration = style.dispersion,
