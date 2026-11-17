@@ -41,7 +41,7 @@ sits at the centre of each band, with no content, so the pill's interior shows t
   echo "before renders in $out"
   ```
 
-  Compare the renders in that new directory with the right half of the images here; the steps never write into the
+  Compare the renders in that new directory with the left (main) half of the images here; the steps never write into the
   repository.
 
   `set -e` stops at the first failure, and `git worktree remove` without `--force` refuses a worktree with changes
