@@ -18,7 +18,9 @@ jobs:
     # timeouts and optical tolerances are unchanged.
     # The JVM render suite alone takes about 42 min on a hosted runner (1 Nov), so 55 cancelled builds
     # whose tests had passed.
-    timeout-minutes: 90
+    # #213 ran 79 min on a slow runner (41 on main) and was cancelled at 90 after every library test had
+    # passed; 120 keeps the 2x runner spread inside the limit.
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
