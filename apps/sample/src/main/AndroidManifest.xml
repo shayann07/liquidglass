@@ -43,6 +43,9 @@
         <activity
             android:name=".PhoneActivity"
             android:exported="true" />
+        <activity
+            android:name=".ColourTransferActivity"
+            android:exported="true" />
     </application>
 
 </manifest>

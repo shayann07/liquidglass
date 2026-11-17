@@ -299,4 +299,53 @@ class GlassLabModelTest {
         }
         assertTrue(failures.isEmpty(), failures.joinToString("; "))
     }
+    @Test
+    fun appearanceMorphMidpointColour() {
+        // The colour transfer is derived from detailLift (#201), and a dark-to-light morph (GlassMorph between
+        // toolbar(dark) and toolbar(light), Tint 50) passes c = 0 halfway, where the glass draws the per-channel
+        // grey tone with no transfer. Each channel's chroma (the channel minus the output's Rec. 709 luma) at the
+        // midpoint is reported against both ends. Gate: no channel overshoots both ends (its chroma further from zero
+        // than either end's by more than 0.5). Falling below both, a dip toward the grey tone, is only reported; the
+        // CHANGELOG states it (20 of these 24 channels on 17 November).
+        val pages = listOf(
+            "red" to intArrayOf(255, 0, 0), "green" to intArrayOf(0, 255, 0), "blue" to intArrayOf(0, 0, 255),
+            "magenta" to intArrayOf(255, 0, 255), "yellow" to intArrayOf(255, 255, 0), "cyan" to intArrayOf(0, 255, 255),
+            "dark magenta" to intArrayOf(128, 0, 128), "orange" to intArrayOf(255, 128, 0),
+        )
+        val dark = GlassStyle.toolbar(dark = true)
+        val light = GlassStyle.toolbar(dark = false)
+        val fractions = listOf(0f, 0.5f, 1f)
+        fun chroma(c: DoubleArray): DoubleArray {
+            val y = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
+            return DoubleArray(3) { c[it] - y }
+        }
+        var below = 0
+        GlassLabScene(dark).use { s ->
+            val zone = s.zone()
+            for ((name, rgb) in pages) {
+                val argb = (0xFF shl 24) or (rgb[0] shl 16) or (rgb[1] shl 8) or rgb[2]
+                val colours = fractions.map { f ->
+                    s.style = lerpGlassStyle(dark, light, f)
+                    val out = s.render(IntArray(s.width * s.height) { argb })
+                    DoubleArray(3) { ch -> zone.map { ((out[it] ushr (16 - 8 * ch)) and 0xFF).toDouble() }.average() }
+                }
+                val (d, m, l) = colours.map { chroma(it) }
+                for (ch in 0..2) {
+                    val lo = minOf(d[ch], l[ch])
+                    val hi = maxOf(d[ch], l[ch])
+                    val outside = m[ch] < lo - 0.5 || m[ch] > hi + 0.5
+                    // An overshoot: the midpoint's chroma further from zero than both ends, on the same side.
+                    val overshoot = abs(m[ch]) > maxOf(abs(d[ch]), abs(l[ch])) + 0.5
+                    if (outside && !overshoot) below++
+                    check(
+                        !overshoot,
+                        "morph midpoint $name channel ${"RGB"[ch]}: chroma dark %.1f, mid %.1f, light %.1f (colours %.1f / %.1f / %.1f)%s"
+                            .format(d[ch], m[ch], l[ch], colours[0][ch], colours[1][ch], colours[2][ch], if (outside) " outside both" else ""),
+                    )
+                }
+            }
+        }
+        println("LAB morph midpoint: $below channel(s) below both ends, ${failures.size} overshoot(s)")
+        assertTrue(failures.isEmpty(), failures.joinToString("; "))
+    }
 }

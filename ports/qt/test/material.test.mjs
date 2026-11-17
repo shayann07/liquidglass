@@ -47,6 +47,7 @@ test('every tint sets the same uniforms, with the earlier fit at the ends', () =
     for (const t of [0, 100]) {
       const v = at(t);
       assert.deepEqual([v.uDetailLift[0], v.uToneCurve[0], v.uSoftDetail[0]], [0, 0, 0], `tint ${t} lab terms`);
+      assert.equal(v.uChromaWeight[0], 0, `tint ${t} colour transfer`);
     }
   }
 });
