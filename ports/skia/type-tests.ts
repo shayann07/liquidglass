@@ -9,12 +9,14 @@ const scene = createGlassScene(kit, {width: 480, height: 320, pixelRatio: 2});
 scene.setSource(image);
 const card = scene.addSurface({x: 10, y: 180, width: 420, height: 100, radius: [10, 20, 10, 20]}, {dark: true});
 const lens = scene.addLens({x: 100, y: 20, width: 130});
+const glassLens = scene.addLens({x: 100, y: 20, width: 130}, {lighting: true}); glassLens.setMaterial({shadow: false});
 card.press(0, 20, -40); scene.draw(canvas, .2); card.release(.2);
 card.setMaterial({reducedTransparency: 1}); lens.setBounds({magnification: 1.5}, .3);
 const nextFrame: boolean = scene.draw(canvas, .3);
 scene.resize({pixelRatio: 1}, .3); scene.setReducedMotion(true, .3);
 const painter = createGlassPainter(kit); painter.setSource(image);
 painter.drawSurface(canvas, card.bounds, {density: 2}); painter.drawLens(canvas, lens.bounds);
+painter.drawLens(canvas, lens.bounds, {lighting: true, shadow: false, density: 2, light: [0, -1]});
 painter.drawSurface(canvas, card.bounds, {dark: true, tint: [0.04, 0.52, 1, 0.5]});
 // @ts-expect-error A tint is four sRGB components.
 painter.drawSurface(canvas, card.bounds, {tint: [1, 1, 1]});
@@ -32,6 +34,8 @@ card.setMaterial({dark: 'dark'});
 card.bounds.x = 50;
 // @ts-expect-error Lens appearance is controlled through its magnification bounds.
 lens.setMaterial({dark: true});
+// @ts-expect-error The lens preset's switch is a boolean.
+painter.drawLens(canvas, lens.bounds, {lighting: 'yes'});
 const nav = scene.addNavigation({x: 20, y: 250, width: 300, height: 62}, {count: 3, onSelect: i => nav.select(i)});
 nav.down(60, 280, .4); nav.up(60, 280, .45); const formed: number = nav.selector.formation;
 painter.drawSelector(canvas, {x: 0, y: 0, width: 300, height: 62}, nav.selector);

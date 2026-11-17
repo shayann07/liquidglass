@@ -6,6 +6,15 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Skia and .NET ports: a free-standing lens can have the Compose clear-lens preset (#191). `painter.drawLens(canvas, bounds,
+  {lighting: true})`, `scene.addLens(bounds, {lighting: true})` and `GlassPainter.DrawLens(..., options)` draw `GlassStyle.clearLens`'s
+  rim highlight (specular 0.28, fresnel 0.02, counter light 0.35, bevel 1.2 dp), a thin white tint (1.5 %) and a contact shadow
+  (0.14 x 0.15) around the magnified content, so the lens reads as glass over flat or low-detail content. `shadow`, `density`
+  and `light` are optional. Authored in Compose, not an iOS measurement; over a flat grey 128 page the rim reads +64 / +22
+  levels (top / bottom), over black +42 / +15, over pure white nothing (as in Compose). The values were read from
+  `GlassStyle.clearLens`, not exported from Kotlin, so there is no Kotlin parity fixture for them yet.
+  Default look changed: none; `lighting` is off by default and the bare lens is byte-identical.
+
 - Regular glass now keeps and boosts colour the way iOS does (#201). Over flat colour the glass applies its grey tone to the
   colour's Rec. 709 luma and keeps the chroma about it at a measured gain, `tone(y) + (g0 + g1 y) (x - y)` per channel
   (dark g0 1.317 / 1.256 / 1.314, g1 -0.427 / -0.351 / -0.429; light g0 0.988 / 0.952 / 0.979, g1 -0.076 / 0.028 / -0.045),

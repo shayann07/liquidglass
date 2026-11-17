@@ -74,12 +74,14 @@ export function createGlassScene(kit, options) {
       },
       setMaterial(next) {
         attached();
-        if (kind !== 'surface') throw new TypeError('Use setBounds to change lens magnification');
         layer.material = {...layer.material, ...next};
       },
       remove() { layers.delete(layer); },
     };
   }
+  // A lens's options (all optional): `lighting` opts in to the Compose clear-lens preset, scaled by the pixel ratio.
+  const lensOptions = (m, ratio) => ({lighting: m.lighting ?? false, shadow: m.shadow ?? true,
+    density: (m.density ?? 1) * ratio, ...(m.light ? {light: m.light} : {})});
   // The Compose Calm bar and selector material; `dark` and accessibility preferences carry over.
   function navMaterial(layer, ratio) {
     const m = layer.material;
@@ -148,7 +150,7 @@ export function createGlassScene(kit, options) {
     addNavigation,
     setSource(source) { alive(); painter.setSource(source); image = source; },
     addSurface(bounds, material = {}) { return add('surface', bounds, material); },
-    addLens(bounds) { return add('lens', bounds); },
+    addLens(bounds, material = {}) { return add('lens', bounds, material); },
     resize(next, time) {
       const current = timeAt(time), view = viewport({...size, ...next});
       for (const layer of layers) layer.state = layer.motion.resize(geometry(layer.bounds, view), current);
@@ -188,7 +190,7 @@ export function createGlassScene(kit, options) {
           canvas.translate(cx + state.offset[0] * ratio, cy + state.offset[1] * ratio);
           canvas.concat([a, b, 0, c, d, 0, 0, 0, 1]);
           canvas.translate(-cx, -cy);
-          if (layer.kind === 'lens') painter.drawLens(canvas, deviceBounds);
+          if (layer.kind === 'lens') painter.drawLens(canvas, deviceBounds, lensOptions(layer.material, ratio));
           else if (layer.nav) painter.drawCalmBar(canvas, deviceBounds, navMaterial(layer, ratio));
           else painter.drawSurface(canvas, deviceBounds,
             {...layer.material, density: (layer.material.density ?? 1) * ratio});

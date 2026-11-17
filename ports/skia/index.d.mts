@@ -22,6 +22,20 @@ export type CornerRadii = number | readonly [number, number, number, number];
 export interface GlassRect { x: number; y: number; width: number; height: number }
 export interface GlassSurfaceBounds extends GlassRect { radius?: CornerRadii }
 export interface GlassLensBounds { x: number; y: number; width: number; height?: number; magnification?: number }
+/** What `drawLens` takes beyond its bounds, and what a scene lens takes as its material. All optional; the default is the
+ * bare magnifier, unchanged. */
+export interface GlassLensMaterial {
+  /** Opt in to the Compose clear-lens preset (GlassStyle.clearLens, `Glass.Lens`): rim highlight, a thin white tint and a
+   * contact shadow, so a free-standing lens reads as glass over flat or low-detail content. Authored, not an iOS
+   * measurement. Default false. */
+  lighting?: boolean;
+  /** With `lighting`: false skips the contact shadow under the lens. Default true. */
+  shadow?: boolean;
+  /** Device px per dp, scaling the preset's dp terms (bevel, refraction depth). Default 1; a scene multiplies it by its pixelRatio. */
+  density?: number;
+  /** With `lighting`: toward the light, y up negative. Default Compose's GlassLight.Default [-0.35, -0.94]. */
+  light?: readonly [number, number];
+}
 export interface GlassMaterial {
   dark?: boolean; tintAmount?: number; density?: number; materialize?: number;
   reducedTransparency?: number; increasedContrast?: number;
@@ -82,7 +96,7 @@ export interface GlassPainter {
   /** Borrows an opaque source. Replace it before deleting the previous image. */
   setSource(image: Image): void;
   /** Low-level painter coordinates are device pixels. */
-  drawLens(canvas: Canvas, bounds: GlassLensBounds): void;
+  drawLens(canvas: Canvas, bounds: GlassLensBounds, options?: GlassLensMaterial): void;
   drawSurface(canvas: Canvas, bounds: GlassSurfaceBounds, material?: GlassMaterial): void;
   /** A Calm navigation bar's glass in the Compose Calm bar material (device px). */
   drawCalmBar(canvas: Canvas, bar: GlassRect, options?: Omit<CalmSelectorDrawOptions, 'through'> & {formation?: number; touch?: number; clear?: boolean;
@@ -112,7 +126,9 @@ export interface GlassLayer<Bounds> {
 export interface GlassSurfaceLayer extends GlassLayer<GlassSurfaceBounds> {
   setMaterial(material: Partial<GlassMaterial>): void;
 }
-export interface GlassLensLayer extends GlassLayer<GlassRect & {magnification: number}> {}
+export interface GlassLensLayer extends GlassLayer<GlassRect & {magnification: number}> {
+  setMaterial(material: Partial<GlassLensMaterial>): void;
+}
 export interface GlassNavigationOptions {
   count: number; selected?: number; inset?: number; pillWidth?: number; pillInset?: number;
   onSelect?: (index: number) => void; material?: GlassMaterial;
@@ -137,7 +153,7 @@ export interface GlassScene {
   setSource(image: Image): void;
   /** Scene bounds and input displacements are logical pixels. */
   addSurface(bounds: GlassSurfaceBounds, material?: GlassMaterial): GlassSurfaceLayer;
-  addLens(bounds: GlassLensBounds): GlassLensLayer;
+  addLens(bounds: GlassLensBounds, material?: GlassLensMaterial): GlassLensLayer;
   addNavigation(bounds: GlassRect, options: GlassNavigationOptions): GlassNavigationLayer;
   resize(viewport: Partial<GlassViewport>, time: number): void;
   setReducedMotion(reduced: boolean, time: number): void;

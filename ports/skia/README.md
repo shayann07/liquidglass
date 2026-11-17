@@ -207,8 +207,27 @@ exposes the lower-level bindings and `./shaders` exports the immutable `glassSha
 CanvasKit's runtime/WASM setup, source image and host canvas still belong to the application.
 
 The painter uses the minimal clear configuration below: a circular lens for square bounds, with an
-elliptical source map inside capsule coverage for unequal dimensions. It does not add the Compose
+elliptical source map inside capsule coverage for unequal dimensions. By default it does not add the Compose
 clear-lens preset's decorative lighting or run its gesture controller.
+
+Over flat or low-detail content that bare lens is hard to see: nothing marks where it is. Ask for the Compose
+clear-lens preset (`GlassStyle.clearLens`, what `Glass.Lens` draws) with `lighting: true`: a rim highlight, a thin
+white tint (1.5 %) and a contact shadow under the lens, with no uniforms bound by hand. It is an option, off by
+default, so the bare lens is unchanged:
+
+```js
+glass.drawLens(canvas, { x: 80, y: 100, width: 180, magnification: 1.4 }, { lighting: true });
+// options: lighting (false), shadow (true: the contact shadow), density (1: px per dp, scales the dp terms),
+// light ([-0.35, -0.94]: toward the light, y up negative)
+const lens = scene.addLens({ x: 80, y: 100, width: 180 }, { lighting: true }); // logical px; the scene applies pixelRatio
+lens.setMaterial({ shadow: false });
+```
+
+The preset is authored in Compose (its KDoc: "Authored, not an Apple calibration"), not measured, and the port makes
+no iOS claim for it. Over a flat grey 128 backdrop the rim reads up to +64 levels at the top and +22 at the bottom
+and the interior stays within 4 levels of the page; over black +42 and +15; over pure white it is invisible (white
+light on white, and a 2 % shadow), as in Compose. The values are read from `GlassStyle.clearLens`, not exported
+from Kotlin: `lens.test.mjs` checks the authored numbers against that source where the repository is present.
 
 In a browser, `CanvasKit.MakeImageFromCanvasImageSource(backdropCanvas)` can create the source from
 an application-owned canvas. Origin restrictions still apply. Keep interactive DOM controls above the
@@ -302,7 +321,8 @@ Create effects once, reuse textures until the backdrop changes, and rebuild GPU 
 context/device loss. Returned shaders and caller-owned sources must be deleted by their owner.
 
 `clearMaterialUniforms` configures a simple clear lens. It does **not** recreate the Compose
-toolbar style. Advanced callers can set the production uniforms documented in each shader,
+toolbar style; `clearLensUniforms(effects, {width, height, magnification, density, light})` (from `material.mjs`)
+is the Compose clear-lens preset's uniforms behind `drawLens(..., {lighting: true})`. Advanced callers can set the production uniforms documented in each shader,
 including refraction, blur, shape fields and pose geometry. Provide a correctly constructed
 wide-blur strip before enabling `uWideStrip`; setting a number does not create that texture.
 

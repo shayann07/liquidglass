@@ -51,7 +51,7 @@
     "generate:interaction": "node generate-interaction.mjs",
     "test:types": "tsc -p tsconfig.types.json",
     "generate:selector-material": "node generate-selector-material.mjs",
-    "test": "node generate-shaders.mjs --check && node generate-interaction.mjs --check && node generate-selector-material.mjs --check && npm run test:types && node --test renderer.test.mjs painter.test.mjs scene.test.mjs selector.test.mjs fuse.test.mjs",
+    "test": "node generate-shaders.mjs --check && node generate-interaction.mjs --check && node generate-selector-material.mjs --check && npm run test:types && node --test renderer.test.mjs painter.test.mjs scene.test.mjs selector.test.mjs fuse.test.mjs lens.test.mjs",
     "example": "node example.mjs"
   },
   "dependencies": {

@@ -1,6 +1,6 @@
 /** Apache-2.0. Framework-independent surfaces and lenses using production SkSL. */
 import {compileGlassEffects, clearMaterialUniforms} from './renderer.mjs';
-import {inAppMaterialUniforms} from './material.mjs';
+import {inAppMaterialUniforms, clearLensUniforms, CLEAR_LENS} from './material.mjs';
 import {createBackdropSampler} from './backdrop.mjs';
 import {glassShaderSources} from './shaders.mjs';
 import {calmSelectorMaterial, calmBarMaterial, calmMaterialUniforms} from './selector-material.mjs';
@@ -97,18 +97,35 @@ export function createGlassPainter(kit, sources = glassShaderSources) {
       draw(canvas,uniforms,backdrop.shader,originX,originY);
     },
 
-    /** Draw a clear magnifier, preserving the host canvas transform and clip. */
-    drawLens(canvas, {x, y, width, height = width, magnification = 1.25}) {
+    /**
+     * Draw a clear magnifier, preserving the host canvas transform and clip. By default it is the bare
+     * magnification map. `lighting: true` gives it the Compose clear-lens preset (GlassStyle.clearLens): the
+     * rim highlight, the thin white tint and the contact shadow under it, which is what makes a free-standing
+     * lens read as glass over flat or low-detail content. Authored in Compose, not an iOS measurement.
+     * With it, `density` is px per dp (the dp terms scale), `shadow: false` skips the contact shadow and
+     * `light` ([x, y], toward the light, y up negative) is Compose's GlassLight (default [-0.35, -0.94]).
+     */
+    drawLens(canvas, {x, y, width, height = width, magnification = 1.25}, options = {}) {
       checkAlive();
       if (!source) throw new Error('Call setSource before drawing glass');
       if (![x,y,width,height,magnification].every(Number.isFinite) || width <= 0 || height <= 0 ||
           magnification < 1 || magnification > 2.5)
         throw new RangeError('Lens requires finite geometry, positive dimensions and 1–2.5 magnification');
+      const {lighting = false, density = 1, shadow = true, light = CLEAR_LENS.light} = options ?? {};
       // The material's local padded coordinates must sample the same global page coordinates
       // that the host drew. A local shader matrix is inverted by Skia during sampling.
       const pad = 2;
       const originX = x - pad, originY = y - pad;
-      const uniforms = clearMaterialUniforms(effects, {width, height, pad, magnification});
+      const uniforms = lighting
+        ? clearLensUniforms(effects, {width, height, pad, magnification, density, light})
+        : clearMaterialUniforms(effects, {width, height, pad, magnification});
+      if (lighting && shadow) {
+        // GlassStyle.contactShadow on a lens: glassShadow's alpha (0.14) times the style's 0.15, blur and
+        // offset sized from the element, cast by the lens body and kept off the lens itself.
+        const s = sizeFactor(width, height, density), r = Math.min(width, height) / 2;
+        drawShadow(canvas, {x, y, width, height, radius: r, blur: 18 * (.6 + .6 * s) * density,
+          offset: 4 * (.5 + .9 * s) * density}, .14 * CLEAR_LENS.contactShadow, {x, y, width, height, radius: r});
+      }
       const backdrop = source.makeShaderOptions(
         kit.TileMode.Clamp, kit.TileMode.Clamp, kit.FilterMode.Linear, kit.MipmapMode.None,
         kit.Matrix.translated(-originX, -originY),
