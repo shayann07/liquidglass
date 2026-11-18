@@ -62,6 +62,8 @@ internal data class GlassPress(
     /** Whether the press now drags something (the tab bar's selector); see [GlassInteraction.dragPressShare]. */
     val dragging: Boolean = false,
     val pressCount: Int = 0,
+    /** The press ended because another node (a scroll) took the gesture, not because the finger lifted (#196). */
+    val cancelled: Boolean = false,
 ) {
     companion object {
         /** Far enough off-panel that the Gaussian is zero, so an idle panel costs nothing. */
@@ -183,6 +185,18 @@ data class GlassInteraction(
             pullReleaseDampingX = 0.3f,
         )
         /**
+         * The default response of [Glass.interactive]: the Phone search button's press and pull, measured on iOS 26
+         * (IMG_6756, seven presses) and applied to every small interactive glass. The body balloons 8 dp a side
+         * on press (measured, S01 and the keypad's K01), follows the finger and stretches toward it, holds its far
+         * edge on landing and rings on release ([GlassPullShape.Free]; measured on the search button and
+         * inherited by other small controls), and settles to 0.65 of its glow once dragged (measured, 0.61 to
+         * 0.65). The response falls with size, which is authored: controls up to 80 dp answer in full, 80 to 160 dp
+         * blend toward the anchored surface response, and surfaces of 160 dp and more press 2 dp a side and stretch
+         * at most 2 dp, as [Calm] does. A scroll that takes the gesture returns it without a ring. Pass [Calm] for
+         * the restrained response this replaced.
+         */
+        val Fluid = Pullable.copy(pullShape = GlassPullShape.Free, pullLiftShare = 0.65f)
+        /**
          * What Apple's Reduce Motion asks for: "decreases the intensity of some effects and
          * disables any elastic properties". So the scale, the bounce, the gel and the pull go,
          * and the glow stays at half strength — the feedback survives, the elasticity does not.
@@ -280,6 +294,8 @@ class GlassPressSource internal constructor() {
     internal var isPressed by mutableStateOf(false)
     /** The press now drags something ([GlassInteraction.dragPressShare]); cleared on release. */
     internal var dragging by mutableStateOf(false)
+    /** The last press ended because another node (a scroll) took the gesture; cleared by the next press. */
+    internal var cancelled by mutableStateOf(false)
     /** A caller's critically damped press-down stiffness for a Calm response; zero keeps [GlassMotion.CalmDown]. */
     internal var downStiffness: Float = 0f
     internal var pressCount by mutableIntStateOf(0)
@@ -291,6 +307,7 @@ class GlassPressSource internal constructor() {
             pullOffset.x.isFinite() && pullOffset.y.isFinite()) { "Press coordinates must be finite" }
         if (!isPressed) {
             pressCount++
+            cancelled = false
         }
         this.localPosition = localPosition
         this.pullOffset = pullOffset
@@ -304,6 +321,12 @@ class GlassPressSource internal constructor() {
     fun release() {
         isPressed = false
         dragging = false
+    }
+
+    /** The press ended because a scroll took the gesture ([GlassPress.cancelled]); a real lift calls [release]. */
+    internal fun cancel() {
+        cancelled = true
+        release()
     }
 }
 
@@ -337,7 +360,8 @@ internal fun rememberGlassPress(
         )
         return GlassPress(source.localPosition.x, source.localPosition.y, amount,
             source.pullOffset.x, source.pullOffset.y, pulling = source.isPressed, dragging = source.dragging,
-            pressCount = source.pressCount) to Modifier
+            pressCount = source.pressCount, cancelled = source.cancelled && !source.isPressed) to Modifier
+
     }
 
     var point by remember { mutableStateOf(Offset.Zero) }
@@ -346,6 +370,7 @@ internal fun rememberGlassPress(
     var pull by remember { mutableStateOf(Offset.Zero) }
     var pulling by remember { mutableStateOf(false) }
     var moved by remember { mutableStateOf(false) }
+    var cancelled by remember { mutableStateOf(false) }
     var pressCount by remember { mutableIntStateOf(0) }
     val amount by animateFloatAsState(
         targetValue = if (!down) 0f else if (moved) pullLiftShare.coerceIn(0f, 1f) else 1f,
@@ -365,17 +390,26 @@ internal fun rememberGlassPress(
             downPoint = first.position
             pull = Offset.Zero
             moved = false
+            cancelled = false
             down = true
             pulling = true
             pressCount++
             try {
                 while (true) {
                     val change = awaitPointerEvent().changes.firstOrNull { it.id == first.id } ?: break
-                    if (!change.pressed || (change.isConsumed && change.position != change.previousPosition)) break
+                    if (!change.pressed) break
+                    if (change.isConsumed && change.position != change.previousPosition) { cancelled = true; break }
                     point = change.position
                     pull = change.position - downPoint
                     if (pull.getDistance() > moveThreshold) moved = true
+                    // After every node has had the event: a scroll above this node takes the gesture on this move.
+                    val settled = awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Final)
+                        .changes.firstOrNull { it.id == first.id }
+                    if (settled != null && settled.pressed && settled.isConsumed && settled.position != settled.previousPosition) {
+                        cancelled = true; break
+                    }
                 }
+
             } finally {
                 down = false
                 pulling = false
@@ -383,5 +417,7 @@ internal fun rememberGlassPress(
         }
     }
 
-    return GlassPress(point.x, point.y, amount, pull.x, pull.y, pulling, pressCount = pressCount) to modifier
+    return GlassPress(point.x, point.y, amount, pull.x, pull.y, pulling, pressCount = pressCount,
+        cancelled = cancelled && !down) to modifier
+
 }

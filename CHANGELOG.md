@@ -6,6 +6,22 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Interactive glass presses and pulls like the search button (#196). `GlassInteraction.Fluid` (new, additive) is the
+  scored Phone search-button preset (`Pullable`, `GlassPullShape.Free`, glow share 0.65), and it is now the default of
+  `Glass.interactive()`. Controls of 80 dp or less on their long side answer in full (8 dp a side, follow and stretch,
+  ring on release; the search button is bit-identical to before: `searchscore.py` equals the baseline render to the
+  printed digit). Between 80 and 160 dp the response blends toward the anchored surface response, and from 160 dp it
+  presses 2 dp a side and stretches at most 2 dp, as `Calm` did. A scroll that takes the gesture returns the press and
+  pull critically damped, with no ring and no landing squash. Interactive glass now follows the system's Reduce Motion
+  (`GlassInteraction.ReducedMotion`, whatever response was passed). The ports' free button takes `width`, `height` and
+  `radius` and has `cancel()`. Provenance: press growth and its spring are measured (IMG_6756 S01, keypad K01); the
+  pull, landing and ring on small controls are measured on the search button and inherited by other small controls;
+  the size blend, the 2 dp surfaces and the scroll cancel are authored.
+  - Default look changed: interactive glass (`interactive()`, glass buttons, FABs, chips, icon buttons) now presses and
+    pulls like the search button; surfaces from 160 dp stay anchored; pass `GlassInteraction.Calm` for the previous
+    response. The Material 3 navigation bar's accessory takes the glow share 0.65 the sample's scored search button
+    has (it settles to 65 % once dragged).
+  - Default look changed: interactive glass follows the system's Reduce Motion (no scale, no pull, half-strength glow).
 - Regular glass at Tint 0 and Tint 100 is measured (#208). `GlassStyle.inApp`, `toolbar` and `Regular` at the ends now use the fit on iOS 27's Photos chrome over the calibration target: detail share 0.663 / 0, one-sided term 0.336 / 0, dark bow 101.6 / 49.8 (of 255), opacity dark 0.401 / 0.703 and light 0.382 / 0.682, wide kernel 15.5 dp at every tint, legibility 0. Between Tint 0, 50 and 100 the values are linear (authored). Fit 1.3 to 2.2 levels rms against 5.6 to 24.8 for the authored ends (Python scores on the pooled pill and toolbar, not shader renders). The colour transfer at Tint 0 is the Tint 50 transfer (authored extrapolation; colour at Tint 0 is not measured). [Evidence](review/atlas/tint-ends-2026-11-18/README.md).
   - Default look changed: Regular glass away from Tint 50 (dark at Tint 0 over grey 128: 93 -> 134; light 198 -> 182). Tint 50 is unchanged (every port's Tint 50 parameters are identical). The toolbar shares the pill's end values. All ports' in-app factories follow.
 - The collapsing-bar recipe is measured (#207): `docs/guides/collapsing-bar.md` now drives the collapse by finger travel only,

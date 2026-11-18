@@ -319,7 +319,42 @@ internal fun glassAnchoredMaterialPull(pull: GlassPullDeformation, width: Float,
         atan2(2f * xy, xx - yy) * (90f / kotlin.math.PI.toFloat()), 0f, 0f)
 }
 
-/** Drag-only size response. The recorded small controls do not establish a large-card law.
+/**
+ * How far a [GlassPullShape.Free] control is toward the surface response, 0 for a control of 80 dp or less on its long
+ * side to 1 at 160 dp (smoothstep; the thresholds [glassSurfacePull] uses). Authored: no recording shows glass other
+ * than the search button pulled.
+ */
+internal fun glassSizeMix(width: Float, height: Float, density: Float): Float {
+    if (density <= 0f || !density.isFinite()) return 0f
+    val t = ((maxOf(width, height) / density - 80f) / 80f).coerceIn(0f, 1f)
+    return t * t * (3f - 2f * t)
+}
+
+/**
+ * [free], a free control's upright deformation after landing, blended toward the anchored surface response of its raw
+ * pull by [glassSizeMix]: the scales interpolate per axis and the travel falls to zero, so a card is not dragged off
+ * its place. At a mix of 0 it returns [free] itself.
+ */
+internal fun glassFreeSizeBlend(
+    free: GlassPullDeformation, interaction: GlassInteraction, width: Float, height: Float, density: Float,
+    pressX: Float, pressY: Float, radius: Float, pullX: Float, pullY: Float,
+): GlassPullDeformation {
+    val mix = glassSizeMix(width, height, density)
+    if (mix <= 0f) return free
+    // The surface response works on the pull's own axes, not on the free button's upright projection of it.
+    val extent = glassPullExtent(width, height, radius, pressX, pressY, pullX, pullY)
+    val across = glassPullExtent(width, height, radius, pressX, pressY, -pullY, pullX)
+    val raw = glassPullDeformation(pullX, pullY, extent, interaction.pullElongation, interaction.pullWidthRatio,
+        interaction.pullFollow, acrossExtentPx = across, upright = false)
+    val surface = glassUprightPull(glassAnchoredMaterialPull(glassSurfacePull(raw, width, height, density, extent), width, height))
+
+    return GlassPullDeformation(free.along + (surface.along - free.along) * mix,
+        free.across + (surface.across - free.across) * mix, -90f,
+        free.translationX * (1f - mix), free.translationY * (1f - mix))
+}
+
+/** Drag-only size response.
+ The recorded small controls do not establish a large-card law.
  * Preserve controls up to 80dp; smoothly reach the authored surface response by 160dp:
  * one-fifth input gain, saturating at 2dp total extension (1dp per edge). Press is separate. */
 internal fun glassSurfacePull(

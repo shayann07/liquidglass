@@ -1,3 +1,8 @@
+## #196 Fluid default (19 November, `p3/114`)
+
+- [x] `GlassInteraction.Fluid`, size policy, scroll cancel, Reduce Motion, ports and fixtures, docs.
+- [ ] Pixel feel check (buttons in a scrolling list, a FAB, a chip row); optional recording of non-search glass pulled (owner list #126).
+
 ## Controls bundle (18 November, `feat/205-204-207-controls`)
 
 - [x] #205 geometry and timing; [ ] track colours, native thumb, light switch, drag stretch.

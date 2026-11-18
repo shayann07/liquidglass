@@ -195,6 +195,8 @@ final class com.wexpa.liquidglass/GlassInteraction { // com.wexpa.liquidglass/Gl
             final fun <get-Calm>(): com.wexpa.liquidglass/GlassInteraction // com.wexpa.liquidglass/GlassInteraction.Companion.Calm.<get-Calm>|<get-Calm>(){}[0]
         final val Default // com.wexpa.liquidglass/GlassInteraction.Companion.Default|{}Default[0]
             final fun <get-Default>(): com.wexpa.liquidglass/GlassInteraction // com.wexpa.liquidglass/GlassInteraction.Companion.Default.<get-Default>|<get-Default>(){}[0]
+        final val Fluid // com.wexpa.liquidglass/GlassInteraction.Companion.Fluid|{}Fluid[0]
+            final fun <get-Fluid>(): com.wexpa.liquidglass/GlassInteraction // com.wexpa.liquidglass/GlassInteraction.Companion.Fluid.<get-Fluid>|<get-Fluid>(){}[0]
         final val Pullable // com.wexpa.liquidglass/GlassInteraction.Companion.Pullable|{}Pullable[0]
             final fun <get-Pullable>(): com.wexpa.liquidglass/GlassInteraction // com.wexpa.liquidglass/GlassInteraction.Companion.Pullable.<get-Pullable>|<get-Pullable>(){}[0]
         final val ReducedMotion // com.wexpa.liquidglass/GlassInteraction.Companion.ReducedMotion|{}ReducedMotion[0]

@@ -123,6 +123,7 @@ public final class com/wexpa/liquidglass/GlassInteraction {
 public final class com/wexpa/liquidglass/GlassInteraction$Companion {
 	public final fun getCalm ()Lcom/wexpa/liquidglass/GlassInteraction;
 	public final fun getDefault ()Lcom/wexpa/liquidglass/GlassInteraction;
+	public final fun getFluid ()Lcom/wexpa/liquidglass/GlassInteraction;
 	public final fun getPullable ()Lcom/wexpa/liquidglass/GlassInteraction;
 	public final fun getReducedMotion ()Lcom/wexpa/liquidglass/GlassInteraction;
 }

@@ -1,3 +1,8 @@
+## RESUME HERE (19 November): phase 3 `p3/114` = #196 then #114 then the Control Center quick-action press
+
+- Local branch `p3/114` off `fix/202-rim`, one commit per issue, nothing pushed. #196 is committed first; the press-grade (#114)
+  and the quick-action press follow. Scores and gates in PROGRESS.md.
+
 ## RESUME HERE (18 November, night): 1.1.0 in three PRs, phase 1 on `fix/202-rim`
 
 - The owner split the rest of 1.1.0 into three phases, one PR each, one 1.1.0 tag at the end (owner's yes only).

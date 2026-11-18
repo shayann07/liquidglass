@@ -242,3 +242,48 @@ test('free button: every frame of the Kotlin-exported trajectories is reproduced
   assert.ok(worstScalar < 3e-3, `a scalar differs by ${worstScalar}`);
   console.log(`FREE_BUTTON worst ${worstPx.toFixed(4)} px, ${worstScalar.toExponential(2)}`);
 });
+
+test('free button: the size blend and the scroll cancel reproduce every frame of the Kotlin-exported trajectories', () => {
+  const fixture = JSON.parse(readFileSync(new URL('../skia/fixtures/free-button-sizes.json', import.meta.url), 'utf8'));
+  const b = fixture.button;
+  const f = Object.fromEntries(fixture.frameFields.map((name, i) => [name, i]));
+  let worstPx = 0, worstScalar = 0;
+  for (const s of fixture.scenarios) {
+    const c = s.control;
+    const button = createFreeButton({size: Math.max(c.width, c.height), width: c.width, height: c.height, radius: c.radius,
+      density: b.density, pressScale: b.pressScale, pressGrowth: b.pressGrowth, pressLift: b.pressLift,
+      pullFollow: b.pullFollow, pullElongation: b.pullElongation, pullWidthRatio: b.pullWidthRatio,
+      pullLimit: b.pullLimit, pullLiftShare: b.pullLiftShare, pullReleaseDampingX: b.pullReleaseDampingX});
+    let next = 0;
+    for (const row of s.frames) {
+      const t = row[f.t];
+      while (next < s.calls.length && s.calls[next][0] <= t + 1e-9) {
+        const [ct, op, x, y] = s.calls[next++];
+        if (op === 'down') button.down(ct); else if (op === 'up') button.up(ct);
+        else if (op === 'cancel') button.cancel(ct); else button.move(ct, x, y);
+      }
+      const o = button.sample(t);
+      for (const [a, e] of [[o.tx, row[f.tx]], [o.ty, row[f.ty]], [o.pullX, row[f.pullX]]]) worstPx = Math.max(worstPx, Math.abs(a - e));
+      for (const [a, e] of [[o.glow, row[f.glow]], [o.pressScale, row[f.pressScale]], [o.pressScaleY, row[f.pressScaleY]],
+        [o.along, row[f.along]], [o.across, row[f.across]]]) worstScalar = Math.max(worstScalar, Math.abs(a - e));
+    }
+  }
+  assert.ok(worstPx < .1, `offset or pull differs by ${worstPx} px`);
+  assert.ok(worstScalar < 3e-3, `a scalar differs by ${worstScalar}`);
+  console.log(`FREE_BUTTON_SIZES worst ${worstPx.toFixed(4)} px, ${worstScalar.toExponential(2)}`);
+});
+
+test('free button: a control of 160 dp and more never leaves its place and a cancel does not ring', () => {
+  const card = createFreeButton({size: 600, width: 600, height: 450, radius: 72, density: 3});
+  card.down(0); card.move(.5, 0, -600);
+  for (let t = .5; t < 1.5; t += 1 / 60) near(card.sample(t).ty, 0, 1e-6);
+  const pill = createFreeButton({size: 150, density: 3});
+  pill.down(0); pill.move(.3, 0, -300); pill.cancel(.6);
+  let previous = Infinity;
+  for (let t = .6; t < 1.6; t += 1 / 120) {
+    const o = pill.sample(t);
+    assert.ok(o.ty <= 1e-6, 'no overshoot past rest');
+    assert.ok(Math.abs(o.ty) <= previous + 1e-6, 'monotonic return');
+    previous = Math.abs(o.ty);
+  }
+});

@@ -272,7 +272,14 @@ const FREE_SPECS = {
   glowIn: {tween: .09}, freeGlow: {tween: .35},
   balloonDown: {damping: .62, stiffness: 644}, pressUp: {damping: .72, stiffness: 700},
   pullFollow: {damping: 1, stiffness: 2500}, freeRelease: {damping: .45, stiffness: 264},
+  calmDown: {damping: 1, stiffness: 220}, calmUp: {damping: 1, stiffness: 260},
 };
+
+// glassSizeMix: 0 for a control of 80 dp or less on its long side to 1 at 160 dp (smoothstep). Authored.
+function sizeMix(width, height, density) {
+  const t = Math.min(1, Math.max(0, (Math.max(width, height) / density - 80) / 80));
+  return t * t * (3 - 2 * t);
+}
 
 function animated(initial) {
   const a = {start: 0, from: initial, velocity: 0, target: initial, spec: null};
@@ -302,27 +309,56 @@ function animated(initial) {
  * A free-standing round glass button pulled off its place (px; time in seconds). down / move (total
  * finger travel since down) / up drive it; sample returns the drawing transform: press scale, a
  * stretch along and across `angle` (degrees), the offset, and the glow and its lift.
+ * `width` / `height` (default `size`) give a control that is not square and `radius` (default half its short side) its
+ * corner radius: Compose's GlassInteraction.Fluid default, which falls with size (authored). A control of 80 dp or less
+ * on its long side is the search button; from 160 dp it presses 2 dp a side and stretches at most 2 dp.
  */
-export function createFreeButton({size, density = 1, pressScale = 1.26, pressGrowth = 8, pressLift = .2,
-  pullFollow = .2, pullElongation = .124, pullWidthRatio = 1, pullLimit = .5, pullLiftShare = .65,
-  pullReleaseDampingX = .3} = {}) {
-  if (!(size > 0) || !(density > 0)) throw new RangeError('Positive size and density required');
-  const growth = pressGrowth * density, radius = size / 2;
-  const balloon = Math.min(1 + 2 * growth / size, pressScale);
-  const limit = size * balloon * pullLimit;
+export function createFreeButton({size, width = size, height = size, radius, density = 1, pressScale = 1.26,
+  pressGrowth = 8, pressLift = .2, pullFollow = .2, pullElongation = .124, pullWidthRatio = 1, pullLimit = .5,
+  pullLiftShare = .65, pullReleaseDampingX = .3} = {}) {
+  if (!(size > 0) || !(width > 0) || !(height > 0) || !(density > 0)) throw new RangeError('Positive size and density required');
+  const r = radius ?? Math.min(width, height) / 2;
+  const mix = sizeMix(width, height, density);
+  const base = pressGrowth * density;
+  const growth = mix > 0 ? base + (2 * density - base) * mix : base;
+  const balloonX = Math.min(1 + 2 * growth / Math.max(width, 1), pressScale);
+  const balloonY = Math.min(1 + 2 * growth / Math.max(height, 1), pressScale);
+  const limit = Math.min(width * balloonX, height * balloonY) * pullLimit;
   const press = animated(0), glow = animated(0), px = animated(0), py = animated(0);
   let anchor = NaN, moved = false;
   const extent = (sx, sy, x, y) => {
     const len = Math.hypot(x, y);
-    if (len < 1e-5) return Math.min(size * sx, size * sy);
+    if (len < 1e-5) return Math.min(width * sx, height * sy);
     const nx = Math.abs(x) / len, ny = Math.abs(y) / len;
-    return 2 * radius * Math.hypot(sx * nx, sy * ny);
+    return (width - 2 * r) * sx * nx + (height - 2 * r) * sy * ny + 2 * r * Math.hypot(sx * nx, sy * ny);
   };
+  // glassFreeSizeBlend: the free deformation toward the anchored surface response of the raw pull, by sizeMix.
+  const upright = d => {
+    const a = d.angle * Math.PI / 180, nx2 = Math.cos(a) ** 2, ny2 = Math.sin(a) ** 2;
+    return {...d, along: d.along * ny2 + d.across * nx2, across: d.along * nx2 + d.across * ny2, angle: -90};
+  };
+  function surface(raw, e) {
+    // glassSurfacePull, then glassAnchoredMaterialPull, then upright.
+    let {along, across} = raw;
+    const extension = (along - 1) * e;
+    if (extension > 0) {
+      const limitPx = 2 * density, x = .2 * extension / limitPx;
+      const surfaceGain = x < 1e-3 ? .2 * (1 - x * x / 3) : limitPx * Math.tanh(x) / extension;
+      const gain = 1 + (surfaceGain - 1) * mix;
+      along = 1 + (along - 1) * gain; across = 1 + (across - 1) * gain;
+    }
+    const a = raw.angle * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
+    const xx = along * c * c + across * s * s, yy = along * s * s + across * c * c;
+    const roundness = Math.min(1, Math.max(0, 2 * Math.min(width, height) / Math.max(width, height) - 1));
+    const xy = (along - across) * c * s * roundness, mean = (xx + yy) / 2;
+    const rad = Math.sqrt((xx - yy) * (xx - yy) / 4 + xy * xy);
+    return upright({along: mean + rad, across: mean - rad, angle: Math.atan2(2 * xy, xx - yy) * (90 / Math.PI)});
+  }
   // glassFreeLanding: the edge away from the pull holds at rest; the overshoot lands as a squash.
   function landing(d) {
     if (!Number.isFinite(anchor)) return d;
     const a = anchor * Math.PI / 180, nx = Math.cos(a), ny = Math.sin(a);
-    const restHalf = Math.hypot(radius * nx, radius * ny);
+    const restHalf = Math.hypot(width / 2 * nx, height / 2 * ny);
     const c = d.tx * nx + d.ty * ny, perp = -d.tx * ny + d.ty * nx;
     const dd = (d.angle - anchor) * Math.PI / 180, cd = Math.cos(dd), sd = Math.sin(dd);
     const stretched = c >= 0;
@@ -338,7 +374,7 @@ export function createFreeButton({size, density = 1, pressScale = 1.26, pressGro
   return {
     down(time) {
       moved = false;
-      glow.to(time, 1, FREE_SPECS.glowIn); press.to(time, 1, FREE_SPECS.balloonDown);
+      glow.to(time, 1, FREE_SPECS.glowIn); press.to(time, 1, mix >= 1 ? FREE_SPECS.calmDown : FREE_SPECS.balloonDown);
       px.to(time, 0, FREE_SPECS.pullFollow); py.to(time, 0, FREE_SPECS.pullFollow);
     },
     move(time, dx, dy) {
@@ -359,12 +395,18 @@ export function createFreeButton({size, density = 1, pressScale = 1.26, pressGro
         ? {...FREE_SPECS.freeRelease, damping: Math.min(Math.max(pullReleaseDampingX, .05), 2)} : FREE_SPECS.freeRelease;
       px.to(time, 0, releaseX); py.to(time, 0, FREE_SPECS.freeRelease);
     },
+    /** A scroll took the gesture: everything returns critically damped, with no ring and no landing squash. */
+    cancel(time) {
+      anchor = NaN;
+      glow.to(time, 0, FREE_SPECS.freeGlow); press.to(time, 0, FREE_SPECS.calmUp);
+      px.to(time, 0, FREE_SPECS.calmUp); py.to(time, 0, FREE_SPECS.calmUp);
+    },
     sample(time) {
-      const amount = press.value(time), scale = 1 + (balloon - 1) * amount;
+      const amount = press.value(time), scale = 1 + (balloonX - 1) * amount, scaleY = 1 + (balloonY - 1) * amount;
       const x = px.value(time), y = py.value(time), len = Math.hypot(x, y);
-      let d = {along: 1, across: 1, angle: 0, tx: 0, ty: 0};
+      let d = {along: 1, across: 1, angle: 0, tx: 0, ty: 0}, raw = d, rawExtent = 1;
       if (len >= 1e-3) {
-        const e = extent(scale, scale, x, y), across = extent(scale, scale, -y, x);
+        const e = extent(scale, scaleY, x, y), across = extent(scale, scaleY, -y, x);
         const along = Math.min(1 + pullElongation * len / Math.max(e, 1), 1.6);
         const extension = (along - 1) * Math.max(e, 1);
         const narrow = Math.max(1 - pullWidthRatio * extension / Math.max(across, 1), .5);
@@ -372,13 +414,22 @@ export function createFreeButton({size, density = 1, pressScale = 1.26, pressGro
         // Continuous screen-axis projection, matching glassPullDeformation.
         d = {along: along * ny2 + narrow * nx2, across: along * nx2 + narrow * ny2,
           angle: -90, tx: pullFollow * x, ty: pullFollow * y};
+        // The surface response works on the pull's own axes, not on the upright projection of them.
+        raw = {along, across: narrow, angle: Math.atan2(y, x) * 180 / Math.PI}; rawExtent = e;
+
       }
       d = landing(d);
       const a = d.angle * Math.PI / 180, nx2 = Math.cos(a) ** 2, ny2 = Math.sin(a) ** 2;
       d = {...d, along: d.along * ny2 + d.across * nx2,
         across: d.along * nx2 + d.across * ny2, angle: -90};
+      if (mix > 0 && len >= 1e-3) {
+        const s = surface(raw, rawExtent);
+        d = {...d, along: d.along + (s.along - d.along) * mix, across: d.across + (s.across - d.across) * mix,
+          tx: d.tx * (1 - mix), ty: d.ty * (1 - mix)};
+      }
       const g = glow.value(time);
-      return {...d, pressScale: scale, glow: g, lift: g * pressLift, pullX: x};
+      return {...d, pressScale: scale, pressScaleY: scaleY, glow: g, lift: g * pressLift, pullX: x};
+
     },
   };
 }

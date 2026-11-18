@@ -1,3 +1,11 @@
+## 19 November 2026 - #196 interactive glass presses like the search button (Claude, p3/114)
+
+- `GlassInteraction.Fluid` (additive) is the default of `Glass.interactive()`; `glassSizeMix` and `glassFreeSizeBlend` make it fall with size
+  (authored); a scroll that takes the gesture cancels the press without a ring (own pointer and the overlay's source, read in the Final pass);
+  interactive `glassEffect` follows Reduce Motion. Search button: render `c196` equals baseline `m114` to the printed digit
+  (`searchscore.py IMG_6756`). Ports: Skia/web/npm free button takes width/height/radius and has `cancel()`, .NET `FreeButton` likewise,
+  `fixtures/free-button-sizes.json` (circle, pill, card, each with a cancel) matches Kotlin to 0.006 px / 2e-3. Not device-checked.
+
 ## 18 November 2026 - controls bundle #205 #204 #207 (Claude, Sonnet writer)
 
 - `feat/205-204-207-controls`: #205 switch and slider geometry and timing (partial: colours, native thumb), #204 `GlassStyle.menu(dark)` with DropdownMenu on it (held-out Photos context menu still 10-18 levels off, pinned), #207 `Modifier.glassScrollEdge` (partial: sample scene, collapse timing, device frame times).
