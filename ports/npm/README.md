@@ -231,7 +231,7 @@ sources and fails if an inherited value drifts. The table is `PROVENANCE` in `ma
 | Refraction band | 0.6 of the corner radius | inherited | measured | `GlassMaterial.BEVEL_RATIO` |
 | Resting corner source map | `restSourceLegacy`; runs `u + 0.06 (1 - u)²` | inherited | measured | `GlassRestMap.kt`, `foldSource` |
 | Regular rim | bevel 1.33 dp, peak 0.25, specular 0.25, power 6, counter-light 1, glow 0.05 | inherited | measured | `GlassStyle.inApp`, shader lighting |
-| Light direction | (-0.35, -0.94) | inherited | authored | `GlassLight.Default` |
+| Light direction | (0, -1) | inherited | measured | the resting rims, `GlassLight.Default` |
 | Clear tint | white at 0.04 × (0.9 to 1.25 by size) | inherited | authored | `GlassStyle.Clear` |
 | Clear refraction | Snell bevel, band 28 dp, depth 16 dp × (0.85 to 1.25 by size), IOR 1.5 | inherited | authored | `GlassStyle.Clear` |
 | Clear scatter | radius 4 dp, sigma 0.6 × radius, crisp rim (1 - e)² | inherited | authored | `GlassStyle.Clear` |

@@ -6,6 +6,8 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Default light is straight overhead (owner-approved 19 November): `GlassLight()` and `GlassLight.Default` are now (0, -1), in Compose and in every port (Skia, npm, React Native, Flutter, Qt, Unity, .NET). Every measured resting iOS 27 rim is lit equally at its top and bottom and not at its sides (Safari lab stills, recorded tab bars, Control Center); the earlier (-0.35, -0.94) was authored, not measured. The internal Control Center step that forced an overhead light is removed, so the tile and the preset `copy()` use the default like everything else.
+  - Default look changed: the rim highlight of every glass now sits at the top and bottom instead of leaning to the upper left; the left side loses its extra highlight and the right side gains none. To keep the old look pass `GlassLight(-0.35f, -0.94f)` (Compose) or the matching `light` option in a port. Fixtures that pass a light explicitly are unchanged.
 - Quick-action press and Control Center tile (#113 item 128, #206). New, additive: `GlassInteraction.QuickAction` (the press of iOS's round
   quick-action buttons) and `Glass.ControlCenterTile` (`GlassStyle.controlCenterTile()` with that press, interactive as it stands).
   Pressed, the body grows to 1.60 times its size with a spring that overshoots to 1.69 (damping 0.53, stiffness 300) and its glass mixes
@@ -144,11 +146,11 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   the rim measured on the iOS 27 toggle by sector (lit at the top and bottom, not at the sides; pole peaks within 5 levels at layers 10 and 56, re-scored on the three frames it was fitted on) and
   its dark contour outside the sides through `outerContour`. The toggle, wide tile, media tile and slider track each read within 2 levels of
   the take at three greys (enforced: 2 per case, rms 1.5, and 3 on the slider fill, where ours reads 248 against 250; measured rms 0.87; the issue's gate is 5), and the slider is documented as a track tile plus a `controlCenterTile(active = true)`
-  fill (250 / 251 / 252 measured). The tile is lit from straight above, as iOS lights Control Center, with no step for the app (a host that passes its own light keeps it; `copy()` of the preset does not carry the overhead light). Known gaps: the contour is 6 to 31 levels too shallow
+  fill (250 / 251 / 252 measured). The tile takes the default overhead light like every other glass (straight above, as iOS lights Control Center; a host that passes its own light keeps it). Known gaps: the contour is 6 to 31 levels too shallow
   (shader band), the sides' rim 8 to 9 too bright. No public API added. The lock-screen flashlight press (#113 item 128) was measured at 1.69 peak /
   1.60 held, 58 pt growing to 93 pt, +119 over black, against `Calm`'s 1.07: not changed, an owner question
   ([numbers](review/atlas/flashlight-press-2026-11-18/README.md)); `measured-model.md`'s older +39 press figure is marked superseded.
-  - Default look changed: none for any shipped style (`controlCenterTile` is new in this unreleased cycle; its rim and its overhead light are new with it).
+  - Default look changed: none for any shipped style (`controlCenterTile` is new in this unreleased cycle; its overhead light is now the library default, see the default light entry above).
 
 - Skia and .NET ports: render a frame at any time (#193). `bakeNavigation(bar, events, {step, duration})` runs a scripted gesture
   through the scene's own navigation motion (now one shared driver, `createNavigationDriver`, used by `addNavigation` and the bake) at a

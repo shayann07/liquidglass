@@ -23,7 +23,7 @@ namespace LiquidGlass
         public bool dark;
         [Range(0, 100)] public float tintAmount = 50;
         [Tooltip("Toward the light, y up negative. (0, -1) is iOS 27's measured overhead light.")]
-        public Vector2 light = new Vector2(-.35f, -.94f);
+        public Vector2 light = new Vector2(0f, -1f);
         [Tooltip("Replace the tint colour and opacity (alpha is the opacity).")]
         public bool useTint;
         public Color tint = new Color(1, 1, 1, .5f);

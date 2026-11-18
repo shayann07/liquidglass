@@ -55,7 +55,7 @@ export const fineShare = (tintAmount = DEFAULT_TINT_AMOUNT) =>
 export const quantize = x => Math.round(Math.min(1, Math.max(0, x)) * 255) / 255;
 
 /** GlassLight.Default: the light, above and slightly left, y negative upward. */
-export const LIGHT = Object.freeze({x: -0.35, y: -0.94});
+export const LIGHT = Object.freeze({x: 0, y: -1});
 
 /** GlassMaterial.BEVEL_RATIO: the measured band is 0.6 of the corner radius. */
 export const BEVEL_RATIO = 0.6;
@@ -167,7 +167,7 @@ export const PROVENANCE = Object.freeze([
   {name: 'Refraction band', value: '0.6 of the corner radius', kind: 'inherited', kotlin: 'measured', source: 'GlassMaterial.BEVEL_RATIO, GlassStyle.bandPx'},
   {name: 'Resting corner source map', value: 'restSourceLegacy table; straight runs u + 0.06 (1-u)^2', kind: 'inherited', kotlin: 'measured', source: 'GlassRestMap.kt, GlassSourceMapSource.kt foldSource'},
   {name: 'Regular rim', value: 'bevel 1.33 dp, peak 0.25, specular 0.25, power 6, counter-light 1, glow 0.05', kind: 'inherited', kotlin: 'measured', source: 'GlassStyle.inApp, GlassShaderSource lighting'},
-  {name: 'Light direction', value: '(-0.35, -0.94)', kind: 'inherited', kotlin: 'authored', source: 'GlassLight.Default'},
+  {name: 'Light direction', value: '(0, -1)', kind: 'inherited', kotlin: 'measured', source: 'the resting rims (GlassLight.Default)'},
   {name: 'Clear tint', value: 'white at 0.04 x (0.9..1.25 by size)', kind: 'inherited', kotlin: 'authored', source: 'GlassStyle.Clear, shader strength term'},
   {name: 'Clear refraction', value: 'Snell bevel, band 28 dp, depth 16 dp x (0.85..1.25 by size), IOR 1.5', kind: 'inherited', kotlin: 'authored', source: 'GlassStyle.Clear, snellShift, bevelSlope'},
   {name: 'Clear scatter', value: 'radius 4 dp, sigma 0.6 x radius = 2.4 dp, crisp rim (1-e)^2', kind: 'inherited', kotlin: 'authored', source: 'GlassStyle.Clear.blurRadius, GlassStyle.inApp note'},

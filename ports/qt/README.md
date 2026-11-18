@@ -46,7 +46,7 @@ In C++, `engine.addImportPath(...)` the same way.
 | `radius` | 20 | corner radius, logical pixels |
 | `dark` | false | the dark material |
 | `tintAmount` | 50 | 0 to 100 |
-| `light` | `Qt.point(-0.35, -0.94)` | toward the light; `Qt.point(0, -1)` is iOS 27's measured overhead light |
+| `light` | `Qt.point(0, -1)` | toward the light; straight overhead, as every measured resting iOS 27 rim is lit |
 | `tint` | null | `[r, g, b, a]` in sRGB 0..1 replacing the tint |
 | `materialize`, `reducedTransparency`, `increasedContrast` | 1, 0, 0 | 0 to 1 |
 | `followsMovement` | false | re-map onto the backdrop every frame, for glass that moves inside an animated parent |

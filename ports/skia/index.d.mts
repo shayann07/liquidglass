@@ -33,7 +33,7 @@ export interface GlassLensMaterial {
   shadow?: boolean;
   /** Device px per dp, scaling the preset's dp terms (bevel, refraction depth). Default 1; a scene multiplies it by its pixelRatio. */
   density?: number;
-  /** With `lighting`: toward the light, y up negative. Default Compose's GlassLight.Default [-0.35, -0.94]. */
+  /** With `lighting`: toward the light, y up negative. Default Compose's GlassLight.Default [0, -1]. */
   light?: readonly [number, number];
 }
 export interface GlassMaterial {
@@ -44,8 +44,8 @@ export interface GlassMaterial {
   /** Surfaces only: Compose's `Glass.tint(color)`. Replaces the tint colour and opacity ([r, g, b, a],
    * sRGB 0..1, quantized to 8 bits as Compose's Color is); the dark appearance keeps its lift. */
   tint?: readonly [number, number, number, number] | null;
-  /** Toward the light, y up negative. Default Compose's GlassLight.Default [-0.35, -0.94]; [0, -1]
-   * is iOS 27's measured overhead light. */
+  /** Toward the light, y up negative. Default Compose's GlassLight.Default [0, -1], straight overhead, as every measured
+   * resting iOS 27 rim is lit. */
   light?: readonly [number, number];
 }
 export interface GlassFeedback {
