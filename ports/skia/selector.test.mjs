@@ -79,16 +79,16 @@ test('navigation: any touch lifts the bar (touchLift), rising in 50 ms and gone 
   assert.ok(calmBarMaterial({dark: false, touch: 1}).uLift > calmBarMaterial({dark: false}).uLift, 'light Calm lifts too (authored)');
 });
 
-test('clear bar (GlassTabBarStyle.CalmClear): black at 0.10 over the same lift, legibility 2, blur 7 dp, light bar unchanged', () => {
+test('clear bar (GlassTabBarStyle.CalmClear): the dark bar is the measured in-app toolbar material, light bar unchanged', () => {
   const calm = calmBarMaterial({dark: true}), clear = calmBarMaterial({dark: true, clear: true});
   assert.deepEqual([...clear.uTint].slice(0, 3), [0, 0, 0]);
-  assert.ok(Math.abs(clear.uTint[3] - 26 / 255) < 1e-6, 'Compose stores the 0.10 alpha in 8 bits');
-  assert.equal(clear.uLift, calm.uLift);
-  assert.equal(clear.uLegibility, 2, 'it darkens over text (GlassStyle.legibility)');
-  assert.equal(clear.uBlur, 7, 'it shows text as one soft copy');
+  assert.ok(Math.abs(clear.uTint[3] - 102 / 255) < 1e-6, 'black at the toolbar opacity 0.40 (8-bit)');
+  assert.equal(clear.uLegibility, 0, 'no legibility darkening (the earlier 2 is gone)');
+  assert.equal(clear.uWideKernel, 15.5, 'the lab wide kernel, 15.5 dp');
+  assert.ok(Math.abs(clear.uToneCurve - 101.01 / 255) < 1e-6, 'the lab tone bow');
+  assert.equal(clear.uDetailCross, 1, 'the four-tap detail kernel of the lab material');
   assert.equal(calm.uDetailCross, 0, 'the Calm bar keeps the earlier fit (reach 1.46 dp): the scatter, not the four taps');
-  assert.equal(clear.uDetailCross, 0, 'so does the clear bar (7 dp)');
-  assert.deepEqual({...clear, uTint: calm.uTint, uLegibility: calm.uLegibility, uBlur: calm.uBlur}, calm, 'only tint, legibility and blur differ');
+  assert.notDeepEqual(clear, calm, 'the dark clear bar is no longer Calm with a tint');
   assert.deepEqual(calmBarMaterial({dark: false, clear: true}), calmBarMaterial({dark: false}));
 });
 

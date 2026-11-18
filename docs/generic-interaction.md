@@ -118,6 +118,10 @@ The bias is at most 5.6% of the unpressed short side (10.42px at this geometry),
 10.5px displacement. No translation is applied to layout, hit targets or ordinary labels.
 This matches chosen visible edges, not Apple's internal mechanism or a complete motion trajectory.
 Using the same law in other directions is an authored extrapolation. Ordinary press has no bias.
+Since 18 November a long horizontal bar answers only the vertical part of a pull, resistance included: a
+sideways drag leaves its shape alone, as iOS 27's held Phone bar does, and a diagonal lifts it as far as the
+same pull straight up. A round surface keeps the whole pull. Pixel 7 frames before and after:
+[tab-bar-stretch-2026-11-18](https://github.com/shayann07/liquidglass/blob/main/review/atlas/tab-bar-stretch-2026-11-18/README.md).
 
 Generic `Calm` and `Pullable` keep `GlassPullShape.Adaptive`, including the large-card 2dp extension
 cap. That policy uses `pullElongation` and `pullWidthRatio`. `AreaPreserving` instead uses a bounded

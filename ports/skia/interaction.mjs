@@ -58,14 +58,19 @@ function calmDeformation(width, height, dx, dy, pressAmount, radius,
   if (!travel) return { pressX, pressY, along: 1, across: 1, angle: 0 };
   const c = dx / travel, s = dy / travel, r = Math.min(radius, width / 2, height / 2);
   if (pullShape === 'area-preserving') {
-    const amount = Math.max(0,Math.min(1,travel*.2/targetLimit));
+    const roundness=Math.max(0,Math.min(1,2*Math.min(width,height)/Math.max(width,height)-1));
+    // A long bar takes only the pull across its spine (Compose GlassPull): a sideways drag leaves iOS 27's held
+    // Phone bar alone. A round surface keeps the whole pull.
+    const ax=dx*roundness, pull=Math.hypot(ax,dy);
+    if (!pull) return { pressX, pressY, along: 1, across: 1, angle: 0 };
+    const pc=ax/pull, ps=dy/pull;
+    const amount = Math.max(0,Math.min(1,pull*.2/targetLimit));
     // Same authored .047 log-strain as Compose; input compliance/timing remain independent.
     const strain=.047*amount;
-    const roundness=Math.max(0,Math.min(1,2*Math.min(width,height)/Math.max(width,height)-1));
-    const u=strain*(c*c-s*s), v=2*strain*c*s*roundness, magnitude=Math.hypot(u,v);
+    const u=strain*(pc*pc-ps*ps), v=2*strain*pc*ps*roundness, magnitude=Math.hypot(u,v);
     const bias=.056*Math.min(width,height)*amount;
     return {pressX,pressY,along:Math.exp(magnitude),across:Math.exp(-magnitude),angle:Math.atan2(v,u)/2,
-      offsetX:bias*c,offsetY:bias*s};
+      offsetX:bias*pc,offsetY:bias*ps};
   }
   const extent = (nx, ny) => (width - 2*r)*pressX*Math.abs(nx) + (height - 2*r)*pressY*Math.abs(ny) +
     2*r*Math.hypot(pressX*nx, pressY*ny);
@@ -230,12 +235,22 @@ export function createCalmInteraction({width, height, radius = Math.min(width, h
       Math.hypot(horizontal.velocity, vertical.velocity) > 1e-3;
     return {matrix: matrix(gain), offset, press: amount, held, active};
   }
+  // A long bar resists only the part of the pull it answers (Compose glassPullCompliance): the sideways part scaled
+  // by its roundness, so a drag along the bar does not shorten its vertical pull. Every other shape resists it all.
+  function pullTarget(dx, dy) {
+    const {width: w, height: h} = geometry;
+    if (pullShape !== 'area-preserving') return calmPullTarget(w, h, dx, dy, ...pressTargets());
+    const ax = dx * Math.max(0, Math.min(1, 2 * Math.min(w, h) / Math.max(w, h) - 1));
+    const resisted = calmPullTarget(w, h, ax, dy, ...pressTargets()), length = Math.hypot(ax, dy);
+    const compliance = length ? Math.hypot(resisted.x, resisted.y) / length : 1;
+    return {x: dx * compliance, y: dy * compliance};
+  }
   return {
     /** Total displacement since pointer-down, never a per-event delta. Advance the OLD target first. */
     press(time, dx = 0, dy = 0) {
       if (![dx,dy].every(Number.isFinite)) throw new RangeError('Finite cumulative displacement required');
       advance(time); held = true;
-      target = reduced ? {x: 0, y: 0} : calmPullTarget(geometry.width, geometry.height, dx, dy, ...pressTargets());
+      target = reduced ? {x: 0, y: 0} : pullTarget(dx, dy);
       return snapshot();
     },
     /** Use for both pointer-up and cancellation; navigation selection belongs to the host. */

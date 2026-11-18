@@ -1900,7 +1900,13 @@ data class GlassTabBarStyle(
 ) {
     companion object {
         /** Recommended navigation preset. Material responds gently; the selector deforms
-         * along travel only. Existing V3/Measured presets remain available for comparison. */
+         * along travel only. Existing V3/Measured presets remain available for comparison.
+         *
+         * The dark bar's tone is the earlier toolbar fit, inherited rather than re-measured: every rest moment of iOS's
+         * Phone bar on the recordings sits over black, where this fit and the measured in-app material both read 32, and
+         * the one touched-bar point over a lit avatar (slope 0.66-0.69) does not separate them (#203). [CalmClear] carries
+         * the measured material. A held bar answers only the vertical part of a pull (it rises toward an upward drag, the
+         * IMG_6756 T04 law); a drag along it leaves its edges where they are and moves the lens instead. */
         fun Calm(dark: Boolean = true): GlassTabBarStyle = CalmRecordedSpace(dark).let { recorded ->
             if (!dark) calmLight(recorded) else recorded.copy(
                 // Re-fitted in display colours (2026-10-15): the recordings are HDR10 and had been
@@ -2022,30 +2028,36 @@ data class GlassTabBarStyle(
         )
 
         /**
-         * [Calm] with the clearer bar of WhatsApp's and the App Store's iOS 26 tab bars. Those
-         * bars pass about 0.9 of the page under them where the Phone bar, which [Calm] is fitted
-         * to, passes 0.59; over a black page both read the same. Measured in display colours on
-         * the owner's recordings (17 October): WhatsApp's bar 43 over its chats page (10) and 54
-         * over its grey settings card (23), the App Store's 32 over black and 57 over its card
-         * (28); its resting pill 19 and 30 over the same pages. The bar is black at
-         * [clearBarOpacity] over the Phone bar's 32/255 lift; the pill and held lens look through
-         * the bar as in [Calm], so they follow it. Over text iOS's App Store bar compresses
-         * (band p50 / p75 69 / 80 where a plain 0.9 gave 73 / 107) and shows the text as one faint,
-         * soft copy: [GlassStyle.legibility] 2 darkens the bar where the page under it has contrast
-         * and leaves a plain card alone, and a 7 dp blur softens the text, which gives 68 / 79
-         * (18 October; legibility 2.5 at the Phone bar's 1.5 dp blur gave 67 / 98 with dark halos). In light appearance the
-         * bar is [Calm]'s (fitted on the App Store's cards) and the resting pill is WhatsApp's, 19/255
-         * below the bar (iOS 236 over its white page, IMG_7048 108-140 s; 18 October). The App Store's
-         * light pill is invisible over white: give it a `tintLift` of 0.
+         * [Calm] with the clearer bar of WhatsApp's and the App Store's iOS 26 tab bars. Those bars pass more of the page
+         * under them than the Phone bar [Calm] is fitted to; over a black page both read the same.
+         *
+         * In dark appearance the bar is the measured in-app material of [GlassStyle.toolbar] (the #200 lab fit at Tint 50:
+         * black at 0.40 over a 31.7/255 lift with the concave tone curve, the lab detail copy and its colour transfer),
+         * keeping [Calm]'s bar-only fields (the legacy rest map and cap lens, the halved rim, `edgeFold` 0, the soft detail
+         * copy). Measured against these bars in display colours on the owner's recordings (#203): 32 over black, 43-47
+         * over WhatsApp's chats page (10), 54 over its grey card (23), 57-60 over the App Store's card (28), and over the App
+         * Store's bright cards 157.6 (blue, 116/167/219) and 166.6 (orange, 209/162/79); the real bar reads 32, 42, 54, 59,
+         * 163 (122/170/220) and 169 (211/164/85) over the same flat pages (`tools/tab_bar_tone.py`). The earlier fit (black
+         * at 0.10, `legibility` 2 and a 7 dp blur, fitted on the four points up to 28) read 30-45 levels too bright over the
+         * cards. The pill and held lens look through the bar as in [Calm], so they follow it.
+         *
+         * In light appearance the bar is [Calm]'s (fitted on the App Store's cards) and the resting pill is WhatsApp's,
+         * 19/255 below the bar (iOS 236 over its white page, IMG_7048 108-140 s; 18 October). The App Store's light pill
+         * is invisible over white: give it a `tintLift` of 0.
          */
         fun CalmClear(dark: Boolean = true): GlassTabBarStyle = Calm(dark).let { calm ->
             if (!dark) calm.copy(pill = calm.pill.copy(tintLift = -19f / 255f))
-            else calm.copy(bar = calm.bar.copy(tint = Color.Black.copy(alpha = clearBarOpacity),
-                legibility = 2f, blurRadius = 7.dp))
+            else calm.copy(bar = calm.bar.onLabMaterial())
         }
 
-        /** Black opacity of [CalmClear]'s bar, fitted over the four page levels its notes list. */
-        internal const val clearBarOpacity: Float = 0.10f
+        /**
+         * This bar on the measured dark in-app material ([GlassStyle.toolbar], #200), keeping the fields that belong to
+         * the tab bar rather than to the material: the rest map, cap lens, rim, edge fold and soft detail copy (#203).
+         */
+        internal fun GlassStyle.onLabMaterial(): GlassStyle = GlassStyle.toolbar(dark = true).copy(
+            restMap = restMap, capFold = capFold, specular = specular, bevelPeak = bevelPeak, edgeFold = edgeFold,
+            softDetail = softDetail,
+        )
 
         /**
          * [Calm] as calibrated before 15 October 2026, against the owner's recordings decoded as

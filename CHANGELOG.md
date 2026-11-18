@@ -80,6 +80,11 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   the pointer's own gesture, from its press to two frames after its release, is no longer taken as focus leaving the bar.
   Keyboard focus, and focus that really returns without a pointer, still show the ring (`GlassTabBarFocusTest`). Android
   touch never showed it.
+- `GlassTabBarStyle.CalmClear(dark = true)`: the bar is the measured in-app material (#203), keeping Calm's bar-only fields. Over flat pages 0, 10, 23 and 28 it reads 32, 42, 54 and 59 against the iOS bars' 32, 43, 54 and 58 (WhatsApp and App Store recordings), and over the App Store's blue and orange cards 122/170/220 and 211/164/85 against 116/167/219 and 209/162/79 (desktop; the Pixel 7 is within 1 level; [evidence](review/atlas/tab-bar-material-2026-11-18/README.md)). `Calm()` keeps its tone, labelled inherited in its KDoc.
+  - Default look changed: dark `CalmClear()` is darker over bright content (the earlier fit read 30-45 levels too bright over the cards). Light `CalmClear()` and `Calm()` are unchanged.
+- Held tab bars no longer stretch sideways (`GlassPullShape.AreaPreserving` on a long bar). A long horizontal bar takes only the vertical part of a pull, for its resistance as well as its shape, so a diagonal lifts it as far as the same pull straight up ([Pixel 7 frames](review/atlas/tab-bar-stretch-2026-11-18/README.md)): it still rises toward an upward drag (the measured T04 law, unchanged), but a drag along it leaves its edges where they are, as iOS 27's held Phone bar does (18 November takes: left edge 42-43 px through a right drag). Round surfaces keep the full directional response; an `AreaPreserving` surface between 1:1 and 2:1 takes the sideways part in proportion to its roundness (so its diagonal shear is reduced twice by roundness).
+  - Default look changed: `Calm()` and `CalmClear()` bars while a held lens is dragged sideways or diagonally.
+
 - Text lines no longer hook where a resting capsule's round end begins. Glass on the measured resting map
   (`GlassRestMap.Measured`) lensed only its corner arcs and showed a straight run nearly as it is, blending the two over
   0.2 of the corner radius; near the rim the maps show rows about 0.7 of the band apart, so lines under the junction drew
