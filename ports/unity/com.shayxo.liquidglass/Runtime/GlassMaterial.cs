@@ -44,17 +44,36 @@ namespace LiquidGlass
 
         static double Clamp01(double v) => Math.Min(1, Math.Max(0, v));
 
-        // GlassStyle.towardLab: the lab fit (#199, #200) laid over the earlier fit by a weight that is 1 at the
-        // default Tint Amount and 0 at 0 and 100. The constants are GlassMaterial.lab* in the Compose library.
+        // GlassStyle.towardLab: the lab material at a Tint Amount. Measured at Tint 50 in the Safari lab (#199, #200)
+        // and at Tint 0 and 100 on the Photos chrome (#208); piecewise-linear between those three nodes (authored). The
+        // constants are GlassMaterial.lab* (Tint 50) and the node values below (GlassMaterial.measured*) in the Compose library.
         const double LabWideKernel = 15.5;
         const double LabDetailReach = 1.0 / 3.0;
 
-        static double LabWeight(double amount) => Clamp01(1 - Math.Abs(Math.Min(100, Math.Max(0, amount)) - 50) / 50);
+        // GlassMaterial.measuredNodes + interpolate: linear between the values at Tint 0, 50 and 100.
+        static double Nodes3(double atZero, double atDefault, double atHundred, double amount)
+        {
+            double t = Math.Min(100, Math.Max(0, amount));
+            return t <= 50 ? atZero + (atDefault - atZero) * (t / 50) : atDefault + (atHundred - atDefault) * ((t - 50) / 50);
+        }
         static double LabOpacity(bool dark) => dark ? .3985 : .498;
         static double LabLift(bool dark) => dark ? 31.72 / 255 : 5.5 / 255;
         static double LabDetailShare(bool dark) => dark ? .277 : .273;
         static double LabDetailLift(bool dark) => dark ? -.22 : .22;
         static double LabToneCurve(bool dark) => dark ? 101.01 / 255 : 0;
+        // GlassMaterial.measuredDetailShare: measured at 0 and 100 (dark 0.663 / 0, light 0.664 / 0), the lab value at 50.
+        static double MeasuredDetailShare(bool dark, double t) => Nodes3(dark ? .663 : .664, LabDetailShare(dark), 0, t);
+        // GlassMaterial.measuredDetailLift: |c| 0.336 (light 0.334) at 0, 0.22 at 50, 0 at 100; negative on dark glass.
+        static double MeasuredDetailLift(bool dark, double t)
+        {
+            double m = Nodes3(dark ? .336 : .334, Math.Abs(LabDetailLift(dark)), 0, t);
+            return dark ? -m : m;
+        }
+        // GlassMaterial.measuredToneCurve: dark bow 101.6 / 255 at 0, 101.01 / 255 at 50, 49.8 / 255 at 100; light none.
+        static double MeasuredToneCurve(bool dark, double t) => dark ? Nodes3(101.6 / 255, LabToneCurve(true), 49.8 / 255, t) : 0;
+        // GlassMaterial.measuredOpacity: dark 0.401, 0.3985, 0.703 and light 0.382, 0.498, 0.682 at 0, 50 and 100.
+        static double MeasuredOpacity(bool dark, double t) =>
+            dark ? Nodes3(.401, LabOpacity(true), .703, t) : Nodes3(.382, LabOpacity(false), .682, t);
 
         // GlassMaterial.labChromaGain / labChromaSlope (#201): the colour transfer's g0 and g1 per channel (R, G, B).
         static double[] LabChromaGain(bool dark) => dark ? new[] { 1.317, 1.256, 1.314 } : new[] { .988, .952, .979 };
@@ -182,22 +201,18 @@ namespace LiquidGlass
             v["uContrast"] = new[] { Clamp01(m.IncreasedContrast) };
             // The lab fit (GlassStyle.towardLab). The detail reach is the lab's at every tint, which selects the
             // four-tap detail kernel (uDetailCross: 0 < blurRadius <= 1/3 dp, decided in dp).
-            double w = LabWeight(m.TintAmount);
+            // Everything the lab material sets is replaced outright, not blended with the earlier fit (towardLab, #208).
+            double labGrey = m.Dark ? 0 : 1;
             v["uBlur"] = new[] { LabDetailReach * density };
             v["uDetailCross"] = new[] { 1.0 };
-            if (w > 0)
-            {
-                double Mix(double a, double b) => a + (b - a) * w;
-                double labGrey = m.Dark ? 0 : 1;
-                v["uTint"] = LerpColor(v["uTint"], new[] { labGrey, labGrey, labGrey, Q8(LabOpacity(m.Dark)) }, w);
-                v["uLift"] = new[] { Mix(v["uLift"][0], LabLift(m.Dark)) };
-                v["uFineShare"] = new[] { Mix(v["uFineShare"][0], LabDetailShare(m.Dark)) };
-                v["uWideKernel"] = new[] { Mix(v["uWideKernel"][0], LabWideKernel * density) };
-                v["uDetailLift"] = new[] { LabDetailLift(m.Dark) * w };
-                v["uToneCurve"] = new[] { LabToneCurve(m.Dark) * w };
-                v["uLegibility"] = new[] { Mix(v["uLegibility"][0], 0) };
-                v["uSoftDetail"] = new[] { Mix(0, 1) };
-            }
+            v["uTint"] = new[] { labGrey, labGrey, labGrey, Q8(MeasuredOpacity(m.Dark, m.TintAmount)) };
+            v["uLift"] = new[] { LabLift(m.Dark) };
+            v["uFineShare"] = new[] { MeasuredDetailShare(m.Dark, m.TintAmount) };
+            v["uWideKernel"] = new[] { LabWideKernel * density };
+            v["uDetailLift"] = new[] { MeasuredDetailLift(m.Dark, m.TintAmount) };
+            v["uToneCurve"] = new[] { MeasuredToneCurve(m.Dark, m.TintAmount) };
+            v["uLegibility"] = new[] { 0.0 };
+            v["uSoftDetail"] = new[] { 1.0 };
             // The colour transfer (#201), always written, zeros included.
             var chroma = ChromaOf(v.TryGetValue("uDetailLift", out var lift) ? lift[0] : 0);
             v["uChromaGain"] = new[] { chroma[0], chroma[1], chroma[2] };
