@@ -16,6 +16,8 @@ import com.wexpa.liquidglass.GlassStyle
 import com.wexpa.liquidglass.GlassTabBarStyle
 import com.wexpa.liquidglass.sample.AppStoreGeometry
 import com.wexpa.liquidglass.sample.AppStoreScene
+import com.wexpa.liquidglass.sample.ClockGeometry
+import com.wexpa.liquidglass.sample.ClockScene
 import com.wexpa.liquidglass.sample.WhatsAppGeometry
 import com.wexpa.liquidglass.sample.WhatsAppScene
 import com.wexpa.liquidglass.sample.LoupeScreen
@@ -225,6 +227,7 @@ private fun replay(args: Array<String>) {
                     style = AppStoreGeometry.style(style, light = "light" in variant), light = "light" in variant)
                 // "whatsapp": WhatsApp's five-tab bar on its measured slots (WhatsAppScene);
                 // "+plain": over the bare page, without the settings card.
+                else if (variant.startsWith("clock")) ClockScene(selected, { selected = it }, style = ClockGeometry.style(style))
                 else if (variant.startsWith("whatsapp")) WhatsAppScene(selected, { selected = it },
                     style = WhatsAppGeometry.style(style), card = "+plain" !in variant, light = "light" in variant)
                 else PhoneScene(selected, { selected = it }, palette = palette, style = style,
