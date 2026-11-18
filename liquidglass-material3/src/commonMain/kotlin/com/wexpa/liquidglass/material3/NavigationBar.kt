@@ -100,7 +100,8 @@ fun NavigationBar(
             Spacer(Modifier.width(gap))
             Box(
                 Modifier.size(barHeight)
-                    .glassEffect(Glass.TabBar.interactive(response = GlassInteraction.Pullable.copy(pullShape = GlassPullShape.Free)),
+                    .glassEffect(Glass.TabBar.interactive(response = GlassInteraction.Fluid),
+
                         CircleShape, link = link)
                     .clip(CircleShape)
                     .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null,

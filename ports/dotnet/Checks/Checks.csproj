@@ -12,6 +12,7 @@
     <None Update="fixtures/calm-motion.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../skia/fixtures/selector-calm.json" Link="fixtures/selector-calm.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../skia/fixtures/free-button.json" Link="fixtures/free-button.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../skia/fixtures/free-button-sizes.json" Link="fixtures/free-button-sizes.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../skia/fixtures/accessory-fuse.json" Link="fixtures/accessory-fuse.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../skia/fixtures/selector-material.json" Link="fixtures/selector-material.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

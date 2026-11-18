@@ -113,7 +113,7 @@ rim lighting.
 @Immutable
 class Glass {
     fun tint(color: Color?): Glass
-    fun interactive(enabled: Boolean = true, response: GlassInteraction = GlassInteraction.Calm): Glass
+    fun interactive(enabled: Boolean = true, response: GlassInteraction = GlassInteraction.Fluid): Glass
     val isIdentity: Boolean
     fun style(dark: Boolean): GlassStyle?
     fun light(dark: Boolean): GlassLight
@@ -260,6 +260,27 @@ than carry along; only the near side and the fusion are drawn by the element. `G
 
 ## Components
 
+### `GlassToolbarGroup`
+
+```kotlin
+@Composable
+fun GlassToolbarGroup(
+    modifier: Modifier = Modifier,
+    glass: Glass = Glass.Toolbar,
+    minHeight: Dp = 44.dp,
+    contentPadding: PaddingValues = PaddingValues(horizontal = 4.dp),
+    content: @Composable RowScope.() -> Unit,
+)
+```
+
+Several toolbar actions on one glass capsule, as iOS groups a toolbar's buttons: one pill, the actions
+in a row inside it, drawn with no glass of their own. A button that stands apart is its own round
+piece of glass (`glassEffect(shape = CircleShape)`) beside the group, in a `Row`. The material is
+`Glass.Toolbar`, the Photos toolbar's measured role; the height (44 dp), the item padding (4 dp) and
+the gap to a neighbouring round button (8 dp in the Material 3 top bars; the bottom bar spaces its button with a flexible spacer) are **authored**, since no iOS
+recording measures a toolbar group's geometry as a rule. The Material 3 `BottomAppBar` and the
+actions of the top app bars are built on it.
+
 ### `GlassTabBar`
 
 ```kotlin
@@ -300,6 +321,18 @@ release. Every default is measured off an iOS 26 tab bar; see [Tab bar](tab-bar.
 | `materialize` | 0 to 1, for the bar to materialize in and out. Drive this instead of `alpha`: at 0 the bar returns the backdrop untouched, so it leaves by ceasing to bend light. |
 
 Put a shadow on `modifier` with `clip = false`; the held lens is taller than the bar.
+
+### Search mode
+
+```kotlin
+class GlassSearchState(initiallyExpanded: Boolean = false) { val expanded: Boolean; val fraction: Float; fun expand(); fun collapse() }
+@Composable fun rememberGlassSearchState(initiallyExpanded: Boolean = false): GlassSearchState
+@Composable fun GlassTabBar(itemCount: Int, selectedIndex: Int, onSelected: (Int) -> Unit, searchState: GlassSearchState,
+    searchField: @Composable () -> Unit, modifier: Modifier = Modifier, style: GlassTabBarStyle = ..., motionEnabled: Boolean = ...,
+    gap: Dp = 8.dp, searchLabel: String = "Search", closeLabel: String = "Close search", item: @Composable (Int, Boolean) -> Unit)
+```
+
+The search button expands into `searchField` and a close button (#112); see [Search mode](tab-bar.md#search-mode-the-button-becomes-a-field).
 
 ### `GlassTabBarStyle`
 
@@ -561,7 +594,12 @@ tile (a round toggle, a wide Focus pill, the media tile, a slider track) over th
 `chromaGain = 1.58`; the active tile is a near-opaque white body at 250 with `chromaGain = 0.5`. Draw it on the Control
 Center layer, `Modifier.glassEffect(Glass(GlassStyle.controlCenterTile()), RoundedCornerShape(33.5.dp))`; geometry
 measured on the same take (3x, dp): toggle 67 across (a circle), wide tile 149 x 67 (pill, radius 33.5), media tile
-149 x 149 (radius 29.6), slider track 67 x 149, 15 between tiles. Its rim and contour are authored, not measured. Evidence:
+149 x 149 (radius 29.6), slider track 67 x 149, 15 between tiles. The rim and contour are fitted by sector on the toggle: iOS lights
+the tile's top and bottom equally and its sides not at all, so the tile takes a vertical light by itself
+(`GlassLight(0f, -1f)`, in place of the default light that tilts 20 degrees, unless the host passes another); the pole rim then reads within 5
+levels of the measured line and the dark contour lies outside the sides (known gap: it is 6 to 31 levels too shallow). A slider is a
+track tile plus a hard-edged opaque fill: the track is `controlCenterTile()`, the fill `controlCenterTile(active = true)` over a rectangle
+clipped to the track's pill (measured fill 250 / 251 / 252 over layers 10 / 56 / 102; no thumb). Evidence:
 [`review/atlas/control-center-tile-2026-11-18`](https://github.com/shayann07/liquidglass/blob/main/review/atlas/control-center-tile-2026-11-18/README.md).
 
 `GlassStyle.chromaGain` is the public knob behind the tile's colour: unset (`Float.NaN`, the default) leaves the colour transfer
@@ -782,7 +820,8 @@ data class GlassInteraction(
 ) {
     companion object {
         val Default = GlassInteraction()
-        val Calm: GlassInteraction // recommended control/card preset
+        val Calm: GlassInteraction // restrained preset: 2dp growth per edge, anchored body
+        val Fluid: GlassInteraction // the default of Glass.interactive(): the search button's press and pull, falling with size
         val Pullable: GlassInteraction // historical expressive response
         val ReducedMotion: GlassInteraction // no elastic geometry
     }
@@ -962,6 +1001,7 @@ The `GlassScene` host this section used to open with was removed on 18 October; 
 | --- | --- |
 | `GlassStyle.clearLens(magnification: Float = 1.25f)` | Finite centre magnification 1–2.5; invalid values throw. Continuous map, zero blur and dispersion by default. |
 | `GlassProfile.Lens` | Same smooth elliptical source map for material and refracted foreground; append-only enum addition. |
+| `GlassInteraction.Fluid` | Added (#196), the default of `Glass.interactive()`: `Pullable` with `GlassPullShape.Free` and glow share 0.65, the Phone search button's measured press and pull. Controls up to 80 dp answer in full; 80 to 160 dp blend toward the anchored surface response; from 160 dp the body presses 2 dp a side, does not leave its place and stretches at most 2 dp (authored). A scroll that takes the gesture returns it critically damped, and interactive glass follows the system's Reduce Motion. |
 | `GlassInteraction.Calm` | Critical geometric springs; up to 3% press scale and 2dp growth per edge; gradual resisted drag with large-surface attenuation. |
 | `GlassResponse` | `Expressive` preserves historical timing; `Calm` selects slower critical press/pull springs. |
 | `GlassInteraction.response` | Timing parameter, default `Expressive`; existing positional source calls retain their meaning. |

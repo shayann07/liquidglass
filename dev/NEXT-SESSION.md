@@ -1,3 +1,15 @@
+## RESUME HERE (19 November): phase 3 `p3/114` = #196 then #114 then the Control Center quick-action press
+
+- Local branch `p3/114` off `fix/202-rim`, one commit per issue, nothing pushed. #196 is committed first; the press-grade (#114)
+  and the quick-action press follow. Scores and gates in PROGRESS.md.
+
+## RESUME HERE (18 November, p3/206): Control Center tile second pass, committed locally on `p3/206`
+
+- Done: element-class gate (rms 0.87), slider recipe, rim and contour fitted by sector (`GlassControlCenterRimTest`, `GlassControlCenterClassesTest`),
+  flashlight press measured (`review/atlas/flashlight-press-2026-11-18`). Not pushed, no PR.
+- Open owner questions: (1) a named large-press `GlassInteraction` for quick-action buttons (1.69 / 1.60, +119)? (2) a named light constant for the tile
+  (it needs `GlassLight(0f, -1f)`)? (3) the contour is too shallow in the shader's 1.5 px band: a deeper or wider band is a shader change.
+  (4) the layer under the tiles against `systemBackdrop()` is unverified (the lab-grey to layer map is not pinned).
 ## RESUME HERE (18 November, night): 1.1.0 in three PRs, phase 1 on `fix/202-rim`
 
 - The owner split the rest of 1.1.0 into three phases, one PR each, one 1.1.0 tag at the end (owner's yes only).
@@ -7,6 +19,13 @@
   (dark Calm bar specular 0.25 -> 0.226 to match). Numbers in CHANGELOG and PROGRESS.
 - Next: restate pinned values the outline change moved (each with its reason), regenerate the port shaders, final suite
   pass (library, Material 3, ABI, ports, strict mkdocs, links), push once, PR, Pixel 7 check.
+## RESUME HERE (18 November): #102 item 91 toolbar group, local branch p3/91
+
+- `GlassToolbarGroup` added with its test; Material 3 bars built on it; docs and API dumps updated. Next: lead opens the follow-up
+  issue (draft in .local/sxs/drafts/issue-102-91.md) and decides whether an alert should stay glass.
+## RESUME HERE (18 November): #112 search mode, branch `p3/112` (local)
+
+- Compose search mode is in `GlassSearch.kt` with tests; docs updated. Next: wire it into the sample's Phone scene, a replay variant and scorer, ABI dump, owner review of the end state (no circle) and of the authored motion.
 
 ## RESUME HERE (18 November): #206 Control Center tile, PR open
 

@@ -388,6 +388,12 @@ scale, the stretch along and across `Angle` (degrees), the offset and the lift t
 The checks replay the Kotlin-exported `free-button.json` frame by frame. The bar's outline does not
 follow it here.
 
+It is also the default interactive response, `GlassInteraction.Fluid`, which falls with size (authored): pass `width`,
+`height` and `radius` (px). A control of 80 dp or less on its long side is the search button; from 160 dp it presses 2 dp
+a side, never leaves its place and stretches at most 2 dp; between the two it blends. `Cancel(t)` is for a scroll that
+takes the gesture: everything returns critically damped with no ring. `free-button-sizes.json` checks a circle, a pill
+and a card.
+
 ## Lower-level passes and remaining gaps
 
 `GlassEffectPass("material" | "content" | "endpoint")` exposes the same evaluated SkSL as Kotlin

@@ -12,7 +12,9 @@ Modifier.glassEffect(Glass.Regular.interactive(), RoundedCornerShape(30.dp))
 Modifier.glassEffect(Glass.Regular.interactive(response = GlassInteraction.Default), RoundedCornerShape(30.dp))
 ```
 
-`interactive()` uses `GlassInteraction.Calm` unless told otherwise. The table below describes
+`interactive()` uses `GlassInteraction.Fluid` unless told otherwise: the Phone search button's press and pull,
+falling with size (full response up to 80 dp, anchored from 160 dp; see `generic-interaction.md`). Pass
+`GlassInteraction.Calm` for the restrained response it replaced. The table below describes
 `GlassInteraction.Default`, the expressive response.
 
 Apple describes an interactive element as one that "scales, bounces and shimmers", where the

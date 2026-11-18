@@ -8,7 +8,7 @@ One tag publishes one version everywhere:
 | :-- | :-- | :-- |
 | Maven Central | `liquidglass`, `liquidglass-material3`, `liquidglass-bom`, and the Gradle plugin `dev.shayxo.liquidglass` (artifact `liquidglass-gradle-plugin` plus its plugin marker) | `MAVEN_CENTRAL_USERNAME`, `MAVEN_CENTRAL_PASSWORD`, `SIGNING_KEY`, `SIGNING_KEY_PASSWORD` (set up since 0.1.0) |
 | npm | `@shayxo.dev/liquidglass`, the `<liquid-glass>` web component; `@shayxo.dev/liquidglass-react-native` | none: trusted publishing (from 0.2.2; 0.2.1 used a token) |
-| NuGet | `LiquidGlass`, `LiquidGlass.WinForms`, `LiquidGlass.Wpf`, `LiquidGlass.Avalonia` | none: trusted publishing |
+| NuGet | `LiquidGlass` (the `LiquidGlass.Skia` project), `LiquidGlass.WinForms`, `LiquidGlass.Wpf`, `LiquidGlass.Avalonia`, `LiquidGlass.Maui` | none: trusted publishing |
 | pub.dev | `liquiglass`, the Flutter package (`ports/flutter`) | none: automated publishing (GitHub Actions OIDC), once the owner's first upload exists |
 | GitHub | a release with the notes in `.github/release-notes/vX.Y.Z.md` | none (the workflow's token) |
 
@@ -55,7 +55,8 @@ No signing key is needed for this. Signing switches on only when a key is presen
 2. Write `.github/release-notes/vX.Y.Z.md` (the GitHub release body) and give `CHANGELOG.md` the
    dated `## X.Y.Z` heading.
 3. Update the install snippets that name a version or say "unreleased":
-   `grep -rn "unreleased\|0\.1\.0" README.md docs/*.md`.
+   `grep -rn "unreleased\|SNAPSHOT" README.md docs/*.md`, plus the previous version number (for
+   example `1\.0\.0` when releasing 1.1.0), ignoring historical mentions in changelogs and dated entries.
 4. Open a pull request. Its `Publish` checks run the whole release as a dry run: every package is
    built, packed and checked, nothing is uploaded.
 5. Merge, wait for CI on `main`, then tag the merge commit:
