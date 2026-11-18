@@ -18,11 +18,23 @@ Zone luma in the pill's interior over flat grey 0 / 128 / 255 (jvmTest render), 
 Provenance: the fit is **measured** (`research/datasets/mac-rig/captures/C1a-*`: iPhone 13, iOS 27, 1170 x 2532, lossless
 SDR). Fit scores (Python forward model, pooled over the Today pill and the toolbar capsule): rms 1.40 / 2.20 / 1.29 / 2.07
 levels against 15.98 / 24.79 / 10.75 / 5.63 for the earlier authored values on the same captures, in the order dark 0,
-light 0, dark 100, light 100. These are pooled over both elements; per-element scores were not computed, so they do not show
-that each element is below any bound, and a pooled rms does not bound a single point's difference. The point differences
-between the render and the fit are the table above (the light renders sit 2.1 and 2.8 levels above the fit at grey 128,
-against the pooled 2.20 and 2.07). The interpolation between Tint 0, 50 and 100 is **authored**.
-Tint 50 is the Safari-lab fit and unchanged.
+light 0, dark 100, light 100. Per element (the same fit, scored on each zone; `.local` fit output, numbers only):
+
+| Case | pooled | toolbar capsule (zone B) | Today pill (zone T) |
+| :-- | --: | --: | --: |
+| dark Tint 0 | 1.40 | 0.45 | 2.28 |
+| light Tint 0 | 2.20 | 0.74 | **3.59** |
+| dark Tint 100 | 1.29 | 0.58 | 2.03 |
+| light Tint 100 | 2.07 | 0.79 | **3.32** |
+| light Tint 50 (shipped lab fit, unchanged) | 2.07 | 0.76 | 3.35 |
+
+The #208 gate (3 levels rms on the usable Tint 0 and 100 stills) was scored pooled over both elements, as the plan set it,
+and passes that way. Per element it passes for the toolbar capsule everywhere and for the Today pill in dark, and **misses
+for the Today pill in light** (3.59 and 3.32). The Today pill misses by the same amount at Tint 50 with the shipped Safari-lab
+material (3.35), so the miss is the zone, not the new tint ends; it is an open known difference. A pooled rms does not bound a
+single point's difference: the point differences between the render and the fit are the table above (the light renders sit 2.1
+and 2.8 levels above the fit at grey 128). The interpolation between Tint 0, 50 and 100 is **authored**. Tint 50 is the
+Safari-lab fit and unchanged.
 
 Limits: the fit pools two elements (the Today pill and the toolbar capsule) from one backdrop family (stripes, a hard split,
 flat anchors); the scores are Python forward-model scores, not shader renders; the light white end is clipped, so its slope is

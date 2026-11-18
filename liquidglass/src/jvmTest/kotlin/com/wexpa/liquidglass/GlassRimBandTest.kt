@@ -1,5 +1,6 @@
 package com.wexpa.liquidglass
 
+import androidx.compose.ui.unit.dp
 import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertTrue
@@ -53,10 +54,13 @@ class GlassRimBandTest {
     fun theRimShowsTheEdgeWhereTheLabPillMeasuredIt() {
         // Where each source depth is displayed, from the measured table above (linear between its rows).
         val expected = mapOf(43 to listOf(4.0, 43.0), 33 to listOf(9.2, 32.7), 24 to emptyList(), 13 to emptyList())
-        for (dark in listOf(true, false)) {
-            val app = if (dark) "dark" else "light"
+        // Lone and merged: the container takes the same rim-band branch (#211). The old blend there mixed the crisp copy
+        // back in whole, which displays the 13 and 24 px source edges at their true rows inside the band and fails the
+        // negative cases below.
+        for (container in listOf(false, true)) for (dark in listOf(true, false)) {
+            val app = (if (dark) "dark" else "light") + if (container) " merged" else ""
             val style = GlassStyle.inApp(dark = dark)
-            GlassLabScene(style).use { scene ->
+            GlassLabScene(style, container = container).use { scene ->
                 for (bottom in listOf(false, true)) for ((depth, at) in expected) {
                     val side = if (bottom) "bottom" else "top"
                     val j = jumps(rows(scene, depth, bottom))
@@ -67,6 +71,33 @@ class GlassRimBandTest {
                         // One to one: each expected depth has its own jump within 2 px, and there is no other jump.
                         check(j.size == at.size, "$what, expected exactly ${at.size}")
                         for (d in at) check(j.count { abs(it - d) <= 2.0 } == 1, "$what, expected one near %.1f".format(d))
+                    }
+                }
+            }
+        }
+        assertTrue(failures.isEmpty(), failures.joinToString("\n"))
+    }
+
+    @Test
+    fun aMergedRimBandShowsTheEdgeRowByRowAsALonePieceDoes() {
+        // The container's rim-band branch (#211) against a lone piece, row by row over the band (d 0 to 39), for each
+        // source edge: the same profile, not only the same jump positions. Gate 1.5 levels: the current branch reads 1.0 in
+        // every case; with the container switched back to the old blend (crisp copy mixed in whole) the scatter case reads
+        // up to 5 (dark) and 3 (light) levels at the 33 px edge and fails, while the lab case reads 1.0 either way.
+        // Two materials: the lab material (its soft copy is the four-tap detail at the lab reach, so near the rim the soft
+        // and sharp copies nearly agree and the branch barely changes a pixel) and a scatter reach (blurRadius 4 dp), where
+        // the soft copy is a real blur and the old blend would mix the crisp copy back in at the rim.
+        for (scatter in listOf(false, true)) for (dark in listOf(true, false)) {
+            val app = (if (dark) "dark" else "light") + if (scatter) " scatter" else " lab"
+            val style = GlassStyle.inApp(dark = dark).let { if (scatter) it.copy(blurRadius = 4.dp) else it }
+            GlassLabScene(style).use { alone ->
+                GlassLabScene(style, container = true).use { merged ->
+                    for (bottom in listOf(false, true)) for (depth in listOf(13, 24, 33, 43)) {
+                        val a = rows(alone, depth, bottom); val m = rows(merged, depth, bottom)
+                        val worst = (0 until 40).maxOf { abs(a[it] - m[it]) }
+                        val side = if (bottom) "bottom" else "top"
+                        println("RIM merged-vs-lone $app $side depth $depth: worst %.2f levels".format(worst))
+                        check(worst <= 1.5, "$app $side edge at source depth $depth: merged differs from a lone piece by up to %.2f levels over the band".format(worst))
                     }
                 }
             }
