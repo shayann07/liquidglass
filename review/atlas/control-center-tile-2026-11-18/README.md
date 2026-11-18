@@ -1,6 +1,7 @@
 # Control Center tile glass (#206) - 18 November 2026
 
-Source revision: branch `feat/206-control-center` on main `fc1abf41`. Backend: desktop Skia (the library's `jvmTest` render path,
+Source revision: the evidence sheet was rendered at `c3840ec1` (branch `feat/206-control-center`, PR #223); the device
+check below used a release build of `a3d699dc`. Backend: desktop Skia (the library's `jvmTest` render path,
 through the production `Modifier.liquidGlass`, 3x). Capture method: `GlassControlCenterTileTest.evidenceSheet`
 (`CC206_EVIDENCE_DIR=<dir> ./gradlew :liquidglass:jvmTest --tests "*GlassControlCenterTileTest*"`), one 632 x 143 px wide tile over
 a flat page of each measured layer colour, shown at half size. The iOS recording the numbers come from is private
@@ -37,3 +38,26 @@ over red (the measured reading there is 255, 239, 238, a clipped near-white; the
 
 Limits: flat pages only, so the lens and rim are not scored here; the radial-flatness, rim-peak and contour gates of the
 measurement plan are not asserted because the rim is authored. Tint Amount and appearance have no measurements to compare with.
+
+## Device check (Pixel 7, 18 November)
+
+`ColourTransferActivity --ez cc true` (dark) on a Pixel 7 (Android 17, release build of this branch) against the desktop render of
+the same scene at the phone's size (`ColourTransferRenderTest.controlCenterTile`, 411 x 914 dp at density 2.625). Tile interior,
+median of a 60 x 20 px patch at each pill's centre:
+
+| band | device | desktop |
+| :-- | :-- | :-- |
+| red | 255, 14, 14 | 255, 14, 14 |
+| orange | 255, 154, 19 | 255, 154, 19 |
+| yellow | 255, 255, 44 | 255, 255, 44 |
+| green | 29, 255, 29 | 29, 255, 29 |
+| cyan | 34, 255, 255 | 34, 255, 255 |
+| blue | 39, 39, 255 | 38, 39, 255 |
+| magenta | 255, 2, 255 | 255, 3, 255 |
+| dark magenta | 229, 26, 229 | 229, 26, 229 |
+| grey 128 | 167, 167, 167 | 167, 167, 167 |
+
+Worst channel difference 1 level. Grey 128 reads 167 = 51.1 + 0.903 x 128 (the measured map). The saturated bands clip in both,
+so they confirm the device path, not the 1.58 gain (the gain is scored in `GlassControlCenterTileTest` on unclipped colours).
+Screenshots are not committed (they carry the phone's status bar). Not checked on device: the active tile, light appearance, press.
+

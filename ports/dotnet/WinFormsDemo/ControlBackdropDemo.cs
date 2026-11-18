@@ -91,7 +91,7 @@ internal static class ControlBackdropDemo
                 var width = snapshot.Width; var height = snapshot.Height;
                 using var rendered = SKSurface.Create(new SKImageInfo(width, height, SKColorType.Bgra8888, SKAlphaType.Opaque));
                 rendered.Canvas.DrawImage(snapshot, 0, 0, sampling);
-                painter.DrawLens(rendered.Canvas, SKRect.Create(34, 50, 200, 200), 1);
+                painter.DrawLens(rendered.Canvas, SKRect.Create(34, 50, 200, 200), new GlassLensOptions(Lighting: false), 1);
                 using (var identity = rendered.Snapshot()) Check(Pixels(identity).SequenceEqual(after), "Identity lens did not preserve actual widget pixels");
                 painter.DrawLens(rendered.Canvas, SKRect.Create(34, 50, 200, 200), 1.4f);
                 using (var glass = rendered.Snapshot()) { Check(!Pixels(glass).SequenceEqual(after), "Lens did not refract native pixels"); Save(glass, "controls-glass.png"); }

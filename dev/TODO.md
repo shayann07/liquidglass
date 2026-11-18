@@ -9,8 +9,22 @@
 - [x] `GlassStyle.chromaGain` (unset = byte-identical), host routing in panel and container, morph, hidden overloads, ABI dump.
 - [x] `controlCenterTile(active)`; `GlassControlCenterTileTest` (greys, 8 hues, active, container, morph, unset routing).
 - [x] Docs, CHANGELOG, evidence `review/atlas/control-center-tile-2026-11-18`.
-- [ ] Full `:liquidglass:jvmTest --rerun`; owner review of the authored rim and the active tile's chroma 0.5.
+- [x] Full `:liquidglass:jvmTest --rerun` on the merged head: 531 tests, 0 failures.
+- [x] Pixel 7 device check: tile interior within 1 level of the desktop render in 9 of 9 bands (`ColourTransferActivity --ez cc true`).
+- [ ] Owner review of the authored rim and the active tile's chroma 0.5.
 - [ ] Not measured: light appearance, press and hold, Tint Amount, active-tile rim, slider fill and thumb (#205), glyph vibrancy.
+
+## #203 PR A (18 November, `feat/203a-tone-table`)
+
+- [x] Flat-backdrop knob, `+barlab`, tone table for Calm, CalmClear, Measured, V3, CalmRecordedSpace at 8 levels, card colours.
+- [x] Step 0 (a)(b)(d): no inner band on the bar (the earlier reading averaged in pill columns), so `+barshade` is dropped. Open: the avatar re-read (touched bar, backdrop under it not yet measured) and the pill's edge falloff over black (iOS starts 1.5-2 dp further out; separate from #203).
+- [ ] Owner question 1 (Calm onto the lab material) once the Phone-gate replays run on `+barlab`.
+
+## #191 lens preset, #193 frame at any time (18 November, `feat/191-193-skia`, PR #221)
+
+- [x] Skia and .NET: `lighting` option for free-standing lenses (on by default); bake, stateless draw and `NavigationBaker`; tests, README, CHANGELOG, evidence render.
+- [ ] After #217 merges: merge main into the branch, re-vendor ports/npm and ports/react-native, re-run the Skia suite.
+- [ ] Follow-ups named in the PR: Kotlin export of `clearLens` as a parity fixture, React Native `GlassLens` `lighting` prop, the lens's inside shadow share.
 
 ## #201 colour transfer (17 November, `feat/201-colour`)
 

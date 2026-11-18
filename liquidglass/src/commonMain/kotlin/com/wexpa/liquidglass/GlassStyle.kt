@@ -546,10 +546,10 @@ data class GlassStyle(
     val toneCurve: Float = 0f,
     /**
      * An output-referred chroma ratio for the material, or [Float.NaN] (the default) to leave the colour transfer to
-     * [detailLift]. Set to g, the finished glass keeps g times the backdrop's chroma about its own luma: after the
-     * tint blend and [tintLift] the colour is `Y + g (backdrop - Y)`, Y the backdrop's Rec.709 luma, so luma is
-     * untouched and g = 1 returns the backdrop's saturation exactly (a plain black tint alone would leave 1 - tint
-     * opacity of it). It replaces the lab colour transfer that [detailLift] otherwise selects; flat per channel, no
+     * [detailLift]. Set to g, the finished glass keeps g times the backdrop's chroma about its own luma: the colour is
+     * `T(Y) + g (backdrop - Y)`, Y the backdrop's Rec.709 luma and T(Y) the grey the material makes of it (tint blend,
+     * [tintLift], tone curve). The gain keeps the material's resulting luma, not the backdrop's, and g = 1 returns the
+     * backdrop's saturation exactly (a plain black tint alone would leave 1 - tint opacity of it). It replaces the lab colour transfer that [detailLift] otherwise selects; flat per channel, no
      * slope. Measured on iOS 27 Control Center tiles at 1.58 (sd 0.06, 8 hues; [controlCenterTile]). Clamped to 0..4.
      * Unset is byte-identical to the styles before this field existed. A morph snaps it at the midpoint when only one
      * end sets it, because "unset" is an identity rather than a quantity.

@@ -549,7 +549,7 @@ tile (a round toggle, a wide Focus pill, the media tile, a slider track) over th
 `CC-over-lab-dark.MP4`. Shell glass, so there is no `dark` and no tint amount. The inactive tile is black at 0.097 with a
 51.1/255 lift (interior `51.1 + 0.903 G` over a grey layer G, 0 to 2 levels off at six greys), no blur, and
 `chromaGain = 1.58`; the active tile is a near-opaque white body at 250 with `chromaGain = 0.5`. Draw it on the Control
-Center layer, `Modifier.liquidGlass(state, RoundedCornerShape(33.5.dp), GlassStyle.controlCenterTile())`; geometry
+Center layer, `Modifier.glassEffect(Glass(GlassStyle.controlCenterTile()), RoundedCornerShape(33.5.dp))`; geometry
 measured on the same take (3x, dp): toggle 67 across (a circle), wide tile 149 x 67 (pill, radius 33.5), media tile
 149 x 149 (radius 29.6), slider track 67 x 149, 15 between tiles. Its rim and contour are authored, not measured. Evidence:
 [`review/atlas/control-center-tile-2026-11-18`](https://github.com/shayann07/liquidglass/blob/main/review/atlas/control-center-tile-2026-11-18/README.md).

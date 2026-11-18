@@ -17,6 +17,23 @@
   clipped blue 5 vs 0). Opt-in evidence sheet: `CC206_EVIDENCE_DIR=<dir>` in the same test class.
 - Not done: radial flatness, rim peak and contour gates of the measurement plan (the rim is authored), geometry gate (guidance only).
 
+## 18 November 2026 - #203 PR A, tab bar tone on the real draw path (Claude)
+
+- `feat/203a-tone-table`: replay knob `+flat=<levels>[+flatstep=<ms>]` (flat page under the real `GlassTabBar`; `PhoneScene.flatPage`),
+  `+barlab` (public `GlassStyle.toolbar(dark)` with Calm's bar-only fields) and `measured` / `v3` variants. No library change.
+- Table in `review/atlas/tab-bar-tone-2026-11-18/` (`tools/tab_bar_tone.py`, baseline pin `tone.json`): `Calm` and `CalmClear` reproduce the
+  plan's "today" columns exactly; `Calm+barlab` is within 1 level of the lab curve at all 8 levels and within the card tolerances
+  (blue 122,170,220 vs iOS 116,167,219; orange 211,164,85 vs 209,162,79). No inner band: the earlier "bar darkens 4-6 levels inside its rim" reading averaged in columns that sat inside the selected pill; on bar-only columns iOS and ours both read 32 flat over black (Step 0), so `+barshade` is dropped. docs/1 `calm` replay with this branch: 0 of 1934 frames differ from main.
+
+## 18 November 2026 - #191 lens preset and #193 frame at any time, Skia and .NET ports (Claude)
+
+- `feat/191-193-skia` (PR #221): #191, `drawLens` / `addLens` take `{lighting: true}` for the Compose clear-lens preset (rim, 1.5 % tint,
+  contact shadow), on by default (owner retired opt-in, 16 Nov), `lighting: false` is the byte-identical bare lens. Rim over grey 128 +64 / +22, black +42 / +15, white 0. Values read from
+  `GlassStyle.clearLens`, no Kotlin fixture (Kotlin untouched). .NET `DrawLens(..., GlassLensOptions)`.
+- #193: `bakeNavigation` / `navigationTrack` / `drawNavigation`, one shared navigation driver for the scene and the bake; bake equals the
+  live scene, stateless frames byte-identical in any order. .NET `NavigationBaker` / `NavigationTrack`. Skia 59 tests, npm 28, React Native 3,
+  .NET 18 checks pass. Evidence `review/atlas/skia-lens-and-bake-2026-11-18`. Waits for #217 (shaders) before merging main and re-vendoring.
+
 ## 17 November 2026 - #201 colour transfer (Claude)
 
 - `feat/201-colour`: over colour the tone applies to the Rec. 709 luma and the chroma keeps a measured per-channel gain

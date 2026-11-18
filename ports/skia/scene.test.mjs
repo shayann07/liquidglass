@@ -60,7 +60,8 @@ test('one scene matches the production painter in logical coordinates at both pi
       assert.equal(scene.draw(f.canvas, 0), false);
       const actual = f.read();
       f.canvas.clear(kit.TRANSPARENT); f.canvas.drawImage(f.image, 0, 0);
-      painter.drawLens(f.canvas, {x: 10 * pixelRatio, y: 10 * pixelRatio, width: 60 * pixelRatio, magnification: 1.5});
+      painter.drawLens(f.canvas, {x: 10 * pixelRatio, y: 10 * pixelRatio, width: 60 * pixelRatio, magnification: 1.5},
+        {density: pixelRatio}); // the scene's default lens is the clear-lens preset, scaled by the pixel ratio
       painter.drawSurface(f.canvas, {x: 20 * pixelRatio, y: 95 * pixelRatio, width: 190 * pixelRatio,
         height: 45 * pixelRatio, radius: [8, 14, 6, 12].map(r => r * pixelRatio)}, {dark: true, density: pixelRatio});
       assert.deepEqual(actual, f.read(), `scene moved or changed material at ratio ${pixelRatio}`);
@@ -142,8 +143,9 @@ test('source replacement reaches backdrop and glass, with optional backdrop draw
     scene.setSource(replacement); scene.draw(f.canvas, .1); const changed = f.read();
     assert.notDeepEqual(changed, old);
     assert.deepEqual(Array.from(changed.slice(0, 4)), [255, 0, 0, 255], 'background still uses the old source');
-    assert.deepEqual(Array.from(changed.slice((65 * 240 + 65) * 4, (65 * 240 + 65) * 4 + 4)),
-      [255, 0, 0, 255], 'lens still samples the old source');
+    // The lens centre is the page plus the clear-lens preset's white tint (4/255): red stays 255, green and blue rise by at most 4.
+    const centre = Array.from(changed.slice((65 * 240 + 65) * 4, (65 * 240 + 65) * 4 + 4));
+    assert(centre[0] === 255 && centre[1] <= 4 && centre[2] <= 4 && centre[3] === 255, `lens still samples the old source: ${centre}`);
     assert.throws(() => scene.setSource(null), /Source/);
     scene.draw(f.canvas, .2); assert.deepEqual(f.read(), changed, 'failed source update lost the valid source');
     f.canvas.clear(kit.TRANSPARENT); scene.draw(f.canvas, .3, {drawBackdrop: false});
