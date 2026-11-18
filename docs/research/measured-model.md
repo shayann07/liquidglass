@@ -385,7 +385,7 @@ Icon and folder bevels: section 6. Clear icons displace colour boundaries +5..+5
 
 | layer | blur sigma px (pt) | tone | notes |
 | :--- | :--- | :--- | :--- |
-| Control Center over app content | 23.2 (7.7) at t<=50; 24 at 62; 27.5 at 86; 32-33 (11) at 100 | gain 0.32; offset = 142 - 0.864 * mean luma behind (60 over the dark target, 10 over the light) | identical over both targets and both appearances |
+| Control Center over app content | 23.2 (7.7) at t<=50; 24 at 62; 27.5 at 86; 32-33 (11) at 100 | gain 0.3608; offset 10.23 (levels of 255), no luma adaptation: G = 10.23 + 0.3608 L, black reads 10, white 102 (measured: lab take CC-over-lab-dark.MP4 via hdr.py, rms 0.33; confirmed per pixel on the mac-rig C1b PNGs and PUSM9766) | identical over Tint 0-100 and both appearances; the earlier 142 - 0.864 * luma law regressed whole-image means (retired) |
 | Control Center over the Home Screen | 16-21 (5.5-7) | | busier backdrop, same family |
 | App Library | 15-26 (5-9) | | |
 | Today view | 26-28 (9) | | |
@@ -489,7 +489,7 @@ visible only below the edge.
 | mirror | 0.18 amplitude | full-strength mirrored copy in the outer 0.28 W once formed; 0 before | amplitude 1 x formation |
 | dispersion | 0.018 of displacement everywhere | 0.07 W, mirrored zone only | zone-gated |
 | blurRadius / backdropBlur | one blur | fine 0.5 pt + wide >= 25 pt mixed by w(t) = 0.78(1 - t/100) | two-kernel mix |
-| tint, adaptivity | white 10% + adaptivity 0.65 | light: C 241 at a(t) 0.44-0.73; dark: black at a(t) + lift 35; system backdrops: gain 0.32, offset 142 - 0.864 * mean luma | per-appearance constants; adaptive offset for full-screen layers |
+| tint, adaptivity | white 10% + adaptivity 0.65 | light: C 241 at a(t) 0.44-0.73; dark: black at a(t) + lift 35; system backdrops: gain 0.3608, offset 10.23, no adaptation (measured) | per-appearance constants; a constant affine map for full-screen layers |
 | specular / edgeLight / bevel | tuned | pill +33 (2-4 px) over black in light, +32/+48 in dark; buttons +6 top; icons rim top + contour bottom; tiles dark 1-5 px line | per-role |
 | edgeShadow | 0 | tiles 1-5 px unlifted ring; sheet dark line over bright at k < 0.84 | per-role |
 | dimmingLayer | 0.35 for Clear | sheet: 1 - 0.311(1 - e^(-x/150pt)); menus: 0.52 behind | progress-driven for sheets |

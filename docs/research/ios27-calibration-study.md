@@ -141,7 +141,7 @@ All in Python with numpy, scipy, Pillow and cupy, in the capture repository's `t
    sheet's 47 dp corner, so a fixed band is wrong in kind.
 6. **The material is per role.** Control Center's backdrop is a 7.7 dp sigma with a tone that
    adapts to the content behind it (black → 60 over the dark target, → 10 over the light one,
-   gain 0.32 in both); App Library and the Today view share that blur; Spotlight is 21-27 dp;
+   gain 0.32 in both (superseded for Control Center: see measured-model.md section 4, gain 0.3608)); App Library and the Today view share that blur; Spotlight is 21-27 dp;
    a menu is 9.5 dp at gain 0.24 on a screen dimmed to 0.52; Clear icons 2.2 dp at gain 0.5; the
    dock 1 dp at gain 0.85; glass text is near-opaque. None of these is one material.
 7. **Tint Amount is a continuous slider**, not two variants, and it acts on the element
