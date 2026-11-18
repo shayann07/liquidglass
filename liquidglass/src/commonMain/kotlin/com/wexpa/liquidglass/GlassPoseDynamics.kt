@@ -527,7 +527,7 @@ internal data class GlassPoseSpec(
         val Calm = CalmWallLanding.copy(heldTravelStrain = .6f, heldTravelStrainOmega = 10f,
             heldReferenceSpeed = 8f, heldSquircle = .7f, formFromMovement = 1f, formRiseOmega = 75f,
             pressFormation = 0f, holdThresholdSeconds = .110f, heldFormRiseOmega = 26f,
-            releaseStillHoldSeconds = .035f, releaseStillFadeOmega = 100f, releaseMovingFadeOmega = 12f, tapLongTripRate = 1.2f, tapFarTripRate = 1.1f, tapClockSlotDp = 262f / 3f, tapEndWallReach = .03f, tapKeepsFormedLens = true, barPressDelaySeconds = .075f, barPressStiffness = 1700f, heldInkLift = 22f / 255f, selectionHaptics = true, hoverScale = 1.06f)
+            releaseStillHoldSeconds = 0f, releaseStillFadeOmega = 36f, releaseMovingFadeOmega = 12f, tapLongTripRate = 1.2f, tapFarTripRate = 1.1f, tapClockSlotDp = 262f / 3f, tapEndWallReach = .03f, tapKeepsFormedLens = true, barPressDelaySeconds = .075f, barPressStiffness = 1700f, heldInkLift = 22f / 255f, selectionHaptics = true, hoverScale = 1.06f)
     }
 }
 
@@ -602,6 +602,24 @@ internal class GlassPoseController(
     private var tapFormedArmed = false
     /** [GlassPoseSpec.tapKeepsFormedLens]: the tap in transit formed the selector past half, and has not settled. Optics only. */
     val tapFormed: Boolean get() = tapFormedLatch && (transit.value > 1e-4f || form.value > 1e-3f)
+    private var holdFormedLatch = false
+    /** #103: a hold formed the selector past half and has not yet let it go; keeps the lens's identity through release. Optics only. */
+    val holdFormed: Boolean get() = holdFormedLatch
+    /** #103: a formed hold is releasing back to rest, so its rim dispersion can taper smoothly with formation. Optics only. */
+    val holdReleasing: Boolean get() = holdFormedLatch && mode == GlassPoseMode.Released && releasedFromHold
+    /** #103: a held lens's fill, lean and reach, tracking [formation] while held and falling at [HOLD_LOOK_FALL_OMEGA] after release. */
+    private val holdLookSpring = GlassSpring()
+    /** #103: a released hold's chromatic rim decay, tracking [formation] while held and falling at [HOLD_RIM_FALL_OMEGA] after release. */
+    private val holdRimSpring = GlassSpring()
+    /** The formation a held lens's fill follows: [formation] or, after a hold release, the slower fall. */
+    val holdLook: Float get() = max(formation, holdLookSpring.value.coerceIn(0f, 1f))
+    /** The rim-dispersion scale for a released hold, falling at iOS's measured rim rate (64/s). */
+    val holdRim: Float get() = holdRimSpring.value.coerceIn(0f, 1f)
+    /** [holdLook] for accessory lean and reach: active while held or released, 0 for taps (#107, #103). */
+    val holdLean: Float get() {
+        val gate = mode == GlassPoseMode.Held || mode == GlassPoseMode.Released
+        return max(if (gate) formation else 0f, holdLookSpring.value.coerceIn(0f, 1f))
+    }
     private val travel = GlassSpring()
     /** How fast a held lens is travelling, 0 to 1 on the held speed curve; 0 when not held.
      * Optics only: drives the rim mirror of a moving held lens, never geometry or ownership. */
@@ -797,6 +815,9 @@ internal class GlassPoseController(
         tapWallEngaged = false
         tapFormedLatch = false
         tapFormedArmed = false
+        holdFormedLatch = false
+        holdLookSpring.snapTo(0f)
+        holdRimSpring.snapTo(0f)
         tapDistance = 0f
         releaseImpactActive = false
         requestedIndex = index
@@ -1242,6 +1263,24 @@ internal class GlassPoseController(
             tapFormedLatch = true
         }
         if (formation < .5f) tapFormedArmed = true // this trip's formation has been below half
+        // #103: keep the formed hold's lens identity through release and let fill/lean decay on iOS's slower curve.
+        val holdMode = mode == GlassPoseMode.Held || (mode == GlassPoseMode.Released && releasedFromHold)
+        if (!motionEnabled || !holdMode || (mode == GlassPoseMode.Released && form.value <= 1e-3f)) {
+            holdFormedLatch = false
+        } else if (mode == GlassPoseMode.Held && formation >= .5f) {
+            holdFormedLatch = true
+        }
+        if (motionEnabled && mode == GlassPoseMode.Held) {
+            holdLookSpring.snapTo(formation)
+            holdRimSpring.snapTo(formation)
+        } else {
+            holdLookSpring.target = 0f
+            holdLookSpring.step(dt, HOLD_LOOK_FALL_OMEGA, 1f)
+            if (holdLookSpring.value < 1e-3f && abs(holdLookSpring.velocity) < 1e-2f) holdLookSpring.snapTo(0f)
+            holdRimSpring.target = 0f
+            holdRimSpring.step(dt, HOLD_RIM_FALL_OMEGA, 1f)
+            if (holdRimSpring.value < 1e-3f && abs(holdRimSpring.velocity) < 1e-2f) holdRimSpring.snapTo(0f)
+        }
 
         // ---- equilibria
         // Trace-free strain and taper: kept in the state for the shader contract, both zero.
@@ -1319,7 +1358,8 @@ internal class GlassPoseController(
         // spring driven by the existing movement target. A held throw never enters this path:
         // its pressure continues to subside without travel re-inflating it.
         val transitPressure = mode == GlassPoseMode.TapTransit && spec.tapPressureOmega > 0f
-        val pressureFormation = if (transitPressure) formTarget else formation
+        val stillReleasePressure = mode == GlassPoseMode.Released && releasedStill && spec.releaseStillFadeOmega > 0f
+        val pressureFormation = if (transitPressure || stillReleasePressure) formTarget else formation
         // Travel contraction forms with held material. Applying its full amount to an
         // unformed press would collapse below the original's selected lower envelope.
         val formedSqueeze = if (spec.heldTravelPressureOmega > 0f) squeeze * pressureFormation else squeeze
@@ -1423,6 +1463,7 @@ internal class GlassPoseController(
             mode == GlassPoseMode.Held && spec.heldTravelPressureOmega > 0f &&
                 equilibrium.p < pose.p && speed2 > 1e-9f -> spec.heldTravelPressureOmega
             transitPressure -> spec.tapPressureOmega
+            stillReleasePressure && equilibrium.p < pose.p -> STILL_PRESSURE_FALL_OMEGA
             mode != GlassPoseMode.Held && equilibrium.p < pose.p -> spec.pressureFallOmega
             else -> po
         }
@@ -2186,7 +2227,11 @@ internal class GlassPoseController(
     val isIdle: Boolean
         get() = mode != GlassPoseMode.PressPending && !tapAreaActive &&
             transitAppearance < .0001f && heldTravel < .0001f && quietSteps >= QUIET_STEPS && !holdingStill &&
-            strainDrive.value == 0f && abs(form.target - form.value) < .001f
+            !holdLookSettling && strainDrive.value == 0f && abs(form.target - form.value) < .001f
+
+    /** True only after a hold has been released and its release-only curves are still settling (stationary holds still sleep). */
+    private val holdLookSettling: Boolean
+        get() = mode != GlassPoseMode.Held && (holdLookSpring.value > 0f || holdRimSpring.value > 0f)
 
     /** A still release keeping its glass ([GlassPoseSpec.releaseStillHoldSeconds]): nothing moves
      * yet, but the formation still has to fall, so the frame loop must not sleep. */
@@ -2308,6 +2353,13 @@ internal class GlassPoseController(
         const val RELEASE_STILL_SLOTS = .5f
         /** A body still this formed when a finger lands on it is re-grabbed, not pressed anew. */
         const val REGRAB_FORMATION = 0.15f
+        /** Critical fall rate, per second, of a released hold's fill, lean and reach (#103). Measured: IMG_6756's iOS lens fill
+         * falls at 21/s and its lens X return at 30/s from release; 23/s matches fill closely while keeping X return smooth. */
+        const val HOLD_LOOK_FALL_OMEGA = 23f
+        /** Critical fall rate, per second, of a released hold's chromatic rim (#103). Measured: IMG_6756's iOS rim E falls at 64/s. */
+        const val HOLD_RIM_FALL_OMEGA = 64f
+        /** Critical fall rate, per second, of a still-released hold's outline pressure (#103). Measured: IMG_6756's iOS outline env falls at 46/s. */
+        const val STILL_PRESSURE_FALL_OMEGA = 46f
     }
 }
 

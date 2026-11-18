@@ -325,6 +325,14 @@ internal class GlassPoseHandle(val controller: GlassPoseController) {
     var transitAppearance: Float by mutableFloatStateOf(0f)
     /** [GlassPoseController.tapFormed]. */
     var tapFormed: Boolean by mutableStateOf(false)
+    /** [GlassPoseController.holdFormed] (#103). */
+    var holdFormed: Boolean by mutableStateOf(false)
+    /** [GlassPoseController.holdReleasing] (#103). */
+    var holdReleasing: Boolean by mutableStateOf(false)
+    /** [GlassPoseController.holdLook] (#103). */
+    var holdLook: Float by mutableFloatStateOf(0f)
+    /** [GlassPoseController.holdRim] (#103). */
+    var holdRim: Float by mutableFloatStateOf(0f)
     var heldTravel: Float by mutableFloatStateOf(0f)
     var held: Boolean by mutableStateOf(false)
     var centreX: Float by mutableFloatStateOf(0f)
@@ -386,6 +394,10 @@ internal class GlassPoseHandle(val controller: GlassPoseController) {
         formation = controller.formation
         transitAppearance = controller.transitAppearance
         tapFormed = controller.tapFormed
+        holdFormed = controller.holdFormed
+        holdReleasing = controller.holdReleasing
+        holdLook = controller.holdLook
+        holdRim = controller.holdRim
         heldTravel = controller.heldTravel
         held = controller.isHeld
         taper = controller.taperX
