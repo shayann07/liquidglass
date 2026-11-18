@@ -11,6 +11,12 @@ import kotlin.test.assertTrue
  * (67 dp at 3x) over a flat layer G through the production modifier with a vertical light: the measured toggle's rim is
  * lit at its top and bottom equally and not at all at its sides, and its dark contour lies outside the outline at the sides
  * only (what `GlassStyle.outerContour` draws). No light is passed: the tile takes the overhead light by itself.
+ *
+ * Provenance: the rim fields were fitted on exactly these three grey frames (G 10, 56, 102 of the 46 in the take; the sector
+ * profiles are the only rim data read, the other 43 frames were not read by sector). So the gates below are a residual of the
+ * fit on its own frames, not a held-out validation. They pin what the code renders today (README table, desktop Skia, 3x)
+ * with a stated margin; the known gaps (sides too bright, contour too shallow) are expected values, so a fix or a regression
+ * both fail here and the expected value must then be updated with the evidence.
  */
 class GlassControlCenterRimTest {
     private val failures = mutableListOf<String>()
@@ -61,24 +67,34 @@ class GlassControlCenterRimTest {
     private fun peak(p: DoubleArray) = (4..9).maxOf { p[it] }   // r 98.0 to 100.5
     private fun contour(p: DoubleArray) = (9..12).minOf { p[it] } // r 100.5 to 102.0
 
-    /** The same toggle at 1x (67 px, 1 px per dp), where bevelPeak 0.3 x 1.25 dp is under half a pixel and the chamfer branch applies. */
-    @Test
-    fun theRimAtOneTimesDensity() {
-        for (density in listOf(3f, 1f)) {
-            val px = (201 * density / 3f).toInt()
-            GlassLabScene(GlassStyle.controlCenterTile(), pillW = px, pillH = px, density = density).use { s ->
-                for (g in listOf(10, 56, 102)) {
-                    val out = s.render(IntArray(s.width * s.height) { GlassLabScene.grey(g) })
-                    val cx = s.pillX + px / 2; val cy = s.pillY + px / 2; val r0 = px / 2.0
-                    fun at(dx: Int, dy: Int): Int { val p = out[(cy + dy) * s.width + cx + dx]; return (((p ushr 16) and 0xFF) + ((p ushr 8) and 0xFF) + (p and 0xFF)) / 3 }
-                    val reach = (r0 + 4).toInt()
-                    val top = (-reach..0).map { at(0, it) }
-                    val bottom = (0..reach).map { at(0, it) }
-                    val right = (0..reach).map { at(it, 0) }
-                    println("CC206X ${density}x G=$g: top peak ${top.max()} bottom peak ${bottom.max()} side peak ${right.max()} side contour ${right.min()} interior ${at(0, 0)}")
-                }
-            }
+    /** Centre-column and side readings of the toggle at [density] (single pixels, not sector medians): pole peaks top and bottom, side peak, side contour. */
+    private fun readings(density: Float, g: Int): IntArray {
+        val px = (201 * density / 3f).toInt()
+        GlassLabScene(GlassStyle.controlCenterTile(), pillW = px, pillH = px, density = density).use { s ->
+            val out = s.render(IntArray(s.width * s.height) { GlassLabScene.grey(g) })
+            val cx = s.pillX + px / 2; val cy = s.pillY + px / 2; val r0 = px / 2.0
+            fun at(dx: Int, dy: Int): Int { val p = out[(cy + dy) * s.width + cx + dx]; return (((p ushr 16) and 0xFF) + ((p ushr 8) and 0xFF) + (p and 0xFF)) / 3 }
+            val reach = (r0 + 4).toInt()
+            val right = (0..reach).map { at(it, 0) }
+            val r = intArrayOf((-reach..0).maxOf { at(0, it) }, (0..reach).maxOf { at(0, it) }, right.max(), right.min())
+            println("CC206X ${density}x G=$g: top peak ${r[0]} bottom peak ${r[1]} side peak ${r[2]} side contour ${r[3]}")
+            return r
         }
+    }
+
+    /**
+     * The same toggle at 1x (67 px, 1 px per dp), where bevelPeak 0.3 x 1.25 dp is under half a pixel and the chamfer branch applies.
+     * README: at 1x the pole line is 2 to 4 levels lower than at 3x and the side readings do not move; gates 6 and 3.
+     */
+    @Test
+    fun theRimAtOneTimesDensityStaysWithinAFewLevelsOfThreeTimes() {
+        for (g in listOf(10, 56, 102)) {
+            val x3 = readings(3f, g)
+            val x1 = readings(1f, g)
+            check(abs(x1[0] - x3[0]) <= 6 && abs(x1[1] - x3[1]) <= 6, "G $g pole peaks 1x ${x1[0]}/${x1[1]} vs 3x ${x3[0]}/${x3[1]} (gate 6: measured 2 to 4 apart)")
+            check(abs(x1[2] - x3[2]) <= 3 && abs(x1[3] - x3[3]) <= 3, "G $g side peak/contour 1x ${x1[2]}/${x1[3]} vs 3x ${x3[2]}/${x3[3]} (gate 3: the sides do not move with density)")
+        }
+        assertTrue(failures.isEmpty(), failures.joinToString("; "))
     }
 
     @Test
@@ -97,15 +113,22 @@ class GlassControlCenterRimTest {
                 val side = rows.getValue("side")
                 val refPole = measured.getValue("$g-pole")
                 val refDiag = measured.getValue("$g-diag")
-                // Pole peak: within 8 of the measured one (the G 102 reading clips at 255 on the device, so there it must reach 245).
-                if (g < 100) check(abs(peak(pole) - peak(refPole)) <= 8.0, "G $g pole peak %.0f, measured %.0f (gate 8)".format(peak(pole), peak(refPole)))
-                else check(peak(pole) >= 245.0, "G $g pole peak %.0f, measured 255 clipped (gate 245)".format(peak(pole)))
-                check(abs(peak(diag) - peak(refDiag)) <= 9.0, "G $g diagonal peak %.0f, measured %.0f (gate 9)".format(peak(diag), peak(refDiag)))
-                // The sides carry no lit line: at most 12 above the interior (measured +3).
-                check(peak(side) - side[0] <= 12.0, "G $g side peak %.0f over an interior of %.0f (gate 12; measured +3)".format(peak(side), side[0]))
+                // Pole peak: README says within 5 (ours - measured +5 / -4 at G 10 / 56), so 5.5 leaves only the rounding of the
+                // table's whole levels. At G 102 the device reading clips at 255, so ours (251) must be within 5 of the clip level.
+                if (g < 100) check(abs(peak(pole) - peak(refPole)) <= 5.5, "G $g pole peak %.0f, measured %.0f (gate 5.5: the README claims within 5 where not clipped)".format(peak(pole), peak(refPole)))
+                else check(peak(pole) >= 249.5, "G $g pole peak %.0f, measured 255 clipped (gate 249.5: within 5 of the clip level; ours renders 251)".format(peak(pole)))
+                // Diagonal peak: README says within 7 (ours - measured +7 / +4 / -1), so 7.5 for the same rounding.
+                check(abs(peak(diag) - peak(refDiag)) <= 7.5, "G $g diagonal peak %.0f, measured %.0f (gate 7.5: the README claims within 7)".format(peak(diag), peak(refDiag)))
+                // Sides: a known gap, ours 8 to 9 above the measured side peak (71/63, 113/104, 156/147). Pinned as an expected
+                // band of 6.5 to 10.5 over the measured, so closing the gap or widening it both show.
+                val sideExcess = peak(side) - peak(measured.getValue("$g-side"))
+                check(sideExcess in 6.5..10.5, "G $g side peak %.0f is %+.1f over the measured %.0f (expected +8 to +9, band 6.5 to 10.5; a known gap)".format(peak(side), sideExcess, peak(measured.getValue("$g-side"))))
                 // The contour is the sides' and the diagonals', and nothing at the poles.
                 check(contour(pole) >= g - 3.0, "G $g pole contour %.0f (none: at least %d)".format(contour(pole), g - 3))
-                check(contour(side) <= 0.75 * g, "G $g side contour %.0f (at most %.0f; measured %.0f)".format(contour(side), 0.75 * g, contour(measured.getValue("$g-side"))))
+                // Side contour: ours renders 6 / 36 / 55 (measured 0 / 7 / 24: the shader's 1.5 px band is shallower than the measured
+                // 2 px, a known gap). Pinned to what is rendered, plus or minus 3, so a deeper or shallower band both show.
+                val expectedSideContour = mapOf(10 to 6.0, 56 to 36.0, 102 to 55.0).getValue(g)
+                check(abs(contour(side) - expectedSideContour) <= 3.0, "G $g side contour %.0f (rendered 6 / 36 / 55, gate +-3; measured %.0f, so still too shallow)".format(contour(side), contour(measured.getValue("$g-side"))))
             }
         }
         assertTrue(failures.isEmpty(), failures.joinToString("; "))
