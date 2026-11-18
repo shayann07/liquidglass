@@ -8,8 +8,9 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
 
 - Switch, Slider and RangeSlider (liquidglass-material3) use measured geometry and timing (#205). Switch: 63 x 28 dp track, 37 x 24 dp knob, 2 dp inset, 22 dp travel; held, the knob is a clear glass lens 64.75 x 38.4 dp (1.75 x 1.6 of rest) sized in layout around the knob's centre; press peaks about 100 ms in, release settles in 133 ms, travel is a critically damped spring (90 percent in 6-7 frames, no overshoot), the track colour fades over 420 ms. Slider and RangeSlider: 4 dp track, 24 x 16 dp opaque white thumb with a soft shadow, no lens, no press scale. No public API change; sizes live in an internal KnobSpec.
   - Default look changed: Switch track 62 -> 63 dp, knob travel 20 -> 22 dp, held knob was 1.4x scale with Lens(1.25) now 1.75 x 1.6 clear lens; Slider/RangeSlider track 6 -> 4 dp, thumb 38 x 24 dp glass lens on drag -> 24 x 16 dp opaque white with no change on drag. Material theme colours are unchanged (the measured iOS green (47,210,88) and grey (90,90,94) are not applied by default: theming decision).
-  Pixel 7 (release build, Material showcase): slider thumb about 62 x 42 px (24 x 16 dp = 63 x 42), track about 10 px (4 dp),
-  switch track about 165 x 75 px (63 x 28 dp), read off a screenshot to about 2 px.
+  Pixel 7 (release build of 1233f7bd, Material showcase, one screenshot read by eye to about 2 px): slider thumb about
+  62 x 42 px (24 x 16 dp = 63 x 42), track about 10 px (4 dp), switch track about 165 x 75 px (63 x 28 dp);
+  [device check](review/atlas/switch-slider-2026-11-18/README.md#device-check-pixel-7-18-november).
 
 - GlassStyle.menu(dark): the menu panel measured on iOS 27's Safari <select> popup (#204): a pure blur (9.9 dp dark, 11.8 dp light) and a compressed tone, no detail term. menu() without an argument is unchanged. GlassMaterialDefaults.menu is new; Material 3 DropdownMenu draws it by default.
   - Default look changed: DropdownMenu is blurrier, more opaque and tone-compressed (was the card-like panel: in-app material over a 7.7 dp frost). Opt out: DropdownMenu(glass = GlassMaterialDefaults.panel).

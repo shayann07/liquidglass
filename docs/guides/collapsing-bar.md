@@ -85,6 +85,8 @@ over 200 ms.
 @Composable
 fun rememberBarCollapse(): Pair<State<Float>, NestedScrollConnection> {
     var collapsed by remember { mutableStateOf(false) }
+    // One event's delta is small: movement is summed in the current direction, and the sum is reset when it turns.
+    var travel by remember { mutableFloatStateOf(0f) }
     val fraction = animateFloatAsState(
         targetValue = if (collapsed) 1f else 0f,
         animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),  // 200 ms measured, easing authored
@@ -93,8 +95,11 @@ fun rememberBarCollapse(): Pair<State<Float>, NestedScrollConnection> {
     val connection = remember {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                if (available.y < -8f) collapsed = true       // finger moving up: content scrolling down (distance authored)
-                if (available.y > 8f) collapsed = false
+                val dy = available.y
+                if (dy == 0f) return Offset.Zero
+                travel = if (travel == 0f || (dy < 0f) == (travel < 0f)) travel + dy else dy
+                if (travel < -8f) { collapsed = true; travel = 0f }    // finger moving up: content scrolling down (distance authored)
+                if (travel > 8f) { collapsed = false; travel = 0f }
                 return Offset.Zero
             }
         }

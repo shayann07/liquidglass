@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -202,6 +203,35 @@ class GlassScrollEdgeTest {
         assertEquals(255, rest.channel(45, 0, 0), "the top edge drew though only the bottom was asked for")
         runBlocking { state.scrollTo(state.maxValue) }
         assertEquals(255, frame().channel(45, 419, 0), "the bottom edge draws at the end of the content")
+    }
+
+    @Test fun transparentContentBlursWithoutASharpCopyUnderneath() = scene(90, 420) {
+        // A 2 px black line on a transparent page over a white parent, inside the top band at full intensity: mixed, the
+        // line spreads into grey; stacked over a sharp copy, its centre would stay black.
+        setContent {
+            Box(Modifier.fillMaxSize().background(Color.White)) {
+                Box(Modifier.fillMaxSize().glassScrollEdge(Color.White, inverted = false, topIntensity = { 1f })) {
+                    Box(Modifier.fillMaxWidth().padding(top = 3.dp).height(2.dp / 3f).background(Color.Black))
+                }
+            }
+        }
+        val f = frame()
+        val centre = f.channel(45, (3 * 3 + 1), 0)
+        assertTrue(centre > 60, "the line's centre at the edge is blurred toward the white parent, not black ($centre)")
+    }
+
+    @Test fun aReversedLazyListPutsTheEffectsOnTheirPhysicalEdges() = scene(90, 420) {
+        lateinit var state: androidx.compose.foundation.lazy.LazyListState
+        setContent {
+            state = rememberLazyListState()
+            LazyColumn(Modifier.fillMaxSize().glassScrollEdge(state, Color.Black, edges = GlassScrollEdges.Both, inverted = true),
+                state, reverseLayout = true) {
+                items(30) { Box(Modifier.fillMaxWidth().height(60.dp).background(red)) }
+            }
+        }
+        val rest = frame()
+        assertEquals(255, rest.channel(45, 419, 0), "the bottom (the list's start) is clear at rest")
+        assertTrue(255 - rest.channel(45, 0, 0) in 50..58, "the top (more items) shows the effect")
     }
 
     @Test fun aLazyListIsDrivenTheSameWay() = scene(90, 420) {

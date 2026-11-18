@@ -18,7 +18,8 @@ thumb, 1.4x opaque-to-lens press, 6 dp track). "after" is this commit.
 Compose test host at 3 px per dp, Skia software backend, manual test clock: 600 ms of rest, then a pointer
 down on the held control and 600 ms of settling. The label comes from the `ATLAS_LABEL` environment variable.
 
-**Limits.** Desktop software renders, not device captures; no Pixel 7 capture has been taken for this change
+**Limits.** The frames here are desktop software renders, not device captures (see "Device check" below for the one
+Pixel 7 reading)
 (not checked). The lens interior is the library's `Glass.Lens(1.25)`, an authored strength: only the held
 outline (64.5 x 38.5 dp) is measured. Colours are Material's theme colours (primary and a 16 percent
 on-surface), not iOS system green and grey: the measured colours (47, 210, 88) and (90, 90, 94) are not
@@ -39,3 +40,10 @@ box, as it always did; it is shown as it was.
 | slider thumb shadow, disabled looks, second range thumb, `thumbContent` | - | authored |
 
 Measurement record: `.local/sxs/plans/205-measured.md` (private working notes).
+
+## Device check (Pixel 7, 18 November)
+
+A release build of `1233f7bd` on a Pixel 7 (Android 17, density 2.625), `MaterialShowcaseActivity`, one screenshot of the mini
+player, sizes read off it by eye to about 2 px: slider thumb about 62 x 42 px (24 x 16 dp is 63 x 42), slider track about 10 px
+(4 dp is 10.5), switch track about 165 x 75 px (63 x 28 dp is 165 x 74). The screenshot is not committed: it carries the phone's
+status bar. Not checked on the device: the held knob, press timing, the light switch.

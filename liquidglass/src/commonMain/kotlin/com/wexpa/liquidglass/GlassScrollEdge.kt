@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.layer.GraphicsLayer
@@ -185,8 +186,18 @@ fun Modifier.glassScrollEdge(
         }
         // The content is recorded once and drawn from the recording, so the strips below read it without a second draw.
         src.record { this@drawWithContent.drawContent() }
-        drawLayer(src)
-        val scale = height.toPx() / GlassScrollEdgeProfile.BandDp.dp.toPx()
+        // The profile scales with the band actually drawn, so a container shorter than twice the band ends its effect
+        // inside the capped band rather than cutting it off.
+        val scale = band / GlassScrollEdgeProfile.BandDp.dp.toPx()
+        // Each edge strip is composited on its own (sharp and blurred copies mixed, not stacked), so the sharp content is
+        // drawn here only outside the strips: under a transparent page a sharp copy would show through the blur.
+        val pad = GlassScrollEdgeProfile.SigmaADp * 3f * density
+        val strip = (band + pad).coerceAtMost(size.height)
+        val topStrip = if (ti > 0f) strip else 0f
+        val bottomStrip = if (bi > 0f) strip else 0f
+        if (size.height - topStrip - bottomStrip > 0f) {
+            clipRect(0f, topStrip, size.width, size.height - bottomStrip) { drawLayer(src) }
+        }
         if (ti > 0f) drawEdge(src, top, atTop = true, ti, scale, band, inverted)
         if (bi > 0f) drawEdge(src, bottom, atTop = false, bi, scale, band, inverted)
     }
@@ -222,20 +233,21 @@ fun Modifier.glassScrollEdge(
     inverted: Boolean = false,
 ): Modifier = composed {
     val ramp = with(androidx.compose.ui.platform.LocalDensity.current) { GlassScrollEdgeProfile.RampDp.dp.toPx() }
+    // Content scrolled past the list's start and its end; with reverseLayout the start is the physical bottom.
+    val start = { if (state.firstVisibleItemIndex > 0) 1f else state.firstVisibleItemScrollOffset / ramp }
+    val end = {
+        val info = state.layoutInfo
+        val last = info.visibleItemsInfo.lastOrNull()
+        when {
+            last == null || !state.canScrollForward -> 0f
+            last.index < info.totalItemsCount - 1 -> 1f
+            else -> (last.offset + last.size - (info.viewportEndOffset - info.afterContentPadding)) / ramp
+        }
+    }
     glassScrollEdge(
         ground, edges, height, style, inverted,
-        topIntensity = {
-            if (state.firstVisibleItemIndex > 0) 1f else state.firstVisibleItemScrollOffset / ramp
-        },
-        bottomIntensity = {
-            val info = state.layoutInfo
-            val last = info.visibleItemsInfo.lastOrNull()
-            when {
-                last == null || !state.canScrollForward -> 0f
-                last.index < info.totalItemsCount - 1 -> 1f
-                else -> (last.offset + last.size - (info.viewportEndOffset - info.afterContentPadding)) / ramp
-            }
-        },
+        topIntensity = { if (state.layoutInfo.reverseLayout) end() else start() },
+        bottomIntensity = { if (state.layoutInfo.reverseLayout) start() else end() },
     )
 }
 
@@ -275,9 +287,17 @@ private fun DrawScope.drawEdge(src: GraphicsLayer, layers: EdgeLayers, atTop: Bo
         return Brush.verticalGradient(*stops.toTypedArray(), startY = origin, endY = origin + strip)
     }
     val rect = Rect(0f, origin, size.width, origin + strip)
-    // B first, then A over it, as the weights are defined.
-    drawMasked(layers.b, rect, mask { GlassScrollEdgeProfile.maskB(it, scale) })
-    drawMasked(layers.a, rect, mask { GlassScrollEdgeProfile.maskA(it, scale) })
+    // The strip in one isolated layer: the sharp content, then B mixed in by its weight, then A by its weight, as the
+    // weights are defined. A mix (sharp x (1 - m) + blurred x m), not blurred over sharp, so transparent content blurs
+    // too; over opaque content the two are the same. When the bottom strip overlaps the top one, the bottom repaints the
+    // overlap from the sharp content (only a container shorter than both strips).
+    drawIntoCanvas { canvas ->
+        canvas.saveLayer(rect, Paint())
+        clipRect(rect.left, rect.top, rect.right, rect.bottom) { drawLayer(src) }
+        mixIn(layers.b, rect, mask { GlassScrollEdgeProfile.maskB(it, scale) })
+        mixIn(layers.a, rect, mask { GlassScrollEdgeProfile.maskA(it, scale) })
+        canvas.restore()
+    }
     if (inverted) {
         // The measured tint: grey 124 at 0.41 times the profile, drawn over the blurred strip.
         val n = 24
@@ -290,10 +310,11 @@ private fun DrawScope.drawEdge(src: GraphicsLayer, layers: EdgeLayers, atTop: Bo
     }
 }
 
-/** [layer] over the sharp content where [mask]'s alpha is, nowhere else. */
-private fun DrawScope.drawMasked(layer: GraphicsLayer, rect: Rect, mask: Brush) {
+/** Inside the strip's isolated layer: what is there times (1 - m), plus [layer] times m, m being [mask]'s alpha. */
+private fun DrawScope.mixIn(layer: GraphicsLayer, rect: Rect, mask: Brush) {
+    drawRect(mask, rect.topLeft, rect.size, blendMode = BlendMode.DstOut)
     drawIntoCanvas { canvas ->
-        canvas.saveLayer(rect, Paint())
+        canvas.saveLayer(rect, Paint().apply { blendMode = BlendMode.Plus })
         translate(rect.left, rect.top) { drawLayer(layer) }
         drawRect(mask, rect.topLeft, rect.size, blendMode = BlendMode.DstIn)
         canvas.restore()

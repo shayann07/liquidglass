@@ -76,7 +76,7 @@ class GlassKnobTest {
         assertEquals(37f, knob.width, .5f, "knob width (measured 37 dp)")
         assertEquals(24f, knob.height, .5f, "knob height (measured 24 dp)")
         assertEquals(2f, knob.left - track.left, .5f, "inset from the track's start (measured 2 dp)")
-        assertEquals(2f, track.top + track.height - (knob.top + knob.height) - 2f, 2f, "knob sits centred vertically")
+        assertEquals(track.top + track.height / 2f, knob.top + knob.height / 2f, .5f, "knob centred vertically on the track")
         checked = true
         waitForIdle()
         val on = onNodeWithTag(GlassKnobTestTag, useUnmergedTree = true).inDp(scale)
