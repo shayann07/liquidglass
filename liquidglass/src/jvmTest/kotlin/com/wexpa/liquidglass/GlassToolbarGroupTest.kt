@@ -74,4 +74,26 @@ class GlassToolbarGroupTest {
         // The measured toolbar material lifts a black page: the capsule reads lighter than the page beside it.
         assertTrue(inside.red > outside.red + 0.03f, "capsule ${inside.red} over page ${outside.red}")
     }
+
+    @Test fun theDefaultMaterialIsTheToolbarsNotRegular() = runComposeUiTest(testTimeout = 4.minutes) {
+        setContent {
+            LiquidGlassTheme(dark = true, background = Color.Black) {
+                Row(Modifier.size(420.dp, 100.dp).background(Color.Black), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
+                    GlassToolbarGroup(Modifier.testTag("default")) { Box(Modifier.size(80.dp, 32.dp)) }
+                    GlassToolbarGroup(Modifier.testTag("regular"), glass = Glass.Regular) { Box(Modifier.size(80.dp, 32.dp)) }
+                }
+            }
+        }
+        waitForIdle()
+        val map = onRoot().captureToImage().toPixelMap()
+        fun centre(tag: String): Color {
+            val node = onNodeWithTag(tag).fetchSemanticsNode()
+            return map[node.positionInRoot.x.toInt() + node.size.width / 2, node.positionInRoot.y.toInt() + node.size.height / 2]
+        }
+        val toolbar = centre("default")
+        val regular = centre("regular")
+        // Glass.Toolbar is the more opaque material, so on the same page it must not render as Regular glass does.
+        val difference = kotlin.math.abs(toolbar.red - regular.red) + kotlin.math.abs(toolbar.green - regular.green) + kotlin.math.abs(toolbar.blue - regular.blue)
+        assertTrue(difference > 0.01f, "default $toolbar vs Regular $regular")
+    }
 }

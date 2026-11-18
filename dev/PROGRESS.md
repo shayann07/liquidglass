@@ -1,7 +1,7 @@
 ## 18 November 2026 - #102 item 91 toolbar grouping (Claude, Sonnet)
 
 - `p3/91`: new `GlassToolbarGroup` (one `Glass.Toolbar` capsule behind a row of actions); Material 3 `BottomAppBar` and the top bars'
-  action capsules now use it, with their earlier heights and paddings, so no pixel changes. Geometry is authored (44 dp, 4 dp). The alert
+  action capsules now use it, with their earlier heights and paddings, so the layout is identical by construction (not pixel-compared). Geometry is authored (44 dp, 4 dp). The alert
   dialog stays authored (no recording; a system alert may be an opaque card). Tests: `GlassToolbarGroupTest`.
 
 ## 18 November 2026 - controls bundle #205 #204 #207 (Claude, Sonnet writer)

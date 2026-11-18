@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.dp
  * Needs a [LiquidGlassTheme] above it, like [glassEffect].
  *
  * @param glass the capsule's material; [Glass.Toolbar] by default.
- * @param minHeight the group is at least this tall, which is also the touch target's height (44 dp).
+ * @param minHeight the group is at least this tall (44 dp). Each action still sizes and hits itself; the group enforces no touch target.
  * @param contentPadding space between the capsule's ends and its first and last action.
  */
 @Composable
