@@ -6,6 +6,17 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Pressed glass is lit directionally, and the search button's glow settles once dragged (#114, item 130). A pressed, still
+  body is brighter toward the light and darker away from it (a plane of 0.085 levels per px along (-0.49, -0.87) on iOS's held
+  search button, IMG_6756, three still readings: `GlassPressGrade` 0.038 of full scale at the half short side, **measured** on
+  the search button, **authored** for every other size and preset, scaled by `illumination`); it steps away with the glow once
+  the finger has moved 4 dp or lifted. A press the overlay drives (every `glassEffect`) now settles to `pullLiftShare` once
+  dragged and releases on the measured 350 ms glow curve, as the own-pointer path always did; before, the search button in the
+  replay stayed at its held level (83-96 where iOS reads 69-70). New shader uniform `uPressGrade` (0 changes nothing; the
+  tab bar's own press sources are not graded; merged-glass containers have no touch term and are not graded). The lighting
+  model is provisional until a still press over two different pages is scored.
+  - Default look changed: interactive glass that is pressed and held still is graded toward the light, +-0.038 at full
+    illumination, gone once dragged; the search button drops to its dragged level instead of staying lit.
 - Interactive glass presses and pulls like the search button (#196). `GlassInteraction.Fluid` (new, additive) is the
   scored Phone search-button preset (`Pullable`, `GlassPullShape.Free`, glow share 0.65), and it is now the default of
   `Glass.interactive()`. Controls of 80 dp or less on their long side answer in full (8 dp a side, follow and stretch,

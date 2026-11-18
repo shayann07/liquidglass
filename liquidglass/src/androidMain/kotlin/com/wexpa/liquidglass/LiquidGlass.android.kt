@@ -95,6 +95,7 @@ internal actual fun createGlassRenderEffect(
     shader.setInputShader("field", uniforms.field?.let(::pathFieldShader) ?: placeholderFieldShader)
     shader.setFloatUniform("uTouch", uniforms.touchX, uniforms.touchY)
     shader.setFloatUniform("uTouchAmt", uniforms.touchAmount)
+    shader.setFloatUniform("uPressGrade", uniforms.pressGrade)
     shader.setFloatUniform("uMaterialize", uniforms.materialize)
     shader.setFloatUniform("uFrost", uniforms.frost)
     shader.setFloatUniform("uContrast", uniforms.contrast)

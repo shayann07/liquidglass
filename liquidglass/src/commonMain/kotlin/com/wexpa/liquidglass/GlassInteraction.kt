@@ -64,6 +64,11 @@ internal data class GlassPress(
     val pressCount: Int = 0,
     /** The press ended because another node (a scroll) took the gesture, not because the finger lifted (#196). */
     val cancelled: Boolean = false,
+    /**
+     * 1 while the finger is down and has not moved past the drag threshold, 0 once it has moved, lifted or cancelled
+     * (#114): the share of [GlassPressGrade] the shader grades the body by. It steps down with the glow, as the level does.
+     */
+    val still: Float = 0f,
 ) {
     companion object {
         /** Far enough off-panel that the Gaussian is zero, so an idle panel costs nothing. */
@@ -205,6 +210,16 @@ data class GlassInteraction(
     }
 }
 
+/**
+ * The directional grade of a pressed, still body, as a share of full scale at the edge of the half short side: iOS 26's
+ * Phone search button, held still, reads 96 at the top left and 80 at the bottom right, a plane of 0.085 levels per
+ * px along (-0.49, -0.87) over a 113 px half short side, 0.038 (IMG_6756, three still readings, 2026-11-15; display
+ * colours). **Measured** on the search button, whose illumination is 1; **authored** for every other size, shape and
+ * preset (the same share of the half short side, scaled by [GlassInteraction.illumination]). The lighting model is
+ * provisional until a still press over two different pages is scored (#114).
+ */
+internal const val GlassPressGrade = 0.038f
+
 /** Internal corrections for the existing free-button role; no constructor or copy ABI changes. */
 internal val GlassInteraction.pressFlash: Boolean get() = pull && pullShape == GlassPullShape.Free
 internal val GlassInteraction.uprightPull: Boolean get() = pull && pullShape == GlassPullShape.Free
@@ -294,6 +309,8 @@ class GlassPressSource internal constructor() {
     internal var isPressed by mutableStateOf(false)
     /** The press now drags something ([GlassInteraction.dragPressShare]); cleared on release. */
     internal var dragging by mutableStateOf(false)
+    /** Whether a still press is lit directionally ([GlassPressGrade]); the tab bar's own sources are not (#114). */
+    internal var graded: Boolean = true
     /** The last press ended because another node (a scroll) took the gesture; cleared by the next press. */
     internal var cancelled by mutableStateOf(false)
     /** A caller's critically damped press-down stiffness for a Calm response; zero keeps [GlassMotion.CalmDown]. */
@@ -353,15 +370,34 @@ internal fun rememberGlassPress(
     if (!enabled) return GlassPress.None to Modifier
 
     if (source != null) {
+        // Whether the finger has moved past the threshold during this press (sticky until it lifts). Plain
+        // storage: it is derived from the source's state, which this composition already reads.
+        val travelled = remember(source) { BooleanArray(1) }
+        if (!source.isPressed) travelled[0] = false
+        else if (source.pullOffset.getDistance() > moveThreshold) travelled[0] = true
+        val movedNow = travelled[0]
+        // A glow share below one (the search button's) settles once dragged, as the own-pointer branch does;
+        // a share of one (the tab bar's sources) keeps the whole glow.
+        val shareMoved = pullLiftShare < 1f && movedNow
         val amount by animateFloatAsState(
-            targetValue = if (source.isPressed) 1f else 0f,
-            animationSpec = if (source.isPressed) GlassMotion.GlowIn else GlassMotion.GlowOut,
+            targetValue = if (!source.isPressed) 0f else if (shareMoved) pullLiftShare.coerceIn(0f, 1f) else 1f,
+            animationSpec = when {
+                source.isPressed && shareMoved -> GlassMotion.FreeGlow
+                source.isPressed -> GlassMotion.GlowIn
+                freeGlow -> GlassMotion.FreeGlow
+                else -> GlassMotion.GlowOut
+            },
             label = "glass_press_amount_external",
+        )
+        val stillTarget = if (source.isPressed && !movedNow && !source.dragging && source.graded) 1f else 0f
+        val still by animateFloatAsState(
+            targetValue = stillTarget,
+            animationSpec = if (stillTarget > 0f) GlassMotion.GlowIn else if (freeGlow) GlassMotion.FreeGlow else GlassMotion.GlowOut,
+            label = "glass_press_still_external",
         )
         return GlassPress(source.localPosition.x, source.localPosition.y, amount,
             source.pullOffset.x, source.pullOffset.y, pulling = source.isPressed, dragging = source.dragging,
-            pressCount = source.pressCount, cancelled = source.cancelled && !source.isPressed) to Modifier
-
+            pressCount = source.pressCount, cancelled = source.cancelled && !source.isPressed, still = still) to Modifier
     }
 
     var point by remember { mutableStateOf(Offset.Zero) }
@@ -381,6 +417,16 @@ internal fun rememberGlassPress(
             else -> GlassMotion.GlowOut
         },
         label = "glass_press_amount",
+    )
+
+    val still by animateFloatAsState(
+        targetValue = if (down && !moved) 1f else 0f,
+        animationSpec = when {
+            down && !moved -> GlassMotion.GlowIn
+            freeGlow -> GlassMotion.FreeGlow
+            else -> GlassMotion.GlowOut
+        },
+        label = "glass_press_still",
     )
 
     val modifier = Modifier.pointerInput(Unit) {
@@ -409,7 +455,6 @@ internal fun rememberGlassPress(
                         cancelled = true; break
                     }
                 }
-
             } finally {
                 down = false
                 pulling = false
@@ -418,6 +463,6 @@ internal fun rememberGlassPress(
     }
 
     return GlassPress(point.x, point.y, amount, pull.x, pull.y, pulling, pressCount = pressCount,
-        cancelled = cancelled && !down) to modifier
+        cancelled = cancelled && !down, still = still) to modifier
 
 }

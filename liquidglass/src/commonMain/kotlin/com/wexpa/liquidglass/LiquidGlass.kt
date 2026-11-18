@@ -697,6 +697,7 @@ internal fun Modifier.liquidGlassCore(
                         touchX = press.x,
                         touchY = press.y,
                         touchAmount = press.amount * (interaction?.illumination ?: 0f),
+                        pressGrade = GlassPressGrade * press.still * (interaction?.illumination ?: 0f),
                         materialize = materialize.coerceIn(0f, 1f),
                         frost = state.frost,
                         contrast = state.contrast,
@@ -1486,6 +1487,8 @@ internal data class GlassUniforms(
     val touchX: Float,
     val touchY: Float,
     val touchAmount: Float,
+    /** [GlassPressGrade] times the still share and the illumination: the directional grade of a still press (#114). */
+    val pressGrade: Float = 0f,
     val materialize: Float,
     val frost: Float,
     val contrast: Float,
@@ -1528,7 +1531,7 @@ internal data class GlassUniforms(
             fieldRange == other.fieldRange && fieldScale == other.fieldScale &&
             field === other.field &&
             touchX == other.touchX &&
-            touchY == other.touchY && touchAmount == other.touchAmount &&
+            touchY == other.touchY && touchAmount == other.touchAmount && pressGrade == other.pressGrade &&
             materialize == other.materialize && frost == other.frost &&
             contrast == other.contrast && debugCoverage == other.debugCoverage &&
             fresnel == other.fresnel && highlightChroma == other.highlightChroma &&
