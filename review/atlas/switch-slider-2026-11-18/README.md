@@ -41,6 +41,18 @@ box, as it always did; it is shown as it was.
 
 Measurement record: `.local/sxs/plans/205-measured.md` (private working notes).
 
+## Refit of press and release (19 November, p3/205)
+
+Re-read from the same `I-menus-dark` take (numbers only, no frames): the lens outline is visible only where it is taller than the 84 px
+track, so the first fit (release 133 ms to the 24 dp knob) ended the visible part in 58 ms. Measured on a 0.9 s hold (30.41-31.35 s,
+60 fps): outline height 85 -> 121 -> 115 px (press, peak at +100 ms, settle), then 115 -> 84 px in 8 frames (133 ms) on release. Spring
+fits, rms over the visible frames: press stiffness 625, damping 0.55 (1.0 px; was 1050 / 0.5 at 2.2 px), release stiffness 361,
+critically damped (0.9 px; was 1900 at 4.6 px). A tap shows the lens above the track for 18-19 frames (300-317 ms) in all five taps
+of the take. Slow drag: while the lens moves 20 px in 0.7 s its size stays 178 x 115 px, so no stretch is measured at that speed; a
+fast drag is not recorded (Safari's web take has no lens). Limits: the outline height includes the soft shadow, the right edge of the
+width is read at the dark rim (about 3 px inside the true edge), so the held width scale of 1.75 is not re-fitted: the hold reads
+178-190 px (59-63 dp) against the authored 64.75 dp (an open question, see the owner note in the PR).
+
 ## Device check (Pixel 7, 18 November)
 
 A release build of `1233f7bd` on a Pixel 7 (Android 17, density 2.625), `MaterialShowcaseActivity`, one screenshot of the mini

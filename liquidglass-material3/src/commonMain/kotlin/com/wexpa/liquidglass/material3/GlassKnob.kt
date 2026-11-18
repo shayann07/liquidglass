@@ -53,12 +53,19 @@ internal object KnobSpec {
     const val LensStrength = 1.25f
 
     /**
-     * Fitted to the tap's height frames (86 -> 120 px in 100 ms, 118 at +120 ms, 116 at +170 ms, 115 held):
-     * a spring that peaks about 100 ms in and overshoots by about a sixth of the way.
+     * Fitted to the lens outline height of a long hold in `I-menus-dark` (30.41-31.35 s, 60 fps): 85 px (the
+     * track) -> 121 px in 6 frames (100 ms), settling at 115 px. The outline is only visible above the 84 px
+     * track, so the growth starts about 40 ms before the first visible frame. Under-damped spring, rms
+     * error 1.0 px over the visible frames (the earlier 1050 / 0.5 fit read the track as the knob's rest
+     * height and left 2.2 px).
      */
-    val PressSpring: FiniteAnimationSpec<Float> = spring(dampingRatio = .5f, stiffness = 1050f)
-    /** Fitted: 112 -> 85 px in 133 ms, then constant: critically damped, settled in about 130 ms. */
-    val ReleaseSpring: FiniteAnimationSpec<Float> = spring(dampingRatio = 1f, stiffness = 1900f)
+    val PressSpring: FiniteAnimationSpec<Float> = spring(dampingRatio = .55f, stiffness = 625f)
+    /**
+     * Fitted to the same hold's release: 115 -> 84 px (the track) in 8 frames (133 ms), nearly linear after a
+     * 2-frame ramp, no undershoot. Critically damped, rms error 0.9 px (the earlier 1900 fit counted the 133 ms
+     * to the 24 dp knob size, which the track hides, and finished the visible part in 58 ms: 4.6 px).
+     */
+    val ReleaseSpring: FiniteAnimationSpec<Float> = spring(dampingRatio = 1f, stiffness = 361f)
     /**
      * Fitted to Safari's switch frames (timing class only, the web switch is larger): 90 percent in 7
      * frames, at rest in 10-11 frames (167-183 ms), no overshoot. The recording starts slowly and ends
