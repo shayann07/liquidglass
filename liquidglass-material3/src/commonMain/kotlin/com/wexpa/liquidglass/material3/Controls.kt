@@ -39,7 +39,7 @@ import androidx.compose.material3.Slider as M3Slider
 
 /**
  * Material 3's `Switch`, iOS style: a 63 x 28 dp capsule track in [colors]' track colours (fading over
- * 420 ms; in a dark scheme the measured iOS ones by default, see [defaultSwitchColors]) and a 37 x 24 dp white knob that becomes a clear glass lens, 1.75 x 1.6 times larger, while
+ * 420 ms; in a dark scheme the measured iOS ones by default, see [defaultSwitchColors]) and a 37 x 24 dp white knob that becomes a clear glass lens, 1.56 x 1.6 times larger, while
  * pressed. Sizes, travel and timing are measured on iOS 27's switch; the lens strength, the disabled look
  * and [thumbContent] are authored. The same parameters as Material's.
  */

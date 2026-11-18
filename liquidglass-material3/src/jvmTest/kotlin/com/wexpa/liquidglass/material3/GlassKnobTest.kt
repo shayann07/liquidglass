@@ -92,9 +92,9 @@ class GlassKnobTest {
         onNodeWithTag("sw").performTouchInput { down(center) }
         mainClock.advanceTimeBy(1000)
         val held = onNodeWithTag(GlassKnobTestTag, useUnmergedTree = true).inDp(scale)
-        assertEquals(64.5f, held.width, 1.5f, "held width (measured outline 64.5 dp +-1)")
+        assertEquals(57.8f, held.width, 1f, "held width (measured 57.8 dp, was 64.5 read off the tap peak)")
         assertEquals(38.5f, held.height, 1.5f, "held height (measured outline 38.5 dp +-1)")
-        assertEquals(1.75f, held.width / rest.width, .05f, "width ratio (measured 1.75)")
+        assertEquals(1.56f, held.width / rest.width, .03f, "width ratio (measured 1.56, was 1.75)")
         assertEquals(1.6f, held.height / rest.height, .05f, "height ratio (measured 1.6)")
         assertEquals(rest.centerX, held.centerX, .5f, "the lens grows around the knob's centre")
         assertEquals(rest.centerY, held.centerY, .5f)

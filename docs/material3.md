@@ -77,7 +77,7 @@ The glass `Scaffold` is the root: it records the screen once and every glass com
 | `FloatingActionButton`, `SmallFloatingActionButton`, `LargeFloatingActionButton`, `ExtendedFloatingActionButton` | prominent glass tinted with `containerColor` |
 | `Card` (both), `ElevatedCard`, `OutlinedCard` | frosted glass panels; a clickable card is interactive glass |
 | `AssistChip`, `FilterChip`, `InputChip`, `SuggestionChip` | glass capsules; a selected chip is prominent glass |
-| `Switch` | an iOS switch: a 63 x 28 dp track (in a dark scheme the measured iOS on green and off grey, otherwise the theme colours) and a 37 x 24 dp knob (measured) that turns into a clear glass lens 1.75 x 1.6 times larger while pressed |
+| `Switch` | an iOS switch: a 63 x 28 dp track (in a dark scheme the measured iOS on green and off grey, otherwise the theme colours) and a 37 x 24 dp knob (measured) that turns into a clear glass lens 1.56 x 1.6 times larger while pressed |
 | `Slider` | iOS's thin continuous 4 dp track in the primary colour, running under the thumb's whole travel, and a 24 x 16 dp opaque white thumb that does not change while dragged (measured on Safari's slider) |
 | `SingleChoiceSegmentedButtonRow`, `SegmentedButton` | iOS's segmented control: a glass capsule with a lens selection |
 | `MultiChoiceSegmentedButtonRow`, `SegmentedButton(checked)` | a glass capsule; checked segments are prominent glass |

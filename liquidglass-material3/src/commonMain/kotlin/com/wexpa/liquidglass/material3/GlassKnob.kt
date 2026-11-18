@@ -44,8 +44,13 @@ internal object KnobSpec {
     /** Measured: 65-67 px rest to rest (63 - 37 - 2 x 2). */
     val KnobTravel = 22.dp
 
-    /** Measured: the held knob's outline is 193-200 x 113-117 px, 1.75 and 1.6 times the rest knob (+-3 px). */
-    const val HeldScaleX = 1.75f
+    /**
+     * Measured, settled hold (I-menus-dark, slow-drag holds 30.63-31.21 s and 32.83-33.43 s, n = 73): width 173.35 +- 0.27 px =
+     * 57.8 dp = 1.56 times the 37 dp knob (cap-arc circle fits, validated on the resting knob to 0.07 px), height 115.00 px =
+     * 1.6 times. The earlier 1.75 was read off the soft-edged tap peak (193-200 px), which overshoots. The press spring's
+     * overshoot takes the width to 1.63 times at the peak, as measured (1.62-1.64).
+     */
+    const val HeldScaleX = 1.56f
     const val HeldScaleY = 1.6f
     val HeldWidth: Dp get() = KnobWidth * HeldScaleX
     val HeldHeight: Dp get() = KnobHeight * HeldScaleY
@@ -96,7 +101,7 @@ internal const val GlassKnobTestTag = "liquidglass:knob"
 internal const val SliderThumbTestTag = "liquidglass:sliderThumb"
 
 /**
- * The switch knob: an opaque white pill at rest, a clear glass lens 1.75 x 1.6 times larger while
+ * The switch knob: an opaque white pill at rest, a clear glass lens 1.56 x 1.6 times larger while
  * [held]. Sized in layout, not scaled, so the lens samples and refracts at its true size; only this
  * node is measured again per frame.
  */
