@@ -6,6 +6,18 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Menus and sheets on measured iOS 27 material (#102, #204). `GlassStyle.menu(dark = true)` is now iOS 27's pop-up menu,
+  measured on the Quick Look title-pill menu: black at 0.7047 over a 53.14/255 lift, bow 95.22/255, 8.17 dp blur, no detail
+  term (2.80 levels rms over 17 greys, 3.11 over 8 stripe cases). The light menu stays the Safari `<select>` fit (no light
+  pop-up menu was recorded). New: `GlassStyle.sheet(dark)` and `GlassMaterialDefaults.sheet`, measured on iOS 27's share
+  sheet: dark black at 0.7164, lift 54.10/255, bow 96.21/255, 7.17 dp; light white at 0.5664, lift 0.64/255, bow 32.72/255,
+  8.67 dp; no detail term (dark 3.00 / 2.79, light 2.25 / 1.82 levels rms over greys / stripes). Rim, shadow, corner and
+  colour are not measured; the rim fields are `inApp`'s. Device frames: [review/atlas/menu-sheet-2026-11-18](review/atlas/menu-sheet-2026-11-18/README.md).
+  - Default look changed: the dark `DropdownMenu` (and any dark `GlassStyle.menu(dark = true)`) is lighter in the shadows
+    (black reads 59, was 32) and slightly less blurred (8.17 dp, was 9.9). `ModalBottomSheet` draws the measured sheet
+    (was the card panel): frosted, with no fine detail of what is beneath. Opt out: `ModalBottomSheet(glass = GlassMaterialDefaults.panel)`.
+  - Known difference, open: iOS does not dim the page behind the share sheet; `ModalBottomSheet` keeps its scrim.
+
 - Switch, Slider and RangeSlider (liquidglass-material3) use measured geometry and timing (#205). Switch: 63 x 28 dp track, 37 x 24 dp knob, 2 dp inset, 22 dp travel; held, the knob is a clear glass lens 64.75 x 38.4 dp (1.75 x 1.6 of rest) sized in layout around the knob's centre; press peaks about 100 ms in, release settles in 133 ms, travel is a critically damped spring (90 percent in 6-7 frames, no overshoot), the track colour fades over 420 ms. Slider and RangeSlider: 4 dp track, 24 x 16 dp opaque white thumb with a soft shadow, no lens, no press scale. No public API change; sizes live in an internal KnobSpec.
   - Default look changed: Switch track 62 -> 63 dp, knob travel 20 -> 22 dp, held knob was 1.4x scale with Lens(1.25) now 1.75 x 1.6 clear lens; Slider/RangeSlider track 6 -> 4 dp, thumb 38 x 24 dp glass lens on drag -> 24 x 16 dp opaque white with no change on drag. Material theme colours are unchanged (the measured iOS green (47,210,88) and grey (90,90,94) are not applied by default: theming decision).
   Pixel 7 (release build of 1233f7bd, Material showcase, one screenshot read by eye to about 2 px): slider thumb about

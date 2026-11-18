@@ -84,25 +84,48 @@ object GlassMaterial {
     internal fun labToneCurve(dark: Boolean): Float = if (dark) 101.01f / 255f else 0f
 
     /**
-     * Menu panel (#204), fitted on iOS 27's Safari `<select>` popup in `M-select-{dark,light}` and nothing else
-     * (video, HDR10 decoded, 17 flat greys and 12 stripe cases per appearance; panel interior only, no rim,
-     * shadow or corner). `lin = B`, then the tone: a pure blur with no detail term, where Regular has
-     * `lin = B + k (D - B) + c |D - B|` with k 0.277. Sigma of B: dark 29.7 px = 9.9 dp, light 35.4 px = 11.8 dp
-     * (Regular: 15.5 dp). The fitted k (0.018 dark, 0.021 light) and c (-0.019, +0.037) are within noise and are
-     * set to exactly 0 ([GlassStyle.menu] has `fineShare` and `detailLift` 0).
+     * Menu panel. Dark (#102): iOS 27's pop-up menu, measured on the Quick Look title-pill menu (`menu-dark`,
+     * cross-checked on a second take within 0.22 levels; video, HDR10 decoded, panel interior only, no rim, shadow
+     * or corner). Light (#204): the Safari `<select>` popup (`M-select-light`), the only light menu recorded.
+     * `lin = B`, then the tone: a pure blur with no detail term, where Regular has `lin = B + k (D - B) + c |D - B|`
+     * with k 0.277. Sigma of B: dark 24.5 px = 8.17 dp (the step-edge fit the tone table was paired with; the edges
+     * agree on 7.8 to 8.3 dp, and a wider tail near 11 dp is not modelled), light 35.4 px = 11.8 dp. The detail
+     * residual is about 1 % dark and 2 % light, within noise, so `fineShare` and `detailLift` are exactly 0.
+     * The dark `<select>` panel is darker in the shadows (black reads 32 there, 59 on the pop-up menu); it is a
+     * different surface and is not used.
      */
-    internal fun menuWideKernel(dark: Boolean): Dp = if (dark) 9.9.dp else 11.8.dp
+    internal fun menuWideKernel(dark: Boolean): Dp = if (dark) 8.17.dp else 11.8.dp
 
     /**
-     * Menu panel (#204), the tone over flat grey in the same form as [labOpacity], [labLift] and [labToneCurve]:
-     * dark `29.59 + 248.85 x - 155.87 x^2` (rms 1.01 levels over the 17 measured greys), light
-     * `135.06 + 159.10 x - 35.25 x^2` (rms 1.38, clipping at 255 from about in 232). Dark: black at 0.6354, lift
-     * 29.59/255, bow 155.87/255. Light: white at 0.5143, lift 3.91/255, bow 35.25/255. The dark bow is 1.54 times
-     * Regular's: output peaks at 129 near in 200 and falls to 122 at white.
+     * Menu panel, the tone over flat grey in the same form as [labOpacity], [labLift] and [labToneCurve]: dark
+     * (#102) `53.14 + 170.52 x - 95.22 x^2`, fitted on the 16 measured greys of the pop-up menu (rms 2.77 levels,
+     * worst 6.6 at grey 48; the table steps by 15 levels between 48 and 64, which no smooth tone follows); light
+     * (#204) `135.06 + 159.10 x - 35.25 x^2` (rms 1.38, clipping at 255 from about in 232). Dark: black at 0.7047,
+     * lift 53.14/255, bow 95.22/255; output peaks near 129 at in 230. Light: white at 0.5143, lift 3.91/255, bow
+     * 35.25/255.
      */
-    internal fun menuOpacity(dark: Boolean): Float = if (dark) 0.6354f else 0.5143f
-    internal fun menuLift(dark: Boolean): Float = if (dark) 29.59f / 255f else 3.91f / 255f
-    internal fun menuToneCurve(dark: Boolean): Float = if (dark) 155.87f / 255f else 35.25f / 255f
+    internal fun menuOpacity(dark: Boolean): Float = if (dark) 0.7047f else 0.5143f
+    internal fun menuLift(dark: Boolean): Float = if (dark) 53.14f / 255f else 3.91f / 255f
+    internal fun menuToneCurve(dark: Boolean): Float = if (dark) 95.22f / 255f else 35.25f / 255f
+
+    /**
+     * Sheet (#102), measured on iOS 27's share sheet over the calibration chart (`sheet-dark`, cross-checked on an
+     * 18 s hold within 0.36 levels, and `sheet-light`; video, HDR10 decoded, interior at least 35 px inside the rim).
+     * `lin = B`, then the tone, as the menu: no detail term (residual about 1 % dark, 2.5 % light). Sigma of B, the
+     * step-edge fit each tone table was paired with: dark 21.5 px = 7.17 dp, light 26.0 px = 8.67 dp (a wider tail
+     * near 11 to 12 dp is not modelled). The page behind the sheet is not dimmed (ratio 1.000 in both appearances).
+     */
+    internal fun sheetWideKernel(dark: Boolean): Dp = if (dark) 7.17.dp else 8.67.dp
+
+    /**
+     * Sheet (#102), the tone over flat grey, fitted on the 17 measured greys: dark `54.10 + 168.53 x - 96.21 x^2`
+     * (rms 2.97 levels, worst 5.4), light `145.06 + 143.30 x - 32.72 x^2` (rms 2.20, worst 4.9). Dark: black at
+     * 0.7164, lift 54.10/255, bow 96.21/255. Light: white at 0.5664, lift 0.64/255, bow 32.72/255. The dark sheet and
+     * the dark pop-up menu are the same material within 1 to 2 levels; their blurs differ (7.17 against 8.17 dp).
+     */
+    internal fun sheetOpacity(dark: Boolean): Float = if (dark) 0.7164f else 0.5664f
+    internal fun sheetLift(dark: Boolean): Float = if (dark) 54.10f / 255f else 0.64f / 255f
+    internal fun sheetToneCurve(dark: Boolean): Float = if (dark) 96.21f / 255f else 32.72f / 255f
 
     /**
      * Lab fit, Tint 50 (#201): the colour transfer over flat colour, `tone(y) + (g0 + g1 y) (x - y)` for each channel

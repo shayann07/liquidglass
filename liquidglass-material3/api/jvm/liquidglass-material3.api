@@ -151,6 +151,7 @@ public final class com/wexpa/liquidglass/material3/GlassMaterialDefaults {
 	public final fun getPanel ()Lcom/wexpa/liquidglass/Glass;
 	public final fun getPanelBackdropSigma-D9Ej5fM ()F
 	public final fun getRegular (Landroidx/compose/runtime/Composer;I)Lcom/wexpa/liquidglass/Glass;
+	public final fun getSheet ()Lcom/wexpa/liquidglass/Glass;
 	public final fun getToolbar ()Lcom/wexpa/liquidglass/Glass;
 	public final fun prominent-Iv8Zu3U (JLandroidx/compose/runtime/Composer;II)Lcom/wexpa/liquidglass/Glass;
 }

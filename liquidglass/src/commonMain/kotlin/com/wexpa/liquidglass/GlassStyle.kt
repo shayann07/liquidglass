@@ -1212,14 +1212,13 @@ data class GlassStyle(
         )
 
         /**
-         * A menu or popover on iOS 27's Safari `<select>` panel (#204): a pure blur (9.9 dp sigma dark, 11.8 dp light),
-         * then a compressed tone, with no detail term (Regular keeps 0.277 of the fine detail; the menu keeps none).
-         * Fitted on that one panel's interior over flat greys and stripes, 2.1 levels rms dark and 3.1 light over 12
-         * stripe cases, and the tone within 3 levels of the 17 measured greys. Rim, shadow and corner are not
-         * measured: the rim fields are [inApp]'s. Open known difference: the Photos context menu (`COSG3073`, dark)
-         * reads 10 to 18 levels lighter than this fit predicts over plain patches (32 on the worst of seven), a different material or state that
-         * is not fitted here; [menu] without an argument is the earlier fit on that menu. The host dims the screen
-         * behind a menu (0.52 measured on the context menu, not on the `<select>`), and this style does not.
+         * A menu or popover: iOS 27's pop-up menu in the dark appearance (#102, measured on the Quick Look title-pill
+         * menu: black reads 59, the tone peaks near 129, 8.17 dp blur) and the Safari `<select>` panel in the light one
+         * (#204, 11.8 dp; no light pop-up menu was recorded). A pure blur, then a compressed tone, with no detail term
+         * (Regular keeps 0.277 of the fine detail; the menu keeps none). Panel interior only: rim, shadow and corner
+         * are not measured, and the rim fields are [inApp]'s. The page behind the title-pill menu was not dimmed;
+         * the Photos long-press menu dims it to 0.52 (measured), which is the host's job. [menu] without an argument is
+         * the earlier dark fit on the Photos context menu.
          */
         fun menu(dark: Boolean): GlassStyle = inAppEarlier(dark, GlassMaterial.DEFAULT_TINT_AMOUNT).copy(
             tint = (if (dark) Color.Black else Color.White).copy(alpha = GlassMaterial.menuOpacity(dark)),
@@ -1229,6 +1228,24 @@ data class GlassStyle(
             fineShare = 0f,
             detailLift = 0f,
             // As the lab material: one short reach, so the host takes the four-tap detail kernel.
+            blurRadius = GlassMaterial.labDetailReach,
+            legibility = 0f,
+            softDetail = 1f,
+        )
+
+        /**
+         * A sheet, measured on iOS 27's share sheet (#102) in both appearances: a pure blur (7.17 dp dark, 8.67 dp
+         * light), then a compressed tone (dark: black reads 59, the tone peaks near 129; light: black reads 145),
+         * with no detail term. Interior only: rim, shadow, corner and the grabber are not measured, and the rim fields
+         * are [inApp]'s. The page behind it is not dimmed.
+         */
+        fun sheet(dark: Boolean): GlassStyle = inAppEarlier(dark, GlassMaterial.DEFAULT_TINT_AMOUNT).copy(
+            tint = (if (dark) Color.Black else Color.White).copy(alpha = GlassMaterial.sheetOpacity(dark)),
+            tintLift = GlassMaterial.sheetLift(dark),
+            toneCurve = GlassMaterial.sheetToneCurve(dark),
+            wideKernel = GlassMaterial.sheetWideKernel(dark),
+            fineShare = 0f,
+            detailLift = 0f,
             blurRadius = GlassMaterial.labDetailReach,
             legibility = 0f,
             softDetail = 1f,

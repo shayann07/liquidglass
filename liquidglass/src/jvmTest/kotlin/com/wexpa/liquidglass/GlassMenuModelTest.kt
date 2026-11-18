@@ -11,14 +11,18 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 /**
- * `GlassStyle.menu(dark)` against the measured Safari `<select>` panel of #204 (`M-select-{dark,light}`),
- * with no private data: the style drawn through the production modifier over synthetic backdrops and read in
- * the interior zones, against the measured model `out = tone(blur(backdrop))`, a pure blur then the tone table.
- * The panel's rim, shadow and corner are not measured and not scored.
+ * `GlassStyle.menu(dark)` and `GlassStyle.sheet(dark)` against their measured panels, with no private data: the
+ * style drawn through the production modifier over synthetic backdrops and read in the interior zones, against the
+ * measured model `out = tone(blur(backdrop))`, a pure blur then the tone table. Menu: dark is iOS 27's pop-up menu
+ * (#102, the Quick Look title-pill menu), light the Safari `<select>` panel (#204, `M-select-light`). Sheet: the
+ * share sheet in both appearances (#102). Rim, shadow and corner are not measured and not scored.
  *
- * Held out, not a gate: the Photos context menu (`COSG3073`, dark, 281-283 s) reads 10 to 18 levels lighter than
- * this fit predicts over plain chart patches. [theHeldOutContextMenuStaysAnOpenKnownDifference] pins the
- * prediction half of that table so the difference stays visible; the fit was not changed to hide it (#204).
+ * The pop-up menu's grey table steps by 15 levels between greys 48 and 64, which no smooth tone follows, so its
+ * gate is per grey within 7 levels and 3.5 rms; the light `<select>` keeps its 3-level gate.
+ *
+ * Held out, not a gate: the Photos long-press menu (`COSG3073`, dark, 281-283 s) reads 11 to 31 levels lighter
+ * than the pop-up menu fit over plain chart patches, a third surface on a dimmed page.
+ * [theHeldOutContextMenuStaysAnOpenKnownDifference] pins both halves so the difference stays visible.
  */
 class GlassMenuModelTest {
     private val failures = mutableListOf<String>()
@@ -29,14 +33,33 @@ class GlassMenuModelTest {
     }
 
     private val greyIn = intArrayOf(0, 16, 32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192, 208, 224, 240, 255)
-    /** Measured on the `<select>` panel, flat greys, G channel (204-measured.md, "Tone"). */
-    private val darkTone = doubleArrayOf(32.3, 44.4, 57.0, 69.1, 81.0, 92.0, 101.0, 109.0, 116.0, 121.0, 125.0, 128.0, 129.0, 129.0, 128.0, 125.0, 122.0)
+    /**
+     * Measured bin medians over the 17 greys, BT.601 luma. Dark menu: the pop-up menu (#102 `menu-dark`; no pixel
+     * reaches 255, so its last entry repeats the plateau at 240). Light menu: the `<select>` panel (204-measured.md,
+     * G channel). Sheet: the share sheet (#102 `sheet-dark`, `sheet-light`).
+     */
+    private val darkTone = doubleArrayOf(58.6, 63.5, 70.7, 75.3, 90.2, 98.0, 101.0, 108.0, 118.0, 121.0, 126.0, 127.0, 128.0, 128.0, 128.0, 128.0, 128.0)
     private val lightTone = doubleArrayOf(137.0, 145.0, 154.0, 163.0, 172.0, 181.0, 189.0, 197.1, 205.0, 214.0, 222.0, 229.0, 236.0, 243.0, 248.6, 255.0, 255.0)
-    /** Fitted sigma of the blur, in px at 3x. */
-    private fun sigmaPx(dark: Boolean) = if (dark) 29.7 else 35.4
+    private val sheetDarkTone = doubleArrayOf(59.5, 66.0, 71.7, 77.0, 89.0, 95.7, 101.9, 106.0, 117.0, 120.6, 123.0, 128.0, 129.0, 129.0, 129.0, 127.8, 121.0)
+    private val sheetLightTone = doubleArrayOf(145.0, 157.9, 161.0, 166.0, 181.0, 188.0, 194.0, 199.0, 207.0, 217.0, 221.3, 232.6, 236.0, 240.0, 245.0, 250.0, 255.0)
 
-    private fun tone(v: Double, dark: Boolean): Double {
-        val table = if (dark) darkTone else lightTone
+    private enum class Panel { Menu, Sheet }
+
+    private fun style(panel: Panel, dark: Boolean) = if (panel == Panel.Menu) GlassStyle.menu(dark) else GlassStyle.sheet(dark)
+    private fun table(panel: Panel, dark: Boolean) = when (panel) {
+        Panel.Menu -> if (dark) darkTone else lightTone
+        Panel.Sheet -> if (dark) sheetDarkTone else sheetLightTone
+    }
+    /** The blur each tone table was paired with, in px at 3x. */
+    private fun sigmaPx(panel: Panel, dark: Boolean) = when (panel) {
+        Panel.Menu -> if (dark) 24.5 else 35.4
+        Panel.Sheet -> if (dark) 21.5 else 26.0
+    }
+    /** The `<select>` light panel keeps its 3-level gate; the #102 tables are noisier (see the class note). */
+    private fun greyGate(panel: Panel, dark: Boolean) = if (panel == Panel.Menu && !dark) 3.0 else 7.0
+
+    private fun tone(v: Double, dark: Boolean, panel: Panel = Panel.Menu): Double {
+        val table = table(panel, dark)
         val x = v.coerceIn(0.0, 255.0)
         var i = 0
         while (i < greyIn.size - 2 && greyIn[i + 1] < x) i++
@@ -73,17 +96,22 @@ class GlassMenuModelTest {
     }
 
     @Test
-    fun theMenuToneFollowsTheMeasuredPanelOverFlatGreys() {
-        for (dark in listOf(true, false)) {
-            val app = if (dark) "dark" else "light"
-            GlassLabScene(GlassStyle.menu(dark)).use { s ->
+    fun theMenuAndSheetToneFollowTheMeasuredPanelsOverFlatGreys() {
+        for (panel in Panel.values()) for (dark in listOf(true, false)) {
+            val app = "$panel ${if (dark) "dark" else "light"}"
+            GlassLabScene(style(panel, dark)).use { s ->
                 val zone = s.zone()
+                var sum = 0.0
                 for ((i, v) in greyIn.withIndex()) {
                     val ours = s.ours { _, _ -> v }
                     val got = zone.map { ours[it] }.average()
-                    val want = (if (dark) darkTone else lightTone)[i]
-                    check(abs(got - want) <= 3.0, "$app grey $v: ours %.1f, measured %.1f".format(got, want))
+                    val want = table(panel, dark)[i]
+                    sum += (got - want) * (got - want)
+                    check(abs(got - want) <= greyGate(panel, dark), "$app grey $v: ours %.1f, measured %.1f".format(got, want))
                 }
+                val rms = sqrt(sum / greyIn.size)
+                println("MENU tone $app: %.2f levels rms over ${greyIn.size} greys".format(rms))
+                check(rms <= 3.5, "$app tone: %.2f levels rms".format(rms))
             }
         }
         assertTrue(failures.isEmpty(), "${failures.size} menu tone gates failed:\n" + failures.joinToString("\n"))
@@ -93,9 +121,9 @@ class GlassMenuModelTest {
     fun stripesAndEdgesFollowABlurThenTone() {
         // Stripes of 16 and 32 px at two level pairs, vertical and horizontal: the interior mean within 4 levels of
         // tone(blur) over the same backdrop (the issue's gate; the source is video). Pooled rms is reported.
-        for (dark in listOf(true, false)) {
-            val app = if (dark) "dark" else "light"
-            GlassLabScene(GlassStyle.menu(dark)).use { s ->
+        for (panel in Panel.values()) for (dark in listOf(true, false)) {
+            val app = "$panel ${if (dark) "dark" else "light"}"
+            GlassLabScene(style(panel, dark)).use { s ->
                 val zone = s.zone()
                 var sum = 0.0
                 var n = 0
@@ -103,8 +131,8 @@ class GlassMenuModelTest {
                     val values = { x: Int, y: Int -> if ((((if (vertical) x else y)) / (period / 2)) % 2 == 0) lo else hi }
                     val ours = s.ours(values)
                     val grey = DoubleArray(s.width * s.height) { i -> values(i % s.width, i / s.width).toDouble() }
-                    val b = blur(grey, s.width, s.height, sigmaPx(dark))
-                    val model = DoubleArray(b.size) { tone(b[it], dark) }
+                    val b = blur(grey, s.width, s.height, sigmaPx(panel, dark))
+                    val model = DoubleArray(b.size) { tone(b[it], dark, panel) }
                     val rms = sqrt(zone.sumOf { (ours[it] - model[it]) * (ours[it] - model[it]) } / zone.size)
                     sum += rms * rms; n++
                     check(rms <= 4.0, "$app ${if (vertical) "v" else "h"}stripes $period $lo-$hi: %.2f levels rms".format(rms))
@@ -116,18 +144,22 @@ class GlassMenuModelTest {
     }
 
     @Test
-    fun theMenuIsMoreFrostedThanRegularByHavingNoDetailAndAMoreBowedTone() {
-        for (dark in listOf(true, false)) {
-            val menu = GlassStyle.menu(dark)
+    fun theMenuAndSheetAreMoreFrostedThanRegularByHavingNoDetailAndACompressedTone() {
+        for (panel in Panel.values()) for (dark in listOf(true, false)) {
+            val ours = style(panel, dark)
             val regular = GlassStyle.inApp(dark)
-            assertEquals(0f, menu.fineShare, "no detail share")
-            assertEquals(0f, menu.detailLift, "no one-sided detail term")
-            assertTrue(menu.fineShare < regular.fineShare, "the menu keeps less fine detail than Regular")
-            assertTrue(menu.toneCurve > 0f && (!dark || menu.toneCurve > regular.toneCurve * 1.5f), "dark bow is 1.54 times Regular's")
+            assertEquals(0f, ours.fineShare, "$panel: no detail share")
+            assertEquals(0f, ours.detailLift, "$panel: no one-sided detail term")
+            assertTrue(ours.fineShare < regular.fineShare, "$panel keeps less fine detail than Regular")
+            assertTrue(ours.toneCurve > 0f, "$panel: a bowed tone")
             // The wide kernel is smaller than Regular's 15.5 dp: "frosted" here is the missing detail term and the compressed tone.
-            assertEquals(if (dark) 9.9f else 11.8f, menu.wideKernel.value, 1e-4f)
-            assertTrue(menu.wideKernel < regular.wideKernel)
+            val sigmaDp = (sigmaPx(panel, dark) / 3.0).toFloat()
+            assertEquals(sigmaDp, ours.wideKernel.value, 0.01f, "$panel blur is the sigma its tone table was paired with")
+            assertTrue(ours.wideKernel < regular.wideKernel)
         }
+        // The dark pop-up menu and the dark sheet are the same material within 3 levels up to grey 240 (the menu has
+        // no reading at 255).
+        for (i in 0 until greyIn.size - 1) assertTrue(abs(darkTone[i] - sheetDarkTone[i]) <= 3.0, "dark menu and sheet at grey ${greyIn[i]}")
     }
 
     @Test
@@ -142,11 +174,11 @@ class GlassMenuModelTest {
 
     @Test
     fun theHeldOutContextMenuStaysAnOpenKnownDifference() {
-        // 204-measured.md, held-out check: blurred backdrop B over plain chart patches, the dark fit's prediction, and what
-        // the Photos menu showed. The fit predicts 129 / 129 / 123 / 129 / 125 / 125 / 117; iOS showed 139 / 140 / 138 /
-        // 147 / 157 / 143 / 143: 10 to 32 levels lighter, 10 to 18 against the plateau (gate 5 rms, none over 10: not met). Not re-fitted.
+        // 204-measured.md, held-out check: blurred backdrop B over plain chart patches, the dark pop-up menu table's
+        // prediction, and what the Photos long-press menu showed. The table predicts 128 / 128 / 123 / 128 / 126 / 126 /
+        // 118; iOS showed 139 / 140 / 138 / 147 / 157 / 143 / 143: 11 to 31 levels lighter. Not re-fitted.
         val b = doubleArrayOf(193.0, 212.0, 151.0, 205.0, 159.0, 161.0, 130.0)
-        val predicted = doubleArrayOf(129.0, 129.0, 123.0, 129.0, 125.0, 125.0, 117.0)
+        val predicted = doubleArrayOf(128.0, 128.0, 123.2, 128.0, 125.7, 126.1, 118.4)
         val observed = doubleArrayOf(139.0, 140.0, 138.0, 147.0, 157.0, 143.0, 143.0)
         for (i in b.indices) {
             assertEquals(predicted[i], tone(b[i], dark = true), 4.0, "prediction at B ${b[i]}")

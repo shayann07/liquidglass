@@ -204,7 +204,7 @@ fun ModalBottomSheet(
     sheetState: SheetState = rememberModalBottomSheetState(),
     sheetMaxWidth: Dp = 640.dp,
     shape: Shape = RoundedCornerShape(38.dp),
-    glass: Glass = GlassMaterialDefaults.panel,
+    glass: Glass = GlassMaterialDefaults.sheet,
     contentColor: Color = MaterialTheme.colorScheme.onSurface,
     scrimColor: Color = Scrim,
     dragHandle: @Composable (() -> Unit)? = { DragHandle() },

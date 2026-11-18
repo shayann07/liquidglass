@@ -5,7 +5,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 
-/** The menu material (#204): `DropdownMenu` draws the measured menu panel, in both appearances, and [GlassMaterialDefaults.panel] stays available. */
+/** The menu (#204, #102) and sheet (#102) materials: `DropdownMenu` and `ModalBottomSheet` draw the measured panels, in both appearances, and [GlassMaterialDefaults.panel] stays available. */
 class GlassMenuDefaultsTest {
     @Test fun theMenuDefaultIsTheMeasuredMenuPanelInBothAppearances() {
         for (dark in listOf(true, false)) {
@@ -19,6 +19,19 @@ class GlassMenuDefaultsTest {
             // The iOS 27 rim of the other Material panels.
             assertEquals(GlassMaterialDefaults.panel.style(dark)!!.bevel, ours.bevel, "rim, dark=$dark")
             assertNotEquals(GlassMaterialDefaults.panel.style(dark)!!.tint, ours.tint, "the menu is not the card panel, dark=$dark")
+        }
+    }
+
+    @Test fun theSheetDefaultIsTheMeasuredShareSheetInBothAppearances() {
+        for (dark in listOf(true, false)) {
+            val ours = GlassMaterialDefaults.sheet.style(dark)!!
+            val measured = GlassStyle.sheet(dark)
+            assertEquals(measured.wideKernel, ours.wideKernel, "wide kernel, dark=$dark")
+            assertEquals(measured.tint, ours.tint, "tint, dark=$dark")
+            assertEquals(measured.tintLift, ours.tintLift, "lift, dark=$dark")
+            assertEquals(measured.toneCurve, ours.toneCurve, "bow, dark=$dark")
+            assertEquals(0f, ours.fineShare, "no detail term, dark=$dark")
+            assertEquals(GlassMaterialDefaults.panel.style(dark)!!.bevel, ours.bevel, "rim, dark=$dark")
         }
     }
 }

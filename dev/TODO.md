@@ -2,6 +2,7 @@
 
 - [x] #205 geometry and timing; [ ] track colours, native thumb, light switch, drag stretch.
 - [x] #204 `menu(dark)`; [ ] held-out context menu (10-18 levels), rim and shadow, device capture.
+- [x] #102 dark `menu(dark)` on the measured pop-up menu, `sheet(dark)` on the share sheet, device frames; [ ] sheet scrim (iOS none), colour, rim and shadow, light pop-up menu (not recorded).
 - [x] #207 `Modifier.glassScrollEdge`; [ ] sample scene, collapse timing, Pixel frame times, Android blur.
 
 ## #206 Control Center tile (18 November, `feat/206-control-center`)
