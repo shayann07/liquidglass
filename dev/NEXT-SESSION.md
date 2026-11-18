@@ -18,6 +18,9 @@
 
 - `GlassToolbarGroup` added with its test; Material 3 bars built on it; docs and API dumps updated. Next: lead opens the follow-up
   issue (draft in .local/sxs/drafts/issue-102-91.md) and decides whether an alert should stay glass.
+## RESUME HERE (18 November): #112 search mode, branch `p3/112` (local)
+
+- Compose search mode is in `GlassSearch.kt` with tests; docs updated. Next: wire it into the sample's Phone scene, a replay variant and scorer, ABI dump, owner review of the end state (no circle) and of the authored motion.
 
 ## RESUME HERE (18 November): #206 Control Center tile, PR open
 

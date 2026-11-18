@@ -1,3 +1,7 @@
+## #112 search mode (18 November, `p3/112`)
+
+- [x] State, geometry (measured end state), expansion transition (authored), tests, docs. [ ] sample wiring, IME ride-up, Android back, Material 3 `NavigationBar`, ports, replay and `search112.py` scoring, 60 fps scoring of the motion.
+
 ## Controls bundle (18 November, `feat/205-204-207-controls`)
 
 - [x] #205 geometry and timing; press and release springs refitted to the visible lens (p3/205); [ ] track colours (owner decision: measured green 47,210,88 and grey 90,90,94 are not default), native thumb, light switch. Drag stretch: I-menus-dark holds (30.4-31.3 s, 32.6-33.5 s) are slow drags; width and height stay constant (178 x 115 px) while the lens moves 20 px, so no stretch at that speed; a fast drag is not recorded.

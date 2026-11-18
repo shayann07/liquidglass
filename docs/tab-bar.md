@@ -314,6 +314,33 @@ grows into it (10.7 dp at that end), as iOS 27's does, instead of stopping short
 through its lens, which ours cannot refract yet.
 [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/lens-over-search-2026-11-01/README.md).
 
+## Search mode: the button becomes a field
+
+`GlassTabBar` has an overload that takes a `GlassSearchState` and a `searchField` slot (#112). The row is the whole
+control: the bar, the gap and a search button at rest; tap the button and it widens to the left into your field while a
+round close button grows out of where it was and the bar gives way. The close button, Escape or `state.collapse()`
+reverses it from wherever the transition is, and the selected tab is untouched.
+
+```kotlin
+val search = rememberGlassSearchState()
+GlassTabBar(3, selected, { selected = it }, search,
+    searchField = { BasicTextField(query, { query = it }) },
+    modifier = Modifier.width(372.dp),
+) { index, isSelected -> Tab(index, isSelected) }
+```
+
+It is on by default for a bar given a `searchState`; a bar without one is unchanged. The field takes focus when search
+has opened; the keyboard is the system's, and keeping the row above it is the host's, like any bottom bar. Reduce Motion
+swaps the two states with no travel.
+
+Provenance. **Measured** (one recording, `ios_27_liquid_ui_sample_ref.MP4` at 40.5 s, 29 fps, 720 px wide, tone-mapped
+display colours): the open state is a field 47.7 dp tall and a close button 47.1 dp across, 9.2 dp apart, centred where the bar
+was, with no collapsed circle: the circle holding the selected tab's icon (as the audit read it) is only seen for a few
+frames while the bar narrows. **Authored**: the transition between (300 ms entering, 200 ms leaving, edges linear in
+progress, the bar's tabs fading by progress 0.6 and its material by 0.85, the close button growing from 0.25), because the
+morph spans two or three frames in that recording. A 60 fps take would turn it into a measured motion.
+Compose only for now: the Skia, .NET and npm ports and the Material 3 `NavigationBar` do not have search mode.
+
 ## Historical horizontal selector
 
 `V3()` and `Calm()` use the pose controller by default. The following older two-disk controller

@@ -322,6 +322,18 @@ release. Every default is measured off an iOS 26 tab bar; see [Tab bar](tab-bar.
 
 Put a shadow on `modifier` with `clip = false`; the held lens is taller than the bar.
 
+### Search mode
+
+```kotlin
+class GlassSearchState(initiallyExpanded: Boolean = false) { val expanded: Boolean; val fraction: Float; fun expand(); fun collapse() }
+@Composable fun rememberGlassSearchState(initiallyExpanded: Boolean = false): GlassSearchState
+@Composable fun GlassTabBar(itemCount: Int, selectedIndex: Int, onSelected: (Int) -> Unit, searchState: GlassSearchState,
+    searchField: @Composable () -> Unit, modifier: Modifier = Modifier, style: GlassTabBarStyle = ..., motionEnabled: Boolean = ...,
+    gap: Dp = 8.dp, searchLabel: String = "Search", closeLabel: String = "Close search", item: @Composable (Int, Boolean) -> Unit)
+```
+
+The search button expands into `searchField` and a close button (#112); see [Search mode](tab-bar.md#search-mode-the-button-becomes-a-field).
+
 ### `GlassTabBarStyle`
 
 `GlassTabBarStyle.Measured(dark, tintAmount)` is `Dark` with its bar on the measured material and, since

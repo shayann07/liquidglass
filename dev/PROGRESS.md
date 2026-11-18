@@ -3,6 +3,9 @@
 - `p3/91`: new `GlassToolbarGroup` (one `Glass.Toolbar` capsule behind a row of actions); Material 3 `BottomAppBar` and the top bars'
   action capsules now use it, with their earlier heights and paddings, so the layout is identical by construction (not pixel-compared). Geometry is authored (44 dp, 4 dp). The alert
   dialog stays authored (no recording; a system alert may be an opaque card). Tests: `GlassToolbarGroupTest`.
+## 18 November 2026 - #112 search mode (Claude, Sonnet builder, branch `p3/112`, not pushed)
+
+- `GlassSearch.kt`: `GlassSearchState`, `rememberGlassSearchState`, `GlassTabBar(..., searchState, searchField)` overload, `glassSearchRects` geometry. End state measured on frame 40.5 s of the iOS 27 sample reference (field 47.7 dp, close 47.1 dp, gap 9.2 dp; no collapsed circle in the end state); transition authored. Tests: `GlassTabBarSearchModeTest`. Open: sample wiring, IME inset, Android back, Material 3 wrapper, ports, a 60 fps scoring.
 
 ## 18 November 2026 - controls bundle #205 #204 #207 (Claude, Sonnet writer)
 
