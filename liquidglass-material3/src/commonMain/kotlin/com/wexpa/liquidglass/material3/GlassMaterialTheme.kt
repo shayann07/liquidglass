@@ -40,8 +40,8 @@ object GlassMaterialDefaults {
     /**
      * The in-app material ([GlassStyle.inApp], measured) with iOS 27's rim, also measured
      * (`docs/research/ios27-measurements-raw.md`): a chamfered edge highlight of +65 levels with a
-     * broad lobe, the dark contour outside the outline ([GlassStyle.outerContour], 0.61 in a dark
-     * appearance and 0.31 with a quarter left at the poles in a light one), light from straight
+     * broad lobe, the dark contour outside the outline ([GlassStyle.outerContour], 0.61 black in a dark
+     * appearance, a plus-darker 0.30 with 0.13 left at the poles in a light one), light from straight
      * above (0.0 degrees), and no dispersion (iOS 27's glass has none to 0.002 px). Choosing iOS 27's rim for Material components is authored; the core's
      * [Glass.Regular] keeps the iOS 26 material.
      */
@@ -128,8 +128,8 @@ private fun Ios27Rim(style: GlassStyle, dark: Boolean): GlassStyle = style.copy(
     bevelPeak = 0f,
     specular = 0.27f,
     specularPower = 2.6f,
-    outerContour = if (dark) 0.61f else 0.31f,
-    outerContourFloor = if (dark) 0f else 0.25f,
+    outerContour = if (dark) 0.61f else -0.30f,
+    outerContourFloor = if (dark) 0f else 0.13f,
     dispersion = 0f,
 )
 

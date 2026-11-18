@@ -303,10 +303,11 @@ half3 toneMappedTint(half3 tint, float bgLuma, float adapt) {
     return clamp(shifted * half(value), half3(0.0), half3(1.0));
 }
 
-// See GlassShaderSource: the outer contour's opacity for an outline normal [n] at [band].
+// See GlassShaderSource: the outer contour's strength for an outline normal [n] at [band] (black opacity when
+// uOuterContour.x > 0, plus-darker amount when < 0).
 float outerContourAlpha(float2 n, float band) {
     float side = pow(max(1.0 - abs(dot(n, uLight)), 0.0), 0.75);
-    return clamp(band * uOuterContour.x * mix(uOuterContour.y, 1.0, side), 0.0, 1.0);
+    return clamp(band * abs(uOuterContour.x) * mix(uOuterContour.y, 1.0, side), 0.0, 1.0);
 }
 
 half4 main(float2 coord) {
@@ -318,12 +319,14 @@ half4 main(float2 coord) {
     // into the outermost pixel, dimming the rim there and tying it to the backdrop.
     float coverage = clamp(0.5 - d, 0.0, 1.0);
     // The contour outside the merged outline (GlassStyle.outerContour), as in GlassShaderSource.
-    float outerBand = (uOuterContour.x > 0.0) ? clamp(1.0 - abs(d - 0.25) / 0.75, 0.0, 1.0) : 0.0;
+    float outerBand = (uOuterContour.x != 0.0) ? clamp((2.5 - d) / 2.0, 0.0, 1.0) : 0.0;
     if (coverage <= 0.0) {
         if (outerBand <= 0.0) return half4(0.0);
         float2 og = float2(fieldAt(local + float2(1.0, 0.0)) - fieldAt(local - float2(1.0, 0.0)),
             fieldAt(local + float2(0.0, 1.0)) - fieldAt(local - float2(0.0, 1.0)));
-        return half4(0.0, 0.0, 0.0, half(outerContourAlpha(og / max(length(og), 1e-5), outerBand)));
+        float s = outerContourAlpha(og / max(length(og), 1e-5), outerBand);
+        if (uOuterContour.x < 0.0) return half4(max(backdropAt(coord) - half3(half(s)), half3(0.0)), 1.0);
+        return half4(0.0, 0.0, 0.0, half(s));
     }
 
     // Normal from the gradient of the *merged* field, so the bevel follows the fused outline
@@ -471,7 +474,7 @@ half4 main(float2 coord) {
     // power 2.6). It applies only to resting glass that draws the 2026 outer contour, the styles it was fitted on;
     // the recorded Calm bar, whose rim was fitted on its own recording, the held lens and the legacy profile keep theirs.
     float measuredRest = step(0.5, uProfile) * (1.0 - step(1.5, uProfile));
-    float chamfer = measuredRest * step(0.0001, uOuterContour.x);
+    float chamfer = measuredRest * step(0.0001, abs(uOuterContour.x));
     float bevelBand = (peakAt < 0.5)
         ? smoothstep(mix(1.0, 0.835, chamfer) * uBevel, -0.201 * chamfer * uBevel, depth)
         : smoothstep(0.0, peakAt, depth) * smoothstep(uBevel, peakAt, depth);
@@ -510,7 +513,15 @@ half4 main(float2 coord) {
     col -= half3(half(rimDark * uEdgeShadow));
 
     half4 result = half4(clamp(col, half3(0.0), half3(1.0)), 1.0) * half(coverage);
-    if (outerBand > 0.0) result.a += half(outerContourAlpha(n, outerBand) * (1.0 - coverage));
+    if (outerBand > 0.0) {
+        float s = outerContourAlpha(n, outerBand);
+        if (uOuterContour.x < 0.0) {
+            // Plus-darker: the uncovered share shows the backdrop minus s, so the pixel is opaque.
+            result = half4(result.rgb + half(1.0 - coverage) * max(backdropAt(coord) - half3(half(s)), half3(0.0)), 1.0);
+        } else {
+            result.a += half(s * (1.0 - coverage));
+        }
+    }
     return result;
 }
 """

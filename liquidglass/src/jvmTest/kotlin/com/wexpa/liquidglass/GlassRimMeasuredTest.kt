@@ -25,7 +25,7 @@ class GlassRimMeasuredTest {
     // liquidglass-material3's Ios27Rim (GlassMaterialTheme.kt), copied: this module cannot depend on material3.
     private fun ios27Rim(dark: Boolean) = GlassStyle.toolbar(dark, 50f).copy(
         bevel = 1.6.dp, bevelPeak = 0f, specular = 0.27f, specularPower = 2.6f,
-        outerContour = if (dark) 0.61f else 0.31f, outerContourFloor = if (dark) 0f else 0.25f, dispersion = 0f,
+        outerContour = if (dark) 0.61f else -0.30f, outerContourFloor = if (dark) 0f else 0.13f, dispersion = 0f,
     )
 
     /** Rim excess at d = 0..12 along the pill's top run, over flat grey [g]. */

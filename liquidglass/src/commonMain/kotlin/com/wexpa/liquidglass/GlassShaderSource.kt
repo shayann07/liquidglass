@@ -357,11 +357,13 @@ half3 toneMappedTint(half3 tint, float bgLuma, float adapt) {
     return clamp(shifted * half(value), half3(0.0), half3(1.0));
 }
 
-// The outer contour's opacity at a pixel [band] deep in its profile, for an outline normal [n]:
-// zero at the lit poles (or uOuterContour.y of the side value), full at the unlit sides.
+// The outer contour's strength at a pixel [band] deep in its profile, for an outline normal [n]: zero at the lit
+// poles (or uOuterContour.y of the side value), full at the unlit sides. uOuterContour.x > 0 is the opacity of a
+// black layer (the dark appearance, multiplicative); x < 0 is the share of full scale a plus-darker blend removes
+// from the backdrop (the light appearance, additive: iOS 27 removes 76 levels at 128 and at 255, m202d).
 float outerContourAlpha(float2 n, float band) {
     float side = pow(max(1.0 - abs(dot(n, uLight)), 0.0), 0.75);
-    return clamp(band * uOuterContour.x * mix(uOuterContour.y, 1.0, side), 0.0, 1.0);
+    return clamp(band * abs(uOuterContour.x) * mix(uOuterContour.y, 1.0, side), 0.0, 1.0);
 }
 
 half4 main(float2 coord) {
@@ -375,17 +377,22 @@ half4 main(float2 coord) {
     // (Safari lab circles and capsules, m202c, 0.017 rms). The earlier 1.5 px smoothstep let 2/27 of the backdrop
     // into the outermost pixel, dimming the rim there and tying it to the backdrop.
     float coverage = clamp(0.5 - d, 0.0, 1.0);
-    // The contour outside the outline (GlassStyle.outerContour): about 1.5 px wide, centred
-    // 0.25 px outside, so the outermost wholly covered pixel is untouched, as measured.
-    float outerBand = (uOuterContour.x > 0.0) ? clamp(1.0 - abs(d - 0.25) / 0.75, 0.0, 1.0) : 0.0;
+    // The contour outside the outline (GlassStyle.outerContour): a ramp of 1 up to the outline's first outside pixel,
+    // falling linearly to 0 at 2.5 px, so the first three pixel centres outside weigh 1 : 0.5 : 0 and the outermost
+    // wholly covered pixel is untouched. iOS 27 measured 1 : 0.5 : 0 in both appearances, at the sides and the poles
+    // (Safari lab pill, unlit side and top pole, m202c; fitted by m202d, worst row error 1.1 levels).
+    float outerBand = (uOuterContour.x != 0.0) ? clamp((2.5 - d) / 2.0, 0.0, 1.0) : 0.0;
     if (coverage <= 0.0) {
         if (outerBand <= 0.0) return half4(0.0);
-        // Wholly outside: only the contour. Black at its opacity darkens what is behind it.
+        // Wholly outside: only the contour. Black at its opacity darkens what is behind it; the light appearance
+        // plus-darkens the backdrop instead, so this pixel is the backdrop minus a fixed amount, opaque.
         float oe = 1.0;
         float2 og = float2(sdShape(p + float2(oe, 0.0), halfSize) - sdShape(p - float2(oe, 0.0), halfSize),
             sdShape(p + float2(0.0, oe), halfSize) - sdShape(p - float2(0.0, oe), halfSize));
         float2 on = og / max(length(og), 1e-5);
-        return half4(0.0, 0.0, 0.0, half(outerContourAlpha(on, outerBand)));
+        float s = outerContourAlpha(on, outerBand);
+        if (uOuterContour.x < 0.0) return half4(max(backdropAt(coord) - half3(half(s)), half3(0.0)), 1.0);
+        return half4(0.0, 0.0, 0.0, half(s));
     }
     if (uDebugCoverage > 0.5) {
         // Padding/coordinate diagnostic (Astra round 7): the geometry, field, recording and draw-back path
@@ -756,7 +763,7 @@ half4 main(float2 coord) {
     // power 2.6). It applies only to resting glass that draws the 2026 outer contour, the styles it was fitted on;
     // the recorded Calm bar, whose rim was fitted on its own recording, the held lens and the legacy profile keep theirs.
     float measuredRest = measured * (1.0 - step(1.5, uProfile));
-    float chamfer = measuredRest * step(0.0001, uOuterContour.x);
+    float chamfer = measuredRest * step(0.0001, abs(uOuterContour.x));
     float bevelBand = (peakAt < 0.5)
         ? smoothstep(mix(1.0, 0.835, chamfer) * uBevel, -0.201 * chamfer * uBevel, depth)
         : smoothstep(0.0, peakAt, depth) * smoothstep(uBevel, peakAt, depth);
@@ -912,7 +919,13 @@ half4 main(float2 coord) {
     // Where the outline is partly covered, the contour fills the uncovered share (black, so only
     // the alpha grows).
     if (outerBand > 0.0 && uEndpointAlpha <= 0.5) {
-        result.a += half(outerContourAlpha(n, outerBand) * (1.0 - coverage));
+        float s = outerContourAlpha(n, outerBand);
+        if (uOuterContour.x < 0.0) {
+            // Plus-darker: the uncovered share shows the backdrop minus s, so the pixel is opaque.
+            result = half4(result.rgb + half(1.0 - coverage) * max(backdropAt(coord) - half3(half(s)), half3(0.0)), 1.0);
+        } else {
+            result.a += half(s * (1.0 - coverage));
+        }
     }
     return result;
 }
