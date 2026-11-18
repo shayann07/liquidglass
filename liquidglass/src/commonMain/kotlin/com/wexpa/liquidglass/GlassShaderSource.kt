@@ -759,8 +759,11 @@ half4 main(float2 coord) {
     lift = ((uLiftAdapt > 0.0) ? max(lift, 0.0) : lift) * mat;
     col += half3(half(lift));
     // Pressed and still, the body is brighter toward the light and darker away from it (#114). Zero adds nothing.
-    float2 gradePos = (local - 0.5 * uSize) / max(0.5 * min(uSize.x, uSize.y), 1.0);
-    col += half3(half(uPressGrade * dot(gradePos, normalize(uLight)) * tintCoverage * mat));
+    // Gated, not just scaled: normalize() of a zero light is NaN, and 0 * NaN would poison every pixel.
+    if (uPressGrade != 0.0 && dot(uLight, uLight) > 0.0) {
+        float2 gradePos = (local - 0.5 * uSize) / max(0.5 * min(uSize.x, uSize.y), 1.0);
+        col += half3(half(uPressGrade * dot(gradePos, normalize(uLight)) * tintCoverage * mat));
+    }
     // A pressed quick-action button (GlassInteraction.QuickAction) mixes its whole body toward white, as iOS's does. The branch
     // is skipped, so nothing is read or written, whenever the uniform is 0, which it is for every glass but a quick action.
     if (uPressWhite > 0.0) {
