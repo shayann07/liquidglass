@@ -54,10 +54,20 @@ public sealed class CalmInteraction
         if (reduced || scale == 0) { targetX = 0; targetY = 0; }
         else
         {
+            // A long bar resists only the part of the pull it answers (Compose glassPullCompliance): the sideways part
+            // scaled by its roundness, so a drag along the bar does not shorten its vertical pull.
+            var rx = dx;
+            if (options.PullShape == GlassPullShape.AreaPreserving)
+                rx = dx * Math.Clamp(2 * Math.Min(geometry.Width, geometry.Height) / Math.Max(geometry.Width, geometry.Height) - 1, 0, 1);
+            var rscale = Math.Max(Math.Abs(rx), Math.Abs(dy));
             // Normalize before computing length so enormous finite pulls remain finite.
-            var length = Hypot(dx / scale, dy / scale);
-            var resisted = limit * Math.Tanh(scale * .2 / limit * length) / .2;
-            targetX = dx / scale / length * resisted; targetY = dy / scale / length * resisted;
+            var compliance = 1.0;
+            if (rscale > 0)
+            {
+                var length = Hypot(rx / rscale, dy / rscale);
+                compliance = limit * Math.Tanh(rscale * .2 / limit * length) / .2 / (rscale * length);
+            }
+            targetX = dx * compliance; targetY = dy * compliance;
         }
         return Snapshot();
     }
@@ -156,12 +166,19 @@ public sealed class CalmInteraction
             var roundness = Math.Clamp(2 * Math.Min(w, h) / Math.Max(w, h) - 1, 0, 1);
             if (options.PullShape == GlassPullShape.AreaPreserving)
             {
-                var pull = Math.Clamp(travel * .2 / (Math.Min(w * sx, h * sy) * .5), 0, 1);
-                var strain = .047 * pull;
-                var u = strain * (nx * nx - ny * ny); var v = 2 * strain * nx * ny * roundness;
-                var magnitude = Hypot(u, v);
-                along = Math.Exp(magnitude); across = Math.Exp(-magnitude); angle = Math.Atan2(v, u) / 2;
-                var bias = .056 * Math.Min(w, h) * pull; ox = bias * nx; oy = bias * ny;
+                // A long bar takes only the pull across its spine (Compose GlassPull): a sideways drag leaves iOS 27's
+                // held Phone bar alone. A round surface keeps the whole pull.
+                var ax = horizontal.Value * roundness; var spine = Hypot(ax, vertical.Value);
+                if (spine > 0)
+                {
+                    var px = ax / spine; var py = vertical.Value / spine;
+                    var pull = Math.Clamp(spine * .2 / (Math.Min(w * sx, h * sy) * .5), 0, 1);
+                    var strain = .047 * pull;
+                    var u = strain * (px * px - py * py); var v = 2 * strain * px * py * roundness;
+                    var magnitude = Hypot(u, v);
+                    along = Math.Exp(magnitude); across = Math.Exp(-magnitude); angle = Math.Atan2(v, u) / 2;
+                    var bias = .056 * Math.Min(w, h) * pull; ox = bias * px; oy = bias * py;
+                }
             }
             else
             {

@@ -248,7 +248,8 @@ bar-local x to a tab.
 
 `DrawCalmBar(..., clear: true)` (and `CalmSelectorMaterial.Bar(..., clear: true)`) draws Compose's
 `GlassTabBarStyle.CalmClear()` bar: the clearer glass of WhatsApp's and the App Store's dark iOS
-bars (black at 0.10 instead of 0.41, same lift, legibility 2 and a 7 dp blur; light appearance unchanged).
+bars: the dark bar is the measured in-app material with Calm's bar-only fields (18 November, #203), light
+appearance unchanged. The previous preset, before 18 November, was black at 0.10, legibility 2 and a 7 dp blur.
 
 `DrawSelector` follows Compose's held lens fully (18 October): its rim band is the material's
 `bodyBandScale` share of the body's own (0.3 in Calm), and light Calm's lens casts its contact shadow

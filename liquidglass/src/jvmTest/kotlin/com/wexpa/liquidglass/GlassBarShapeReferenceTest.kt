@@ -63,7 +63,7 @@ class GlassBarShapeReferenceTest {
         val w = 834f; val h = 186f; val press = 1.05f
         val limit = h * press * interaction.pullLimit
         fun shape(x: Float, y: Float): GlassPullDeformation {
-            val compliance = glassPullTargetScale(hypot(x, y), interaction.pullFollow, limit)
+            val compliance = glassPullCompliance(x, y, w, h, interaction.pullShape, interaction.pullFollow, limit)
             return glassMaterialPull(w,h,h/2,3f,press,press,x*compliance,y*compliance,limit,interaction)
         }
         for (degrees in 0 until 360 step 5) {
@@ -82,6 +82,22 @@ class GlassBarShapeReferenceTest {
             "a20dp pull must not saturate the authored input response")
         assertTrue(abs(moderate.translationY)<1.3f,"ordinary pull reached its drawing limit early")
         assertEquals(GlassPullDeformation.None,shape(0f,0f))
+        // iOS 27's held Phone bar keeps its edges through a sideways drag (18 November takes: left edge 42-43 px
+        // through a right drag, 63 -> 42 only at the press); the bar answers the vertical part of a pull only.
+        assertEquals(GlassPullDeformation.None,shape(10000f,0f),"a sideways pull reshaped the bar")
+        assertEquals(GlassPullDeformation.None,shape(-60f,0f),"a sideways pull reshaped the bar")
+        val vertical = glassMaterialPull(w,h,h/2,3f,press,press,0f,-40f,limit,interaction)
+        assertEquals(vertical,glassMaterialPull(w,h,h/2,3f,press,press,90f,-40f,limit,interaction),
+            "a diagonal pull must act as its vertical part alone")
+        // The resistance is taken on that vertical part too: a drag along the bar must not shorten the pull up.
+        // Compared as geometry: a pure vertical stretch reads +-90 degrees depending on the sign of a zero.
+        for ((x, y) in listOf(300f to -60f, -2000f to -400f)) {
+            val alone = shape(0f, y); val dragged = shape(x, y)
+            assertEquals(alone.along, dragged.along, "a sideways drag along the bar changed its vertical pull")
+            assertEquals(alone.across, dragged.across, "a sideways drag along the bar changed its vertical pull")
+            assertEquals(alone.translationY, dragged.translationY, "a sideways drag along the bar changed its vertical bias")
+            assertEquals(0f, abs(dragged.translationX), "a sideways drag moved the bar sideways")
+        }
         assertEquals(GlassPullShape.Adaptive,GlassInteraction.Calm.pullShape,
             "navigation's relative deformation must not change card defaults")
     }

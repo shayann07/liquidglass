@@ -136,7 +136,9 @@ and with its 0.3 band and neck (right). Bottom: the light held lens at the searc
 `Calm()` is fitted to the Phone app's bar, which passes about 0.59 of the page under it. WhatsApp's
 and the App Store's bars on the same device pass about 0.9: over a grey card WhatsApp's bar reads 54
 where the Phone material gives 46, while over black both read 32. `CalmClear()` is dark Calm with
-that bar; its resting pill and held lens look through the bar, so they follow it.
+that bar; its resting pill and held lens look through the bar, so they follow it. Since 18 November
+(#203) the dark bar is the measured in-app material (`GlassStyle.toolbar(dark = true)`, the Safari-lab
+fit) with Calm's bar-only fields (rest map, cap lens, rim, edge fold, soft detail).
 
 ```kotlin
 GlassTabBar(itemCount = 5, selectedIndex = selected, onSelected = { selected = it },
@@ -144,20 +146,21 @@ GlassTabBar(itemCount = 5, selectedIndex = selected, onSelected = { selected = i
     modifier = Modifier.width(348.dp)) { index, isSelected -> Tab(index, isSelected) }
 ```
 
-| Display colours, at rest | iOS | `CalmClear()` | `Calm()` |
+| Display colours, at rest (desktop render; the Pixel 7 is within 1 level) | iOS | `CalmClear()` | `Calm()` |
 | :-- | --: | --: | --: |
-| WhatsApp bar / pill over its grey card (23) | 54 / 30 | 53 / 31 | 46 / 24 |
-| WhatsApp bar / pill over its chats page (10) | 43 / 19 | 41 / 19 | 38 / 16 |
-| App Store plain bar over its card, four gaps | 67 / 65 / 64 / 59 | 66 / 64 / 63 / 58 | 54 / 53 / 52 / 49 |
-| Any bar over black | 32 | 32 | 32 |
+| Bar over flat pages 0 / 10 / 23 / 28 (WhatsApp and App Store recordings) | 32 / 43 / 54 / 58 | 32 / 42 / 54 / 59 | 32 / 38 / 46 / - |
+| Bar over the App Store's blue card (R / G / B) | 116 / 167 / 219 | 122 / 170 / 220 | - |
+| Bar over the App Store's orange card (R / G / B) | 209 / 162 / 79 | 211 / 164 / 85 | - |
 
-iOS's chats page has text under the bar, so its 43 sits over slightly more than the bare page our
-scene uses. iOS also compresses bright text under that bar: over the App Store's headline its band
-reads p50 / p75 69 / 80, the text one faint, soft copy. `CalmClear()` raises its tint where the page
-under it has contrast (`legibility` 2) and blurs the text under it (7 dp), which leaves a plain card
-alone and gives 68 / 79 (18 October; `legibility` 2.5 at the Phone bar's 1.5 dp gave 67 / 98, with dark
-halos round the letters). In light appearance `CalmClear()` is `Calm()` with WhatsApp's resting pill. The CanvasKit and .NET ports
-take it as `clear` on the bar material (`calmBarMaterial({clear: true})`, `CalmSelectorMaterial.Bar(..., clear: true)`).
+Evidence: [tab-bar-material-2026-11-18](https://github.com/shayann07/liquidglass/blob/main/review/atlas/tab-bar-material-2026-11-18/README.md).
+Not yet scored on the measured bar: the band over bright text (iOS's headline band reads p50 / p75 69 / 80).
+
+Before 18 November (kept as the earlier result): `CalmClear()` was dark Calm with black at 0.10 instead of
+0.41 over the same lift, `legibility` 2 and a 7 dp blur. It read 53 over the grey card and 68 / 79 over the
+headline (`legibility` 2.5 at the Phone bar's 1.5 dp gave 67 / 98, with dark halos round the letters), but
+30 to 45 levels too bright over the App Store's coloured cards. In light appearance `CalmClear()` is `Calm()`
+with WhatsApp's resting pill. The CanvasKit and .NET ports take it as `clear` on the bar material
+(`calmBarMaterial({clear: true})`, `CalmSelectorMaterial.Bar(..., clear: true)`).
 
 ## Light appearance
 
@@ -239,8 +242,9 @@ against 913. The CanvasKit and .NET ports take the same option (`calmSelectorBar
 *Our renders only: the sample `WhatsAppScene` with neutral placeholders (a plain disc for the
 profile tab), desktop GPU replay at 3x, branch `claude/parity-2` after f94d518. Yellow ticks mark
 iOS's tab centres measured on the recording; blue ticks mark where equal shares would put them.
-Over the same grey card, iOS's bar reads 54 and `Calm()`'s 46; [`CalmClear()`](#a-clearer-bar)
-reads 53.*
+Over the same grey card, iOS's bar reads 54 and `Calm()`'s 46; `CalmClear()` read 53 in this replay
+(the earlier preset).* Since 18 November `CalmClear()` reads 54 there on the measured bar
+([18 November evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/tab-bar-material-2026-11-18/README.md); this screenshot was not retaken).
 
 ## A neighbouring control: the search button
 

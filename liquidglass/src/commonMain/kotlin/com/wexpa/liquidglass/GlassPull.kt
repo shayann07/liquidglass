@@ -17,17 +17,21 @@ internal fun glassMaterialPull(
     targetLimit: Float, interaction: GlassInteraction,
 ): GlassPullDeformation {
     if (interaction.pullShape == GlassPullShape.AreaPreserving) {
-        val length = kotlin.math.hypot(pullX, pullY)
-        if (length < 1e-5f || width <= 0f || height <= 0f || targetLimit <= 0f || !targetLimit.isFinite())
-            return GlassPullDeformation.None
+        if (width <= 0f || height <= 0f) return GlassPullDeformation.None
+        val roundness = glassAreaPreservingRoundness(width, height)
+        // A long bar answers the part of the pull across its spine only: iOS 27's held Phone bar keeps its edges
+        // while the finger drags along it (the lens travels instead; 18 November takes, left edge 42-43 px through a
+        // right drag), and the up pull is the measured T04 law below. A round surface keeps the whole pull.
+        val alongX = pullX * roundness
+        val length = kotlin.math.hypot(alongX, pullY)
+        if (length < 1e-5f || targetLimit <= 0f || !targetLimit.isFinite()) return GlassPullDeformation.None
         val amount = (length * interaction.pullFollow / targetLimit).coerceIn(0f, 1f)
         // Authored spatial fit: 834x186 pressed1.05, then exp(+/-.047) gives835.49x204.70.
         // The full T04 sequence couples narrowing with growth; the previous absolute-width
         // subtraction gave873x198 instead. Timing/input gain remain authored.
         // Do not apply this relative law to generic large cards.
         val strain = .047f * amount
-        val nx = pullX / length; val ny = pullY / length
-        val roundness = (2f * min(width, height) / maxOf(width, height) - 1f).coerceIn(0f, 1f)
+        val nx = alongX / length; val ny = pullY / length
         // Remove shear in log space, preserving determinant1 even for diagonal pulls on bars.
         // A long bar stays level; a round surface retains the full directional response.
         val u = strain * (nx * nx - ny * ny)
@@ -167,6 +171,23 @@ internal fun glassFreeLanding(
 }
 
 /** Smooth radial compliance: linear at the origin, progressively resistant, with no dead zone. */
+/** How much of a pull's sideways part a [GlassPullShape.AreaPreserving] surface answers: 0 for a horizontal bar
+ * at least twice as wide as it is high, 1 for a round surface. */
+internal fun glassAreaPreservingRoundness(width: Float, height: Float): Float =
+    (2f * min(width, height) / maxOf(width, height) - 1f).coerceIn(0f, 1f)
+
+/**
+ * The resistance a pull's target takes ([glassPullTargetScale]), computed from the part of the pull the surface
+ * answers. For [GlassPullShape.AreaPreserving] that is the sideways part scaled by the roundness, so a drag along
+ * a long horizontal bar does not shorten its vertical pull; every other shape resists the whole pull.
+ */
+internal fun glassPullCompliance(pullX: Float, pullY: Float, width: Float, height: Float, shape: GlassPullShape?,
+    follow: Float, centreLimit: Float): Float {
+    val x = if (shape == GlassPullShape.AreaPreserving && width > 0f && height > 0f)
+        pullX * glassAreaPreservingRoundness(width, height) else pullX
+    return glassPullTargetScale(sqrt(x * x + pullY * pullY), follow, centreLimit)
+}
+
 internal fun glassPullTargetScale(length: Float, follow: Float, centreLimit: Float): Float {
     if (!centreLimit.isFinite() || length <= 1e-5f || follow <= 0f) return 1f
     return glassBoundedTravel(length * follow, centreLimit) / (length * follow)

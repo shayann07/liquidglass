@@ -445,8 +445,8 @@ internal fun Modifier.liquidGlassCore(
     val pullEnabled = interaction?.pull == true
     val pullCentreLimit = minOf(measured.width * balloonX, measured.height * balloonY) *
         (interaction?.pullLimit ?: Float.POSITIVE_INFINITY)
-    val pullLength = kotlin.math.sqrt(press.pullX * press.pullX + press.pullY * press.pullY)
-    val compliance = glassPullTargetScale(pullLength, interaction?.pullFollow ?: 0f, pullCentreLimit)
+    val compliance = glassPullCompliance(press.pullX, press.pullY, measured.width, measured.height,
+        interaction?.pullShape, interaction?.pullFollow ?: 0f, pullCentreLimit)
     val pullDown = pullEnabled && press.pulling
     // animateFloatAsState hands each retarget the running velocity. Cancelling a parent
     // LaunchedEffect first lets Animatable.endAnimation reset it to zero on EVERY move,
