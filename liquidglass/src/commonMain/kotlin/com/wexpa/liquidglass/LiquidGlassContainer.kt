@@ -69,8 +69,6 @@ internal fun LiquidGlassContainer(
     mergeDistance: Dp = 24.dp,
     content: @Composable LiquidGlassContainerScope.() -> Unit,
 ) {
-    @Suppress("NAME_SHADOWING")
-    val light = style.litFrom(light)
     val members = remember { mutableStateListOf<GlassMember>() }
     val glassLayer = rememberGraphicsLayer()
     // The wide tone kernel's strip; see Modifier.liquidGlass.

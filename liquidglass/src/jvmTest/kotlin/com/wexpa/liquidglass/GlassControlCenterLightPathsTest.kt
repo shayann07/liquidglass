@@ -17,13 +17,15 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
- * The overhead light of [GlassStyle.controlCenterTile] (#206) reaches every host that draws a style, not only the lone
- * `liquidGlass` modifier the rim test uses: the merged-glass [LiquidGlassContainer] and the no-root fallback of
- * `Modifier.glassEffect`. In each, the tile with the default light must draw exactly what the same tile draws when the host
- * passes the vertical light explicitly, and must differ from an unmarked copy of the tile, which keeps the default (tilted) light.
+ * The default light is straight overhead (#206), in every host that draws a style, not only the lone `liquidGlass` modifier
+ * the rim test uses: the merged-glass [LiquidGlassContainer] and the no-root fallback of `Modifier.glassEffect`. In each, the
+ * tile with the default light must draw exactly what it draws when the host passes the vertical light explicitly, a copy of
+ * the tile must draw the same (no per-style marker to lose), and the light before 1.1.0 must draw something else, which
+ * proves the comparison can tell two lights apart in this host.
  */
 class GlassControlCenterLightPathsTest {
     private val overhead = GlassLight(0f, -1f)
+    private val tiltedBefore110 = GlassLight(-0.35f, -0.94f)
     private val grey = IntArray(900 * 480) { GlassLabScene.grey(56) }
 
     private fun container(style: GlassStyle, light: GlassLight): IntArray =
@@ -34,9 +36,8 @@ class GlassControlCenterLightPathsTest {
         val tile = GlassStyle.controlCenterTile()
         val byDefault = container(tile, GlassLight.Default)
         assertContentEquals(container(tile, overhead), byDefault, "container: the tile with the default light equals the tile with the explicit vertical light")
-        // copy() is unmarked (a pending owner decision); here it is only the control: with the default light it must render differently,
-        // which proves the comparison above can tell the two lights apart in this host.
-        assertFalse(container(tile.copy(), GlassLight.Default).contentEquals(byDefault), "container: an unmarked copy keeps the tilted default light and must differ")
+        assertContentEquals(byDefault, container(tile.copy(), GlassLight.Default), "container: a copy of the tile draws with the same light")
+        assertFalse(container(tile, tiltedBefore110).contentEquals(byDefault), "container: the tilted light must render differently")
     }
 
     private fun fallback(glass: Glass): IntArray {
@@ -59,7 +60,8 @@ class GlassControlCenterLightPathsTest {
         val tile = GlassStyle.controlCenterTile()
         val byDefault = fallback(Glass(tile))
         assertContentEquals(fallback(Glass(tile, light = overhead)), byDefault, "fallback: the tile with the default light equals the tile with the explicit vertical light")
-        assertFalse(fallback(Glass(tile.copy())).contentEquals(byDefault), "fallback: an unmarked copy keeps the tilted default light and must differ")
+        assertContentEquals(byDefault, fallback(Glass(tile.copy())), "fallback: a copy of the tile draws with the same light")
+        assertFalse(fallback(Glass(tile, light = tiltedBefore110)).contentEquals(byDefault), "fallback: the tilted light must render differently")
         assertTrue(byDefault.any { it != GlassLabScene.grey(56) }, "fallback: the stand-in drew something over the page")
     }
 }

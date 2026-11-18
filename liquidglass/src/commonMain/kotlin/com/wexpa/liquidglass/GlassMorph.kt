@@ -108,7 +108,7 @@ fun lerpGlassStyle(start: GlassStyle, stop: GlassStyle, fraction: Float): GlassS
         // changes shape halfway through the morph. `GlassTabBarStyleTest` asserts that for the
         // presets this library ships.
         heldInkContinuous = if (t < 0.5f) start.heldInkContinuous else stop.heldInkContinuous,
-    ).withLitFromAbove(if (t < 0.5f) start.litFromAbove else stop.litFromAbove)
+    )
 }
 
 /**

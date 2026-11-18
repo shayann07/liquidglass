@@ -561,15 +561,6 @@ data class GlassStyle(
      */
     val chromaGain: Float = Float.NaN,
 ) {
-    /**
-     * Internal marker, not a constructor, `copy` or `equals` field (so the binary API is unchanged): this style is lit from straight
-     * above by default (see [litFrom]). Set only by [withLitFromAbove]; [copy] and [lerpGlassStyle] do not carry it on their own.
-     */
-    internal var litFromAbove: Boolean = false
-        private set
-
-    internal fun withLitFromAbove(on: Boolean): GlassStyle = if (litFromAbove == on) this else copy().also { it.litFromAbove = on }
-
     /** Keeps the constructor before [chromaGain]; new code uses the primary constructor. */
     @Deprecated("Binary compatibility with the constructor before chromaGain", level = DeprecationLevel.HIDDEN)
     constructor(
@@ -1364,7 +1355,7 @@ data class GlassStyle(
             edgeShadow = 0f,
             outerContour = 1f,
             invertsWithBackdrop = false,
-        ).withLitFromAbove(true)
+        )
 
         /**
          * The dock: nearly clear, a 1 dp sigma, gain 0.85 with a lift of 13/255, and stripes that
@@ -1524,22 +1515,15 @@ data class GlassStyle(
 }
 
 /**
- * The light a style is drawn with when the host passed the default one: a style marked [GlassStyle.litFromAbove] (only
- * [GlassStyle.controlCenterTile] marks itself) is lit from straight above, as iOS lights Control Center, so it takes
- * `GlassLight(0f, -1f)`. A light the host chose is kept.
- */
-internal fun GlassStyle.litFrom(light: GlassLight): GlassLight =
-    if (litFromAbove && light == GlassLight.Default) GlassLight(0f, -1f) else light
-
-/**
  * Where the light sits, as a unit vector in the panel's own space.
  *
- * `y` is negative upward, matching Compose's coordinate system, so the default is a light above
- * and slightly to the left — the direction a highlight has to come from for a surface to read
- * as convex rather than concave.
+ * `y` is negative upward, matching Compose's coordinate system. The default is straight above,
+ * `(0, -1)`: every resting iOS 27 rim measured (the Safari lab stills, the recorded tab bars, Control
+ * Center) is lit the same at its top and bottom edges and not at all at its sides, which is what a
+ * light straight above draws. Before 1.1.0 the default was the authored `(-0.35, -0.94)`.
  */
 @Immutable
-data class GlassLight(val x: Float = -0.35f, val y: Float = -0.94f) {
+data class GlassLight(val x: Float = 0f, val y: Float = -1f) {
     companion object {
         val Default = GlassLight()
     }

@@ -19,7 +19,7 @@ Item {
     /** 0 to 100. */
     property real tintAmount: 50
     /** Toward the light (y up is negative); Qt.point(0, -1) is iOS 27's measured overhead light. */
-    property point light: Qt.point(-0.35, -0.94)
+    property point light: Qt.point(0, -1)
     /** [r, g, b, a] in sRGB 0..1 replacing the tint colour and opacity, or null. */
     property var tint: null
     /** 0 to 1: glass materializes in and out rather than fading. */

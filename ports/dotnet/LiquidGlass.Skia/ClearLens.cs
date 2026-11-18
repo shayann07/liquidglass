@@ -20,5 +20,5 @@ public static class ClearLens
     /// <summary>The refraction band as a share of the lens's radius (GlassMaterial.BEVEL_RATIO).</summary>
     public const float BandRatio = .6f;
     /// <summary>GlassLight.Default, toward the light, y up negative.</summary>
-    public const float LightX = -.35f, LightY = -.94f;
+    public const float LightX = 0f, LightY = -1f;
 }
