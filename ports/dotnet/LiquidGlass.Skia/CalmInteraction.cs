@@ -54,10 +54,20 @@ public sealed class CalmInteraction
         if (reduced || scale == 0) { targetX = 0; targetY = 0; }
         else
         {
+            // A long bar resists only the part of the pull it answers (Compose glassPullCompliance): the sideways part
+            // scaled by its roundness, so a drag along the bar does not shorten its vertical pull.
+            var rx = dx;
+            if (options.PullShape == GlassPullShape.AreaPreserving)
+                rx = dx * Math.Clamp(2 * Math.Min(geometry.Width, geometry.Height) / Math.Max(geometry.Width, geometry.Height) - 1, 0, 1);
+            var rscale = Math.Max(Math.Abs(rx), Math.Abs(dy));
             // Normalize before computing length so enormous finite pulls remain finite.
-            var length = Hypot(dx / scale, dy / scale);
-            var resisted = limit * Math.Tanh(scale * .2 / limit * length) / .2;
-            targetX = dx / scale / length * resisted; targetY = dy / scale / length * resisted;
+            var compliance = 1.0;
+            if (rscale > 0)
+            {
+                var length = Hypot(rx / rscale, dy / rscale);
+                compliance = limit * Math.Tanh(rscale * .2 / limit * length) / .2 / (rscale * length);
+            }
+            targetX = dx * compliance; targetY = dy * compliance;
         }
         return Snapshot();
     }

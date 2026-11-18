@@ -120,8 +120,8 @@ as Compose's `GlassTabBarStyle.slotWidth` does: the end tabs close up until thei
 `clear: true` on the bar material (`calmBarMaterial({clear})`, `painter.drawCalmBar(..., {clear})`,
 or `material: {clear: true}` on `addNavigation`) draws Compose's `GlassTabBarStyle.CalmClear()` bar:
 the clearer glass of WhatsApp's and the App Store's dark iOS bars: the dark bar is the measured in-app
-material with Calm's bar-only fields (18 November, #203; it was black at 0.10, legibility 2 and a 7 dp
-blur), light appearance unchanged. Pass the same bar as `through` so the lens follows it.
+material with Calm's bar-only fields (18 November, #203), light appearance unchanged. The previous preset,
+before 18 November, was black at 0.10, legibility 2 and a 7 dp blur. Pass the same bar as `through` so the lens follows it.
 
 `drawSelector` follows Compose's held lens fully (18 October): its rim band is the material's
 `bodyBandScale` share of the body's own (0.3 in Calm, so the bar's outline does not show inside it as a

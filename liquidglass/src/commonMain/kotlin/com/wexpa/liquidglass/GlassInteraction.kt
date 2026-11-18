@@ -33,9 +33,9 @@ enum class GlassPullShape {
     /** Coupled stretch/narrowing for a navigation surface. At most 4.8% axis stretch before
      * viewport limiting, plus at most5.6% of the short side as a material-only directional bias.
      * These authored bounds fit selected Phone edges; finger gain is not identified.
-     * Layout and ordinary labels stay fixed. Generic cards should keep Adaptive. A long bar takes only the pull's
-     * component across its spine (a sideways drag leaves it alone, as iOS 27's held Phone bar does); a round
-     * surface takes the whole pull. */
+     * Layout and ordinary labels stay fixed. Generic cards should keep Adaptive. A long horizontal bar uses only the
+     * vertical component of a pull, for its resistance as well as its shape (a sideways drag leaves it alone, as
+     * iOS 27's held Phone bar does); a round surface takes the whole pull. */
     AreaPreserving,
     /**
      * A free-standing button pulled off its place, as iOS 26's Phone search button is: the body

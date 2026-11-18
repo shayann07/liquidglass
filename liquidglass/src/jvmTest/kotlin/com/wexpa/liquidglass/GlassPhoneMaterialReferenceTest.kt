@@ -32,10 +32,10 @@ class GlassPhoneMaterialReferenceTest {
 
     @Test fun theClearBarPassesWhatsAppsAndTheAppStoresPage() {
         // Display colours: iOS's WhatsApp and App Store bars at rest over plain pages (App Store black 0, WhatsApp chats
-        // 10, WhatsApp card 23, App Store card 28), with the #203 tolerances. The chats page carries text under the bar,
-        // so it is given more room.
+        // 10, WhatsApp card 23, App Store card 28; review/atlas/tab-bar-material-2026-11-18). The chats page carries
+        // text under the bar (iOS 43-47), so it is given more room; page 28 is the middle of iOS's measured 57-60.
         val clear = GlassTabBarStyle.CalmClear(dark = true)
-        for ((page, ios, tol) in listOf(Triple(0, 32.0, 2.0), Triple(10, 43.0, 3.0), Triple(23, 54.0, 2.0), Triple(28, 58.0, 3.0)))
+        for ((page, ios, tol) in listOf(Triple(0, 32.0, 1.5), Triple(10, 43.0, 3.0), Triple(23, 54.0, 1.5), Triple(28, 58.5, 1.5)))
             assertEquals(ios, restingBar(clear, page), tol, "CalmClear bar over page $page")
         // The App Store's bright cards (#203): blue (145, 192, 242) under the bar reads (116, 167, 219), luma 157.6;
         // orange (242, 194, 113) reads (209, 162, 79), luma 166.6. Luma within 6, each channel within 8.

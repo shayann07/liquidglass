@@ -242,8 +242,9 @@ against 913. The CanvasKit and .NET ports take the same option (`calmSelectorBar
 *Our renders only: the sample `WhatsAppScene` with neutral placeholders (a plain disc for the
 profile tab), desktop GPU replay at 3x, branch `claude/parity-2` after f94d518. Yellow ticks mark
 iOS's tab centres measured on the recording; blue ticks mark where equal shares would put them.
-Over the same grey card, iOS's bar reads 54 and `Calm()`'s 46; [`CalmClear()`](#a-clearer-bar)
-reads 54 (53 before its 18 November measured bar).*
+Over the same grey card, iOS's bar reads 54 and `Calm()`'s 46; `CalmClear()` read 53 in this replay
+(the earlier preset).* Since 18 November `CalmClear()` reads 54 there on the measured bar
+([18 November evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/tab-bar-material-2026-11-18/README.md); this screenshot was not retaken).
 
 ## A neighbouring control: the search button
 

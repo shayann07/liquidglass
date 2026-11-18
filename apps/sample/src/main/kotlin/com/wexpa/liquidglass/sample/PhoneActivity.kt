@@ -46,9 +46,11 @@ class PhoneActivity : ComponentActivity() {
         // "clear": the CalmClear bar (App Store / WhatsApp). "flat": a flat page under the bar, a grey level "28" or
         // "r,g,b" (#203 device check of the bar's tone). "select": the tab selected at start.
         val clear = intent?.getBooleanExtra("clear", false) ?: false
-        val flat = intent?.getStringExtra("flat")?.split(',')?.mapNotNull { it.trim().toIntOrNull() }?.let { v ->
-            if (v.size == 1) Color(v[0], v[0], v[0]) else if (v.size == 3) Color(v[0], v[1], v[2]) else null
-        }
+        // Rejected as a whole unless it is exactly one or three integers in 0..255, so a typo never draws a wrong page.
+        val flat = intent?.getStringExtra("flat")?.split(',')?.map { it.trim().toIntOrNull()?.takeIf { v -> v in 0..255 } }
+            ?.takeIf { v -> (v.size == 1 || v.size == 3) && v.all { it != null } }?.map { it!! }?.let { v ->
+                if (v.size == 1) Color(v[0], v[0], v[0]) else Color(v[0], v[1], v[2])
+            }
         val initial = intent?.getIntExtra("select", 0) ?: 0
         if (adaptive) {
             LiquidGlassDiagnostics.adaptiveDeadlineScale = intent?.getFloatExtra("adaptiveDeadlineScale", 1f)?.takeIf { it != 1f }

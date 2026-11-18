@@ -351,6 +351,11 @@ test('portable Calm renders bounded material bias and exact release recovery', (
         assert.ok(Math.abs(right-left+1-320*state.matrix[0])<=1,'diagonal navigation width was not drawn as sampled');
         assert.ok(Math.abs(bottom-top+1-62*state.matrix[3])<=1,'diagonal navigation height was not drawn as sampled');
         assert.equal(state.offset[0],0,'a wide bar moved sideways with the pull');
+        // The resistance is taken on that vertical part too: the same pull straight up lands on the same shape.
+        const upright=createCalmInteraction({...bounds,viewportWidth:w,viewportHeight:h});
+        upright.press(0,0,1e6);const alone=upright.sample(2);
+        for(let i=0;i<4;i++)assert.ok(Math.abs(state.matrix[i]-alone.matrix[i])<1e-9,'a sideways drag changed the vertical pull');
+        assert.ok(Math.abs(state.offset[1]-alone.offset[1])<1e-9,'a sideways drag changed the vertical bias');
       } else if(bounds.width===320) {
         assert.ok(right-left+1<=326,'large card exceeded press + pull width envelope');
         assert.ok(bottom-top+1<=76,'large card exceeded press + pull height envelope');

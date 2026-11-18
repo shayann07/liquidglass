@@ -118,12 +118,22 @@ export function createCalmInteraction({width, height, radius = Math.min(width, h
       Math.hypot(horizontal.velocity, vertical.velocity) > 1e-3;
     return {matrix: matrix(gain), offset, press: amount, held, active};
   }
+  // A long bar resists only the part of the pull it answers (Compose glassPullCompliance): the sideways part scaled
+  // by its roundness, so a drag along the bar does not shorten its vertical pull. Every other shape resists it all.
+  function pullTarget(dx, dy) {
+    const {width: w, height: h} = geometry;
+    if (pullShape !== 'area-preserving') return calmPullTarget(w, h, dx, dy, ...pressTargets());
+    const ax = dx * Math.max(0, Math.min(1, 2 * Math.min(w, h) / Math.max(w, h) - 1));
+    const resisted = calmPullTarget(w, h, ax, dy, ...pressTargets()), length = Math.hypot(ax, dy);
+    const compliance = length ? Math.hypot(resisted.x, resisted.y) / length : 1;
+    return {x: dx * compliance, y: dy * compliance};
+  }
   return {
     /** Total displacement since pointer-down, never a per-event delta. Advance the OLD target first. */
     press(time, dx = 0, dy = 0) {
       if (![dx,dy].every(Number.isFinite)) throw new RangeError('Finite cumulative displacement required');
       advance(time); held = true;
-      target = reduced ? {x: 0, y: 0} : calmPullTarget(geometry.width, geometry.height, dx, dy, ...pressTargets());
+      target = reduced ? {x: 0, y: 0} : pullTarget(dx, dy);
       return snapshot();
     },
     /** Use for both pointer-up and cancellation; navigation selection belongs to the host. */

@@ -21,4 +21,4 @@ caught a frame before the scene had drawn (128) and was retaken 5 s after launch
 
 The iOS column is measured on the owner's App Store and WhatsApp recordings (plans and #203). The earlier CalmClear bar read 30-45
 levels too bright over the cards (197 and 211). Limits: flat pages only, so no text under the bar. One selected tab. The text band
-under the bar (where `legibility` 2 was dropped) is scored separately.
+under the bar (where `legibility` 2 was dropped) is **not yet re-scored**: these flat-page results are no evidence for text behind the bar.
