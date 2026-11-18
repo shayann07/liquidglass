@@ -39,8 +39,9 @@ since the suite checks the small WebGL renderer and the production Skia painter 
   grids and both light/dark backdrops; a pleasing screenshot on one background is insufficient.
 - For gestures, cover cancellation, a competing scroll, reversal, release, extreme screen-edge travel,
   density changes and reduced motion. Separate layout movement, press expansion and material strain.
-- Preserve historical public presets unless a breaking change is explicitly proposed. New behaviour
-  should have a small, documented opt-in path before becoming a default.
+- Preserve historical public presets unless a breaking change is explicitly proposed. A change that brings
+  the material closer to a measured iOS reference ships on by default, listed under "Default look changed"
+  in the CHANGELOG with its numbers (AGENTS.md rule 8); authored looks no measurement backs stay opt-in.
 - Prefer modifiers for surfaces. A host such as `GlassScene` may own backdrop lifetime and connect
   modifiers; it should not duplicate your app's layout, button semantics or navigation logic.
 - Keep new rendering models independent of Android activities or demo-specific coordinates. A port
@@ -55,7 +56,7 @@ measure performance before claiming an improvement.
 [CodeRabbit](https://www.coderabbit.ai) reviews every pull request to `main` that is not a draft (comment `@coderabbitai full review` to
 review a draft) and posts one review with line comments; reply to a comment to discuss it, or with `@coderabbitai` to ask it something. Its
 configuration, `.coderabbit.yaml`, skips generated and vendored files and states the repository's rules
-(provenance of every number, opt-in optics, no "first" claims, iOS never a target).
+(provenance of every number, measured optics on by default, no "first" claims, iOS never a target).
 
 The selector regression writes `liquidglass/build/reports/atlas/selector-travel.csv`.
 To regenerate its scientific plot, install matplotlib in a local virtual environment and run
