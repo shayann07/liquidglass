@@ -21,8 +21,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.wexpa.liquidglass.CapsuleShape
 import com.wexpa.liquidglass.Glass
+import com.wexpa.liquidglass.GlassToolbarGroup
 import com.wexpa.liquidglass.glassEffect
 import androidx.compose.material3.BottomAppBar as M3BottomAppBar
 import androidx.compose.material3.CenterAlignedTopAppBar as M3CenterAlignedTopAppBar
@@ -48,8 +48,7 @@ private fun glassNavigation(icon: @Composable () -> Unit): @Composable () -> Uni
 
 /** The actions grouped on one glass capsule, as iOS groups bar buttons. */
 private fun glassActions(actions: @Composable RowScope.() -> Unit): @Composable RowScope.() -> Unit = {
-    Row(Modifier.padding(end = 8.dp).heightIn(min = GlassButtonHeight).glassEffect(GlassMaterialDefaults.regular, CapsuleShape)
-        .padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+    GlassToolbarGroup(Modifier.padding(end = 8.dp), glass = GlassMaterialDefaults.regular, minHeight = GlassButtonHeight) {
         CompositionLocalProvider(LocalInGlassGroup provides true) { actions() }
     }
 }
@@ -159,8 +158,7 @@ fun BottomAppBar(
     }
     Row(modifier.fillMaxWidth().windowInsetsPadding(windowInsets).padding(horizontal = 20.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically) {
-        Row(Modifier.heightIn(min = 52.dp).glassEffect(GlassMaterialDefaults.toolbar, CapsuleShape).padding(horizontal = 6.dp),
-            verticalAlignment = Alignment.CenterVertically) {
+        GlassToolbarGroup(glass = GlassMaterialDefaults.toolbar, minHeight = 52.dp, contentPadding = PaddingValues(horizontal = 6.dp)) {
             CompositionLocalProvider(LocalInGlassGroup provides true, LocalContentColor provides contentColor) { actions() }
         }
         Spacer(Modifier.weight(1f))
@@ -177,9 +175,8 @@ fun BottomAppBar(
     windowInsets: WindowInsets = BottomAppBarDefaults.windowInsets,
     content: @Composable RowScope.() -> Unit,
 ) {
-    Row(modifier.fillMaxWidth().windowInsetsPadding(windowInsets).padding(horizontal = 20.dp, vertical = 8.dp)
-        .heightIn(min = 52.dp).glassEffect(GlassMaterialDefaults.toolbar, CapsuleShape).padding(contentPadding),
-        verticalAlignment = Alignment.CenterVertically) {
+    GlassToolbarGroup(modifier.fillMaxWidth().windowInsetsPadding(windowInsets).padding(horizontal = 20.dp, vertical = 8.dp),
+        glass = GlassMaterialDefaults.toolbar, minHeight = 52.dp, contentPadding = contentPadding) {
         CompositionLocalProvider(LocalInGlassGroup provides true, LocalContentColor provides contentColor) { content() }
     }
 }

@@ -260,6 +260,27 @@ than carry along; only the near side and the fusion are drawn by the element. `G
 
 ## Components
 
+### `GlassToolbarGroup`
+
+```kotlin
+@Composable
+fun GlassToolbarGroup(
+    modifier: Modifier = Modifier,
+    glass: Glass = Glass.Toolbar,
+    minHeight: Dp = 44.dp,
+    contentPadding: PaddingValues = PaddingValues(horizontal = 4.dp),
+    content: @Composable RowScope.() -> Unit,
+)
+```
+
+Several toolbar actions on one glass capsule, as iOS groups a toolbar's buttons: one pill, the actions
+in a row inside it, drawn with no glass of their own. A button that stands apart is its own round
+piece of glass (`glassEffect(shape = CircleShape)`) beside the group, in a `Row`. The material is
+`Glass.Toolbar`, the Photos toolbar's measured role; the height (44 dp), the item padding (4 dp) and
+the gap to a neighbouring round button (8 dp in the Material 3 top bars; the bottom bar spaces its button with a flexible spacer) are **authored**, since no iOS
+recording measures a toolbar group's geometry as a rule. The Material 3 `BottomAppBar` and the
+actions of the top app bars are built on it.
+
 ### `GlassTabBar`
 
 ```kotlin

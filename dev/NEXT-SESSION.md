@@ -14,6 +14,10 @@
   (dark Calm bar specular 0.25 -> 0.226 to match). Numbers in CHANGELOG and PROGRESS.
 - Next: restate pinned values the outline change moved (each with its reason), regenerate the port shaders, final suite
   pass (library, Material 3, ABI, ports, strict mkdocs, links), push once, PR, Pixel 7 check.
+## RESUME HERE (18 November): #102 item 91 toolbar group, local branch p3/91
+
+- `GlassToolbarGroup` added with its test; Material 3 bars built on it; docs and API dumps updated. Next: lead opens the follow-up
+  issue (draft in .local/sxs/drafts/issue-102-91.md) and decides whether an alert should stay glass.
 
 ## RESUME HERE (18 November): #206 Control Center tile, PR open
 

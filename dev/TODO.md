@@ -2,6 +2,7 @@
 
 - [x] #205 geometry and timing; press and release springs refitted to the visible lens (p3/205); [ ] track colours (owner decision: measured green 47,210,88 and grey 90,90,94 are not default), native thumb, light switch. Drag stretch: I-menus-dark holds (30.4-31.3 s, 32.6-33.5 s) are slow drags; width and height stay constant (178 x 115 px) while the lens moves 20 px, so no stretch at that speed; a fast drag is not recorded.
 - [x] #204 `menu(dark)`; [ ] held-out context menu (10-18 levels), rim and shadow, device capture.
+- [x] #102 item 91: `GlassToolbarGroup` (authored geometry); [ ] measured group geometry, alert dialog look (authored, no recording).
 - [x] #102 dark `menu(dark)` on the measured pop-up menu, `sheet(dark)` on the share sheet, device frames; [ ] sheet scrim (iOS none), colour, rim and shadow, light pop-up menu (not recorded).
 - [x] #207 `Modifier.glassScrollEdge`; [ ] sample scene, collapse timing, Pixel frame times, Android blur.
 
