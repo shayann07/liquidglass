@@ -32,7 +32,7 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   4 to 12 px inside are unchanged and within 1 level. The recorded Calm bar, the held lens and the legacy profile keep
   their rim.
   - Default look changed: the rim of Material 3 components and `GlassTabBarStyle.Ios27` bars, 0 to 3 px inside the
-    outline (toward iOS: up to 18 levels darker 1 to 3 px in, dark over grey 128; brighter on the outermost pixel in light).
+    outline (toward iOS: up to 18 levels darker 1 to 3 px in, dark over grey 128; in light the outermost pixel now reads +67 / +58 over grey 0 / 128, iOS +65 / +58, main not rendered in light).
 - Merged glass has the resting rim glow (#202): a piece inside `GlassEffectContainer` lacked the faint glow a lone piece
   draws 4 to 12 px inside its rim, so it read up to 10 levels darker there. Merged and lone glass now render the same
   rim on flat grey, level for level (Material 3 toolbar, all five measured greys). Held merged pieces are unchanged.
