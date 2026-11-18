@@ -626,7 +626,7 @@ half4 main(float2 coord) {
     half3 soft = sharp;
     float contrast = 0.0;
     if (detailWeight > 0.0) {
-        half3 detailCopy = (uDetailCross >= 0.5) ? detailAt(base + push, uBlur * mat * e) : blurredAt(base + push, uBlur * mat * e, rot);
+        half3 detailCopy = (uDetailCross >= 0.5) ? detailAt(base + push, uBlur * mat) : blurredAt(base + push, uBlur * mat * e, rot);
         soft = (detailWeight < 1.0) ? mix(sharp, detailCopy, half(detailWeight)) : detailCopy;
         // Local contrast, free: the rim sample and the interior sample already bracket the backdrop's high
         // frequencies, so their luma difference stands in for text scrolling underneath. Apple raises tint and

@@ -91,6 +91,8 @@ internal object GlassRender {
         /** [GlassStyle.detailLift] and [GlassStyle.toneCurve]. */
         detailLift: Float = 0f,
         toneCurve: Float = 0f,
+        /** [GlassStyle.bevelPeak]. */
+        bevelPeak: Float = 0f,
         /** Device pixels per dp, to read [blur] as a reach in dp: the callers' 3x convention (px = dp * 3). */
         density: Float = 3f,
         /** `uDetailCross`: the four-tap detail kernel, chosen from the reach as the host does ([GlassMaterial.usesDetailCross]). */
@@ -202,7 +204,7 @@ internal object GlassRender {
         b.uniform("uSpecularPow", specularPower)
         b.uniform("uCounterLight", counterLight)
         b.uniform("uEdgeLight", edgeLight)
-        b.uniform("uBevelPeak", 0f)
+        b.uniform("uBevelPeak", bevelPeak)
         b.uniform("uEdgeShadow", edgeShadow)
         b.uniform("uOuterContour", outerContour, outerContourFloor)
         b.uniform("uRimSoft", rimSoft)

@@ -25,7 +25,7 @@ class GlassCalibrationRenderTest {
         // lines at y 141 and 272, its tips at x 347 and 822, the buttons 128 px wide from x 50
         // and 992 (C1a-r50, both appearances). The earlier boxes sat 19 px too low.
         Box(346, 141, 822, 273, 66), Box(50, 141, 178, 273, 66), Box(992, 141, 1120, 273, 66),
-        Box(342, 2304, 828, 2448, 72), Box(84, 2304, 230, 2448, 73), Box(940, 2304, 1086, 2448, 73),
+        Box(342, 2304, 829, 2448, 72), Box(84, 2304, 228, 2448, 72), Box(940, 2304, 1084, 2448, 72),
     )
 
     /**
@@ -103,6 +103,8 @@ class GlassCalibrationRenderTest {
             profile = 1f, formation = 0f, restMap = restMap,
             wide = style.wideKernel.value * px, fineShare = style.fineShare, softDetail = style.softDetail,
             lift = style.tintLift, liftAdapt = style.liftAdaptivity,
+            detailLift = style.detailLift, toneCurve = style.toneCurve,
+            outerContour = style.outerContour, outerContourFloor = style.outerContourFloor, bevelPeak = style.bevelPeak,
             bevel = style.bevel.value * px, specularPower = style.specularPower,
             counterLight = style.counterLight, edgeLight = style.edgeLight, legibility = 0f,
             backdrop = { x, y ->
