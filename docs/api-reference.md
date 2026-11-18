@@ -348,8 +348,9 @@ morphs between, exposed so a host can start from them.
 falling over 260 ms after the lift), as iOS's bar lifts on every touch; off by default, on in dark
 `Calm()`. `CalmRecordedSpace()` is dark Calm as calibrated before 15 October, against recordings
 decoded as if they were sRGB. `CalmClear()` is dark Calm with the clearer bar of WhatsApp's and the
-App Store's iOS bars (black at 0.10 instead of 0.41 over the same lift, `legibility` 2 and a 7 dp blur
-so text under it is one soft copy as iOS's is; in light appearance WhatsApp's resting pill;
+App Store's iOS bars: since 18 November (#203) its dark bar is the measured in-app material
+(`GlassStyle.toolbar(dark = true)`) with Calm's bar-only fields, replacing the earlier black at 0.10,
+`legibility` 2 and 7 dp blur; in light appearance it is `Calm()` with WhatsApp's resting pill;
 [tab bar guide](tab-bar.md#a-clearer-bar)).
 `Calm(dark = false)` is measured on the owner's light recording (17 October): a bar passing 0.59 of the
 page plus 115 (white at 0.41 plus 10/255) with a darker rim and a faint shadow, a clear resting pill
