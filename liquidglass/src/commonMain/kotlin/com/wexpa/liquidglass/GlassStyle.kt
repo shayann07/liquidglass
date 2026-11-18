@@ -830,31 +830,28 @@ data class GlassStyle(
             inAppEarlier(dark, tintAmount).towardLab(dark, tintAmount)
 
         /**
-         * The 16 November lab fit (#199, #200; `tools/glass_model.py`) laid over the earlier fit by
-         * [GlassMaterial.labWeight]: in full at Tint 50, not at all at 0 and 100. The material is
-         * `lin = B + k (D - B) + c |D - B|`, then the appearance's tone; the toolbar, the address pill
-         * and plain in-app glass share it.
+         * The lab material (#199, #200; `tools/glass_model.py`) at a Tint Amount: measured at Tint 50 in the Safari lab
+         * and at Tint 0 and 100 on the Photos chrome (#208), piecewise-linear between those three (authored); see
+         * [GlassMaterial.measuredDetailShare]. The material is `lin = B + k (D - B) + c |D - B|`, then the appearance's
+         * tone; the toolbar, the address pill and plain in-app glass share it. The earlier fit no longer reaches these
+         * styles at any tint.
          */
         private fun GlassStyle.towardLab(dark: Boolean, tintAmount: Float): GlassStyle {
-            val w = GlassMaterial.labWeight(tintAmount)
-            // The detail reach is set at every tint, not blended: the earlier 0.83 to 3.3 dp reach was fitted inside the
-            // along-axis model the lab replaced, and switching it at the first step off Tint 0 drew a 25-level jump.
-            if (w <= 0f) return copy(blurRadius = GlassMaterial.labDetailReach)
-            fun f(a: Float, b: Float) = a + (b - a) * w
-            val labTint = (if (dark) Color.Black else Color.White).copy(alpha = GlassMaterial.labOpacity(dark))
+            val t = tintAmount.coerceIn(0f, 100f)
+            val labTint = (if (dark) Color.Black else Color.White).copy(alpha = GlassMaterial.measuredOpacity(dark, t))
             return copy(
-                tint = lerp(tint, labTint, w),
-                tintLift = f(tintLift, GlassMaterial.labLift(dark)),
-                fineShare = f(fineShare, GlassMaterial.labDetailShare(dark)),
-                wideKernel = lerp(wideKernel, GlassMaterial.labWideKernel, w),
+                tint = labTint,
+                tintLift = GlassMaterial.labLift(dark),
+                fineShare = GlassMaterial.measuredDetailShare(dark, t),
+                wideKernel = GlassMaterial.labWideKernel,
                 // Held, not blended: at this reach the host picks the four-tap detail kernel (uDetailCross), and a
                 // wider reach would draw four displaced copies.
                 blurRadius = GlassMaterial.labDetailReach,
-                detailLift = GlassMaterial.labDetailLift(dark) * w,
-                toneCurve = GlassMaterial.labToneCurve(dark) * w,
+                detailLift = GlassMaterial.measuredDetailLift(dark, t),
+                toneCurve = GlassMaterial.measuredToneCurve(dark, t),
                 // The lab stills show no extra tint over busy content: the stripes keep k at every contrast.
-                legibility = f(legibility, 0f),
-                softDetail = f(softDetail, 1f),
+                legibility = 0f,
+                softDetail = 1f,
             )
         }
 
