@@ -11,7 +11,8 @@ import kotlin.test.assertTrue
  * style at the same place: the legibility term, the rim band's colour-fringe branch, the absorbing tint, the unrotated
  * soft scatter and the container's [Glass] light. Every part is checked over flat grey 128, flat white and a text page
  * (a 30 px black stem on the off-white page of the #190 probe), dark and light; the interior must agree within 2 levels
- * and, for the light, the rim ring within 3.5 levels rms.
+ * and, for the light, the rim ring within 3.5 levels rms. The rim band over a split edge is an open known difference
+ * (6.67 / 4.92 levels rms, predating #211), pinned so it cannot grow.
  */
 class GlassContainerPartsTest {
     private val failures = mutableListOf<String>()
@@ -82,12 +83,14 @@ class GlassContainerPartsTest {
     }
 
     @Test
-    fun theAbsorbingTintAndTheEarlierFitMatchALonePiece() {
+    fun theAbsorbingTintAndTintZeroMatchALonePiece() {
         for (dark in listOf(true, false)) {
             val app = if (dark) "dark" else "light"
             parity("$app absorbing tint", GlassStyle.inApp(dark = dark).copy(tintAbsorption = 0.8f))
-            // The earlier fit at Tint 0 carries legibility 0.6: the case the text-stem check used to exempt.
-            parity("$app Tint 0", GlassStyle.inApp(dark = dark, tintAmount = 0f))
+            // Tint 0 on the measured fit (#208; legibility 0).
+            parity("$app Tint 0 (measured fit)", GlassStyle.inApp(dark = dark, tintAmount = 0f))
+            // The case the text-stem check used to exempt: the earlier fit at Tint 0 carried legibility 0.6.
+            parity("$app Tint 0 with the earlier fit's legibility 0.6", GlassStyle.inApp(dark = dark, tintAmount = 0f).copy(legibility = 0.6f))
         }
         assertTrue(failures.isEmpty(), failures.joinToString("; "))
     }
@@ -98,6 +101,24 @@ class GlassContainerPartsTest {
         for (dark in listOf(true, false)) for (soft in listOf(0f, 1f)) {
             val app = "${if (dark) "dark" else "light"} softDetail ${soft.toInt()}"
             parity(app, GlassStyle.inApp(dark = dark).copy(blurRadius = 4.dp, softDetail = soft))
+        }
+        assertTrue(failures.isEmpty(), failures.joinToString("; "))
+    }
+
+    @Test
+    fun theRimBandMatchesALonePieceOverASplitEdge() {
+        // #202's rim band: within the outline the crisp copy contributes only its colour fringe. The ring 1 to 12 px
+        // inside the outline, over a page split white | near-black at the pill's centre, so the band's rows carry an
+        // edge; the container's ring is compared with a lone piece, whose band GlassRimBandTest scores against the lab
+        // pill. Open known difference, not a pass: at the default light the merged ring differs by 6.67 (dark) and 4.92
+        // (light) levels rms, which predates #211 (the container's rim-band branch moves it by 0.05). The gate pins
+        // those values so the gap cannot grow unseen; it does not claim parity.
+        val recorded = mapOf(true to 6.67, false to 4.92)
+        for (dark in listOf(true, false)) {
+            val app = if (dark) "dark" else "light"
+            val style = GlassStyle.inApp(dark = dark)
+            val e = GlassLabScene(style).use { alone -> GlassLabScene(style, container = true).use { merged -> rms(alone.ringFrame(), merged.ringFrame()) } }
+            check(e <= recorded.getValue(dark) + 0.3, "$app rim band over a split edge: the ring differs by %.2f levels rms (open, recorded %.2f)".format(e, recorded.getValue(dark)))
         }
         assertTrue(failures.isEmpty(), failures.joinToString("; "))
     }

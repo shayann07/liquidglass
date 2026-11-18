@@ -348,15 +348,17 @@ class GlassRestMapTest {
         // slope plus half a pixel of sampling: 2.28 source px per display px over the Photos knots (d from 6), and,
         // since #202, the lab pill's measured rim band below that, whose steepest segment is 7.9 source px per display
         // px at d 0.5 to 1.5 and 4.9 at 1.5 to 2.5 (it was a constant before; the gate for d from 1.5 was 3.0).
-        var prevS = Float.NaN; var worstStep = 0f; var worstRim = 0f
+        // A step is judged by its interval: both ends at d >= 6 (the Photos knots) keep the 3.0 gate, any end below 6
+        // takes the rim band's.
+        var prevS = Float.NaN; var prevD = Float.NaN; var worstStep = 0f; var worstRim = 0f
         for ((d, s, _) in profileAlongRay(f, r, band)) {
             if (d >= 1.5f && !prevS.isNaN()) {
-                if (d >= 7f) worstStep = max(worstStep, abs(s - prevS)) else worstRim = max(worstRim, abs(s - prevS))
+                if (minOf(d, prevD) >= 6f) worstStep = max(worstStep, abs(s - prevS)) else worstRim = max(worstRim, abs(s - prevS))
             }
-            prevS = s
+            prevS = s; prevD = d
             assertTrue(s >= d - 0.1f || d < 1.5f, "outward sample at d=$d: source depth $s")
         }
-        println("candidate rim: max source step per display px for d 1.5 to 7 ${"%.3f".format(worstRim)}")
+        println("candidate rim: max source step per display px for intervals below d 6 ${"%.3f".format(worstRim)}")
         assertTrue(worstRim <= 5.5f, "a jump of $worstRim px along the normal in the rim band (measured slope 4.9 at d 1.5)")
         println("candidate: max source step per display px along the normal ${"%.3f".format(worstStep)}")
         assertTrue(worstStep <= 3.0f, "a jump of $worstStep px along the normal")

@@ -3,7 +3,7 @@
 `<appearance>-<page>-before-above-after.png`: the top-left 330 x 80 px (3x scene pixels, shown 2x) of the Safari lab pill
 (632 x 143 px capsule, `GlassStyle.inApp`) in the lab scene (`GlassLabScene`: the production modifier and host in a
 Compose `ImageComposeScene`, Skia raster, jvmTest). Top: before (source revision `0a1282fb`, the rest map constant below
-6 px). Bottom: after (the measured rim band). Magenta separates the two. Pages: `stripes24` is 24 px horizontal
+6 px). Bottom: after (the measured rim band; branch `feat/parity-shader-bundle` at `200065e5`, #202, the commit that added these renders). Magenta separates the two. Pages: `stripes24` is 24 px horizontal
 black/white stripes, `edge43` is white above and black from 43 px inside the top outline.
 
 Reading the pill's centre column (x = 300 px from its left end), luma of rows 0 to 10 from the top outline:
@@ -27,7 +27,7 @@ unverified at other radii.
 
 Gate: `GlassRimBandTest` (plan gate M, as a public render test): synthetic horizontal edges at source depths 13, 24, 33
 and 43 px on the lab capsule, top and bottom, both appearances, with the outline pixel row left out; the steps at 43 and
-33 px appear where the lab measured them (within 2 px) and those at 13 and 24 px, which iOS never displays, do not.
+33 px appear where the lab measured them (within 2 px), and for the 13 and 24 px edges, which iOS never displays, the gate checks only that no jump is detected at a displayed depth below 40 px (it does not assert that the edges are absent elsewhere).
 
 Limits and not done: this is the map gate (M) only. The issue's 6 level rms gate against the lab stills (edge, dot and chart
 stills, the outline row excluded) needs the private lab scorer and its HDR-decoded stills and was NOT run; the rim light

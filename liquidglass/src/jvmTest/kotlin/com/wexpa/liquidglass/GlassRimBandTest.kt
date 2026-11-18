@@ -64,7 +64,9 @@ class GlassRimBandTest {
                     if (at.isEmpty()) {
                         check(j.none { it < 40.0 }, "$what (never displayed inside the band: none expected)")
                     } else {
-                        for (d in at) check(j.any { abs(it - d) <= 2.0 }, "$what, expected one near %.1f".format(d))
+                        // One to one: each expected depth has its own jump within 2 px, and there is no other jump.
+                        check(j.size == at.size, "$what, expected exactly ${at.size}")
+                        for (d in at) check(j.count { abs(it - d) <= 2.0 } == 1, "$what, expected one near %.1f".format(d))
                     }
                 }
             }

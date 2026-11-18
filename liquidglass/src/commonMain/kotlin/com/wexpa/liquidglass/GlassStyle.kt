@@ -100,17 +100,22 @@ data class GlassStyle(
     val bodyBandScale: Float = 1f,
     /**
      * Sigma of the wide kernel B, the blur that sets the material's tone: `lin = B + k (D - B) + c |D - B|`
-     * with k = [fineShare] and c = [detailLift] (`tools/glass_model.py`). Measured on iOS 27 at Tint 50 as
-     * 15.5 dp (46.5 px at 3x; the fit is flat from 44 to 52 px); [GlassStyle.inApp] uses it there and the
-     * earlier 10 dp at Tint 0 and 100. Rendered once per frame as a quarter-scale blurred copy of the
+     * with k = [fineShare] and c = [detailLift] (`tools/glass_model.py`). Measured on iOS 27 as
+     * 15.5 dp (46.5 px at 3x; the fit is flat from 44 to 52 px) at Tint 50 and, on the Photos chrome, at Tint 0
+     * and 100 (#208); [GlassStyle.inApp], [GlassStyle.toolbar] and [Regular] use it at every tint. The 10 dp default
+     * remains for styles that do not take the lab material, such as the tab bar's earlier fit. Rendered once per
+     * frame as a quarter-scale blurred copy of the
      * backdrop; set it to 0 to switch it off.
      */
     val wideKernel: Dp = 10.dp,
     /**
      * The detail share k: how much of the backdrop's own detail is laid over the wide kernel's
      * tone, 0 to 1. Measured on iOS 27 at Tint 50 as 0.277 (dark) and 0.273 (light), the same for
-     * detail along and across a bar. The earlier fit, `0.95 (1 - t/100)^1.5` ([GlassMaterial.fineShare]),
-     * still applies at Tint 0 and 100. With the wide kernel on, the softened detail copy (which
+     * detail along and across a bar, and at Tint 0 and 100 on the Photos chrome as 0.663 / 0 (#208), linear between
+     * the three tints (authored; [GlassMaterial.measuredDetailShare]). The earlier fit, `0.95 (1 - t/100)^1.5`
+     * ([GlassMaterial.fineShare]), no longer reaches [GlassStyle.inApp], [GlassStyle.toolbar] or [Regular]; it
+     * remains for the styles built on the earlier fit, such as the tab bar's bar. With the wide kernel on, the
+     * softened detail copy (which
      * [legibility] also reads) fades out as the larger of this share and |[detailLift]| falls from
      * 0.10 to 0.02 (authored), and is not drawn below that, so a share that runs toward 0 near
      * Tint 100 does not switch the look at one tint.
@@ -1162,14 +1167,14 @@ data class GlassStyle(
         }
 
         /**
-         * A toolbar or tab bar: the Photos toolbar's role, solved from its medians over the test
-         * image's stripes with the pill's kernels (`docs/research/measured-model.md`, section 2,
-         * "The toolbar role"). It is the pill's material with its own tint. Light: white (the
-         * pill's is 241) at 0.55-0.67 opacity against the pill's 0.44-0.73, so at Clear it reads
-         * about 142 over black where the pill reads 105. Dark: black at 0.55 at Clear, 0.41 at
-         * the default and 0.63 at Tinted over the pill's 35/255 lift, so at Clear its white side
-         * reads 152 where the pill's reads 180. Both are more opaque than the pill at Clear and
-         * respond less to Tint Amount.
+         * A toolbar or tab bar: the Photos toolbar's role (`docs/research/measured-model.md`, section 2, "The toolbar
+         * role"). Its tone, tint, lift, detail share, wide kernel and tone curve are the lab material's
+         * ([GlassMaterial.measuredOpacity], [GlassMaterial.labLift], [GlassMaterial.measuredDetailShare] and the other
+         * measured node functions, applied last by the same step as [inApp]): measured at Tint 50 in the Safari lab and at
+         * Tint 0 and 100 on the Photos chrome (#208), linear between the three nodes (authored). At every Tint Amount,
+         * Tint 0 and 100 included, `toolbar` therefore has the same white or black tint at the fitted opacity as
+         * [inApp]; the toolbar's own role values (white 0.55-0.67 and black 0.41-0.63, solved from the Photos stripes)
+         * survive only in [toolbarEarlier], which the tab bar's bar keeps.
          */
         fun toolbar(dark: Boolean, tintAmount: Float = GlassMaterial.DEFAULT_TINT_AMOUNT): GlassStyle =
             toolbarEarlier(dark, tintAmount).towardLab(dark, tintAmount)
