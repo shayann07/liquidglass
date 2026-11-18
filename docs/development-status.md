@@ -7,6 +7,9 @@ research remains available; this page identifies which later changes supersede i
 
 ## Main after 1.0 (24 October)
 
+- 18 November: Switch, Slider, RangeSlider: geometry and timing measured (switch: native UIKit take; slider: Safari web take, about 1.12x native); lens strength, slider thumb shadow, disabled looks, second range thumb, thumbContent authored. Native thumb slider, light-mode switch, drag stretch: not measured. Desktop renders only, no device capture.
+- 18 November: GlassStyle.menu(dark): fitted on the Safari <select> popup interior only (dark 2.08, light 3.13 levels rms on 12 stripe cases; 17 greys within 1.0 / 1.4); held-out Photos context menu misses by 10-18 levels (open). Rim, shadow, corner, colour not measured. Desktop renders only.
+- 18 November: Scroll edge effect: dark tint profile within 1.3 levels rms of the measured median (gate 5), light no tint, blur edge widths within 0.8 px of the measured +-10 row table; fade-in, bottom edge, blur strength above 20 dp from the edge authored/lower bounds; blur = two fitted copies, not a per-pixel variable blur; collapse recipe timing +-3 frames, not asserted. Desktop only; no device frame-time pass; no sample scene.
 - 18 November: Control Center tile glass and a public colour-boost setting (#206): `GlassStyle.controlCenterTile(active)` and
   `GlassStyle.chromaGain` (unset = unchanged). Measured on `CC-over-lab-dark.MP4`: the inactive tile is black 0.097 plus a 51.1/255
   lift with no blur and 1.58 times the layer's chroma; over six greys the interior is within 0 to 1 level of the measured map

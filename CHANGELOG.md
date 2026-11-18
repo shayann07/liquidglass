@@ -6,6 +6,18 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Switch, Slider and RangeSlider (liquidglass-material3) use measured geometry and timing (#205). Switch: 63 x 28 dp track, 37 x 24 dp knob, 2 dp inset, 22 dp travel; held, the knob is a clear glass lens 64.75 x 38.4 dp (1.75 x 1.6 of rest) sized in layout around the knob's centre; press peaks about 100 ms in, release settles in 133 ms, travel is a critically damped spring (90 percent in 6-7 frames, no overshoot), the track colour fades over 420 ms. Slider and RangeSlider: 4 dp track, 24 x 16 dp opaque white thumb with a soft shadow, no lens, no press scale. No public API change; sizes live in an internal KnobSpec.
+  - Default look changed: Switch track 62 -> 63 dp, knob travel 20 -> 22 dp, held knob was 1.4x scale with Lens(1.25) now 1.75 x 1.6 clear lens; Slider/RangeSlider track 6 -> 4 dp, thumb 38 x 24 dp glass lens on drag -> 24 x 16 dp opaque white with no change on drag. Material theme colours are unchanged (the measured iOS green (47,210,88) and grey (90,90,94) are not applied by default: theming decision).
+  Pixel 7 (release build, Material showcase): slider thumb about 62 x 42 px (24 x 16 dp = 63 x 42), track about 10 px (4 dp),
+  switch track about 165 x 75 px (63 x 28 dp), read off a screenshot to about 2 px.
+
+- GlassStyle.menu(dark): the menu panel measured on iOS 27's Safari <select> popup (#204): a pure blur (9.9 dp dark, 11.8 dp light) and a compressed tone, no detail term. menu() without an argument is unchanged. GlassMaterialDefaults.menu is new; Material 3 DropdownMenu draws it by default.
+  - Default look changed: DropdownMenu is blurrier, more opaque and tone-compressed (was the card-like panel: in-app material over a 7.7 dp frost). Opt out: DropdownMenu(glass = GlassMaterialDefaults.panel).
+  - Known difference, open: the Photos context menu (dark) reads 10 to 18 levels lighter than this fit predicts (32 on the worst of seven patches); the held-out gate (5 levels rms, none over 10) is not met and the fit was not changed.
+
+- Modifier.glassScrollEdge (#207): iOS 27's scroll edge effect on a scrolling container, measured on Safari's top edge: progressive blur over the first 35 dp (both appearances) and, in a dark appearance, a blend toward grey 124 at 0.41 (flat to 10 dp, gone by 34 dp). Overloads for ScrollState and LazyListState, and (liquidglass-material3) TopAppBarScrollBehavior. The intensity is read in the draw phase, so scrolling does not recompose. The 24 dp fade-in and the bottom edge (a mirror of the top) are authored. New guide: the scroll edge effect and the collapsing bar (the Safari bar's collapse is a documented recipe: 200 ms measured to +-3 frames, trigger and easing authored). The GlassScrollEdge composable is unchanged.
+  - Default look changed: none (new API; the composable keeps its authored constants).
+
 - New: `GlassStyle.controlCenterTile(active = false)` and `GlassStyle.chromaGain` (#206). The factory is the glass of an iOS 27
   Control Center tile over the Control Center layer, measured on `CC-over-lab-dark.MP4` (shell glass: no `dark`, no tint amount):
   inactive is black at 0.097 with a 51.1/255 lift, no blur and 1.58 times the layer's chroma, so the interior is `51.1 + 0.903 G`
