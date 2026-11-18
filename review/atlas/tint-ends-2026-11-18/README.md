@@ -35,7 +35,13 @@ so the table holds per still as well as pooled. They are rig repeats, not indepe
 The #208 gate (3 levels rms on the usable Tint 0 and 100 stills) was scored pooled over both elements, as the plan set it,
 and passes that way. Per element it passes for the toolbar capsule everywhere and for the Today pill in dark, and **misses
 for the Today pill in light** (3.59 and 3.32). The Today pill misses by the same amount at Tint 50 with the shipped Safari-lab
-material (3.35), so the miss is the zone, not the new tint ends; it is an open known difference. A pooled rms does not bound a
+material (3.35), so the miss is the zone, not the new tint ends. A follow-up measurement found where it lives: about 44 of the
+zone's 4,440 pixels (1 %) carry 97 to 98 % of its squared error. They are the descender of the "y" in "Today", which reaches
+rows 212 and 213 of the zone (x 627 to 637, residual down to -126), and the split's edge columns (x 583 to 587). With the
+zone moved to rows 214 to 224 and those columns left out, and the same fit code refitted, the Today pill scores 0.35 / 0.45 / 0.42
+in light (Tint 0 / 50 / 100) and 0.24 / 0.46 / 0.42 in dark. The toolbar capsule stays at 0.43 to 0.80, and the fitted
+constants move by at most 0.3 levels, so the shipped values stand. The light Today pill is matched; the earlier per-element
+miss was the zone measuring the text. A pooled rms does not bound a
 single point's difference: the point differences between the render and the fit are the table above (the light renders sit 2.1
 and 2.8 levels above the fit at grey 128). The interpolation between Tint 0, 50 and 100 is **authored**. Tint 50 is the
 Safari-lab fit and unchanged.
