@@ -79,7 +79,7 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   the rim measured on the iOS 27 toggle by sector (lit at the top and bottom, not at the sides; pole peaks within 5 levels at layers 10 and 56) and
   its dark contour outside the sides through `outerContour`. The toggle, wide tile, media tile and slider track each read within 2 levels of
   the take at three greys (rms 0.87; the issue's gate is 5), and the slider is documented as a track tile plus a `controlCenterTile(active = true)`
-  fill (250 / 251 / 252 measured). Pass `GlassLight(0f, -1f)` to the tile's `Glass`. Known gaps: the contour is 6 to 31 levels too shallow
+  fill (250 / 251 / 252 measured). The tile is lit from straight above, as iOS lights Control Center, with no step for the app (a host that passes its own light keeps it). Default look changed: the light of `GlassStyle.controlCenterTile` (a preset new in 1.1.0; internal, no public API). Known gaps: the contour is 6 to 31 levels too shallow
   (shader band), the sides' rim 8 to 9 too bright. No public API added. The lock-screen flashlight press (#113 item 128) was measured at 1.69 peak /
   1.60 held, 58 pt growing to 93 pt, +119 over black, against `Calm`'s 1.07: not changed, an owner question
   ([numbers](review/atlas/flashlight-press-2026-11-18/README.md)); `measured-model.md`'s older +39 press figure is marked superseded.

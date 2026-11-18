@@ -1313,8 +1313,9 @@ data class GlassStyle(
          *   2.5 levels from G 10 to 102, and [chromaGain] 0.5.
          *
          * - Rim and contour (fitted by sector on the toggle, 3 grey frames, then checked by `GlassControlCenterRimTest`): iOS lights
-         *   the tile's top and bottom equally and its sides not at all, so the light is vertical ([GlassLight] `(0, -1)`, pass it
-         *   as `Glass(style, light = GlassLight(0f, -1f))`; the default light tilts 20 degrees and lights one side too), with
+         *   the tile's top and bottom equally and its sides not at all, so the light is vertical ([GlassLight] `(0, -1)`;
+         *   the default light tilts 20 degrees and lights one side too, so this style takes the vertical light itself whenever the
+         *   host passes the default one), with
          *   [counterLight] 1. The pole line peaks 155 / 215 over a layer of 10 / 56 (the reading at 102 clips at 255), the
          *   diagonals about 100 / 150 / 200 and the sides +3; [bevel] 1.25 dp, [bevelPeak] 0.3, [specular] 0.3, [specularPower]
          *   4 and [edgeLight] 1.5 give 160 / 211 / 251 at the poles (within 5), 109 / 155 / 201 on the diagonals (within 7), but +7 to +9 over
@@ -1510,6 +1511,14 @@ data class GlassStyle(
         )
     }
 }
+
+/**
+ * The light a style is drawn with when the host passed the default one. The Control Center tile ([GlassStyle.controlCenterTile],
+ * the only style that sets [GlassStyle.chromaGain]) is lit from straight above, as iOS lights Control Center, so it takes
+ * `GlassLight(0f, -1f)` unless the host gave another light. Every other style keeps the light it was given.
+ */
+internal fun GlassStyle.litFrom(light: GlassLight): GlassLight =
+    if (!chromaGain.isNaN() && light == GlassLight.Default) GlassLight(0f, -1f) else light
 
 /**
  * Where the light sits, as a unit vector in the panel's own space.

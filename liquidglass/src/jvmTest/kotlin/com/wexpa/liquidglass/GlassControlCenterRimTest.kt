@@ -10,7 +10,7 @@ import kotlin.test.assertTrue
  * (#206, `CC-over-lab-dark.MP4`, `.local/sxs/plans/206-measured.md` section 5, read again by sector). Drawn as a 201 px circle
  * (67 dp at 3x) over a flat layer G through the production modifier with a vertical light: the measured toggle's rim is
  * lit at its top and bottom equally and not at all at its sides, and its dark contour lies outside the outline at the sides
- * only (what `GlassStyle.outerContour` draws).
+ * only (what `GlassStyle.outerContour` draws). No light is passed: the tile takes the overhead light by itself.
  */
 class GlassControlCenterRimTest {
     private val failures = mutableListOf<String>()
@@ -20,7 +20,7 @@ class GlassControlCenterRimTest {
         if (!ok) failures += message
     }
 
-    private fun toggle(style: GlassStyle) = GlassLabScene(style, pillW = 201, pillH = 201, light = GlassLight(0f, -1f))
+    private fun toggle(style: GlassStyle) = GlassLabScene(style, pillW = 201, pillH = 201, light = GlassLight.Default)
 
     /** Measured sector profiles from r 96.0 in 0.5 px steps (mean RGB, median over the sector, two toggles). */
     private val measured = mapOf(
@@ -60,6 +60,26 @@ class GlassControlCenterRimTest {
 
     private fun peak(p: DoubleArray) = (4..9).maxOf { p[it] }   // r 98.0 to 100.5
     private fun contour(p: DoubleArray) = (9..12).minOf { p[it] } // r 100.5 to 102.0
+
+    /** The same toggle at 1x (67 px, 1 px per dp), where bevelPeak 0.3 x 1.25 dp is under half a pixel and the chamfer branch applies. */
+    @Test
+    fun theRimAtOneTimesDensity() {
+        for (density in listOf(3f, 1f)) {
+            val px = (201 * density / 3f).toInt()
+            GlassLabScene(GlassStyle.controlCenterTile(), pillW = px, pillH = px, density = density).use { s ->
+                for (g in listOf(10, 56, 102)) {
+                    val out = s.render(IntArray(s.width * s.height) { GlassLabScene.grey(g) })
+                    val cx = s.pillX + px / 2; val cy = s.pillY + px / 2; val r0 = px / 2.0
+                    fun at(dx: Int, dy: Int): Int { val p = out[(cy + dy) * s.width + cx + dx]; return (((p ushr 16) and 0xFF) + ((p ushr 8) and 0xFF) + (p and 0xFF)) / 3 }
+                    val reach = (r0 + 4).toInt()
+                    val top = (-reach..0).map { at(0, it) }
+                    val bottom = (0..reach).map { at(0, it) }
+                    val right = (0..reach).map { at(it, 0) }
+                    println("CC206X ${density}x G=$g: top peak ${top.max()} bottom peak ${bottom.max()} side peak ${right.max()} side contour ${right.min()} interior ${at(0, 0)}")
+                }
+            }
+        }
+    }
 
     @Test
     fun theRimIsLitAtTheTopAndBottomOnlyAndTheContourIsDarkAtTheSides() {

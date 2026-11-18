@@ -322,6 +322,8 @@ internal fun Modifier.liquidGlassCore(
     /** Exclude the linked accessory silhouette from its own sampled bar recording. */
     clipThroughToBounds: Boolean = false,
 ): Modifier = composed {
+    @Suppress("NAME_SHADOWING")
+    val light = style.litFrom(light)
     val glassLayer = rememberGraphicsLayer()
     val endpointLayer = rememberGraphicsLayer()
     val contentLayer = rememberGraphicsLayer()

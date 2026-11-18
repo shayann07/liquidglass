@@ -105,7 +105,7 @@ over interiors of 60 / 102 / 143; contour minimum at the sides 0 / 7 / 24, at th
 
 Fitted on those profiles (coordinate descent over `bevel`, `bevelPeak`, `specular`, `specularPower`, `edgeLight`, `outerContour`,
 `heldGlow`, `innerShadow`, with `counterLight` 1 so the top and bottom match; 23.8 to 11.2 levels rms over r 96-102.5, three sectors, three
-greys), with a vertical light `GlassLight(0f, -1f)` (the default light tilts 20 degrees and lights one side of the toggle, +17
+greys), with a vertical light `GlassLight(0f, -1f)`, which the tile now takes by default (the default light tilts 20 degrees and lights one side of the toggle, +17
 levels at G 10):
 
 | | G 10 | G 56 | G 102 |
@@ -124,3 +124,5 @@ reaches 6 px in at the poles (+19 at G 10) is 12 to 18 levels short. All of thes
 `specular` 0.35, `edgeShadow` 0.06, `counterLight` 0.1); the fit changed this preset's rim only, not any other style.
 
 Re-scored after merging `fix/202-rim` (one-pixel box outline; 18 November, desktop Skia raster, 3x): the table above is the re-scored one, rms 11.3 to 11.2, poles 160 / 211 / 251 unchanged, side contour minimum 7 / 37 / 59 to 6 / 36 / 55. The measured rest chamfer does not reach this tile: it only applies to the chamfer rim (`bevelPeak` below 0.5 px), and the tile's `bevelPeak` 0.3 x 1.25 dp is 1.1 px at 3x, so it takes the bead rim. At 1x the same style would take the chamfer (0.375 px); that scale was not scored.
+
+With no light passed (the tile takes the overhead one itself), the numbers above are unchanged (rms 11.2). Pole, centre column, 3x / 1x: peak 154 / 150 over G 10, 204 / 200 over 56, 250 / 248 over 102; side peak and contour read the same at both (60, 3 / 102, 18 / 143, 34), so at 1x, where the chamfer branch applies, the pole line is 2 to 4 levels lower and nothing else moves (single-pixel readings, not the sector medians above).
