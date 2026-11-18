@@ -1,6 +1,6 @@
 # Development status and visual guide
 
-Updated **2 November 2026**. This describes 1.0.0, the first release with a [compatibility promise](compatibility.md).
+Updated **18 November 2026**. The latest release is 1.0.0, the first with a [compatibility promise](compatibility.md); `main` is 1.1.0-SNAPSHOT and unreleased, and the entries below dated after 20 October describe `main`, not a published version.
 Full iOS parity is not established: the measured differences are open as issues (#70-#73). The owner
 accepted the navigation selector on 20 October. Historical
 research remains available; this page identifies which later changes supersede its implementation.
