@@ -44,8 +44,13 @@ internal object KnobSpec {
     /** Measured: 65-67 px rest to rest (63 - 37 - 2 x 2). */
     val KnobTravel = 22.dp
 
-    /** Measured: the held knob's outline is 193-200 x 113-117 px, 1.75 and 1.6 times the rest knob (+-3 px). */
-    const val HeldScaleX = 1.75f
+    /**
+     * Measured, settled hold (I-menus-dark, slow-drag holds 30.63-31.21 s and 32.83-33.43 s, n = 73): width 173.35 +- 0.27 px =
+     * 57.7 dp = 1.56 times the 37 dp knob (cap-arc circle fits, validated on the resting knob to 0.07 px), height 115.00 px =
+     * 1.6 times. The earlier 1.75 was read off the soft-edged tap peak (193-200 px), which overshoots. The press spring's
+     * overshoot takes the width to 1.63 times at the peak, as measured (1.62-1.64).
+     */
+    const val HeldScaleX = 1.56f
     const val HeldScaleY = 1.6f
     val HeldWidth: Dp get() = KnobWidth * HeldScaleX
     val HeldHeight: Dp get() = KnobHeight * HeldScaleY
@@ -53,12 +58,19 @@ internal object KnobSpec {
     const val LensStrength = 1.25f
 
     /**
-     * Fitted to the tap's height frames (86 -> 120 px in 100 ms, 118 at +120 ms, 116 at +170 ms, 115 held):
-     * a spring that peaks about 100 ms in and overshoots by about a sixth of the way.
+     * Fitted to the lens outline height of a long hold in `I-menus-dark` (30.41-31.35 s, 60 fps): 85 px (the
+     * track) -> 121 px in 6 frames (100 ms), settling at 115 px. The outline is only visible above the 84 px
+     * track, so the growth is inferred to start about 40 ms before the first visible frame. Under-damped spring, rms
+     * error 1.0 px over the visible frames (the earlier 1050 / 0.5 fit read the track as the knob's rest
+     * height and left 2.2 px).
      */
-    val PressSpring: FiniteAnimationSpec<Float> = spring(dampingRatio = .5f, stiffness = 1050f)
-    /** Fitted: 112 -> 85 px in 133 ms, then constant: critically damped, settled in about 130 ms. */
-    val ReleaseSpring: FiniteAnimationSpec<Float> = spring(dampingRatio = 1f, stiffness = 1900f)
+    val PressSpring: FiniteAnimationSpec<Float> = spring(dampingRatio = .55f, stiffness = 625f)
+    /**
+     * Fitted to the same hold's release: 115 -> 84 px (the track) in 8 frames (133 ms), nearly linear after a
+     * 2-frame ramp, no undershoot. Critically damped, rms error 0.9 px (the earlier 1900 fit counted the 133 ms
+     * to the 24 dp knob size, which the track hides, and finished the visible part in 58 ms: 4.6 px).
+     */
+    val ReleaseSpring: FiniteAnimationSpec<Float> = spring(dampingRatio = 1f, stiffness = 361f)
     /**
      * Fitted to Safari's switch frames (timing class only, the web switch is larger): 90 percent in 7
      * frames, at rest in 10-11 frames (167-183 ms), no overshoot. The recording starts slowly and ends
@@ -66,6 +78,10 @@ internal object KnobSpec {
      * mark (6 frames) and settles in 9.
      */
     val TravelSpring: FiniteAnimationSpec<Float> = spring(dampingRatio = 1f, stiffness = 1400f)
+    /** Measured: the native switch's on track in the dark appearance, display sRGB (47, 210, 88). Light appearance not recorded. */
+    val OnTrackDark = Color(47, 210, 88)
+    /** Measured: the native switch's off track in the dark appearance, display sRGB (90, 90, 94). Light appearance not recorded. */
+    val OffTrackDark = Color(90, 90, 94)
     /** Measured on Safari's switch: the track colour lags the knob and settles in about 420 ms. */
     const val TrackFadeMillis = 420
 
@@ -85,7 +101,7 @@ internal const val GlassKnobTestTag = "liquidglass:knob"
 internal const val SliderThumbTestTag = "liquidglass:sliderThumb"
 
 /**
- * The switch knob: an opaque white pill at rest, a clear glass lens 1.75 x 1.6 times larger while
+ * The switch knob: an opaque white pill at rest, a clear glass lens 1.56 x 1.6 times larger while
  * [held]. Sized in layout, not scaled, so the lens samples and refracts at its true size; only this
  * node is measured again per frame.
  */
