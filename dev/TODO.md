@@ -5,6 +5,10 @@
 ## #112 search mode (18 November, `p3/112`)
 
 - [x] State, geometry (measured end state), expansion transition (authored), tests, docs. [ ] sample wiring, IME ride-up, Android back, Material 3 `NavigationBar`, ports, replay and `search112.py` scoring, 60 fps scoring of the motion.
+## Scoring tools #101 (18 November, `p2/selector`)
+
+- [x] Item 88 `--rim-exclude` split; [x] `--geometry` for IMG_7048 and the phone; [x] `replay_script.sh` dry run; [x] formation-continuity scorer.
+- [ ] Render `ref/light/IMG_7048-hold.txt` (`calm-light`) and score it; [ ] run `replay_script.sh` on the Pixel (+-25 ms, +-6 px).
 
 ## Controls bundle (18 November, `feat/205-204-207-controls`)
 

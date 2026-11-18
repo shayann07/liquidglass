@@ -197,6 +197,11 @@ research remains available; this page identifies which later changes supersede i
   16-19 edges (loose), so a split persists away from the rim (not a subtraction from the whole-lens figure: different edges). Desktop replay, no optics changed:
   [record](https://github.com/shayann07/liquidglass/blob/main/review/atlas/scoring-tools-2026-11-07/README.md).
 
+- 18 November: `--content-split --rim-exclude 24` separates page edges inside the rim band from the interior (IMG_6756: ours 2.95
+  and 3.02 px, iOS 0.57 and 0.62, away from the lens 0.00 both); `measure_light_hold.py --geometry` scores cropped and phone captures
+  (IMG_7049 gate unchanged at +6.5 / -6.2); `tools/pixel/replay_script.sh` replays a finger path on the Pixel (dry run only);
+  `tools/measure_formation_continuity.py` (#103) is new. IMG_7048 is cut, not yet rendered or scored. No optics changed.
+
 ## First tap after install (20 October, #71)
 
 - The first tab bar tap after install had one 326-352 ms frame on a Pixel 7: the selector's layers were
