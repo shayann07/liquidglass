@@ -47,20 +47,24 @@ test('in-app surface parameters agree with the actual Kotlin factory across both
   } finally {effects.dispose();}
 });
 
-test('the colour transfer uniforms are GlassMaterial.chromaOf: dark, light and Tint 0 (#201)', () => {
+test('the colour transfer uniforms are GlassMaterial.chromaOf: dark, light, Tint 0 and Tint 100 (#201, #208)', () => {
   const effects=compileGlassEffects(kit,sources);
   try {
     const near=(got,want,label)=>want.forEach((x,i)=>assert(Math.abs(x-got[i])<=1e-6,`${label}[${i}]: ${got[i]} vs ${x}`));
     const at=(dark,tintAmount)=>inAppMaterialUniforms(effects,{width:240,height:80,dark,tintAmount});
-    const dark=at(true,50),light=at(false,50),flat=at(true,0),flatLight=at(false,0);
+    // #208: Tint 0 carries |c| 0.336 / 0.334, so its weight is 1 and its transfer is the Tint 50 one (authored
+    // extrapolation); Tint 100 has c = 0, so the transfer is off.
+    const dark=at(true,50),light=at(false,50),zero=at(true,0),zeroLight=at(false,0),flat=at(true,100),flatLight=at(false,100);
     near(dark.uChromaGain,[1.317,1.256,1.314],'dark gain');
     near(dark.uChromaSlope,[-.427,-.351,-.429],'dark slope');
     near([dark.uChromaWeight],[1],'dark weight');
     near(light.uChromaGain,[.988,.952,.979],'light gain');
     near(light.uChromaSlope,[-.076,.028,-.045],'light slope');
     near([light.uChromaWeight],[1],'light weight');
+    near(zero.uChromaGain,[1.317,1.256,1.314],'Tint 0 dark gain');near([zero.uChromaWeight],[1],'Tint 0 dark weight');
+    near(zeroLight.uChromaGain,[.988,.952,.979],'Tint 0 light gain');near([zeroLight.uChromaWeight],[1],'Tint 0 light weight');
     for(const m of [flat,flatLight]) {
-      near(m.uChromaGain,[0,0,0],'Tint 0 gain');near(m.uChromaSlope,[0,0,0],'Tint 0 slope');
+      near(m.uChromaGain,[0,0,0],'Tint 100 gain');near(m.uChromaSlope,[0,0,0],'Tint 100 slope');
       assert.equal(m.uChromaWeight,0);
     }
     assert.deepEqual(chromaOf(0),Array(7).fill(0));
@@ -265,7 +269,8 @@ test('positioned lenses sample the page, preserve host transforms and borrow sou
     const channel=(buffer,x,y,c=0)=>buffer[(y*w+x)*4+c];
     for(const [x,y,width,height] of [[10,15,80,80],[100,75,110,60],[-20,-10,80,80]]) {
       canvas.clear(kit.TRANSPARENT);
-      painter.drawLens(canvas,{x,y,width,height,magnification:1.25});
+      // This test is about page mapping, so it uses the bare map (the default lens adds the preset's tint and rim).
+      painter.drawLens(canvas,{x,y,width,height,magnification:1.25},{lighting:false});
       surface.flush();
       const actual=canvas.readPixels(0,0,info),cx=x+width/2,cy=y+height/2;
       assert.ok(Math.abs(channel(actual,cx,cy)-cx)<=1,'lens sampled the wrong horizontal page origin');

@@ -28,7 +28,10 @@ import org.jetbrains.skia.Surface
  */
 internal object GlassRender {
 
-    private val effect: RuntimeEffect by lazy { RuntimeEffect.makeForShader(GLASS_SHADER_SOURCE) }
+    private val effects = HashMap<String, RuntimeEffect>()
+    private fun effectFor(source: String): RuntimeEffect = synchronized(effects) {
+        effects.getOrPut(source) { RuntimeEffect.makeForShader(source) }
+    }
 
     /** Luminance, Rec. 709, of an ARGB pixel — the same measure the device harness uses. */
     fun luma(argb: Int): Double {
@@ -117,6 +120,8 @@ internal object GlassRender {
         endpointAlpha: Float = 0f,
         /** Alpha-only substrate coverage in the padded layer's coordinates. */
         tintMask: ((x: Int, y: Int) -> Float)? = null,
+        /** The shader text to compile; a test may pass an edited copy to isolate one term. */
+        shaderSource: String = GLASS_SHADER_SOURCE,
         backdrop: (x: Int, y: Int) -> Int,
     ): IntArray {
         val w = width + pad * 2
@@ -155,7 +160,7 @@ internal object GlassRender {
         val srcShader = Image.makeFromBitmap(src)
             .makeShader(FilterTileMode.CLAMP, FilterTileMode.CLAMP, SamplingMode.LINEAR)
 
-        val b = RuntimeShaderBuilder(effect)
+        val b = RuntimeShaderBuilder(effectFor(shaderSource))
         b.child("content", srcShader)
         if (tintMask != null) {
             val mask=Bitmap().apply { allocPixels(ImageInfo(w,h,ColorType.BGRA_8888,ColorAlphaType.PREMUL)) }

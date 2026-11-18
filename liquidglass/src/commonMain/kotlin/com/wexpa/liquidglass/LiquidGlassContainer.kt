@@ -177,7 +177,7 @@ internal fun LiquidGlassContainer(
                             detailCross = if (GlassMaterial.usesDetailCross(style.blurRadius)) 1f else 0f,
                             tintLift = style.tintLift,
                             liftAdapt = style.liftAdaptivity,
-                            chroma = GlassMaterial.chromaOf(style.detailLift.coerceIn(-1f, 1f)),
+                            chroma = GlassMaterial.chromaOf(style.detailLift.coerceIn(-1f, 1f), style.chromaGain),
                             backdropSigma = if (style.backdropSigma.isSpecified) style.backdropSigma.toPx() else 0f,
                             refractDepth = style.refractionDepth.toPx(),
                             aberration = style.dispersion,
@@ -201,6 +201,8 @@ internal fun LiquidGlassContainer(
                             outerContourFloor = style.outerContourFloor,
                             rimSoft = style.rimSoftness.toPx(),
                             tintAbsorb = style.tintAbsorption,
+                            legibility = style.legibility,
+                            softDetail = style.softDetail.coerceIn(0f, 1f),
                             edgeLight = style.edgeLight,
                             bevelPeak = style.bevelPeak,
                         )
@@ -276,6 +278,10 @@ internal class GlassContainerUniforms(
     val outerContourFloor: Float = 0f,
     val rimSoft: Float,
     val tintAbsorb: Float,
+    /** [GlassStyle.legibility]. */
+    val legibility: Float = 0f,
+    /** [GlassStyle.softDetail]: 1 scatters the soft copy unrotated. */
+    val softDetail: Float = 0f,
     /** 0 the legacy Snell bevel, 1 the measured fold lens. */
     val profile: Float = 0f,
     /** Resting-corner source map: 0 legacy, 1 the measured table ([GlassRestMap]). */

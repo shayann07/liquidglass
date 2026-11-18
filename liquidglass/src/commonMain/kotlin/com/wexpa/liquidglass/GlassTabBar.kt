@@ -218,6 +218,7 @@ internal fun GlassTabBar(
     // The keyboard focus ring (#117) is drawn over everything the bar draws, the selector included:
     // drawn on the interactive row it sat under the pill or lens of the selected tab.
     val focusRing = remember { GlassFocusRingState() }
+    val focusScope = androidx.compose.runtime.rememberCoroutineScope()
     androidx.compose.runtime.CompositionLocalProvider(LocalGlassFocusRing provides focusRing) {
     // Nothing here clips: the lens stands proud of the bar while it is held.
     BoxWithConstraints(
@@ -226,7 +227,9 @@ internal fun GlassTabBar(
             // A pointer press anywhere on the bar hides the ring until the next key: the desktop stays in keyboard
             // input mode under touch and synthetic presses, which focus the tab they press (#143 regression in replays).
             .pointerInput(Unit) {
-                kotlinx.coroutines.coroutineScope {
+                // A cancelled gesture (another handler took the pointer, or the bar left) cancels this whole block and
+                // its pending check: the gesture is over either way, so it must not keep blurs from counting (#218).
+                try { kotlinx.coroutines.coroutineScope {
                     val watcher = this
                     var cleanup: kotlinx.coroutines.Job? = null
                     awaitPointerEventScope {
@@ -238,12 +241,14 @@ internal fun GlassTabBar(
                                 cleanup?.cancel()
                                 focusRing.pointerSinceKey = true
                                 focusRing.pointerSinceBlur = true
+                                focusRing.pointerGesture = true
                             }
                             // A press that ends with no tab focused (the row's padding) leaves nothing to suppress: clear
                             // it two frames on, after any tab the press clicked has taken focus.
                             if (e.changes.none { it.pressed } && e.changes.any { it.previousPressed }) cleanup = watcher.launch {
                                 androidx.compose.runtime.withFrameNanos { }
                                 androidx.compose.runtime.withFrameNanos { }
+                                focusRing.pointerGesture = false
                                 if (!focusRing.barFocused) {
                                     focusRing.pointerSinceKey = false
                                     focusRing.pointerSinceBlur = false
@@ -251,7 +256,7 @@ internal fun GlassTabBar(
                             }
                         }
                     }
-                }
+                } } finally { focusRing.pointerGesture = false }
             }
             .onPreviewKeyEvent { focusRing.pointerSinceKey = false; false }
             // Focus that comes back with no pointer press on the bar since it left came from the keyboard (a Tab from a
@@ -259,7 +264,16 @@ internal fun GlassTabBar(
             // reaches this bar (Initial pass) before the tab it presses takes focus.
             .onFocusChanged {
                 focusRing.barFocused = it.hasFocus
-                if (!it.hasFocus) focusRing.pointerSinceBlur = false
+                // A blur inside a pointer gesture is focus passing between two tabs, not focus leaving the bar (#218).
+                if (!it.hasFocus) {
+                    if (!focusRing.pointerGesture) focusRing.pointerSinceBlur = false
+                    // Inside a gesture, wait a frame: focus passing between two tabs is back by then. Still gone, it was a
+                    // real blur, and the gesture is over too (a cancelled press sends this bar no release to end it).
+                    else focusScope.launch {
+                        androidx.compose.runtime.withFrameNanos { }
+                        if (!focusRing.barFocused) { focusRing.pointerSinceBlur = false; focusRing.pointerGesture = false }
+                    }
+                }
                 else if (!focusRing.pointerSinceBlur) focusRing.pointerSinceKey = false
             }
             .drawWithContent {
@@ -2674,6 +2688,11 @@ internal class GlassFocusRingState {
     var pointerSinceKey by mutableStateOf(false)
     /** A pointer pressed the bar since focus last left it: focus that returns without one is not the pointer's. */
     var pointerSinceBlur = false
+    /** A pointer gesture on the bar is under way, from its press until two frames after its release (or until a blur that
+     * outlasts a frame, since a cancelled press sends no release). Focus moving from
+     * one tab to another passes through a moment with no tab focused; inside a gesture that is the pointer's own focus
+     * move, not focus leaving the bar (#218). */
+    var pointerGesture = false
     /** Whether a tab of the bar has focus. */
     var barFocused = false
     val target = mutableStateOf<GlassFocusRingTarget?>(null)

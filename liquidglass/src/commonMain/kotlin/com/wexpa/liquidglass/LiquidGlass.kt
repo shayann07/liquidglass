@@ -628,7 +628,7 @@ internal fun Modifier.liquidGlassCore(
                         // The four-tap cross is the measured detail kernel at the lab reach; at a wider reach it would draw
                         // four displaced copies, so it is chosen by the reach in dp, never by a pixel threshold.
                         detailCross = if (GlassMaterial.usesDetailCross(style.blurRadius)) 1f else 0f,
-                        chroma = GlassMaterial.chromaOf(style.detailLift.coerceIn(-1f, 1f)),
+                        chroma = GlassMaterial.chromaOf(style.detailLift.coerceIn(-1f, 1f), style.chromaGain),
                         restMap = style.restMap.uniform,
                         body = body?.let {
                             floatArrayOf(

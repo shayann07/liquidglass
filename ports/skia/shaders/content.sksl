@@ -400,10 +400,11 @@ float restSourceLegacy(float u) {
 }
 
 // The measured resting-corner map (GlassRestMap.Measured; GlassRestMapTable is the authority and this text
-// is generated from it). Fitted on the Photos toolbar's 72 px ends over 190 measured landmark pairs: the
-// source depth falls from 0.876 W at the rim band's inner edge to a minimum of 0.643 W at 0.44 W, rises
-// again and meets identity at 0.833 W with slope 1. Below 0.139 W (d < 6 px at R = 72) it is a constant,
-// unmeasured extension. At radii other than 72 reference px this is a scale extrapolation.
+// is generated from it). From 0.139 W up, fitted on the Photos toolbar's 72 px ends over 190 measured landmark
+// pairs: the source depth falls from 0.876 W at 0.139 W to a minimum of 0.643 W at 0.44 W, rises again and meets
+// identity at 0.833 W with slope 1. Below 0.139 W it is the Safari lab pill's measured rim band (#202): 0.91 W at
+// 0.127 W rising to 1.41 W at 0.012 W, a constant below that. At radii other than 72 reference px this is a scale
+// extrapolation.
 float restSourceMeasured(float u) {
     if (u >= 0.833333) {
         return u;
@@ -446,7 +447,25 @@ float restSourceMeasured(float u) {
     if (u >= 0.138889) {
         return 0.875903 + -2.282012 * (u - 0.138889);
     }
-    return 0.875903;
+    if (u >= 0.127315) {
+        return 0.912037 + -3.121998 * (u - 0.127315);
+    }
+    if (u >= 0.104167) {
+        return 0.967593 + -2.400034 * (u - 0.104167);
+    }
+    if (u >= 0.081019) {
+        return 1.025463 + -2.499999 * (u - 0.081019);
+    }
+    if (u >= 0.057870) {
+        return 1.115741 + -3.899868 * (u - 0.057870);
+    }
+    if (u >= 0.034722) {
+        return 1.229167 + -4.900033 * (u - 0.034722);
+    }
+    if (u >= 0.011574) {
+        return 1.412037 + -7.900036 * (u - 0.011574);
+    }
+    return 1.412037;
 }
 
 float restSource(float u) {

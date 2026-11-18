@@ -413,6 +413,8 @@ internal actual fun createGlassContainerRenderEffect(
     shader.setFloatUniform("uOuterContour", uniforms.outerContour, uniforms.outerContourFloor)
     shader.setFloatUniform("uRimSoft", uniforms.rimSoft)
     shader.setFloatUniform("uTintAbsorb", uniforms.tintAbsorb)
+    shader.setFloatUniform("uLegibility", uniforms.legibility)
+    shader.setFloatUniform("uSoftDetail", uniforms.softDetail)
     shader.setFloatUniform("uEdgeLight", uniforms.edgeLight)
     shader.setFloatUniform("uBevelPeak", uniforms.bevelPeak)
     shader.setFloatUniform(

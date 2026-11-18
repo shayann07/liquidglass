@@ -44,12 +44,40 @@ object GlassMaterial {
     val wideKernel: Dp = 10.dp
 
     /**
-     * How far the 16 November lab fit (#199, `tools/glass_model.py`) applies at a Tint Amount: 1 at
-     * the default, where it was measured, falling to 0 at 0 and 100, where the earlier fit stays until
-     * those tints are re-measured (#208). The blend between is authored.
+     * The material measured at the ends of the slider (#208): Tint 0 and Tint 100, fitted on the Photos chrome over the
+     * calibration target (iPhone 13, iOS 27, lossless stills, 3x) by the same forward model as Tint 50, `lin = B + k (D - B)
+     * + c |D - B|` then `out = T0 + (T1 - T0) x + bow x (1 - x)`. **Measured**: the detail share k, the one-sided term
+     * |c|, the dark bow and the tint opacity at 0 and 100, each node below; the wide sigma 46.5 px (15.5 dp) at every tint
+     * (best of 36 to 58 px at all three) and the 1 px detail cross. **Inherited** from the Tint 50 fit: the lift (dark
+     * 31.72, light 5.5 over 255, the fit at the ends gave 30 to 33), the one-pixel reach and, for the light side, a
+     * white tint. **Authored**: the piecewise-linear interpolation between the nodes at 0, 50 and 100 (against the per-tint
+     * fits at Tints 29 to 86 it is within 0.020 in k, 1 in the bow and 0.006 in opacity, by arithmetic on the fitted values,
+     * not a held-out render), legibility 0 and softDetail 1 at every tint, and the colour transfer, which is measured at Tint
+     * 50 only and follows |c|. Scored in Python on two elements pooled (the Today pill and the toolbar capsule), not by
+     * a render: rms 1.40 / 2.20 / 1.29 / 2.07 levels (dark 0, light 0, dark 100, light 100) against 15.98 / 24.79 / 10.75 /
+     * 5.63 for the earlier authored values on the same captures. The light white end is clipped (T1 about 253 at every
+     * tint), so its slope is not identifiable: the light opacity assumes the lift and a white tint.
      */
-    internal fun labWeight(tintAmount: Float): Float =
-        (1f - kotlin.math.abs(tintAmount.coerceIn(0f, 100f) - DEFAULT_TINT_AMOUNT) / 50f).coerceIn(0f, 1f)
+    private fun measuredNodes(atEnds: FloatArray, atDefault: Float): FloatArray =
+        floatArrayOf(0f, atEnds[0], DEFAULT_TINT_AMOUNT, atDefault, 100f, atEnds[1])
+
+    /** The detail share k at a Tint Amount: 0.663 at 0, the lab value at 50, 0 at 100 (light 0.664 at 0). */
+    internal fun measuredDetailShare(dark: Boolean, tintAmount: Float): Float =
+        interpolate(measuredNodes(floatArrayOf(if (dark) 0.663f else 0.664f, 0f), labDetailShare(dark)), tintAmount)
+
+    /** The one-sided term c at a Tint Amount: magnitude 0.336 (light 0.334) at 0, 0.22 at 50, 0 at 100; negative on dark glass. */
+    internal fun measuredDetailLift(dark: Boolean, tintAmount: Float): Float {
+        val magnitude = interpolate(measuredNodes(floatArrayOf(if (dark) 0.336f else 0.334f, 0f), kotlin.math.abs(labDetailLift(dark))), tintAmount)
+        return if (dark) -magnitude else magnitude
+    }
+
+    /** The tone curve's bow at a Tint Amount: dark 101.6 at 0, 101.01 at 50, 49.8 at 100 (over 255); light none (its fits are within noise of 0). */
+    internal fun measuredToneCurve(dark: Boolean, tintAmount: Float): Float =
+        if (dark) interpolate(measuredNodes(floatArrayOf(101.6f / 255f, 49.8f / 255f), labToneCurve(true)), tintAmount) else 0f
+
+    /** The tint's opacity at a Tint Amount: dark 0.401, 0.3985, 0.703 and light 0.382, 0.498, 0.682 at 0, 50 and 100. */
+    internal fun measuredOpacity(dark: Boolean, tintAmount: Float): Float =
+        interpolate(measuredNodes(if (dark) floatArrayOf(0.401f, 0.703f) else floatArrayOf(0.382f, 0.682f), labOpacity(dark)), tintAmount)
 
     /** Lab fit, Tint 50: sigma of the wide kernel B, 46.5 px at 3x (the fit is flat from 44 to 52 px). */
     internal val labWideKernel: Dp = 15.5.dp
@@ -84,6 +112,27 @@ object GlassMaterial {
     internal fun labToneCurve(dark: Boolean): Float = if (dark) 101.01f / 255f else 0f
 
     /**
+     * Menu panel (#204), fitted on iOS 27's Safari `<select>` popup in `M-select-{dark,light}` and nothing else
+     * (video, HDR10 decoded, 17 flat greys and 12 stripe cases per appearance; panel interior only, no rim,
+     * shadow or corner). `lin = B`, then the tone: a pure blur with no detail term, where Regular has
+     * `lin = B + k (D - B) + c |D - B|` with k 0.277. Sigma of B: dark 29.7 px = 9.9 dp, light 35.4 px = 11.8 dp
+     * (Regular: 15.5 dp). The fitted k (0.018 dark, 0.021 light) and c (-0.019, +0.037) are within noise and are
+     * set to exactly 0 ([GlassStyle.menu] has `fineShare` and `detailLift` 0).
+     */
+    internal fun menuWideKernel(dark: Boolean): Dp = if (dark) 9.9.dp else 11.8.dp
+
+    /**
+     * Menu panel (#204), the tone over flat grey in the same form as [labOpacity], [labLift] and [labToneCurve]:
+     * dark `29.59 + 248.85 x - 155.87 x^2` (rms 1.01 levels over the 17 measured greys), light
+     * `135.06 + 159.10 x - 35.25 x^2` (rms 1.38, clipping at 255 from about in 232). Dark: black at 0.6354, lift
+     * 29.59/255, bow 155.87/255. Light: white at 0.5143, lift 3.91/255, bow 35.25/255. The dark bow is 1.54 times
+     * Regular's: output peaks at 129 near in 200 and falls to 122 at white.
+     */
+    internal fun menuOpacity(dark: Boolean): Float = if (dark) 0.6354f else 0.5143f
+    internal fun menuLift(dark: Boolean): Float = if (dark) 29.59f / 255f else 3.91f / 255f
+    internal fun menuToneCurve(dark: Boolean): Float = if (dark) 155.87f / 255f else 35.25f / 255f
+
+    /**
      * Lab fit, Tint 50 (#201): the colour transfer over flat colour, `tone(y) + (g0 + g1 y) (x - y)` for each channel
      * x about the Rec. 709 luma y of the sRGB code values (0-1), then clipped; g0 and g1 per channel (R, G, B). Fitted
      * on the 125-point RGB cube of the lab stills, converted once from Display P3 to sRGB and clipped to the sRGB
@@ -97,8 +146,8 @@ object GlassMaterial {
     /**
      * The colour transfer's uniforms for a style: g0 (R, G, B), g1 (R, G, B) and the weight (`uChromaGain`,
      * `uChromaSlope`, `uChromaWeight`). Derived from [GlassStyle.detailLift], so no new style field is needed: the
-     * sign picks the appearance and |c| / 0.22 is the lab weight, which [GlassStyle.inApp] and [GlassStyle.toolbar]
-     * set as `labDetailLift(dark) * labWeight(tint)`. Zero lift, as on every style without the lab material (the tab
+     * sign picks the appearance and |c| / 0.22 is the weight (at most 1; full from Tint 50 down to 0, where it is an authored extrapolation, and falling to none at 100), which [GlassStyle.inApp] and [GlassStyle.toolbar]
+     * set as `measuredDetailLift(dark, tint)`. Zero lift, as on every style without the lab material (the tab
      * bar's earlier fit among them), leaves the per-channel tone alone.
      */
     internal fun chromaOf(detailLift: Float): FloatArray {
@@ -107,6 +156,20 @@ object GlassMaterial {
         if (weight <= 0f) return FloatArray(7)
         return labChromaGain(dark) + labChromaSlope(dark) + floatArrayOf(weight)
     }
+
+    /**
+     * The colour transfer a style asks for: [chromaOf] of its [GlassStyle.detailLift] when [GlassStyle.chromaGain] is
+     * unset (NaN), else the flat output-referred gain g on all three channels with no slope and full weight, the shader
+     * then leaving the finished colour at g times the backdrop's chroma about its luma.
+     */
+    internal fun chromaOf(detailLift: Float, chromaGain: Float): FloatArray {
+        if (chromaGain.isNaN()) return chromaOf(detailLift)
+        val g = chromaGain.coerceIn(0f, MAX_CHROMA_GAIN)
+        return floatArrayOf(g, g, g, 0f, 0f, 0f, 1f)
+    }
+
+    /** The largest [GlassStyle.chromaGain] the host passes on, authored as a guard (the measured Control Center value is 1.58). */
+    internal const val MAX_CHROMA_GAIN: Float = 4f
 
     /** The light in-app tint colour: a constant 241/255 at every slider position. */
     val lightTint: Color = Color(0xFFF1F1F1)

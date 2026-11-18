@@ -4,8 +4,8 @@ Source revision: branch `fix/cap-cut` on main `d7733bd2`. Backend: desktop JVM, 
 render of `Glass.Regular` (`glassEffect`, `LiquidGlassTheme`) on a 220 x 62 dp capsule at 3x over black 3 dp lines on
 white. "Before" is clean `origin/main` (`d7733bd2`); "after" is the branch. The same
 render on main before #210 (`0e2f7a63`) shows the same hook, finer, so it is older than the measured material. The scores
-below are against the 16 November Safari lab stills, which are private: only numbers appear here. Nothing here was
-captured on an Android phone.
+below are against the 16 November Safari lab stills, which are private: only numbers appear here. The device check
+below was made on a Pixel 7; its frames are not published, numbers only.
 
 ## The cause
 
@@ -48,9 +48,19 @@ the container's copy of the rule).
 *Our renders only. Top: main. Bottom: this branch. The hook at each cap start goes; the cap's folds carry on along the
 run, as iOS's do.*
 
+## Device check (Pixel 7, 18 November)
+
+Android 17, `CalibrationActivity --ez restMap true`, main `b980300f` against the PR's head `ee88228b`, all four combinations
+of dark/light glass on the light/dark chart, portrait, screen captures. At the pill's left cap start the largest
+horizontal step across a chart edge falls from 26 to 3 levels (dark glass) and 12 to 3 (light glass). The change sits only
+in the outer band of the capsules' straight runs (max 44, mean 3.2 on the pill and 7.2 on the toolbar); the run core and
+the round ends are unchanged (max 0-1), and nothing outside the capsules changes. A labelled glass `OutlinedButton`
+("Continue") over lines, rendered on the JVM before and after, shows the same: the hook at each cap start goes and the
+label, drawn above the glass, is untouched.
+
 ## Limits
 
 - One iOS element at one radius: the Safari pill, a toolbar capsule at R = 71.5 px. No non-capsule panel has been
   measured at rest over lines, so cards keep main's corner-only lens (and its tick at each corner, smaller than a
   capsule's); #202 can revisit them.
-- JVM Skia renders, not a device capture.
+- The images above are JVM Skia renders; the device check is numbers only. Still captures, no motion.

@@ -3,6 +3,14 @@ using SkiaSharp;
 
 namespace LiquidGlass.Skia;
 
+/// <summary>A lens's options. By default (<c>Lighting</c> true) a lens has the Compose clear-lens preset (<c>GlassStyle.clearLens</c>,
+/// what <c>Glass.Lens</c> draws): a rim highlight, a thin white tint and a contact shadow, so a free-standing lens reads as glass over
+/// flat or low-detail content. It is authored in Compose, not an iOS measurement. <c>Lighting</c> false is the bare magnification
+/// map (the lens before 1.1.0). <c>Shadow</c> false skips the contact shadow;
+/// <c>Density</c> is px per dp (the preset's dp terms scale); <c>LightX</c>/<c>LightY</c> point toward the light (y up is negative).</summary>
+public sealed record GlassLensOptions(bool Lighting = true, bool Shadow = true, float Density = 1,
+    float LightX = -.35f, float LightY = -.94f);
+
 /// <summary>A surface's options. <c>LightX</c>/<c>LightY</c> point toward the light (y up is negative):
 /// the default is Compose's <c>GlassLight.Default</c>, as <c>Glass.Regular</c> binds it; (0, -1) is
 /// iOS 27's measured overhead light.</summary>
@@ -67,12 +75,32 @@ public sealed class GlassPainter : IDisposable
         catch { next.Dispose(); throw; }
     }
 
-    public void DrawLens(SKCanvas canvas, SKRect bounds, float magnification = 1.25f)
+    /// <summary>Draw a clear magnifier with the default <see cref="GlassLensOptions"/>: the Compose clear-lens preset. Pass
+    /// <c>new GlassLensOptions(Lighting: false)</c> for the bare magnification map.</summary>
+    public void DrawLens(SKCanvas canvas, SKRect bounds, float magnification = 1.25f) =>
+        DrawLens(canvas, bounds, new GlassLensOptions(), magnification);
+
+    /// <summary>Draw a clear magnifier with <see cref="GlassLensOptions"/>: with <c>Lighting</c> (the default) it is the Compose clear-lens
+    /// preset (rim, thin tint, contact shadow); without it, the bare magnification map.</summary>
+    public void DrawLens(SKCanvas canvas, SKRect bounds, GlassLensOptions options, float magnification = 1.25f)
     {
-        Ready(canvas, bounds);
+        Ready(canvas, bounds); ArgumentNullException.ThrowIfNull(options);
         if (!float.IsFinite(magnification) || magnification < 1 || magnification > 2.5)
             throw new ArgumentOutOfRangeException(nameof(magnification));
-        var values = ClearUniforms(material, bounds.Width, bounds.Height, 2, magnification);
+        if (!float.IsFinite(options.Density) || options.Density <= 0 || !float.IsFinite(options.LightX) || !float.IsFinite(options.LightY))
+            throw new ArgumentOutOfRangeException(nameof(options));
+        var values = options.Lighting
+            ? ClearLensUniforms(material, bounds.Width, bounds.Height, 2, magnification, options.Density, options.LightX, options.LightY)
+            : ClearUniforms(material, bounds.Width, bounds.Height, 2, magnification);
+        if (options.Lighting && options.Shadow)
+        {
+            // GlassStyle.contactShadow on a lens: glassShadow's alpha (0.14) times the style's 0.15, blur and offset sized from the
+            // element, cast by the lens body and kept off the lens itself.
+            var size = Math.Clamp((Math.Min(bounds.Width, bounds.Height) / options.Density - 56) / 264, 0, 1);
+            var radius = Math.Min(bounds.Width, bounds.Height) / 2;
+            DrawShadow(canvas, new Shadow(bounds, radius, 0, 1, 18 * (.6f + .6f * size) * options.Density, 4 * (.5f + .9f * size) * options.Density, bounds),
+                .14f * ClearLens.ContactShadow, true, radius);
+        }
         var origin = new SKPoint(bounds.Left - 2, bounds.Top - 2);
         using var shader = source!.ToShader(SKShaderTileMode.Clamp, SKShaderTileMode.Clamp, Sampling,
             SKMatrix.CreateTranslation(-origin.X, -origin.Y));
@@ -134,25 +162,38 @@ public sealed class GlassPainter : IDisposable
         return dark ? [1.317f, 1.256f, 1.314f, -.427f, -.351f, -.429f, weight] : [.988f, .952f, .979f, -.076f, .028f, -.045f, weight];
     }
 
-    // GlassStyle.towardLab: the lab fit (#199, #200) laid over the earlier fit by a weight that is 1 at the default
-    // Tint Amount and 0 at 0 and 100. The detail reach is the lab's at every tint, which selects the four-tap
-    // detail kernel (uDetailCross: 0 < blurRadius <= 1/3 dp, decided in dp).
+    // GlassStyle.towardLab: the lab material at a Tint Amount. Measured at Tint 50 in the Safari lab (#199, #200) and at
+    // Tint 0 and 100 on the Photos chrome (#208); piecewise-linear between those three nodes (authored). The detail
+    // reach is the lab's at every tint, which selects the four-tap detail kernel (uDetailCross: 0 < blurRadius <= 1/3
+    // dp, decided in dp).
     private const float LabWideKernel = 15.5f, LabDetailReach = 1f / 3;
+
+    // GlassMaterial.measuredNodes + interpolate: linear between the values at Tint 0, 50 and 100.
+    private static float Nodes3(float atZero, float atDefault, float atHundred, float amount)
+    {
+        var t = Math.Clamp(amount, 0, 100);
+        return t <= 50 ? atZero + (atDefault - atZero) * (t / 50) : atDefault + (atHundred - atDefault) * ((t - 50) / 50);
+    }
 
     private static void TowardLab(Dictionary<string, float[]> v, GlassSurfaceOptions o)
     {
-        Set(v, "uBlur", LabDetailReach * o.Density); Set(v, "uDetailCross", 1);
-        var w = Math.Clamp(1 - MathF.Abs(Math.Clamp(o.TintAmount, 0, 100) - 50) / 50, 0, 1);
-        if (w <= 0) return;
-        float Mix(float a, float b) => a + (b - a) * w;
         var dark = o.Dark;
+        var t = o.TintAmount;
         var grey = dark ? 0f : 1f;
-        Set(v, "uTint", LerpColor(v["uTint"], [grey, grey, grey, Q8(dark ? .3985f : .498f)], w));
-        Set(v, "uLift", Mix(v["uLift"][0], dark ? 31.72f / 255 : 5.5f / 255));
-        Set(v, "uFineShare", Mix(v["uFineShare"][0], dark ? .277f : .273f));
-        Set(v, "uWideKernel", Mix(v["uWideKernel"][0], LabWideKernel * o.Density));
-        Set(v, "uDetailLift", (dark ? -.22f : .22f) * w); Set(v, "uToneCurve", (dark ? 101.01f / 255 : 0f) * w);
-        Set(v, "uLegibility", Mix(v["uLegibility"][0], 0)); Set(v, "uSoftDetail", Mix(0, 1));
+        // Measured at Tint 0 and 100: detail share 0.663 / 0 (light 0.664 / 0), |c| 0.336 / 0 (0.334), dark bow 101.6 / 49.8
+        // over 255, opacity dark 0.401 / 0.703 and light 0.382 / 0.682; the Tint 50 values are the lab's.
+        var opacity = dark ? Nodes3(.401f, .3985f, .703f, t) : Nodes3(.382f, .498f, .682f, t);
+        var share = Nodes3(dark ? .663f : .664f, dark ? .277f : .273f, 0, t);
+        var lift = Nodes3(dark ? .336f : .334f, .22f, 0, t);
+        // Everything the lab material sets is replaced outright, not blended with the earlier fit (#208).
+        Set(v, "uBlur", LabDetailReach * o.Density); Set(v, "uDetailCross", 1);
+        Set(v, "uTint", new[] { grey, grey, grey, Q8(opacity) });
+        Set(v, "uLift", dark ? 31.72f / 255 : 5.5f / 255);
+        Set(v, "uFineShare", share);
+        Set(v, "uWideKernel", LabWideKernel * o.Density);
+        Set(v, "uDetailLift", dark ? -lift : lift);
+        Set(v, "uToneCurve", dark ? Nodes3(101.6f / 255, 101.01f / 255, 49.8f / 255, t) : 0f);
+        Set(v, "uLegibility", 0); Set(v, "uSoftDetail", 1);
     }
 
     // Compose's Color lerp runs in Oklab and stores 8 bits per channel again; the Oklab intermediate keeps alpha in
@@ -352,7 +393,7 @@ public sealed class GlassPainter : IDisposable
     private static float Sigma(float radius) => radius > 0 ? .57735f * radius + .5f : 0;
 
     // A contact shadow: the caster's rounded rect in black at `alpha`, blurred and moved down (device px).
-    private static void DrawShadow(SKCanvas target, Shadow s, float alpha, bool outsideBar = false)
+    private static void DrawShadow(SKCanvas target, Shadow s, float alpha, bool outsideBar = false, float? clipRadius = null)
     {
         if (!(alpha > 0)) return;
         using var blur = s.Blur > .01f ? SKImageFilter.CreateBlur(Sigma(s.Blur), Sigma(s.Blur), SKShaderTileMode.Decal) : null;
@@ -360,7 +401,8 @@ public sealed class GlassPainter : IDisposable
         target.Save();
         if (outsideBar)
         {
-            using var bar = new SKRoundRect(s.Bar, s.Bar.Height / 2, s.Bar.Height / 2);
+            var corner = clipRadius ?? s.Bar.Height / 2;
+            using var bar = new SKRoundRect(s.Bar, corner, corner);
             target.ClipRoundRect(bar, SKClipOperation.Difference, true);
         }
         var r = s.Rect; r.Offset(0, s.Offset);
@@ -404,6 +446,28 @@ public sealed class GlassPainter : IDisposable
         Set(v, "uHeldMagnification", 1 - 1 / magnification); Set(v, "uFineShare", 1); Set(v, "uWideScale", .25f);
         Set(v, "uTouch", width / 2, height / 2); Set(v, "uMaterialize", 1);
         Set(v, "uPoseA", 1, 0, 0, 1); Set(v, "uPoseAInv", 1, 0, 0, 1); Set(v, "uPoseD", 1, 1, 1, 0); Set(v, "uPoseE", 0, 3, 0, 0);
+        return v;
+    }
+
+    /// <summary>The Compose clear lens (<c>GlassStyle.clearLens</c>) as uniforms: what <c>Glass.Lens(magnification)</c> binds.
+    /// <see cref="ClearUniforms"/> stays the bare magnifier. Lengths are device px; <paramref name="density"/> converts the dp
+    /// terms. Authored in Compose, not measured.</summary>
+    public static Dictionary<string, float[]> ClearLensUniforms(GlassEffectPass effect, float width, float height, float pad = 2,
+        float magnification = 1.25f, float density = 1, float lightX = ClearLens.LightX, float lightY = ClearLens.LightY)
+    {
+        if (!float.IsFinite(density) || density <= 0 || !float.IsFinite(lightX) || !float.IsFinite(lightY))
+            throw new ArgumentOutOfRangeException(nameof(density));
+        var v = ClearUniforms(effect, width, height, pad, magnification);
+        var radius = Math.Min(width, height) / 2;
+        Set(v, "uProfile", 3); Set(v, "uFormation", 0); Set(v, "uHeldLens", 1); Set(v, "uHeldGlow", 1);
+        Set(v, "uRadii", Enumerable.Repeat(radius, 4).ToArray()); Set(v, "uRefractBand", ClearLens.BandRatio * radius);
+        Set(v, "uRefractDepth", ClearLens.RefractDepth * density);
+        Set(v, "uScale", Math.Clamp((Math.Min(width, height) / density - 56) / 264, 0, 1));
+        Set(v, "uBevel", ClearLens.Bevel * density); Set(v, "uBevelPeak", 0); Set(v, "uSpecular", ClearLens.Specular);
+        Set(v, "uSpecularPow", 6); Set(v, "uFresnel", ClearLens.Fresnel); Set(v, "uCounterLight", ClearLens.CounterLight);
+        Set(v, "uEdgeLight", 1); Set(v, "uHiChroma", .7f); Set(v, "uLegibility", .6f); Set(v, "uAberration", 0);
+        Set(v, "uInnerShadow", 0); Set(v, "uBlur", 0); Set(v, "uWideKernel", 0); Set(v, "uFineShare", 1); Set(v, "uLift", 0);
+        Set(v, "uTint", 1, 1, 1, MathF.Round(ClearLens.TintAlpha * 255) / 255); Set(v, "uLight", lightX, lightY);
         return v;
     }
 

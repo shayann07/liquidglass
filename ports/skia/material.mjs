@@ -10,19 +10,37 @@ function interpolate(table,t) {
   const [x,a]=table[i],[y,b]=table[i+1];return a+(b-a)*(t-x)/(y-x);
 }
 
-// GlassStyle.towardLab: the lab fit (#199, #200) laid over the earlier fit by a weight that is 1 at the
-// default Tint Amount and 0 at 0 and 100. The constants are GlassMaterial.lab*.
+// GlassStyle.towardLab: the lab material at a Tint Amount. Measured at Tint 50 in the Safari lab (#199, #200) and at
+// Tint 0 and 100 on the Photos chrome (#208); piecewise-linear between those three nodes (authored). The constants are
+// GlassMaterial.lab* (Tint 50) and the node values below (GlassMaterial.measured*).
 const LAB_WIDE_KERNEL=15.5,LAB_DETAIL_REACH=1/3;
-// Single precision, as GlassMaterial.labWeight computes it.
-const labWeight=amount=>{
-  const r=Math.fround,away=r(Math.abs(r(Math.min(100,Math.max(0,r(amount)))-50)));
-  return Math.min(1,Math.max(0,r(1-r(away/50))));
-};
+const DEFAULT_TINT_AMOUNT=50;
+// GlassMaterial.measuredNodes: the flat (tint, value) table 0, ends[0], 50, atDefault, 100, ends[1]. Single precision.
+const measuredNodes=(ends,atDefault)=>[0,ends[0],DEFAULT_TINT_AMOUNT,atDefault,100,ends[1]];
+// GlassMaterial.interpolate: linear in a flat (tint, value, ...) table, clamped at its ends, in Float.
+function interpolateFlat(table,amount) {
+  const r=Math.fround,t=r(Math.min(100,Math.max(0,r(amount))));
+  let i=0;while(i<table.length-4&&table[i+2]<=t)i+=2;
+  const t0=r(table[i]),a0=r(table[i+1]),t1=r(table[i+2]),a1=r(table[i+3]);
+  const f=t1>t0?Math.min(1,Math.max(0,r(r(t-t0)/r(t1-t0)))):0;
+  return r(a0+r(r(a1-a0)*f));
+}
 const labOpacity=dark=>dark?.3985:.498;
 const labLift=dark=>dark?31.72/255:5.5/255;
 const labDetailShare=dark=>dark?.277:.273;
 const labDetailLift=dark=>dark?-.22:.22;
 const labToneCurve=dark=>dark?101.01/255:0;
+// GlassMaterial.measuredDetailShare: measured at 0 and 100 (dark 0.663 / 0, light 0.664 / 0), the lab value at 50.
+const measuredDetailShare=(dark,t)=>interpolateFlat(measuredNodes([dark?.663:.664,0],labDetailShare(dark)),t);
+// GlassMaterial.measuredDetailLift: |c| 0.336 (light 0.334) at 0, 0.22 at 50, 0 at 100; negative on dark glass.
+const measuredDetailLift=(dark,t)=>{
+  const m=interpolateFlat(measuredNodes([dark?.336:.334,0],Math.abs(labDetailLift(dark))),t);
+  return dark?-m:m;
+};
+// GlassMaterial.measuredToneCurve: dark bow 101.6 / 255 at 0, 101.01 / 255 at 50, 49.8 / 255 at 100; light none.
+const measuredToneCurve=(dark,t)=>dark?interpolateFlat(measuredNodes([Math.fround(101.6/255),Math.fround(49.8/255)],labToneCurve(true)),t):0;
+// GlassMaterial.measuredOpacity: dark 0.401, 0.3985, 0.703 and light 0.382, 0.498, 0.682 at 0, 50 and 100.
+const measuredOpacity=(dark,t)=>interpolateFlat(measuredNodes(dark?[.401,.703]:[.382,.682],labOpacity(dark)),t);
 // GlassMaterial.labChromaGain / labChromaSlope (#201): the colour transfer's g0 and g1 per channel (R, G, B).
 const labChromaGain=dark=>dark?[1.317,1.256,1.314]:[.988,.952,.979];
 const labChromaSlope=dark=>dark?[-.427,-.351,-.429]:[-.076,.028,-.045];
@@ -98,25 +116,51 @@ export function inAppMaterialUniforms(effects, {width,height,pad=2,radius=20,den
   });
   // The lab fit (GlassStyle.towardLab). The detail reach is the lab's at every tint, which is what selects the
   // four-tap detail kernel (uDetailCross: 0 < blurRadius <= 1/3 dp, decided in dp).
-  const w=labWeight(tintAmount);
-  Object.assign(values,{uBlur:LAB_DETAIL_REACH*density,uDetailCross:1});
-  if(w>0) {
-    // Kotlin blends in Float, step by step; the goldens are compared at single precision. `f` is towardLab's
-    // a + (b - a) * w, `lerpDp` the Dp lerp (1 - w) * a + w * b.
-    const r=Math.fround;
-    const f=(a,b)=>r(r(a)+r(r(r(b)-r(a))*w));
-    const lerpDp=(a,b)=>r(r(r(1-w)*r(a))+r(w*r(b)));
-    Object.assign(values,{
-      uTint:lerpColor(values.uTint,[dark?0:1,dark?0:1,dark?0:1,q8(labOpacity(dark))],w),
-      uLift:f(values.uLift,labLift(dark)),
-      uFineShare:f(values.uFineShare,labDetailShare(dark)),
-      uWideKernel:lerpDp(values.uWideKernel,LAB_WIDE_KERNEL*density),
-      uDetailLift:labDetailLift(dark)*w,uToneCurve:labToneCurve(dark)*w,
-      uLegibility:f(values.uLegibility,0),uSoftDetail:f(values.uSoftDetail,1),
-    });
-  }
+  // Everything the lab material sets is replaced outright, not blended with the earlier fit (towardLab, #208).
+  const lt=Math.fround(Math.min(100,Math.max(0,Math.fround(tintAmount))));
+  Object.assign(values,{
+    uBlur:LAB_DETAIL_REACH*density,uDetailCross:1,
+    uTint:[dark?0:1,dark?0:1,dark?0:1,q8(measuredOpacity(dark,lt))],
+    uLift:labLift(dark),
+    uFineShare:measuredDetailShare(dark,lt),
+    uWideKernel:LAB_WIDE_KERNEL*density,
+    uDetailLift:measuredDetailLift(dark,lt),uToneCurve:measuredToneCurve(dark,lt),
+    uLegibility:0,uSoftDetail:1,
+  });
   const chroma=chromaOf(values.uDetailLift??0);
   Object.assign(values,{uChromaGain:chroma.slice(0,3),uChromaSlope:chroma.slice(3,6),uChromaWeight:chroma[6]});
   if(tintColor)values.uTint=tintColor.map(x=>Math.round(x*255)/255);
+  return values;
+}
+
+/**
+ * The Compose clear lens, GlassStyle.clearLens, as shader uniforms: what `Glass.Lens(magnification)` binds, so a
+ * free-standing lens has its rim, thin tint and highlight without a host binding them by hand. Authored in
+ * Compose ("not an Apple calibration"), not measured: the values are GlassStyle.clearLens's, and every other
+ * term is GlassStyle's default, as LiquidGlass.kt binds it. `clearMaterialUniforms` stays the bare magnifier.
+ * Lengths are device pixels; `density` converts the dp terms (bevel 1.2 dp, refraction depth 14 dp).
+ * `light` ([x, y], toward the light, y up negative) defaults to GlassLight.Default. `contactShadow` is the host
+ * term (0.15 of glassShadow's alpha), which the painter draws under the lens.
+ */
+export const CLEAR_LENS = Object.freeze({
+  bevel: 1.2, refractDepth: 14, bevelPeak: 0, specular: .28, specularPower: 6, fresnel: .02, counterLight: .35,
+  edgeLight: 1, tint: [1, 1, 1, .015], contactShadow: .15, highlightChroma: .7, legibility: .6,
+  bandRatio: .6, light: [-.35, -.94],
+});
+export function clearLensUniforms(effects, {width, height, pad = 2, magnification = 1.25, density = 1, light = CLEAR_LENS.light}) {
+  if (![density].every(Number.isFinite) || density <= 0) throw new RangeError('Lens density must be positive');
+  const lightDir = Array.from(light ?? []);
+  if (lightDir.length !== 2 || lightDir.some(x => !Number.isFinite(x))) throw new RangeError('Light requires two finite components');
+  const values = clearMaterialUniforms(effects, {width, height, pad, magnification});
+  const radius = Math.min(width, height) / 2, c = CLEAR_LENS;
+  Object.assign(values, {
+    uProfile: 3, uFormation: 0, uHeldLens: 1, uHeldMagnification: 1 - 1 / magnification, uHeldGlow: 1,
+    uRadii: Array(4).fill(radius), uRefractBand: c.bandRatio * radius, uRefractDepth: c.refractDepth * density,
+    uScale: Math.max(0, Math.min(1, (Math.min(width, height) / density - 56) / 264)),
+    uBevel: c.bevel * density, uBevelPeak: c.bevelPeak, uSpecular: c.specular, uSpecularPow: c.specularPower,
+    uFresnel: c.fresnel, uCounterLight: c.counterLight, uEdgeLight: c.edgeLight, uHiChroma: c.highlightChroma,
+    uLegibility: c.legibility, uAberration: 0, uInnerShadow: 0, uBlur: 0, uWideKernel: 0, uFineShare: 1,
+    uLift: 0, uTint: c.tint.map((x, i) => i === 3 ? Math.round(x * 255) / 255 : x), uLight: lightDir,
+  });
   return values;
 }

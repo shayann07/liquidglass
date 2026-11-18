@@ -65,6 +65,7 @@ fun lerpGlassStyle(start: GlassStyle, stop: GlassStyle, fraction: Float): GlassS
         softDetail = f(start.softDetail, stop.softDetail),
         detailLift = f(start.detailLift, stop.detailLift),
         toneCurve = f(start.toneCurve, stop.toneCurve),
+        chromaGain = s(start.chromaGain, stop.chromaGain),
         rawShare = f(start.rawShare, stop.rawShare),
         rawBlur = d(start.rawBlur, stop.rawBlur),
         mirror = f(start.mirror, stop.mirror),
