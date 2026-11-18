@@ -236,7 +236,7 @@ data class GlassStyle(
     val tint: Color = Color(0xFFF1F1F1).copy(alpha = 0.565f),
     /**
      * A fixed luminance lift added after the tint, 0 to 1. The dark in-app material's 35/255;
-     * the base of the system backdrops' adaptive lift, 142/255.
+     * the Control Center layer's 10.23/255.
      *
      * May be negative when the lift does not adapt ([liftAdaptivity] 0): the resting tab-bar
      * indicator is the bar's output at 0.857 minus 17/255, over black and over content alike.
@@ -244,8 +244,8 @@ data class GlassStyle(
     val tintLift: Float = 0f,
     /**
      * How far the lift falls with the wide-kernel luma of what is behind the glass, per unit
-     * luma. The system backdrops measure 0.864: over the dark test image they lift black to 60,
-     * over the light one to 10, with the same gain. In-app glass measures 0.
+     * luma. In-app glass measures 0, and so does the Control Center layer (an earlier fit read
+     * 0.864 from whole-image means of a non-flat target; per-pixel and flat-grey reads refute it).
      */
     val liftAdaptivity: Float = 0f,
     /**
@@ -1192,18 +1192,19 @@ data class GlassStyle(
 
         /**
          * A full-screen system backdrop: Control Center, App Library, the Today view. A 7.7 dp
-         * sigma over app content (11 dp at Tinted), gain 0.32, and a lift that adapts to what is
-         * behind it — 60/255 over the dark test image, 10/255 over the light one — so it reads
-         * light over dark content and dark over light. No lens: a full-screen layer has no rim.
+         * sigma over app content (11 dp at Tinted) and a plain affine map of the page, measured:
+         * out = 10.23 + 0.3608 x the blurred backdrop level (of 255), so black reads 10 and white
+         * 102 — lighter over lighter, no luma adaptation. Tint and Light/Dark do not change it.
+         * No lens: a full-screen layer has no rim.
          */
         fun systemBackdrop(tintAmount: Float = GlassMaterial.DEFAULT_TINT_AMOUNT): GlassStyle = GlassStyle(
             backdropSigma = GlassMaterial.systemBackdropSigma(tintAmount),
             refractionBand = 0.dp,
             wideKernel = 0.dp,
             fineShare = 1f,
-            tint = Color.Black.copy(alpha = 0.68f),
-            tintLift = 142f / 255f,
-            liftAdaptivity = 0.864f,
+            tint = Color.Black.copy(alpha = 0.639f), // measured: 1 - 0.3608
+            tintLift = 10.23f / 255f, // measured offset at black
+            liftAdaptivity = 0f, // measured: none
             bevel = 0.dp,
             specular = 0f,
             edgeLight = 0f,

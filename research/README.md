@@ -895,7 +895,7 @@ line peaking at 65 — about 0.45 px of displacement, blue just outside the line
 
 | Layer | Blur σ px (pt) | Tone |
 | :-- | :-- | :-- |
-| Control Center over app content | 23.2 (7.7) at t ≤ 50; 24 at 62; 27.5 at 86; 32–33 at 100 | gain 0.32; offset = 142 − 0.864 · mean luma behind |
+| Control Center over app content | 23.2 (7.7) at t ≤ 50; 24 at 62; 27.5 at 86; 32–33 at 100 | gain 0.3608; offset 10.23, no luma adaptation: G = 10.23 + 0.3608 · L (measured: lab take via hdr.py; confirmed per pixel on the C1b PNGs and PUSM9766; the earlier 142 − 0.864 · luma regressed whole-image means) |
 | Control Center over Home Screen | 16–21 (5.5–7) | |
 | App Library | 15–26 (5–9) | |
 | Today view | 26–28 (9) | |
