@@ -794,10 +794,21 @@ half4 main(float2 coord) {
     // reference lens is a broad lobe whose peak sits inside an edge that stays dark.
     float counterLight = clamp(uCounterLight, 0.0, 1.0);
     float counterPow = uSpecularPow * mix(1.6, 1.0, smoothstep(0.35, 1.0, counterLight));
-    float key = pow(max(facing, 0.0), uSpecularPow) * bevelBand;
-    float counter = pow(max(-facing, 0.0), counterPow) * bevelBand * counterLight;
+    // The resting bar's rim round its caps and its round button (#109): iOS lights them with a sharp glint at the
+    // poles on a broad tail, 0.47 f^41 + 0.53 f^1.8 of the facing f (IMG_6756 34.2 s, search button, 18 angles;
+    // a fit to a measured profile). Only resting glass that folds its caps and draws a lit rim (the dark Calm bar
+    // and the button drawn with its style); f = 1 keeps 1, so straight runs are unchanged.
+    float rimLobeGate = clamp(uFoldCorners - 1.0, 0.0, 1.0) * (1.0 - step(1.5, uProfile)) * step(0.0001, uSpecular);
+    float faceUp = max(facing, 0.0);
+    float faceDown = max(-facing, 0.0);
+    float lobeUp = 0.47 * pow(faceUp, 41.0) + 0.53 * pow(faceUp, 1.8);
+    float lobeDown = 0.47 * pow(faceDown, 41.0) + 0.53 * pow(faceDown, 1.8);
+    float key = mix(pow(faceUp, uSpecularPow), lobeUp, rimLobeGate) * bevelBand;
+    float counter = mix(pow(faceDown, counterPow), lobeDown, rimLobeGate) * bevelBand * counterLight;
+    faceUp = mix(faceUp, lobeUp, rimLobeGate);
+    faceDown = mix(faceDown, lobeDown, rimLobeGate);
     float edge = smoothstep(2.0, 0.0, depth);
-    float edgeLine = edge * 0.5 * (max(facing, 0.0) + counterLight * max(-facing, 0.0));
+    float edgeLine = edge * 0.5 * (faceUp + counterLight * faceDown);
 
     // The measured rim line trails a faint glow inward, decaying over about a bevel width: on
     // the pill +10 at 4 px falling to +3 at 8 (rim fit, 2026-09-12); on the held tab-bar lens
@@ -817,6 +828,9 @@ half4 main(float2 coord) {
     float capRimGate = clamp(uFoldCorners - 1.0, 0.0, 1.0) * (1.0 - step(1.5, uProfile)) * step(2.0 * halfSize.y, halfSize.x)
         * step(0.95 * halfSize.y, minRadius) * step(0.0001, uSpecular);
     float capRim = 1.0 - 0.2 * capRimGate * clamp((2.0 * halfSize.y - (halfSize.x - abs(p.x))) / (1.6 * halfSize.y), 0.0, 1.0);
+    // The round button drawn with that bar's style peaks at 96 where its bar's runs reach 100 (IMG_6756 34.2 s); ours
+    // reached 104 with the same rim, so a round piece under the lobe gate draws 0.89 of it. Authored fit.
+    capRim *= 1.0 - 0.11 * rimLobeGate * (1.0 - step(2.0 * halfSize.y, halfSize.x));
     float highlight = ((key + counter) * uSpecular
         + edgeLine * uSpecular * uEdgeLight
         + fresnel * uFresnel * bevelBand
