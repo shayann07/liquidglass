@@ -539,17 +539,20 @@ offered as an aesthetic slider.
 
 | Program | Form | Provenance |
 | :-- | :-- | :-- |
-| Resting corners | `GlassRestMapTable`: 12 knots, linear except a Hermite last interval, identity beyond 0.8333 | **measured** (the `d < 6` reference-px extension is unmeasured and constant) |
+| Resting corners | `GlassRestMapTable`: 18 knots (12 Photos knots from 6 px, 6 rim knots at 0.5 to 5.5 px since #202), linear except a Hermite last interval, identity beyond 0.8333 | **measured** (Photos knots on Photos; rim knots on the Safari lab pill; the value below 0.5 px is the first knot's, constant, authored) |
 | Straight runs | `f(u) = u + a(1 − u)³`, `a = 0.8` | **authored** |
 | Held ink | `u + w(u)(0.3u − 0.29)`, `w` fading across 0.45–0.55 | inherited constants, authored connection |
 | Arc/run blend | geometric, from the shape's own nearest-feature coordinate | authored |
 
-The measured corner knots, at reference `R = 72 px`, `W = 43.2 px`:
+The measured corner knots, at reference `R = 72 px`, `W = 43.2 px`: the first six are the rim band (#202,
+d = 0.5 to 5.5 px, Safari lab pill), the next twelve the Photos toolbar's knots from d = 6 px:
 
 ```
-U = [0.138889, 0.162037, 0.185185, 0.219907, 0.254630, 0.300926,
+U = [0.011574, 0.034722, 0.057870, 0.081019, 0.104167, 0.127315,
+     0.138889, 0.162037, 0.185185, 0.219907, 0.254630, 0.300926,
      0.347222, 0.439815, 0.532407, 0.625000, 0.729167, 0.833333]
-V = [0.875903, 0.823079, 0.784259, 0.741898, 0.711296, 0.681921,
+V = [1.412037, 1.229167, 1.115741, 1.025463, 0.967593, 0.912037,
+     0.875903, 0.823079, 0.784259, 0.741898, 0.711296, 0.681921,
      0.661713, 0.642755, 0.649884, 0.681898, 0.745278, 0.833333]
 ```
 

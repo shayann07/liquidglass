@@ -42,6 +42,8 @@ internal class GlassLabScene(
     val pillW: Int = 632,
     val pillH: Int = 143,
     val container: Boolean = false,
+    /** Where the light comes from; the lone piece and the container's [Glass] light take it alike. */
+    val light: GlassLight = GlassLight.Default,
 ) : AutoCloseable {
     /** The style drawn. Setting it re-draws the same scene, so a sweep over styles need not build one scene each. */
     var style by mutableStateOf(style)
@@ -69,11 +71,11 @@ internal class GlassLabScene(
             })
             val pill = Modifier.offset { IntOffset(pillX, pillY) }.size((pillW / 3f).dp, (pillH / 3f).dp)
             if (container) {
-                LiquidGlassContainer(glass, Modifier.fillMaxSize(), style = this@GlassLabScene.style) {
+                LiquidGlassContainer(glass, Modifier.fillMaxSize(), style = this@GlassLabScene.style, light = light) {
                     Box(Modifier.fillMaxSize()) { Box(pill.glassMember(RoundedCornerShape(50))) }
                 }
             } else {
-                Box(pill.liquidGlass(glass, RoundedCornerShape(50), this@GlassLabScene.style))
+                Box(pill.liquidGlass(glass, RoundedCornerShape(50), this@GlassLabScene.style, light))
             }
         }
     }

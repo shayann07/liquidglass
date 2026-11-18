@@ -23,8 +23,11 @@ import kotlin.math.roundToLong
  *    equivalence). At any other radius the shader evaluates the same normalised table, which is a scale
  *    extrapolation (`s_R(d) = (R/72) s_72(d 72/R)`), not a second measurement; the Vitals bar's 31 dp
  *    corner is such an extrapolation.
- *  - Its shallow region (d < 6 reference px, under the rim) is a constant extension of the first knot and
- *    is unmeasured; the existing displacement fade over the outermost 1.5 px applies there.
+ *  - Its rim band (d < 6 reference px, under the outline) is the Safari lab pill's measured source depth,
+ *    which rises steeply toward the outline (1.41 W at d = 0.5 px, 0.91 W at 5.5 px; #202), not the constant
+ *    the Photos table once extended; below 0.5 px it is a constant, under the displacement fade over the
+ *    outermost 1.5 px. The knots of the rim are in the same normalisation as the rest, so at another radius
+ *    they are the same scale extrapolation (a fixed-width rim effect would not scale: authored).
  *
  * The default is [Legacy], except [GlassStyle.inApp] and [GlassStyle.toolbar], which use [Measured] since
  * 26 October (#97): the role it was measured on. Immutable per style.
@@ -46,7 +49,7 @@ internal val GlassRestMap.uniform: Float
  * with `W = BEVEL_RATIO * R` (0.6 R). Defined once at R = 72 reference px, W = 43.2; the values are
  * dimensionless so the same table serves every radius (as an extrapolation away from 72).
  *
- * Shape: constant [V0] below the first knot (the unmeasured d < 6 extension), piecewise linear between
+ * Shape: constant [V0] below the first knot (d < 0.5 px, under the displacement fade), piecewise linear between
  * the knots, a cubic Hermite over the final interval whose slope runs from the incoming linear slope
  * [M0_END] to exactly 1 at the last knot, and identity at and above the last knot ([IDENTITY_U]). So the
  * map is continuous everywhere, its derivative is continuous into the identity join, and it has one
@@ -56,22 +59,33 @@ internal val GlassRestMap.uniform: Float
  * [source] is the reference implementation the shader text [sksl] is generated from and tested against;
  * the closeout's `exports/rest_source_map_reference_v2.py` is the same function in the analysis
  * toolchain. Compiled against the fitted curve the knots were chosen from, the table is within 0.146
- * reference px everywhere on 6..36 (gate 0.25).
+ * reference px everywhere on 6..36 (gate 0.25); the rim knots below 6 are the lab pill's per-depth means, read at the
+ * pixel centres, and the join at 6 px is the Photos knot, 37.8 against the lab's 38.4 (0.6 px).
  */
 internal object GlassRestMapTable {
-    /** Knot inputs u = d / 43.2, for d = 6, 7, 8, 9.5, 11, 13, 15, 19, 23, 27, 31.5, 36 reference px. */
+    /**
+     * Knot inputs u = d / 43.2. The first six are the rim band (#202), d = 0.5, 1.5, 2.5, 3.5, 4.5, 5.5 reference px;
+     * the next twelve are the Photos toolbar's knots, d = 6, 7, 8, 9.5, 11, 13, 15, 19, 23, 27, 31.5, 36.
+     */
     val U = floatArrayOf(
+        0.011574f, 0.034722f, 0.057870f, 0.081019f, 0.104167f, 0.127315f,
         0.138889f, 0.162037f, 0.185185f, 0.219907f, 0.254630f, 0.300926f,
         0.347222f, 0.439815f, 0.532407f, 0.625000f, 0.729167f, 0.833333f,
     )
 
-    /** Knot outputs s / 43.2. The last equals the last input: identity, exactly. */
+    /**
+     * Knot outputs s / 43.2. The last equals the last input: identity, exactly. The rim band's six are **measured** on
+     * the Safari lab pill (R 72, W 43.2; 890 display-to-source correspondences from moving edge, line and vertical-edge
+     * sweeps, both appearances, top and bottom, caps and round buttons; run mean 61.0, 53.1, 48.2, 44.3, 41.8, 39.4 px);
+     * the rest are the Photos toolbar's fit, unchanged.
+     */
     val V = floatArrayOf(
+        1.412037f, 1.229167f, 1.115741f, 1.025463f, 0.967593f, 0.912037f,
         0.875903f, 0.823079f, 0.784259f, 0.741898f, 0.711296f, 0.681921f,
         0.661713f, 0.642755f, 0.649884f, 0.681898f, 0.745278f, 0.833333f,
     )
 
-    /** The constant extension below the first knot. */
+    /** The constant extension below the first knot (d < 0.5 reference px, under the displacement fade). */
     val V0: Float get() = V[0]
 
     /** Identity at and above this u (36 / 43.2). */
@@ -158,10 +172,11 @@ float restSourceLegacy(float u) {
 }
 
 // The measured resting-corner map (GlassRestMap.Measured; GlassRestMapTable is the authority and this text
-// is generated from it). Fitted on the Photos toolbar's 72 px ends over 190 measured landmark pairs: the
-// source depth falls from 0.876 W at the rim band's inner edge to a minimum of 0.643 W at 0.44 W, rises
-// again and meets identity at 0.833 W with slope 1. Below 0.139 W (d < 6 px at R = 72) it is a constant,
-// unmeasured extension. At radii other than 72 reference px this is a scale extrapolation.
+// is generated from it). From 0.139 W up, fitted on the Photos toolbar's 72 px ends over 190 measured landmark
+// pairs: the source depth falls from 0.876 W at 0.139 W to a minimum of 0.643 W at 0.44 W, rises again and meets
+// identity at 0.833 W with slope 1. Below 0.139 W it is the Safari lab pill's measured rim band (#202): 0.91 W at
+// 0.127 W rising to 1.41 W at 0.012 W, a constant below that. At radii other than 72 reference px this is a scale
+// extrapolation.
 ${GlassRestMapTable.sksl}
 
 float restSource(float u) {

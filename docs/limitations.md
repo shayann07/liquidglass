@@ -148,7 +148,7 @@ physical-device behavior have not been verified for this revision.
 its lens formation is fixed at 0: fused bodies get the two-kernel tone, the lift and the
 inward rest profile, never the fold. Its pieces also share one `Glass`, so a container cannot
 mix roles. Merged glass does not yet have every term of the single-element shader (see
-[the material is measured at Tint 50 only](#the-material-is-measured-at-tint-50-only); #211).
+[the material is measured at Tint 0, 50 and 100 only](#the-material-is-measured-at-tint-0-50-and-100-only); #211).
 
 ## The measured tone is within a few levels, not exact
 
@@ -233,27 +233,35 @@ the lens is moving the copy inside it lags a frame, so a glyph shows two colours
 frame. The reference does the same (its content sits 12-20 px toward the lens centre mid-drag
 in the iOS 27 recording), so it is left as it is.
 
-## The material is measured at Tint 50 only
+## The material is measured at Tint 0, 50 and 100 only
 
-The three-term material ([measured model](research/measured-model.md), section 2e) was measured at
-Tint 50. Tints between 0 and 100 blend authored values toward the earlier fit, and Tint 0 and 100
-themselves keep that earlier fit's tint, lift and wide kernel with the 1/3 dp detail reach. Measuring
-them is #208.
+The three-term material ([measured model](research/measured-model.md), section 2e) is measured at
+three tints: Tint 50 in the Safari lab and Tint 0 and 100 on the Photos chrome (#208). At the ends it uses
+the fitted opacity, the lab lift and the 15.5 dp wide kernel (at every tint), with the fitted detail
+share, one-sided term and tone bow. Between the three nodes the values are linear, which is authored;
+the held-out tints (29 to 86) were not scored. The ends were fitted on two elements pooled (the Today
+pill and the toolbar capsule), and the light white end is clipped, so its slope is not identifiable.
 
 - **6 px stripes.** Over 6 px stripes the toolbar pill reads 6.9 (dark) and 4.5 (light) levels rms from the
   measured stills; 2 px bars read 3.7 and 4.5. The four-tap detail kernel keeps 0, 50, 75 and 85 %
   of 2, 4, 6 and 8 px stripes where iOS keeps 0, 49, 73 and about 100 %.
-- **Colour** (#201, section 2f) is measured at Tint 50 only and, like the rest, blends toward the
-  per-channel tone at 0 and 100 (authored). It works in sRGB: where iOS shows a saturated colour
+- **Colour** (#201, section 2f) is measured at Tint 50 only. Its weight follows the one-sided term
+  (`detailLift`): at Tint 0 the fitted term makes the weight 1, so the Tint 50 transfer applies there as an
+  authored extrapolation; at Tint 100 the term is 0 and the transfer is off (the per-channel tone alone); between
+  50 and 100 the weight falls linearly (authored). It works in sRGB: where iOS shows a saturated colour
   outside the sRGB gamut (dark glass over pure red reads 255, 62, 46 in Display P3), the library
   shows the nearest sRGB colour, and the zero channels of such colours read up to 7 levels from iOS.
   The transfer rides on `detailLift`, so a style morphing between the light and dark lab materials
-  passes through the per-channel tone at the midpoint, where c is zero. The **rim band** is #202.
+  passes through the per-channel tone at the midpoint, where c is zero. The **rim band**'s outer 6 px
+  are measured (#202); its rim light and the gate against the lab stills are open.
 - **The tab bar** still uses the earlier toolbar fit (`GlassTabBarStyle.Measured`) until #203. It
   already runs the new shader (no along-axis term), as do the V3 tab bar and merged glass.
-- **Merged glass** (`GlassEffectContainer`) now draws the same three-term material and colour
-  transfer, but still lacks the legibility term, the rim fringe, `uTintAbsorb`, the rotated
-  `softDetail` scatter and `Glass.light`. Tracked by #211.
+- **Merged glass** (`GlassEffectContainer`) draws the same three-term material, colour transfer,
+  legibility term, rim fringe, absorbing tint, rotated `softDetail` scatter and `Glass.light` as a lone
+  piece (#211). It deliberately leaves out the legacy mirror echo, the per-size tint scale, the tint
+  mask, the flip, the Reduce Transparency frost, the touch magnifier and the held paths (listed in
+  the container shader's KDoc), and its rim and junction geometry still differ from a lone piece by
+  about 3 levels rms.
 - **Ports.** The npm HTML/CSS engine and `ports/web` keep their own two-kernel approximation and are
   not ported to the three-term material. The Flutter Dart port carries the change but has not been
   compiled. Every port that carries the three-term material also carries the colour transfer (#201):

@@ -171,15 +171,15 @@ class GlassLabModelTest {
 
     @Test
     fun colourTransferFollowsTheLabWeight() {
-        // Derived from detailLift (no style field): in full at Tint 50, none at 0 and 100, and none on the tab bar's
-        // earlier fit, which moves to the lab material in #203.
+        // Derived from detailLift (no style field): in full from Tint 50 down to 0 (|c| is 0.336 there, so the weight is
+        // clamped at 1: an authored extrapolation, it was 0 before #208 measured Tint 0), none at 100, half at 75, and none
+        // on the tab bar's earlier fit, which moves to the lab material in #203.
         for (dark in listOf(true, false)) {
             val full = GlassMaterial.chromaOf(GlassStyle.toolbar(dark = dark).detailLift)
             check(full[6] == 1f && full[0] == GlassMaterial.labChromaGain(dark)[0], "${if (dark) "dark" else "light"} Tint 50: ${full.toList()}")
             check(abs(GlassMaterial.chromaOf(GlassStyle.inApp(dark = dark, tintAmount = 75f).detailLift)[6] - 0.5f) < 1e-5f, "Tint 75 weight")
-            for (tint in listOf(0f, 100f)) {
-                check(GlassMaterial.chromaOf(GlassStyle.toolbar(dark = dark, tintAmount = tint).detailLift)[6] == 0f, "Tint $tint weight")
-            }
+            check(GlassMaterial.chromaOf(GlassStyle.toolbar(dark = dark, tintAmount = 0f).detailLift)[6] == 1f, "Tint 0 weight")
+            check(GlassMaterial.chromaOf(GlassStyle.toolbar(dark = dark, tintAmount = 100f).detailLift)[6] == 0f, "Tint 100 weight")
             check(GlassMaterial.chromaOf(GlassStyle.toolbarEarlier(dark).detailLift).all { it == 0f }, "tab bar earlier fit")
         }
         check(GlassMaterial.chromaOf(GlassStyle().detailLift).all { it == 0f }, "default constructor")
@@ -188,8 +188,8 @@ class GlassLabModelTest {
 
     @Test
     fun noGhostCopiesAtOtherTints() {
-        // Between the measured Tint 50 and the earlier fit at 0 and 100 the material is blended (authored); the
-        // detail copy must stay one soft copy throughout.
+        // Between the measured nodes at Tint 0, 50 and 100 the material is interpolated (authored); the detail copy
+        // must stay one soft copy throughout.
         for (dark in listOf(true, false)) for (tint in listOf(25f, 75f)) {
             GlassLabScene(GlassStyle.toolbar(dark = dark, tintAmount = tint)).use { s ->
                 val turns = s.stemTurningPoints()

@@ -136,7 +136,7 @@ class GlassContainerShaderTest {
             "uSize", "uPad", "uBackdrop", "uBase", "uRect", "uRadius", "uCount", "uMerge",
             "uRefractBand", "uRefractDepth", "uAberration", "uIor", "uBevelPower", "uBlur",
             "uBevel", "uLight", "uSpecular", "uSpecularPow", "uFresnel", "uHiChroma", "uTint",
-            "uInnerShadow", "uAdaptive", "uCounterLight", "uEdgeLight", "uBevelPeak", "uEdgeShadow", "uOuterContour", "uRimSoft", "uTintAbsorb",
+            "uInnerShadow", "uAdaptive", "uCounterLight", "uEdgeLight", "uBevelPeak", "uEdgeShadow", "uOuterContour", "uRimSoft", "uTintAbsorb", "uLegibility", "uSoftDetail",
             "uProfile", "uFormation", "uHeldLens", "uRestMap", "uWideStrip", "uWideScale", "uFineShare", "uWideKernel", "uLift", "uLiftAdapt",
             "uDetailLift", "uToneCurve", "uDetailCross",
             "uChromaGain", "uChromaSlope", "uChromaWeight",

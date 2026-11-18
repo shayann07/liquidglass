@@ -233,6 +233,7 @@ internal object GlassSourceField {
             b.uniform("uEdgeShadow", 0f)
             b.uniform("uRimSoft", 0f)
             b.uniform("uTintAbsorb", 0f)
+            if (kind == Kind.CONTAINER) { b.uniform("uLegibility", 0f); b.uniform("uSoftDetail", 0f) }
             b.uniform("uFresnel", 0f)
             b.uniform("uHiChroma", 0f)
             b.uniform("uInnerShadow", 0f)

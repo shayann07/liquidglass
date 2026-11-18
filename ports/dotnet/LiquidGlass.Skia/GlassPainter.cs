@@ -162,25 +162,38 @@ public sealed class GlassPainter : IDisposable
         return dark ? [1.317f, 1.256f, 1.314f, -.427f, -.351f, -.429f, weight] : [.988f, .952f, .979f, -.076f, .028f, -.045f, weight];
     }
 
-    // GlassStyle.towardLab: the lab fit (#199, #200) laid over the earlier fit by a weight that is 1 at the default
-    // Tint Amount and 0 at 0 and 100. The detail reach is the lab's at every tint, which selects the four-tap
-    // detail kernel (uDetailCross: 0 < blurRadius <= 1/3 dp, decided in dp).
+    // GlassStyle.towardLab: the lab material at a Tint Amount. Measured at Tint 50 in the Safari lab (#199, #200) and at
+    // Tint 0 and 100 on the Photos chrome (#208); piecewise-linear between those three nodes (authored). The detail
+    // reach is the lab's at every tint, which selects the four-tap detail kernel (uDetailCross: 0 < blurRadius <= 1/3
+    // dp, decided in dp).
     private const float LabWideKernel = 15.5f, LabDetailReach = 1f / 3;
+
+    // GlassMaterial.measuredNodes + interpolate: linear between the values at Tint 0, 50 and 100.
+    private static float Nodes3(float atZero, float atDefault, float atHundred, float amount)
+    {
+        var t = Math.Clamp(amount, 0, 100);
+        return t <= 50 ? atZero + (atDefault - atZero) * (t / 50) : atDefault + (atHundred - atDefault) * ((t - 50) / 50);
+    }
 
     private static void TowardLab(Dictionary<string, float[]> v, GlassSurfaceOptions o)
     {
-        Set(v, "uBlur", LabDetailReach * o.Density); Set(v, "uDetailCross", 1);
-        var w = Math.Clamp(1 - MathF.Abs(Math.Clamp(o.TintAmount, 0, 100) - 50) / 50, 0, 1);
-        if (w <= 0) return;
-        float Mix(float a, float b) => a + (b - a) * w;
         var dark = o.Dark;
+        var t = o.TintAmount;
         var grey = dark ? 0f : 1f;
-        Set(v, "uTint", LerpColor(v["uTint"], [grey, grey, grey, Q8(dark ? .3985f : .498f)], w));
-        Set(v, "uLift", Mix(v["uLift"][0], dark ? 31.72f / 255 : 5.5f / 255));
-        Set(v, "uFineShare", Mix(v["uFineShare"][0], dark ? .277f : .273f));
-        Set(v, "uWideKernel", Mix(v["uWideKernel"][0], LabWideKernel * o.Density));
-        Set(v, "uDetailLift", (dark ? -.22f : .22f) * w); Set(v, "uToneCurve", (dark ? 101.01f / 255 : 0f) * w);
-        Set(v, "uLegibility", Mix(v["uLegibility"][0], 0)); Set(v, "uSoftDetail", Mix(0, 1));
+        // Measured at Tint 0 and 100: detail share 0.663 / 0 (light 0.664 / 0), |c| 0.336 / 0 (0.334), dark bow 101.6 / 49.8
+        // over 255, opacity dark 0.401 / 0.703 and light 0.382 / 0.682; the Tint 50 values are the lab's.
+        var opacity = dark ? Nodes3(.401f, .3985f, .703f, t) : Nodes3(.382f, .498f, .682f, t);
+        var share = Nodes3(dark ? .663f : .664f, dark ? .277f : .273f, 0, t);
+        var lift = Nodes3(dark ? .336f : .334f, .22f, 0, t);
+        // Everything the lab material sets is replaced outright, not blended with the earlier fit (#208).
+        Set(v, "uBlur", LabDetailReach * o.Density); Set(v, "uDetailCross", 1);
+        Set(v, "uTint", new[] { grey, grey, grey, Q8(opacity) });
+        Set(v, "uLift", dark ? 31.72f / 255 : 5.5f / 255);
+        Set(v, "uFineShare", share);
+        Set(v, "uWideKernel", LabWideKernel * o.Density);
+        Set(v, "uDetailLift", dark ? -lift : lift);
+        Set(v, "uToneCurve", dark ? Nodes3(101.6f / 255, 101.01f / 255, 49.8f / 255, t) : 0f);
+        Set(v, "uLegibility", 0); Set(v, "uSoftDetail", 1);
     }
 
     // Compose's Color lerp runs in Oklab and stores 8 bits per channel again; the Oklab intermediate keeps alpha in
