@@ -43,7 +43,7 @@ private fun ScrollEdgeFixture(dark: Boolean, item: Int, offset: Int) {
     val state = rememberLazyListState(initialFirstVisibleItemIndex = item, initialFirstVisibleItemScrollOffset = offset)
     LazyColumn(
         state = state,
-        modifier = Modifier.fillMaxSize().background(ground).glassScrollEdge(state, ground, GlassScrollEdges.Both),
+        modifier = Modifier.fillMaxSize().background(ground).glassScrollEdge(state, ground, GlassScrollEdges.Both, inverted = dark),
     ) {
         items(40) { index -> FixtureRow(index) }
     }
