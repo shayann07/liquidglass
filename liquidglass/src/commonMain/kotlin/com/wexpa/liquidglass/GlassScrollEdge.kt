@@ -236,7 +236,8 @@ fun Modifier.glassScrollEdge(
  * [glassScrollEdge] driven by a [LazyListState]: the top edge fades in over the first 24 dp of scroll, the bottom out
  * over the last 24 dp. Reads the first and last visible items only, so it costs the same for any list length.
  * A list knows how far it has scrolled only inside its first visible item, so once that item has scrolled out the edge
- * is at full strength: with a first item shorter than 24 dp the fade-in is that item's height, not 24 dp.
+ * is at full strength: with a first item shorter than 24 dp the edge rises only to (item height / 24 dp) of full strength
+ * while that item scrolls out, then jumps to full.
  */
 fun Modifier.glassScrollEdge(
     state: LazyListState,

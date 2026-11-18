@@ -545,7 +545,7 @@ offered as an aesthetic slider.
 
 | Program | Form | Provenance |
 | :-- | :-- | :-- |
-| Resting corners | `GlassRestMapTable`: 12 knots, linear except a Hermite last interval, identity beyond 0.8333 | **measured** (the `d < 6` reference-px extension is unmeasured and constant) |
+| Resting corners | `GlassRestMapTable`: 18 knots (12 Photos knots from 6 px, 6 rim knots at 0.5 to 5.5 px since #202), linear except a Hermite last interval, identity beyond 0.8333 | **measured** (Photos knots on Photos; rim knots on the Safari lab pill; the value below 0.5 px is the first knot's, constant, authored) |
 | Straight runs | `f(u) = u + a(1 − u)³`, `a = 0.8` | **authored** |
 | Held ink | `u + w(u)(0.3u − 0.29)`, `w` fading across 0.45–0.55 | inherited constants, authored connection |
 | Arc/run blend | geometric, from the shape's own nearest-feature coordinate | authored |
