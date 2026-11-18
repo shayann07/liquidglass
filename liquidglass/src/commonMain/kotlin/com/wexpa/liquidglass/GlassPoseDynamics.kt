@@ -338,6 +338,8 @@ internal data class GlassPoseSpec(
      * authored, chosen against the two-tab taps' arrival in docs/1 and JGEY2190 (scores in
      * review/atlas/two-tab-tap-2026-11-02). */
     val tapLongTripRate: Float = 1f,
+    /** Opt-in, with [tapLongTripRate]: the clock ratio three slots and more settle to (#70). One is the historical clock. */
+    val tapFarTripRate: Float = 1f,
     /** End wall for a tap landing on the first or last tab (#70): the body's leading end is pushed back once it passes
      * this many bar heights past its resting end. At rest the leading end is the resting end, so the wall
      * holds nothing there and needs no fade. Negative (the default) disables it; on in Calm, at an authored 0.03 chosen
@@ -523,7 +525,7 @@ internal data class GlassPoseSpec(
         val Calm = CalmWallLanding.copy(heldTravelStrain = .6f, heldTravelStrainOmega = 10f,
             heldReferenceSpeed = 8f, heldSquircle = .7f, formFromMovement = 1f, formRiseOmega = 75f,
             pressFormation = 0f, holdThresholdSeconds = .110f, heldFormRiseOmega = 26f,
-            releaseStillHoldSeconds = .035f, releaseStillFadeOmega = 100f, releaseMovingFadeOmega = 12f, tapLongTripRate = 1.2f, tapEndWallReach = .03f, tapKeepsFormedLens = true, barPressDelaySeconds = .075f, barPressStiffness = 1700f, heldInkLift = 22f / 255f, selectionHaptics = true, hoverScale = 1.06f)
+            releaseStillHoldSeconds = .035f, releaseStillFadeOmega = 100f, releaseMovingFadeOmega = 12f, tapLongTripRate = 1.2f, tapFarTripRate = 1.1f, tapEndWallReach = .03f, tapKeepsFormedLens = true, barPressDelaySeconds = .075f, barPressStiffness = 1700f, heldInkLift = 22f / 255f, selectionHaptics = true, hoverScale = 1.06f)
     }
 }
 
@@ -1144,7 +1146,8 @@ internal class GlassPoseController(
             // historical clock by three slots.
             val far = (tapDistance / slot - 2f).coerceIn(0f, 1f)
             val back = far * far * (3f - 2f * far)
-            shortRate + (longRate + (1f - longRate) * back - shortRate) * blend
+            val farRate = spec.tapFarTripRate.coerceIn(.5f, 2f)
+            shortRate + (longRate + (farRate - longRate) * back - shortRate) * blend
         } else 1f
         val tapShapeVx = vx / tapClock
         val coupleReleaseArea = motionEnabled && releaseImpactActive && mode == GlassPoseMode.Released
