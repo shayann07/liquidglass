@@ -561,7 +561,16 @@ data class GlassStyle(
      */
     val chromaGain: Float = Float.NaN,
 ) {
-    /** Keeps the constructor before [chromaGain] in the binary API; new code uses the primary constructor. */
+    /**
+     * Internal marker, not a constructor, `copy` or `equals` field (so the binary API is unchanged): this style is lit from straight
+     * above by default (see [litFrom]). Set only by [withLitFromAbove]; [copy] and [lerpGlassStyle] do not carry it on their own.
+     */
+    internal var litFromAbove: Boolean = false
+        private set
+
+    internal fun withLitFromAbove(on: Boolean): GlassStyle = if (litFromAbove == on) this else copy().also { it.litFromAbove = on }
+
+    /** Keeps the constructor before [chromaGain]; new code uses the primary constructor. */
     @Deprecated("Binary compatibility with the constructor before chromaGain", level = DeprecationLevel.HIDDEN)
     constructor(
         profile: GlassProfile = GlassProfile.Measured,
@@ -1353,7 +1362,7 @@ data class GlassStyle(
             edgeShadow = 0f,
             outerContour = 1f,
             invertsWithBackdrop = false,
-        )
+        ).withLitFromAbove(true)
 
         /**
          * The dock: nearly clear, a 1 dp sigma, gain 0.85 with a lift of 13/255, and stripes that
@@ -1513,12 +1522,12 @@ data class GlassStyle(
 }
 
 /**
- * The light a style is drawn with when the host passed the default one. The Control Center tile ([GlassStyle.controlCenterTile],
- * the only style that sets [GlassStyle.chromaGain]) is lit from straight above, as iOS lights Control Center, so it takes
- * `GlassLight(0f, -1f)` unless the host gave another light. Every other style keeps the light it was given.
+ * The light a style is drawn with when the host passed the default one: a style marked [GlassStyle.litFromAbove] (only
+ * [GlassStyle.controlCenterTile] marks itself) is lit from straight above, as iOS lights Control Center, so it takes
+ * `GlassLight(0f, -1f)`. A light the host chose is kept.
  */
 internal fun GlassStyle.litFrom(light: GlassLight): GlassLight =
-    if (!chromaGain.isNaN() && light == GlassLight.Default) GlassLight(0f, -1f) else light
+    if (litFromAbove && light == GlassLight.Default) GlassLight(0f, -1f) else light
 
 /**
  * Where the light sits, as a unit vector in the panel's own space.
