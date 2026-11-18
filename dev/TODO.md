@@ -1,3 +1,9 @@
+## Controls bundle (18 November, `feat/205-204-207-controls`)
+
+- [x] #205 geometry and timing; [ ] track colours, native thumb, light switch, drag stretch.
+- [x] #204 `menu(dark)`; [ ] held-out context menu (10-18 levels), rim and shadow, device capture.
+- [x] #207 `Modifier.glassScrollEdge`; [ ] sample scene, collapse timing, Pixel frame times, Android blur.
+
 ## #206 Control Center tile (18 November, `feat/206-control-center`)
 
 - [x] `GlassStyle.chromaGain` (unset = byte-identical), host routing in panel and container, morph, hidden overloads, ABI dump.

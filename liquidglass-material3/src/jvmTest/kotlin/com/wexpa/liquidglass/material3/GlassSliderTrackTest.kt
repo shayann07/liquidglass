@@ -31,7 +31,7 @@ import kotlin.time.Duration.Companion.minutes
 /**
  * The slider tracks span the thumb's whole travel, as iOS's do (#79): Material lays the track out
  * between the thumb's centre positions, so a track drawn only in its own bounds stopped half a thumb
- * (19 dp) short of each end and the thumb hung past it. Pure red/blue on black, scanned along the
+ * (half a thumb, 12 dp) short of each end and the thumb hung past it. Pure red/blue on black, scanned along the
  * track's centre row.
  */
 @OptIn(ExperimentalTestApi::class)
@@ -90,7 +90,7 @@ class GlassSliderTrackTest {
         val pixels = track { Slider(value = 0f, onValueChange = {}, colors = colors) }
         assertEquals(0, pixels.count { it.isRed() }, "fill shows outside the thumb at 0")
         val inactive = pixels.span { it.isBlue() }
-        assertTrue(inactive.first <= 38 + 3, "the track starts ${inactive.first} px in, not at the thumb's edge")
+        assertTrue(inactive.first <= 24 + 3, "the track starts ${inactive.first} px in, not at the thumb's edge")
         assertTrue(inactive.last >= pixels.width - 3, "the track ends ${pixels.width - 1 - inactive.last} px short of the slider's end")
     }
 
@@ -103,7 +103,7 @@ class GlassSliderTrackTest {
         assertEquals(0, pixels.count { it.isBlue() }, "unfilled track shows outside the thumb at 1")
         val active = pixels.span { it.isRed() }
         assertTrue(active.first <= 2, "the fill starts ${active.first} px in, not at the slider's start")
-        assertTrue(active.last >= pixels.width - 38 - 3, "the fill stops ${pixels.width - 38 - 1 - active.last} px short of the thumb")
+        assertTrue(active.last >= pixels.width - 24 - 3, "the fill stops ${pixels.width - 24 - 1 - active.last} px short of the thumb")
     }
 
     /** The range fill reaches both thumbs, and the track runs to both ends. */
@@ -114,8 +114,8 @@ class GlassSliderTrackTest {
         assertTrue(inactive.first <= 2, "the track starts ${inactive.first} px in, not at the slider's start")
         assertTrue(inactive.last >= pixels.width - 3, "the track ends ${pixels.width - 1 - inactive.last} px short of the slider's end")
         // Filled between the thumbs' centres, so the visible fill runs from one thumb's edge to the other's.
-        val travel = pixels.width - 38
-        val (left, right) = travel / 4 + 38 to travel * 3 / 4
+        val travel = pixels.width - 24
+        val (left, right) = travel / 4 + 24 to travel * 3 / 4
         assertTrue(active.first <= left + 3 && active.last >= right - 3,
             "the fill $active does not reach both thumbs (expected about $left..$right)")
     }
@@ -129,8 +129,8 @@ class GlassSliderTrackTest {
         val active = pixels.span { it.isRed() }
         val inactive = pixels.span { it.isBlue() }
         assertTrue(active.last >= pixels.width - 3, "the fill ends ${pixels.width - 1 - active.last} px short of the slider's right edge")
-        val travel = pixels.width - 38
-        val thumbLeft = pixels.width - 19 - travel / 4 - 19
+        val travel = pixels.width - 24
+        val thumbLeft = pixels.width - 12 - travel / 4 - 12
         assertTrue(active.first >= thumbLeft - 3, "the fill starts at ${active.first}, left of the thumb at about $thumbLeft")
         assertTrue(inactive.first <= 2, "the track starts ${inactive.first} px in, not at the slider's left edge")
     }
@@ -139,10 +139,10 @@ class GlassSliderTrackTest {
     @Test fun rightToLeftTheRangeFillIsMirrored() {
         val pixels = track(LayoutDirection.Rtl) { RangeSlider(value = .1f..(.4f), onValueChange = {}, colors = colors) }
         val active = pixels.span { it.isRed() }
-        val travel = pixels.width - 38
-        // Thumbs at 0.1 and 0.4 from the right; their centres are 19 + 0.1/0.4 x travel from the right edge.
-        val (left, right) = pixels.width - 19 - (travel * .4f).toInt() to pixels.width - 19 - (travel * .1f).toInt()
-        assertTrue(active.first >= left - 3 - 19 && active.last <= right + 3 + 19 && active.last > pixels.width / 2,
+        val travel = pixels.width - 24
+        // Thumbs at 0.1 and 0.4 from the right; their centres are 12 + 0.1/0.4 x travel from the right edge.
+        val (left, right) = pixels.width - 12 - (travel * .4f).toInt() to pixels.width - 12 - (travel * .1f).toInt()
+        assertTrue(active.first >= left - 3 - 12 && active.last <= right + 3 + 12 && active.last > pixels.width / 2,
             "the fill $active is not between the mirrored thumbs (about $left..$right)")
     }
 }

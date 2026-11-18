@@ -531,8 +531,18 @@ extrapolation at any other radius. Ignored by the legacy profile and by the held
 buttons; `toolbar(dark, tintAmount)` for a toolbar or tab bar, the pill's kernels with the
 toolbar's own tint (white at 0.55-0.67 in light; black at 0.41-0.63 over the 35/255 lift in
 dark, more opaque than the pill at Clear and less responsive to Tint Amount);
-`systemBackdrop(tintAmount)` for a full-screen layer such as Control Center; `menu()`;
+`systemBackdrop(tintAmount)` for a full-screen layer such as Control Center; `menu(dark)` for a menu or popover (below) and `menu()`, the earlier dark-only fit;
 `shellIcon()`; `dock()`; `coverSheet()`; `controlCenterTile(active)` for a Control Center tile (below). `Regular` is `inApp(dark = false)`.
+
+**Menus** (#204): `GlassStyle.menu(dark)` is the panel of iOS 27's Safari `<select>` popup, fitted on that panel's
+interior only: a pure blur (9.9 dp sigma dark, 11.8 dp light) and then a compressed tone, with no detail term (Regular
+keeps 0.277 of the fine detail). Dark: black at 0.6354, lift 29.59/255, bow 155.87/255 (the 17 measured greys within 1.0
+level rms); light: white at 0.5143, lift 3.91/255, bow 35.25/255 (1.4 rms). Stripes score 2.1 (dark) and 3.1 (light)
+levels rms. Rim, shadow and corner are not measured; the rim fields are `inApp`'s. **Open known difference:** the Photos
+context menu (dark, `COSG3073`) reads 10 to 18 levels lighter than this fit predicts over plain patches, so it is a
+different material or state; it is not fitted and `menu()` without an argument remains the earlier fit on it. A host
+that wants iOS's 0.52 dim behind a menu draws it itself. Material 3's `DropdownMenu` draws
+`GlassMaterialDefaults.menu` by default; `GlassMaterialDefaults.panel` is the look before 1.1.0.
 
 **Control Center tiles** (#206): `GlassStyle.controlCenterTile(active = false)` is the glass of an iOS 27 Control Center
 tile (a round toggle, a wide Focus pill, the media tile, a slider track) over the Control Center layer, measured on
@@ -856,6 +866,30 @@ beneath the chrome.
 `inverted` swaps the fade for a dimming when dark content pushes the glass into its dark style;
 a fade to the ground colour over dark content does nothing visible, so without it the effect
 silently stops working exactly when it is needed.
+
+### `glassScrollEdge`
+
+```kotlin
+enum class GlassScrollEdges { Top, Bottom, Both }
+
+fun Modifier.glassScrollEdge(
+    ground: Color, edges: GlassScrollEdges = GlassScrollEdges.Top, height: Dp = 35.dp,
+    style: GlassScrollEdgeStyle = GlassScrollEdgeStyle.Soft, inverted: Boolean = false,
+    topIntensity: () -> Float, bottomIntensity: () -> Float = topIntensity,
+): Modifier
+fun Modifier.glassScrollEdge(state: ScrollState, ground: Color, edges: ..., height: Dp, style: ..., inverted: Boolean): Modifier
+fun Modifier.glassScrollEdge(state: LazyListState, ground: Color, edges: ..., height: Dp, style: ..., inverted: Boolean): Modifier
+// liquidglass-material3
+fun Modifier.glassScrollEdge(scrollBehavior: TopAppBarScrollBehavior, ground: Color, edges: ..., height: Dp, style: ..., inverted: Boolean): Modifier
+```
+
+iOS 27's scroll edge effect on the scrolling container (#207): progressive blur over the first 35 dp from the edge
+(both appearances) and, with `inverted` (the dark appearance), a blend toward grey 124 at 0.41, measured on Safari's
+top edge. The intensity (0 to 1) is read in the draw phase, so scrolling never recomposes; at zero it draws as if
+absent. The blur needs a render effect (Android 12+, desktop, web). The fade-in (24 dp of scroll) and the bottom edge
+(a mirror of the top) are authored. `ground` is used by `GlassScrollEdgeStyle.Hard` only. The Material 3 overload
+follows `scrollBehavior.state.overlappedFraction`, which is experimental in Material 3. Guide:
+[the scroll edge effect and the collapsing bar](guides/collapsing-bar.md).
 
 ---
 

@@ -1,3 +1,8 @@
+## 18 November 2026 - controls bundle #205 #204 #207 (Claude, Sonnet writer)
+
+- `feat/205-204-207-controls`: #205 switch and slider geometry and timing (partial: colours, native thumb), #204 `GlassStyle.menu(dark)` with DropdownMenu on it (held-out Photos context menu still 10-18 levels off, pinned), #207 `Modifier.glassScrollEdge` (partial: sample scene, collapse timing, device frame times).
+- Pixel 7: switch and slider geometry confirmed by eye on the Material showcase (about 2 px).
+
 ## 18 November 2026 - #206 Control Center tile (Claude)
 
 - `feat/206-control-center`: `GlassStyle.chromaGain` (NaN default = `chromaOf(detailLift)`, so existing styles are untouched) and

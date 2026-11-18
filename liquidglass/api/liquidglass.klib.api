@@ -68,6 +68,18 @@ final enum class com.wexpa.liquidglass/GlassScrollEdgeStyle : kotlin/Enum<com.we
     final fun values(): kotlin/Array<com.wexpa.liquidglass/GlassScrollEdgeStyle> // com.wexpa.liquidglass/GlassScrollEdgeStyle.values|values#static(){}[0]
 }
 
+final enum class com.wexpa.liquidglass/GlassScrollEdges : kotlin/Enum<com.wexpa.liquidglass/GlassScrollEdges> { // com.wexpa.liquidglass/GlassScrollEdges|null[0]
+    enum entry Both // com.wexpa.liquidglass/GlassScrollEdges.Both|null[0]
+    enum entry Bottom // com.wexpa.liquidglass/GlassScrollEdges.Bottom|null[0]
+    enum entry Top // com.wexpa.liquidglass/GlassScrollEdges.Top|null[0]
+
+    final val entries // com.wexpa.liquidglass/GlassScrollEdges.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<com.wexpa.liquidglass/GlassScrollEdges> // com.wexpa.liquidglass/GlassScrollEdges.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): com.wexpa.liquidglass/GlassScrollEdges // com.wexpa.liquidglass/GlassScrollEdges.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<com.wexpa.liquidglass/GlassScrollEdges> // com.wexpa.liquidglass/GlassScrollEdges.values|values#static(){}[0]
+}
+
 final class com.wexpa.liquidglass/Glass { // com.wexpa.liquidglass/Glass|null[0]
     final val isIdentity // com.wexpa.liquidglass/Glass.isIdentity|{}isIdentity[0]
         final fun <get-isIdentity>(): kotlin/Boolean // com.wexpa.liquidglass/Glass.isIdentity.<get-isIdentity>|<get-isIdentity>(){}[0]
@@ -547,6 +559,7 @@ final class com.wexpa.liquidglass/GlassStyle { // com.wexpa.liquidglass/GlassSty
         final fun dock(): com.wexpa.liquidglass/GlassStyle // com.wexpa.liquidglass/GlassStyle.Companion.dock|dock(){}[0]
         final fun inApp(kotlin/Boolean, kotlin/Float = ...): com.wexpa.liquidglass/GlassStyle // com.wexpa.liquidglass/GlassStyle.Companion.inApp|inApp(kotlin.Boolean;kotlin.Float){}[0]
         final fun menu(): com.wexpa.liquidglass/GlassStyle // com.wexpa.liquidglass/GlassStyle.Companion.menu|menu(){}[0]
+        final fun menu(kotlin/Boolean): com.wexpa.liquidglass/GlassStyle // com.wexpa.liquidglass/GlassStyle.Companion.menu|menu(kotlin.Boolean){}[0]
         final fun shellIcon(): com.wexpa.liquidglass/GlassStyle // com.wexpa.liquidglass/GlassStyle.Companion.shellIcon|shellIcon(){}[0]
         final fun systemBackdrop(kotlin/Float = ...): com.wexpa.liquidglass/GlassStyle // com.wexpa.liquidglass/GlassStyle.Companion.systemBackdrop|systemBackdrop(kotlin.Float){}[0]
         final fun toolbar(kotlin/Boolean, kotlin/Float = ...): com.wexpa.liquidglass/GlassStyle // com.wexpa.liquidglass/GlassStyle.Companion.toolbar|toolbar(kotlin.Boolean;kotlin.Float){}[0]
@@ -774,6 +787,9 @@ final val com.wexpa.liquidglass/com_wexpa_liquidglass_LiquidGlassSupport$stablep
 
 final fun (androidx.compose.ui/Modifier).com.wexpa.liquidglass/glassEffect(com.wexpa.liquidglass/Glass? = ..., androidx.compose.ui.graphics/Shape = ..., com.wexpa.liquidglass/GlassAccessoryLink? = ...): androidx.compose.ui/Modifier // com.wexpa.liquidglass/glassEffect|glassEffect@androidx.compose.ui.Modifier(com.wexpa.liquidglass.Glass?;androidx.compose.ui.graphics.Shape;com.wexpa.liquidglass.GlassAccessoryLink?){}[0]
 final fun (androidx.compose.ui/Modifier).com.wexpa.liquidglass/glassEffectID(kotlin/Any, com.wexpa.liquidglass/GlassNamespace): androidx.compose.ui/Modifier // com.wexpa.liquidglass/glassEffectID|glassEffectID@androidx.compose.ui.Modifier(kotlin.Any;com.wexpa.liquidglass.GlassNamespace){}[0]
+final fun (androidx.compose.ui/Modifier).com.wexpa.liquidglass/glassScrollEdge(androidx.compose.foundation.lazy/LazyListState, androidx.compose.ui.graphics/Color, com.wexpa.liquidglass/GlassScrollEdges = ..., androidx.compose.ui.unit/Dp = ..., com.wexpa.liquidglass/GlassScrollEdgeStyle = ..., kotlin/Boolean = ...): androidx.compose.ui/Modifier // com.wexpa.liquidglass/glassScrollEdge|glassScrollEdge@androidx.compose.ui.Modifier(androidx.compose.foundation.lazy.LazyListState;androidx.compose.ui.graphics.Color;com.wexpa.liquidglass.GlassScrollEdges;androidx.compose.ui.unit.Dp;com.wexpa.liquidglass.GlassScrollEdgeStyle;kotlin.Boolean){}[0]
+final fun (androidx.compose.ui/Modifier).com.wexpa.liquidglass/glassScrollEdge(androidx.compose.foundation/ScrollState, androidx.compose.ui.graphics/Color, com.wexpa.liquidglass/GlassScrollEdges = ..., androidx.compose.ui.unit/Dp = ..., com.wexpa.liquidglass/GlassScrollEdgeStyle = ..., kotlin/Boolean = ...): androidx.compose.ui/Modifier // com.wexpa.liquidglass/glassScrollEdge|glassScrollEdge@androidx.compose.ui.Modifier(androidx.compose.foundation.ScrollState;androidx.compose.ui.graphics.Color;com.wexpa.liquidglass.GlassScrollEdges;androidx.compose.ui.unit.Dp;com.wexpa.liquidglass.GlassScrollEdgeStyle;kotlin.Boolean){}[0]
+final fun (androidx.compose.ui/Modifier).com.wexpa.liquidglass/glassScrollEdge(androidx.compose.ui.graphics/Color, com.wexpa.liquidglass/GlassScrollEdges = ..., androidx.compose.ui.unit/Dp = ..., com.wexpa.liquidglass/GlassScrollEdgeStyle = ..., kotlin/Boolean = ..., kotlin/Function0<kotlin/Float>, kotlin/Function0<kotlin/Float> = ...): androidx.compose.ui/Modifier // com.wexpa.liquidglass/glassScrollEdge|glassScrollEdge@androidx.compose.ui.Modifier(androidx.compose.ui.graphics.Color;com.wexpa.liquidglass.GlassScrollEdges;androidx.compose.ui.unit.Dp;com.wexpa.liquidglass.GlassScrollEdgeStyle;kotlin.Boolean;kotlin.Function0<kotlin.Float>;kotlin.Function0<kotlin.Float>){}[0]
 final fun com.wexpa.liquidglass/GlassEffectContainer(androidx.compose.ui/Modifier?, androidx.compose.ui.unit/Dp, com.wexpa.liquidglass/Glass?, kotlin/Function2<androidx.compose.runtime/Composer, kotlin/Int, kotlin/Unit>, androidx.compose.runtime/Composer?, kotlin/Int, kotlin/Int) // com.wexpa.liquidglass/GlassEffectContainer|GlassEffectContainer(androidx.compose.ui.Modifier?;androidx.compose.ui.unit.Dp;com.wexpa.liquidglass.Glass?;kotlin.Function2<androidx.compose.runtime.Composer,kotlin.Int,kotlin.Unit>;androidx.compose.runtime.Composer?;kotlin.Int;kotlin.Int){}[0]
 final fun com.wexpa.liquidglass/GlassGallery(androidx.compose.ui/Modifier?, androidx.compose.runtime/Composer?, kotlin/Int, kotlin/Int) // com.wexpa.liquidglass/GlassGallery|GlassGallery(androidx.compose.ui.Modifier?;androidx.compose.runtime.Composer?;kotlin.Int;kotlin.Int){}[0]
 final fun com.wexpa.liquidglass/GlassOverlay(kotlin/Function3<androidx.compose.foundation.layout/BoxScope, androidx.compose.runtime/Composer, kotlin/Int, kotlin/Unit>, androidx.compose.runtime/Composer?, kotlin/Int) // com.wexpa.liquidglass/GlassOverlay|GlassOverlay(kotlin.Function3<androidx.compose.foundation.layout.BoxScope,androidx.compose.runtime.Composer,kotlin.Int,kotlin.Unit>;androidx.compose.runtime.Composer?;kotlin.Int){}[0]

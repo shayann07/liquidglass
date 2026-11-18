@@ -242,6 +242,12 @@ public final class com/wexpa/liquidglass/GlassRestMap : java/lang/Enum {
 
 public final class com/wexpa/liquidglass/GlassScrollEdgeKt {
 	public static final fun GlassScrollEdge-tBgoCNw (JLandroidx/compose/ui/Modifier;FLcom/wexpa/liquidglass/GlassScrollEdgeStyle;ZZLandroidx/compose/runtime/Composer;II)V
+	public static final fun glassScrollEdge-T3al52E (Landroidx/compose/ui/Modifier;JLcom/wexpa/liquidglass/GlassScrollEdges;FLcom/wexpa/liquidglass/GlassScrollEdgeStyle;ZLkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Landroidx/compose/ui/Modifier;
+	public static synthetic fun glassScrollEdge-T3al52E$default (Landroidx/compose/ui/Modifier;JLcom/wexpa/liquidglass/GlassScrollEdges;FLcom/wexpa/liquidglass/GlassScrollEdgeStyle;ZLkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)Landroidx/compose/ui/Modifier;
+	public static final fun glassScrollEdge-u6trifg (Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/ScrollState;JLcom/wexpa/liquidglass/GlassScrollEdges;FLcom/wexpa/liquidglass/GlassScrollEdgeStyle;Z)Landroidx/compose/ui/Modifier;
+	public static final fun glassScrollEdge-u6trifg (Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/lazy/LazyListState;JLcom/wexpa/liquidglass/GlassScrollEdges;FLcom/wexpa/liquidglass/GlassScrollEdgeStyle;Z)Landroidx/compose/ui/Modifier;
+	public static synthetic fun glassScrollEdge-u6trifg$default (Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/ScrollState;JLcom/wexpa/liquidglass/GlassScrollEdges;FLcom/wexpa/liquidglass/GlassScrollEdgeStyle;ZILjava/lang/Object;)Landroidx/compose/ui/Modifier;
+	public static synthetic fun glassScrollEdge-u6trifg$default (Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/lazy/LazyListState;JLcom/wexpa/liquidglass/GlassScrollEdges;FLcom/wexpa/liquidglass/GlassScrollEdgeStyle;ZILjava/lang/Object;)Landroidx/compose/ui/Modifier;
 	public static final fun glassShadow (FF)Lcom/wexpa/liquidglass/GlassShadow;
 	public static synthetic fun glassShadow$default (FFILjava/lang/Object;)Lcom/wexpa/liquidglass/GlassShadow;
 }
@@ -252,6 +258,15 @@ public final class com/wexpa/liquidglass/GlassScrollEdgeStyle : java/lang/Enum {
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lcom/wexpa/liquidglass/GlassScrollEdgeStyle;
 	public static fun values ()[Lcom/wexpa/liquidglass/GlassScrollEdgeStyle;
+}
+
+public final class com/wexpa/liquidglass/GlassScrollEdges : java/lang/Enum {
+	public static final field Both Lcom/wexpa/liquidglass/GlassScrollEdges;
+	public static final field Bottom Lcom/wexpa/liquidglass/GlassScrollEdges;
+	public static final field Top Lcom/wexpa/liquidglass/GlassScrollEdges;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/wexpa/liquidglass/GlassScrollEdges;
+	public static fun values ()[Lcom/wexpa/liquidglass/GlassScrollEdges;
 }
 
 public final class com/wexpa/liquidglass/GlassSelectorSpec {
@@ -506,6 +521,7 @@ public final class com/wexpa/liquidglass/GlassStyle$Companion {
 	public final fun inApp (ZF)Lcom/wexpa/liquidglass/GlassStyle;
 	public static synthetic fun inApp$default (Lcom/wexpa/liquidglass/GlassStyle$Companion;ZFILjava/lang/Object;)Lcom/wexpa/liquidglass/GlassStyle;
 	public final fun menu ()Lcom/wexpa/liquidglass/GlassStyle;
+	public final fun menu (Z)Lcom/wexpa/liquidglass/GlassStyle;
 	public final fun shellIcon ()Lcom/wexpa/liquidglass/GlassStyle;
 	public final fun systemBackdrop (F)Lcom/wexpa/liquidglass/GlassStyle;
 	public static synthetic fun systemBackdrop$default (Lcom/wexpa/liquidglass/GlassStyle$Companion;FILjava/lang/Object;)Lcom/wexpa/liquidglass/GlassStyle;

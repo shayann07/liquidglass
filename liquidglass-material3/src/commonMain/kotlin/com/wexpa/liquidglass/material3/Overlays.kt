@@ -268,8 +268,10 @@ fun DragHandle(modifier: Modifier = Modifier, color: Color = MaterialTheme.color
 // ---- Menus -----------------------------------------------------------------------------------------
 
 /**
- * Material 3's `DropdownMenu` as an iOS 26 menu: a glass panel below its anchor (the layout it is
- * placed in, as Material's), in the app's window. Tap outside to dismiss.
+ * Material 3's `DropdownMenu` as an iOS menu: a glass panel below its anchor (the layout it is
+ * placed in, as Material's), in the app's window. Tap outside to dismiss. The panel is
+ * [GlassMaterialDefaults.menu] (blurrier and more opaque than a card); pass [GlassMaterialDefaults.panel]
+ * for the look before 1.1.0.
  */
 @Composable
 fun DropdownMenu(
@@ -279,7 +281,7 @@ fun DropdownMenu(
     offset: DpOffset = DpOffset(0.dp, 4.dp),
     // 34 dp (#102, 26 October): iOS 27's menu corner is ~100 px at 3x (COSG3073 279.5 s); was 24.
     shape: Shape = RoundedCornerShape(34.dp),
-    glass: Glass = GlassMaterialDefaults.panel,
+    glass: Glass = GlassMaterialDefaults.menu,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     var anchor by remember { mutableStateOf(androidx.compose.ui.geometry.Rect.Zero) }

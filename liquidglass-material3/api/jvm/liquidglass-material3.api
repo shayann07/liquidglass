@@ -147,6 +147,7 @@ public final class com/wexpa/liquidglass/material3/GlassMaterialDefaults {
 	public static final field ProminentAlpha F
 	public final fun forContainer-ek8zF_U (JLandroidx/compose/runtime/Composer;I)Lcom/wexpa/liquidglass/Glass;
 	public final fun getControl ()Lcom/wexpa/liquidglass/Glass;
+	public final fun getMenu ()Lcom/wexpa/liquidglass/Glass;
 	public final fun getPanel ()Lcom/wexpa/liquidglass/Glass;
 	public final fun getPanelBackdropSigma-D9Ej5fM ()F
 	public final fun getRegular (Landroidx/compose/runtime/Composer;I)Lcom/wexpa/liquidglass/Glass;
@@ -187,6 +188,11 @@ public final class com/wexpa/liquidglass/material3/PickersKt {
 
 public final class com/wexpa/liquidglass/material3/ScaffoldKt {
 	public static final fun Scaffold-TvnljyQ (Landroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;IJJLandroidx/compose/foundation/layout/WindowInsets;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
+}
+
+public final class com/wexpa/liquidglass/material3/ScrollEdgeKt {
+	public static final fun glassScrollEdge-u6trifg (Landroidx/compose/ui/Modifier;Landroidx/compose/material3/TopAppBarScrollBehavior;JLcom/wexpa/liquidglass/GlassScrollEdges;FLcom/wexpa/liquidglass/GlassScrollEdgeStyle;Z)Landroidx/compose/ui/Modifier;
+	public static synthetic fun glassScrollEdge-u6trifg$default (Landroidx/compose/ui/Modifier;Landroidx/compose/material3/TopAppBarScrollBehavior;JLcom/wexpa/liquidglass/GlassScrollEdges;FLcom/wexpa/liquidglass/GlassScrollEdgeStyle;ZILjava/lang/Object;)Landroidx/compose/ui/Modifier;
 }
 
 public final class com/wexpa/liquidglass/material3/SearchBarKt {

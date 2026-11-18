@@ -86,6 +86,16 @@ object GlassMaterialDefaults {
         light = Overhead,
     )
 
+    /**
+     * A menu's material ([GlassStyle.menu], fitted on iOS 27's Safari `<select>` popup, #204): a pure blur of 9.9 dp
+     * (dark) or 11.8 dp (light), then a compressed tone, with no detail term; more frosted and more opaque than
+     * [control]. The rim is [control]'s iOS 27 rim, and no scrim is added: iOS dims the screen behind a context
+     * menu (0.52, measured), which is the host's job. Known difference: the Photos context menu reads 10 to 18
+     * levels lighter than this fit predicts. [DropdownMenu] draws it by default; pass [panel] for the earlier look.
+     */
+    val menu: Glass = Glass(Ios27Rim(GlassStyle.menu(dark = false), dark = false),
+        dark = Ios27Rim(GlassStyle.menu(dark = true), dark = true), light = Overhead)
+
     /** How strongly prominent glass carries its tint. Authored, not measured. */
     const val ProminentAlpha = 0.62f
 }
