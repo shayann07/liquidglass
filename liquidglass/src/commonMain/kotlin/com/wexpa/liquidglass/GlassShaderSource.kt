@@ -811,12 +811,20 @@ half4 main(float2 coord) {
     float rimLobeGate = clamp(uFoldCorners - 1.0, 0.0, 1.0) * (1.0 - step(1.5, uProfile)) * step(0.0001, uSpecular);
     float faceUp = max(facing, 0.0);
     float faceDown = max(-facing, 0.0);
-    float lobeUp = 0.47 * pow(faceUp, 41.0) + 0.53 * pow(faceUp, 1.8);
-    float lobeDown = 0.47 * pow(faceDown, 41.0) + 0.53 * pow(faceDown, 1.8);
-    float key = mix(pow(faceUp, uSpecularPow), lobeUp, rimLobeGate) * bevelBand;
-    float counter = mix(pow(faceDown, counterPow), lobeDown, rimLobeGate) * bevelBand * counterLight;
-    faceUp = mix(faceUp, lobeUp, rimLobeGate);
-    faceDown = mix(faceDown, lobeDown, rimLobeGate);
+    float key = pow(faceUp, uSpecularPow);
+    float counter = pow(faceDown, counterPow);
+    // The gate is a uniform, so the four lobe pow calls are skipped wherever it is 0 and those pixels keep the
+    // plain powers above unchanged (#100).
+    if (rimLobeGate > 0.0) {
+        float lobeUp = 0.47 * pow(faceUp, 41.0) + 0.53 * pow(faceUp, 1.8);
+        float lobeDown = 0.47 * pow(faceDown, 41.0) + 0.53 * pow(faceDown, 1.8);
+        key = mix(key, lobeUp, rimLobeGate);
+        counter = mix(counter, lobeDown, rimLobeGate);
+        faceUp = mix(faceUp, lobeUp, rimLobeGate);
+        faceDown = mix(faceDown, lobeDown, rimLobeGate);
+    }
+    key = key * bevelBand;
+    counter = counter * bevelBand * counterLight;
     float edge = smoothstep(2.0, 0.0, depth);
     float edgeLine = edge * 0.5 * (faceUp + counterLight * faceDown);
 
