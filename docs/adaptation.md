@@ -104,4 +104,4 @@ strongly (light: a constant 241/255 tint at 0.43-0.73 opacity; dark: black at th
 a 35/255 lift). Filled shell panels such as Spotlight shift their base colour with appearance
 but keep their blur. So the light/dark decision (the theme's `dark`) is an input to in-app
 material tone, and the shell-role
-factories (`shellIcon`, `dock`, `systemBackdrop`) set `invertsWithBackdrop = false`.
+factories (`shellIcon`, `dock`, `systemBackdrop`, `controlCenterTile`) set `invertsWithBackdrop = false`.

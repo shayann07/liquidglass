@@ -6,6 +6,47 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- New: `GlassStyle.controlCenterTile(active = false)` and `GlassStyle.chromaGain` (#206). The factory is the glass of an iOS 27
+  Control Center tile over the Control Center layer, measured on `CC-over-lab-dark.MP4` (shell glass: no `dark`, no tint amount):
+  inactive is black at 0.097 with a 51.1/255 lift, no blur and 1.58 times the layer's chroma, so the interior is `51.1 + 0.903 G`
+  over grey (within 1 level of the measured map at six greys, rms 0.41) and the eight hues within 0.7 levels of Y and 4 per
+  channel; active is a white body at 250 keeping 0.50 of the chroma (fitted from the active readings). The rim and contour are
+  authored, and light appearance, press, hold and Tint Amount are not measured. `chromaGain` is an output-referred chroma ratio:
+  unset (`Float.NaN`, the default) keeps the colour transfer `detailLift` selects, byte-identical to before; set to g the finished
+  glass keeps g times the backdrop's chroma about its luma (flat, clamped to 0..4). Panel and merged glass both read it; a morph
+  snaps it at the midpoint when only one end sets it. Binary-compatible: the constructor and `copy` before the field stay as hidden
+  deprecated overloads, and the ABI dump only gains the field, `component62`, the new `copy` and the factory. Not a default-look
+  change: no existing style sets the field. Ports need no change (they set `uChromaGain`, `uChromaSlope`, `uChromaWeight` already
+  and have no style layer).
+
+- Skia and .NET ports: render a frame at any time (#193). `bakeNavigation(bar, events, {step, duration})` runs a scripted gesture
+  through the scene's own navigation motion (now one shared driver, `createNavigationDriver`, used by `addNavigation` and the bake) at a
+  fixed step, and `track.sample(t)` gives the bar's state at any time, in any order, any worker (`toJSON()` / `navigationTrack(json)`
+  for plain data); `drawNavigation(kit, painter, canvas, view, sample, options)` draws that state, and is what `scene.draw` calls for a
+  navigation layer (`layer.feedback` is new, beside `layer.selector`). .NET: `NavigationBaker.Bake(bar, events, duration)` and
+  `NavigationTrack.Sample(t)` for the same, stepping `CalmNavigation` and `CalmInteraction` (the painter's draw methods are already
+  stateless). Exact at a step, linear between (the pose's inverse recomputed; decisions keep the earlier step); not a second drawing method
+  on the scene. The scene's navigation drawing now passes the selector pose's superellipse blend (`pose.e`) on to the painter, which it used to drop.
+  Default look changed: the Skia scene's held navigation lens (and the baked and stateless drawing) takes the pose's superellipse blend as
+  Compose's does, where it used to fall back to the painter's default blend; a resting or tapped selector is unchanged (blend 0 at formation 0).
+- Skia and .NET ports: a free-standing lens has the Compose clear-lens preset by default (#191). `painter.drawLens(canvas, bounds)`,
+  `scene.addLens(bounds)` and `GlassPainter.DrawLens(...)` draw `GlassStyle.clearLens`'s
+  rim highlight (specular 0.28, fresnel 0.02, counter light 0.35, bevel 1.2 dp), a thin white tint (1.5 %) and a contact shadow
+  (0.14 x 0.15) around the magnified content, so the lens reads as glass over flat or low-detail content. `shadow`, `density`
+  and `light` are optional. Authored in Compose, not an iOS measurement; over a flat grey 128 page the rim reads +64 / +22
+  levels (top / bottom), over black +42 / +15, over pure white nothing (as in Compose). The values were read from
+  `GlassStyle.clearLens`, not exported from Kotlin, so there is no Kotlin parity fixture for them yet.
+  `{lighting: false}` / `new GlassLensOptions(Lighting: false)` is the bare magnification map, byte-identical to the earlier lens. React Native
+  `GlassLens` gets the preset too (at its pixel ratio).
+  Default look changed: free-standing lenses in the Skia, .NET and React Native ports now draw the clear-lens rim, tint and shadow by default;
+  pass lighting false for the bare lens. [Evidence](review/atlas/skia-lens-and-bake-2026-11-18/README.md).
+
+- Desktop and web: tapping a second tab no longer leaves the keyboard focus ring around it (#218). Focus moving from one
+  tab to another passes through a moment with no tab focused; the bar read that as focus leaving and coming back without
+  a pointer, so the ring showed after every tap but the first (every desktop touch replay showed it at rest). A blur inside
+  the pointer's own gesture, from its press to two frames after its release, is no longer taken as focus leaving the bar.
+  Keyboard focus, and focus that really returns without a pointer, still show the ring (`GlassTabBarFocusTest`). Android
+  touch never showed it.
 - Text lines no longer hook where a resting capsule's round end begins. Glass on the measured resting map
   (`GlassRestMap.Measured`) lensed only its corner arcs and showed a straight run nearly as it is, blending the two over
   0.2 of the corner radius; near the rim the maps show rows about 0.7 of the band apart, so lines under the junction drew

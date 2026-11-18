@@ -60,7 +60,7 @@ export function bindLiquidGlass({Skia, TileMode, FilterMode, MipmapMode, BlendMo
   /** A clear magnifier over `source`; `magnification` 1 to 2.5. Canvas units. */
   function GlassLens({source, x, y, width, height = width, magnification = 1.25, pixelRatio: ratio = pixelRatio()}) {
     return useGlass(source, ratio, (painter, canvas, r) => painter.drawLens(canvas,
-      {x: x * r, y: y * r, width: width * r, height: height * r, magnification}),
+      {x: x * r, y: y * r, width: width * r, height: height * r, magnification}, {density: r}),
     [x, y, width, height, magnification]);
   }
 
