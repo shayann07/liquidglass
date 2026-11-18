@@ -8,6 +8,10 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
 
 - Regular glass at Tint 0 and Tint 100 is measured (#208). `GlassStyle.inApp`, `toolbar` and `Regular` at the ends now use the fit on iOS 27's Photos chrome over the calibration target: detail share 0.663 / 0, one-sided term 0.336 / 0, dark bow 101.6 / 49.8 (of 255), opacity dark 0.401 / 0.703 and light 0.382 / 0.682, wide kernel 15.5 dp at every tint, legibility 0. Between Tint 0, 50 and 100 the values are linear (authored). Fit 1.3 to 2.2 levels rms against 5.6 to 24.8 for the authored ends (Python scores on the pooled pill and toolbar, not shader renders). The colour transfer at Tint 0 is the Tint 50 transfer (authored extrapolation; colour at Tint 0 is not measured). [Evidence](review/atlas/tint-ends-2026-11-18/README.md).
   - Default look changed: Regular glass away from Tint 50 (dark at Tint 0 over grey 128: 93 -> 134; light 198 -> 182). Tint 50 is unchanged (every port's Tint 50 parameters are identical). The toolbar shares the pill's end values. All ports' in-app factories follow.
+- The collapsing-bar recipe is measured (#207): `docs/guides/collapsing-bar.md` now drives the collapse by finger travel only,
+  collapsing after 36 dp down and expanding after 72 dp up (fitted to the decoded Safari take), over 325 ms with iOS's
+  default curve `cubic-bezier(0.25, 0.1, 0.25, 1)` (fitted; was an authored 200 ms `FastOutSlowInEasing` with 8 px).
+  - Default look changed: none (a documentation recipe, not library code).
 - The outline is a one-pixel box ramp (#202): iOS 27 covers its outermost pixel fully and its anti-aliasing spans
   1.00 px (Safari lab circles and capsules, 0.017 coverage rms). Ours was a 1.5 px smoothstep that let 2/27 of the
   backdrop into the outermost pixel, so the rim's first row was dim in light and swung with the backdrop in dark.
