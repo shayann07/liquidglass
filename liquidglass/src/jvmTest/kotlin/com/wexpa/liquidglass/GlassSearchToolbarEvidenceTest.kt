@@ -50,7 +50,9 @@ class GlassSearchToolbarEvidenceTest {
     private fun shoot(name: String, content: @Composable () -> Unit) = runComposeUiTest(testTimeout = 6.minutes) {
         setContent { CompositionLocalProvider(LocalDensity provides Density(3f)) { content() } }
         mainClock.autoAdvance = false
-        repeat(14) { mainClock.advanceTimeBy(50, ignoreFrameDuration = true) }
+        // Every frame is a software glass render at 3 px per dp (up to a minute each under load), and both search states
+        // and the toolbar start settled (initiallyExpanded, no animation), so a few frames are enough to lay out and draw.
+        repeat(4) { mainClock.advanceTimeBy(50, ignoreFrameDuration = true) }
         val img = onNodeWithTag("scene").captureToImage().toAwtImage()
         ImageIO.write(img, "png", File(dir!!, "$name.png"))
         assertTrue(img.width > 0)
