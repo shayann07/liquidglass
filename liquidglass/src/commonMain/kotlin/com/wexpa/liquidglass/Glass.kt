@@ -47,7 +47,7 @@ class Glass private constructor(
 
     /** The optical parameters this glass draws with in the given appearance; null for [Identity]. */
     fun style(dark: Boolean): GlassStyle? = resolve?.invoke(dark)?.let { s ->
-        if (tintColor == null) s else s.copy(tint = tintColor).withLitFromAbove(s.litFromAbove)
+        if (tintColor == null) s else s.copy(tint = tintColor)
     }
 
     /** Where the light comes from in the given appearance (see [GlassLight]). */

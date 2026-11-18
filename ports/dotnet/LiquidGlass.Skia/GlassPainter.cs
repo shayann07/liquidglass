@@ -9,14 +9,14 @@ namespace LiquidGlass.Skia;
 /// map (the lens before 1.1.0). <c>Shadow</c> false skips the contact shadow;
 /// <c>Density</c> is px per dp (the preset's dp terms scale); <c>LightX</c>/<c>LightY</c> point toward the light (y up is negative).</summary>
 public sealed record GlassLensOptions(bool Lighting = true, bool Shadow = true, float Density = 1,
-    float LightX = -.35f, float LightY = -.94f);
+    float LightX = 0f, float LightY = -1f);
 
 /// <summary>A surface's options. <c>LightX</c>/<c>LightY</c> point toward the light (y up is negative):
-/// the default is Compose's <c>GlassLight.Default</c>, as <c>Glass.Regular</c> binds it; (0, -1) is
-/// iOS 27's measured overhead light.</summary>
+/// the default is Compose's <c>GlassLight.Default</c>, as <c>Glass.Regular</c> binds it: straight overhead (0, -1), as
+/// every measured resting iOS 27 rim is lit.</summary>
 public sealed record GlassSurfaceOptions(bool Dark = false, float TintAmount = 50, float Density = 1,
     float Materialize = 1, float ReducedTransparency = 0, float IncreasedContrast = 0,
-    float LightX = -.35f, float LightY = -.94f);
+    float LightX = 0f, float LightY = -1f);
 
 /// <summary>Draw multiple glass surfaces over one borrowed opaque sRGB image on an SKCanvas.
 /// Coordinates are device pixels. The host owns input, layout, semantics and frame scheduling.</summary>

@@ -25,7 +25,7 @@ namespace LiquidGlass
 
         public static GlassLook Default => new GlassLook
         {
-            Radius = 20, TintAmount = 50, LightX = -.35f, LightY = -.94f, Materialize = 1,
+            Radius = 20, TintAmount = 50, LightX = 0f, LightY = -1f, Materialize = 1,
         };
     }
 

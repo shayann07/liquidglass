@@ -254,7 +254,7 @@ glass over flat or low-detail content (the bare lens, with nothing to mark where
 glass.drawLens(canvas, { x: 80, y: 100, width: 180, magnification: 1.4 });                      // the preset
 glass.drawLens(canvas, { x: 80, y: 100, width: 180, magnification: 1.4 }, { lighting: false }); // the bare map
 // options: lighting (true), shadow (true: the contact shadow), density (1: px per dp, scales the dp terms),
-// light ([-0.35, -0.94]: toward the light, y up negative)
+// light ([0, -1]: toward the light, y up negative)
 const lens = scene.addLens({ x: 80, y: 100, width: 180 }, { lighting: false }); // logical px; the scene applies pixelRatio
 lens.setMaterial({ shadow: false });
 ```
@@ -291,7 +291,7 @@ Options are `dark` (default false), `tintAmount` (0–100, default 50), `density
 `materialize`, `reducedTransparency` and `increasedContrast` (each 0–1; defaults 1, 0, 0), and
 `tint` ([r, g, b, a], sRGB 0–1; default none): Compose's `Glass.tint(color)`, which replaces the tint
 colour and opacity (quantized to 8 bits, as Compose's Color is) and keeps the dark lift. `light`
-([x, y], toward the light, y up negative) defaults to Compose's `GlassLight.Default` (-0.35, -0.94),
+([x, y], toward the light, y up negative) defaults to Compose's `GlassLight.Default` (0, -1),
 as `Glass.Regular` binds it; [0, -1] is iOS 27's measured overhead light. The
 `<liquid-glass>` web component's canvas engine uses it ([ports/npm](../npm/README.md)).
 Geometry remains in device pixels; density scales the material's dp constants. Feed accessibility

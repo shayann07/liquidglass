@@ -40,7 +40,7 @@ Stack(children: [
 | `dark` | false | the dark material |
 | `tintAmount` | 50 | 0 to 100 |
 | `tint` | none | replaces the tint colour and opacity, as Compose's `Glass.tint(color)` |
-| `light` | `Offset(-0.35, -0.94)` | toward the light; `Offset(0, -1)` is iOS 27's measured overhead light |
+| `light` | `Offset(0, -1)` | toward the light; straight overhead, as every measured resting iOS 27 rim is lit |
 | `materialize` | 1 | glass materializes in and out rather than fading |
 | `reducedTransparency`, `increasedContrast` | 0 | 0 to 1 |
 

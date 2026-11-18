@@ -247,18 +247,11 @@ class GlassControlCenterTileTest {
         ImageIO.write(img, "png", File(dir, "control-center-tile.png"))
     }
 
-    /** The overhead light belongs to the tile preset, not to the colour transfer: a plain style with chromaGain keeps the default light. */
+    /** The default light is straight overhead, as every measured resting iOS rim is lit; the tile needs no light of its own. */
     @Test
-    fun theOverheadLightIsTheTilesAndSurvivesCopiesOfThePreset() {
-        val tile = GlassStyle.controlCenterTile()
-        val overhead = GlassLight(0f, -1f)
-        assertEquals(overhead, tile.litFrom(GlassLight.Default))
-        assertEquals(overhead, GlassStyle.controlCenterTile(active = true).litFrom(GlassLight.Default))
-        assertEquals(GlassLight(0.3f, -0.9f), tile.litFrom(GlassLight(0.3f, -0.9f)), "a host's own light wins")
-        assertEquals(GlassLight.Default, GlassStyle.Regular.copy(chromaGain = 1.5f).litFrom(GlassLight.Default), "chromaGain alone does not light from above")
-        assertEquals(GlassLight.Default, tile.copy(chromaGain = 1.5f).litFrom(GlassLight.Default), "copy is a new style, unmarked")
-        assertEquals(overhead, Glass(tile).tint(androidx.compose.ui.graphics.Color.Red).style(false)!!.litFrom(GlassLight.Default), "a tinted tile keeps its light")
-        assertEquals(overhead, lerpGlassStyle(tile, GlassStyle.Regular, 0.25f).litFrom(GlassLight.Default))
-        assertEquals(GlassLight.Default, lerpGlassStyle(tile, GlassStyle.Regular, 0.75f).litFrom(GlassLight.Default))
+    fun theDefaultLightIsOverhead() {
+        assertEquals(GlassLight(0f, -1f), GlassLight.Default)
+        assertEquals(GlassLight.Default, GlassLight())
+        assertEquals(GlassLight.Default, Glass(GlassStyle.controlCenterTile()).light(false), "the tile takes the default light")
     }
 }

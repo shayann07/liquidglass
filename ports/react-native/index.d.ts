@@ -14,7 +14,7 @@ export interface GlassSurfaceProps {
   tintAmount?: number;
   /** Replaces the tint ([r, g, b, a], sRGB 0..1), as Compose's `Glass.tint(color)`. */
   tint?: readonly [number, number, number, number] | null;
-  /** Toward the light, y down positive; [-0.35, -0.94] by default, [0, -1] is iOS 27's overhead light. */
+  /** Toward the light, y up negative; [0, -1] (straight overhead, as every measured resting iOS 27 rim is lit) by default. */
   light?: readonly [number, number];
   /** Whether the material is present, 0 to 1. */
   materialize?: number;

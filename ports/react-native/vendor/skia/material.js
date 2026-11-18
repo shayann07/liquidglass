@@ -84,7 +84,7 @@ function lerpColor(a,b,w) {
  * `GlassLight.Default`, as `Glass.Regular` binds it; [0, -1] is iOS 27's measured overhead light. */
 export function inAppMaterialUniforms(effects, {width,height,pad=2,radius=20,density=1,
   dark=false,tintAmount=50,materialize=1,reducedTransparency=0,increasedContrast=0,tint=null,
-  light=[-.35,-.94]}) {
+  light=[0,-1]}) {
   if (![density,tintAmount,materialize,reducedTransparency,increasedContrast].every(Number.isFinite)||
       density<=0||tintAmount<0||tintAmount>100||
       [materialize,reducedTransparency,increasedContrast].some(x=>x<0||x>1)||typeof dark!=='boolean')
@@ -145,7 +145,7 @@ export function inAppMaterialUniforms(effects, {width,height,pad=2,radius=20,den
 export const CLEAR_LENS = Object.freeze({
   bevel: 1.2, refractDepth: 14, bevelPeak: 0, specular: .28, specularPower: 6, fresnel: .02, counterLight: .35,
   edgeLight: 1, tint: [1, 1, 1, .015], contactShadow: .15, highlightChroma: .7, legibility: .6,
-  bandRatio: .6, light: [-.35, -.94],
+  bandRatio: .6, light: [0, -1],
 });
 export function clearLensUniforms(effects, {width, height, pad = 2, magnification = 1.25, density = 1, light = CLEAR_LENS.light}) {
   if (![density].every(Number.isFinite) || density <= 0) throw new RangeError('Lens density must be positive');
