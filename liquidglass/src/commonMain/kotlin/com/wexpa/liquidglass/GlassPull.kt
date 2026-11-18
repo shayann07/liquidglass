@@ -286,7 +286,7 @@ internal fun glassPullExtent(
 
 /** The opt-in geometric response follows ownership; its glow may fade independently. */
 internal fun glassPressIsDown(interaction: GlassInteraction?, press: GlassPress): Boolean =
-    interaction != null && if (interaction.pull || interaction.pressGrowth.value > 0f) {
+    interaction != null && if (interaction.pull || interaction.pressGrowth.value > 0f || interaction.quickAction) {
         press.pulling
     } else {
         press.amount > 0.5f

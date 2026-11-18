@@ -109,6 +109,7 @@ uniform float   uFlip;         // whole-element light/dark inversion, 0..1, deci
 uniform float2  uTouch;        // touch point in panel-local px
 uniform float   uTouchAmt;     // press amount, 0..1
 uniform float   uPressGrade;   // directional grade of a still press, share of full scale at the half short side (#114)
+uniform float   uPressWhite;   // a quick-action press mixes the body toward white by this share (0 for every other glass)
 uniform float   uMaterialize;  // 0 the shader is a pass-through of the backdrop, 1 full material
 uniform float   uFrost;        // Reduce Transparency, 0..1
 uniform float   uContrast;     // Increase Contrast, 0..1
@@ -751,6 +752,11 @@ half4 main(float2 coord) {
     // Pressed and still, the body is brighter toward the light and darker away from it (#114). Zero adds nothing.
     float2 gradePos = (local - 0.5 * uSize) / max(0.5 * min(uSize.x, uSize.y), 1.0);
     col += half3(half(uPressGrade * dot(gradePos, normalize(uLight)) * tintCoverage * mat));
+    // A pressed quick-action button (GlassInteraction.QuickAction) mixes its whole body toward white, as iOS's does. The branch
+    // is skipped, so nothing is read or written, whenever the uniform is 0, which it is for every glass but a quick action.
+    if (uPressWhite > 0.0) {
+        col = mix(col, half3(1.0), half(clamp(uPressWhite, 0.0, 1.0) * mat));
+    }
 
     float facing = dot(n, uLight);
     float heldAmt = step(1.5, uProfile) * (1.0 - step(2.5, uProfile)) * clamp(uHeldLens, 0.0, 1.0);
