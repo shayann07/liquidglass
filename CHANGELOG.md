@@ -8,6 +8,43 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
 
 - Regular glass at Tint 0 and Tint 100 is measured (#208). `GlassStyle.inApp`, `toolbar` and `Regular` at the ends now use the fit on iOS 27's Photos chrome over the calibration target: detail share 0.663 / 0, one-sided term 0.336 / 0, dark bow 101.6 / 49.8 (of 255), opacity dark 0.401 / 0.703 and light 0.382 / 0.682, wide kernel 15.5 dp at every tint, legibility 0. Between Tint 0, 50 and 100 the values are linear (authored). Fit 1.3 to 2.2 levels rms against 5.6 to 24.8 for the authored ends (Python scores on the pooled pill and toolbar, not shader renders). The colour transfer at Tint 0 is the Tint 50 transfer (authored extrapolation; colour at Tint 0 is not measured). [Evidence](review/atlas/tint-ends-2026-11-18/README.md).
   - Default look changed: Regular glass away from Tint 50 (dark at Tint 0 over grey 128: 93 -> 134; light 198 -> 182). Tint 50 is unchanged (every port's Tint 50 parameters are identical). The toolbar shares the pill's end values. All ports' in-app factories follow.
+- The collapsing-bar recipe is measured (#207): `docs/guides/collapsing-bar.md` now drives the collapse by finger travel only,
+  collapsing after 36 dp down and expanding after 72 dp up (fitted to the decoded Safari take), over 325 ms with iOS's
+  default curve `cubic-bezier(0.25, 0.1, 0.25, 1)` (fitted; was an authored 200 ms `FastOutSlowInEasing` with 8 px).
+  - Default look changed: none (a documentation recipe, not library code).
+- The outline is a one-pixel box ramp (#202): iOS 27 covers its outermost pixel fully and its anti-aliasing spans
+  1.00 px (Safari lab circles and capsules, 0.017 coverage rms). Ours was a 1.5 px smoothstep that let 2/27 of the
+  backdrop into the outermost pixel, so the rim's first row was dim in light and swung with the backdrop in dark.
+  All four shaders now use `clamp(0.5 - d, 0, 1)`.
+  - Default look changed: the outermost pixel of every glass shape is fully covered, and the pixel outside it no
+    longer picks up glass (at most 2/27 of a level step either way). The recorded dark `Calm()` bar's specular goes
+    from 0.25 to 0.226, because its rim fit had absorbed the old ramp (IMG_6756 rows 0..4: 98 88 65 45 40 before,
+    100 84 63 45 40 now, iOS 99 79 62 45 41).
+- The iOS 27 rim has its measured falloff (#202): iOS 27 lights the rim of every resting control with one curve, steeper
+  than our full-bevel ramp. On the styles that draw the 2026 outer contour (Material 3's iOS 27 rim and
+  `GlassTabBarStyle.Ios27`), the rim band now ends at 0.835 of the bevel and starts just outside the outline. Material 3
+  toolbar, Tint 50, overhead light, rim excess at 0, 1, 2 and 3 px inside the outline (desktop render against the Safari
+  lab stills):
+  dark over grey 128 +73 +65 +45 +24 before, +67 +47 +28 +14 now, iOS +66 +46 +31 +12; dark over grey 0 and 255 the
+  same now (iOS +67 / +64 at the first pixel); light over grey 0 +67 +47 +27 +14 (iOS +65 +46 +30 +12) and over grey 128
+  +58 +47 +28 +14 (iOS +58 +45 +30 +12).
+
+  4 to 12 px inside are unchanged and within 1 level. The recorded Calm bar, the held lens and the legacy profile keep
+  their rim.
+  - Default look changed: the rim of Material 3 components and `GlassTabBarStyle.Ios27` bars, 0 to 3 px inside the
+    outline (toward iOS: up to 18 levels darker 1 to 3 px in, dark over grey 128; in light the outermost pixel now reads +67 / +58 over grey 0 / 128, iOS +65 / +58, main not rendered in light).
+- Merged glass has the resting rim glow (#202): a piece inside `GlassEffectContainer` lacked the faint glow a lone piece
+  draws 4 to 12 px inside its rim, so it read up to 10 levels darker there. Merged and lone glass now render the same
+  rim on flat grey, level for level (Material 3 toolbar, all five measured greys). Held merged pieces are unchanged.
+  - Default look changed: resting merged glass, 4 to 12 px inside the outline (up to 10 levels brighter).
+- The resting dark bar's rim catches light like iOS's round its caps and on its round button (#109): a sharp glint at
+  the poles on a broad tail, 0.47 f^41 + 0.53 f^1.8 of the facing f (two-lobe fit to IMG_6756 34.2 s). A round piece
+  drawn with the bar's style draws 0.97 of that rim (authored). Search button rim against IMG_6756, 18 angles: 8.7 ->
+  2.5 levels rms, peak 104 -> 98 (iOS 96). Bar top rim along x: 4.9 -> 5.3 levels rms (runs 98 -> 100, iOS 100;
+  the caps read 5 to 10 levels brighter than iOS).
+  - Default look changed: the dark `Calm()` bar's caps and any round glass drawn with its style: search button rim
+    8.7 -> 2.5 levels rms against IMG_6756 and peak 104 -> 98 (iOS 96); bar top rim 4.9 -> 5.3 rms (runs 98 -> 100, iOS
+    100), with the caps 5 to 10 levels brighter than iOS. Every other style is unchanged (it needs `capFold` and a lit rim).
 - Regular glass's rim band is measured (#202): the outer band of a capsule or round button on the measured map shows content from deeper inside, 1.41 to 0.91 W at 0.5 to 5.5 px below the outline (61.0 to 39.4 px at the 72 px reference radius; the map is normalised by the bevel width, 0.6 R, so the band scales with the radius, about 0.083 R: a 144 px radius moves a 12 px band, authored extrapolation), measured on the Safari lab pill; the map held a constant 0.876 W there. The map's knots from 6 px inward are unchanged. Part of #202: the gate against the lab stills, the rim light and the cap and junction scores are open. [Evidence](review/atlas/rim-band-2026-11-18/README.md).
   - Default look changed: the outer band of every capsule and round button on the measured map (6 px at the 72 px reference radius, scaling with the radius). In the ports the generated shaders carry the new knots, but only surfaces that set `uRestMap` to 1 use that map: the exported Calm selector material (Skia, npm, React Native and .NET) and Qt when given those values. The ports' own in-app material factories leave `uRestMap` at 0 (Flutter fills unset uniforms with 0) and keep the earlier map, so their look does not change.
 - Wide pills light from their true shape (#214): refraction still reads the dome field, but facing, highlights, edge shading and Fresnel take the true-distance normal and slope.
@@ -22,8 +59,9 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   8.67 dp; no detail term (dark 3.00 / 2.79, light 2.25 / 1.82 levels rms over greys / stripes). Rim, shadow, corner and
   colour are not measured; the rim fields are `inApp`'s. Device frames: [review/atlas/menu-sheet-2026-11-18](review/atlas/menu-sheet-2026-11-18/README.md).
   - Default look changed: the dark `DropdownMenu` (and any dark `GlassStyle.menu(dark = true)`) is lighter in the shadows
-    (black reads 59, was 32) and slightly less blurred (8.17 dp, was 9.9). `ModalBottomSheet` draws the measured sheet
-    (was the card panel): frosted, with no fine detail of what is beneath. Opt out: `ModalBottomSheet(glass = GlassMaterialDefaults.panel)`.
+    (black reads 59, was 32) and slightly less blurred (8.17 dp, was 9.9). The light menu is unchanged from the #204 fit below.
+    `ModalBottomSheet` draws the measured sheet (was the card panel): frosted, with no fine detail of what is beneath; it scores
+    3.00 / 2.79 (dark) and 2.25 / 1.82 (light) levels rms over greys / stripes. The `DropdownMenu` corner is 34 dp (was 24; see the Material 3 entry below). Opt out: `ModalBottomSheet(glass = GlassMaterialDefaults.panel)`.
   - Known difference, open: iOS does not dim the page behind the share sheet; `ModalBottomSheet` keeps its scrim.
 
 - Switch, Slider and RangeSlider (liquidglass-material3) use measured geometry and timing (#205). Switch: 63 x 28 dp track, 37 x 24 dp knob, 2 dp inset, 22 dp travel; held, the knob is a clear glass lens 64.75 x 38.4 dp (1.75 x 1.6 of rest) sized in layout around the knob's centre; press peaks about 100 ms in, release settles in 133 ms, travel is a critically damped spring (90 percent in 6-7 frames, no overshoot), the track colour fades over 420 ms. Slider and RangeSlider: 4 dp track, 24 x 16 dp opaque white thumb with a soft shadow, no lens, no press scale. No public API change; sizes live in an internal KnobSpec.
@@ -32,9 +70,9 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   62 x 42 px (24 x 16 dp = 63 x 42), track about 10 px (4 dp), switch track about 165 x 75 px (63 x 28 dp);
   [device check](review/atlas/switch-slider-2026-11-18/README.md#device-check-pixel-7-18-november).
 
-- GlassStyle.menu(dark): the menu panel measured on iOS 27's Safari <select> popup (#204; superseded for dark by #102 above): a pure blur (9.9 dp dark, 11.8 dp light) and a compressed tone, no detail term. menu() without an argument is unchanged. GlassMaterialDefaults.menu is new; Material 3 DropdownMenu draws it by default.
-  - Default look changed: DropdownMenu is blurrier, more opaque and tone-compressed (was the card-like panel: in-app material over a 7.7 dp frost). Opt out: DropdownMenu(glass = GlassMaterialDefaults.panel).
-  - Known difference, open: the Photos context menu (dark) reads 10 to 18 levels lighter than this fit predicts (32 on the worst of seven patches); the held-out gate (5 levels rms, none over 10) is not met and the fit was not changed.
+- GlassStyle.menu(dark): the menu panel measured on iOS 27's Safari <select> popup (#204; superseded for dark by #102 above, which is the shipping dark menu; the light menu is this fit): a pure blur (9.9 dp dark, 11.8 dp light) and a compressed tone, no detail term. menu() without an argument is unchanged. GlassMaterialDefaults.menu is new; Material 3 DropdownMenu draws it by default.
+  - Default look changed: DropdownMenu is blurrier, more opaque and tone-compressed (was the card-like panel: in-app material over a 7.7 dp frost; now 9.9 dp dark, 11.8 dp light). The dark numbers here are superseded by the #102 entry above. Opt out: DropdownMenu(glass = GlassMaterialDefaults.panel).
+  - Known difference (dark superseded by #102 above; kept as history): the Photos context menu (dark) reads 10 to 18 levels lighter than this fit predicts (32 on the worst of seven patches); the held-out gate (5 levels rms, none over 10) is not met and the fit was not changed.
 
 - Modifier.glassScrollEdge (#207): iOS 27's scroll edge effect on a scrolling container, measured on Safari's top edge: progressive blur over the first 35 dp (both appearances) and, in a dark appearance, a blend toward grey 124 at 0.41 (flat to 10 dp, gone by 34 dp). Overloads for ScrollState and LazyListState, and (liquidglass-material3) TopAppBarScrollBehavior. The intensity is read in the draw phase, so scrolling does not recompose. The 24 dp fade-in and the bottom edge (a mirror of the top) are authored. New guide: the scroll edge effect and the collapsing bar (the Safari bar's collapse is a documented recipe: 200 ms measured to +-3 frames, trigger and easing authored). The GlassScrollEdge composable is unchanged.
   - Default look changed: none (new API; the composable keeps its authored constants).
@@ -51,6 +89,7 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   deprecated overloads, and the ABI dump only gains the field, `component62`, the new `copy` and the factory. Not a default-look
   change: no existing style sets the field. Ports need no change (they set `uChromaGain`, `uChromaSlope`, `uChromaWeight` already
   and have no style layer).
+  - Default look changed: none (no existing style sets `chromaGain`).
 
 - Skia and .NET ports: render a frame at any time (#193). `bakeNavigation(bar, events, {step, duration})` runs a scripted gesture
   through the scene's own navigation motion (now one shared driver, `createNavigationDriver`, used by `addNavigation` and the bake) at a
@@ -62,6 +101,7 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   on the scene. The scene's navigation drawing now passes the selector pose's superellipse blend (`pose.e`) on to the painter, which it used to drop.
   Default look changed: the Skia scene's held navigation lens (and the baked and stateless drawing) takes the pose's superellipse blend as
   Compose's does, where it used to fall back to the painter's default blend; a resting or tapped selector is unchanged (blend 0 at formation 0).
+  The outline shift was not scored in levels (not scored).
 - Skia and .NET ports: a free-standing lens has the Compose clear-lens preset by default (#191). `painter.drawLens(canvas, bounds)`,
   `scene.addLens(bounds)` and `GlassPainter.DrawLens(...)` draw `GlassStyle.clearLens`'s
   rim highlight (specular 0.28, fresnel 0.02, counter light 0.35, bevel 1.2 dp), a thin white tint (1.5 %) and a contact shadow
@@ -71,8 +111,9 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   `GlassStyle.clearLens`, not exported from Kotlin, so there is no Kotlin parity fixture for them yet.
   `{lighting: false}` / `new GlassLensOptions(Lighting: false)` is the bare magnification map, byte-identical to the earlier lens. React Native
   `GlassLens` gets the preset too (at its pixel ratio).
-  Default look changed: free-standing lenses in the Skia, .NET and React Native ports now draw the clear-lens rim, tint and shadow by default;
-  pass lighting false for the bare lens. [Evidence](review/atlas/skia-lens-and-bake-2026-11-18/README.md).
+  Default look changed: free-standing lenses in the Skia, .NET and React Native ports now draw the clear-lens rim, tint and shadow by default
+  (rim +64 / +22 levels top / bottom over flat grey 128, +42 / +15 over black, nothing over white; the earlier lens drew none of it;
+  interior within 4 levels of the page); pass lighting false for the bare lens. [Evidence](review/atlas/skia-lens-and-bake-2026-11-18/README.md).
 
 - Desktop and web: tapping a second tab no longer leaves the keyboard focus ring around it (#218). Focus moving from one
   tab to another passes through a moment with no tab focused; the bar read that as focus leaving and coming back without
@@ -83,7 +124,9 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
 - `GlassTabBarStyle.CalmClear(dark = true)`: the bar is the measured in-app material (#203), keeping Calm's bar-only fields. Over flat pages 0, 10, 23 and 28 it reads 32, 42, 54 and 59 against the iOS bars' 32, 43, 54 and 58 (WhatsApp and App Store recordings), and over the App Store's blue and orange cards 122/170/220 and 211/164/85 against 116/167/219 and 209/162/79 (desktop; the Pixel 7 is within 1 level; [evidence](review/atlas/tab-bar-material-2026-11-18/README.md)). `Calm()` keeps its tone, labelled inherited in its KDoc.
   - Default look changed: dark `CalmClear()` is darker over bright content (the earlier fit read 30-45 levels too bright over the cards). Light `CalmClear()` and `Calm()` are unchanged.
 - Held tab bars no longer stretch sideways (`GlassPullShape.AreaPreserving` on a long bar). A long horizontal bar takes only the vertical part of a pull, for its resistance as well as its shape, so a diagonal lifts it as far as the same pull straight up ([Pixel 7 frames](review/atlas/tab-bar-stretch-2026-11-18/README.md)): it still rises toward an upward drag (the measured T04 law, unchanged), but a drag along it leaves its edges where they are, as iOS 27's held Phone bar does (18 November takes: left edge 42-43 px through a right drag). Round surfaces keep the full directional response; an `AreaPreserving` surface between 1:1 and 2:1 takes the sideways part in proportion to its roundness (so its diagonal shear is reduced twice by roundness).
-  - Default look changed: `Calm()` and `CalmClear()` bars while a held lens is dragged sideways or diagonally.
+  - Default look changed: `Calm()` and `CalmClear()` bars while a held lens is dragged sideways or diagonally. Pixel 7 bar height,
+    315 px right drag: 167 -> 169; diagonal (223, -223): 169 -> 172 (frames taken before the review fix, which also lifts a diagonal
+    as far as the same pull straight up; not re-captured); hold and straight-up drags unchanged (171, 177); iOS's left edge stays at 42-43 px.
 
 - Text lines no longer hook where a resting capsule's round end begins. Glass on the measured resting map
   (`GlassRestMap.Measured`) lensed only its corner arcs and showed a straight run nearly as it is, blending the two over
@@ -99,7 +142,8 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   Mirrored in every port.
   Default look changed: capsules on the measured map (`Glass.Regular`, `inApp`, `toolbar`, container members and custom
   styles with `restMap = Measured`) fold content along their straight edges at rest, as their round ends already did,
-  instead of hooking where the round end begins; cards and other shapes are unchanged (#216). [Evidence](review/atlas/cap-junction-2026-11-17/README.md).
+  instead of hooking where the round end begins (stripe edges in the run's outer band 5 px off iOS -> within 2; luma rms against the
+  stills 12.0-25.6 -> 4.5-12.0 levels, junction 16.9-23.8 -> 13.0-16.5); cards and other shapes are unchanged (#216). [Evidence](review/atlas/cap-junction-2026-11-17/README.md).
 - Regular glass now keeps and boosts colour the way iOS does (#201). Over flat colour the glass applies its grey tone to the
   colour's Rec. 709 luma and keeps the chroma about it at a measured gain, `tone(y) + (g0 + g1 y) (x - y)` per channel
   (dark g0 1.317 / 1.256 / 1.314, g1 -0.427 / -0.351 / -0.429; light g0 0.988 / 0.952 / 0.979, g1 -0.076 / 0.028 / -0.045),
@@ -111,14 +155,14 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   and 10.1 rendered on dark magenta, failing the cube's max-10 gate (1.11 / 0.94 rms in the model). The detail mix stays per
   channel (on luma it misses the stripe stills by 7-31 levels). Greys are unchanged by construction. The transfer is derived
   from `GlassStyle.detailLift` (sign for the appearance, `abs(detailLift) / 0.22` clamped to 0-1 for the weight), so there is no
-  new style field; the authored Tint blend fades it toward the per-channel tone at Tint 0 and 100, and the tab bar's earlier fit
+  new style field; the authored Tint blend fades it toward the per-channel tone at Tint 100 (as first written it also faded at Tint 0; #208 supersedes that: Tint 0 uses the Tint 50 transfer), and the tab bar's earlier fit
   is unchanged (#203). Merged glass (`GlassEffectContainer`) carries the same block, bow included; a container member reads
   within 2 levels per channel of a lone piece over six saturated pages in both appearances. Ports: Skia, npm canvas engine,
   React Native, Qt, Unity, .NET and Flutter set the three uniforms on every call, zeros included. docs/1 replay against main
   after #212 on the same GPU: 0 of 1934 frames differ (every glass there has weight 0).
   Default look changed: Regular glass over coloured content everywhere it is used (`Glass.Regular`, `GlassStyle.Regular`,
-  `inApp`, `toolbar`, the Material 3 control, toolbar and panel glass) at every Tint except 0 and 100, and custom styles with a
-  non-zero `detailLift`; colours read more saturated, most on dark glass (over pure red, dark glass reads 255, 17, 15 where it
+  `inApp`, `toolbar`, the Material 3 control, toolbar and panel glass) at every Tint except 100 (at Tint 0 it is the Tint 50 transfer, #208, which supersedes this entry's earlier
+  exclusion of Tint 0), and custom styles with a non-zero `detailLift`; colours read more saturated, most on dark glass (over pure red, dark glass reads 255, 17, 15 where it
   read 185, 32, 32). A morph between dark and light Regular glass (`GlassMorph`, `lerpGlassStyle`) passes `detailLift` 0 at its
   midpoint, where the transfer is off: over saturated colour the midpoint reads less saturated than both ends (20 of 24
   channels over eight saturated pages; over pure red dark 255, 17, 15, midpoint 222, 82, 82, light 255, 108, 107), and never
@@ -141,7 +185,7 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   fitted curve (31.72 + 254.40x - 101.01x^2, rms 0.22 levels) where light stays linear (132.5 + 0.502 in). On 89 private lab
   stills at Tint 50 the toolbar pill scores 1.43 dark / 1.42 light levels rms against the stills (gate 3.0; main 24.2 / 15.2;
   the model itself 1.31 / 1.30); the named residual is 6 px stripes at 6.9 dark / 4.5 light, and 2 px bars at 3.7 / 4.5. Only
-  Tint 50 is measured: tints between 0 and 100 are an authored blend toward the earlier fit until #208. Colour stays on
+  Tint 50 was measured in this entry: tints between 0 and 100 are an authored blend toward the earlier fit (the ends are measured in #208 above). Colour stays on
   the earlier model until #201, the rim band is #202 and the tab bar keeps its earlier fit until #203. New public
   `GlassStyle.detailLift` (c, default 0) and `GlassStyle.toneCurve` (the dark tone's bow, default 0); the 1.0 constructor and
   `copy` stay binary-compatible as hidden overloads. Pixel 7 (Android 17, 90 Hz), main against this branch (8155507a, six
@@ -160,11 +204,11 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   three-term material (dark Regular over grey 128 reads 134 alone and inside a container, 109 before); every wide-kernel
   style loses the along-axis term, including the Measured and V3 tab bars (the Calm bar had already cancelled it), which keep
   their earlier style values until #203; the wide-kernel recording pad grows from 0.75 to 1.5 sigma; custom styles with `0 < blurRadius <= 1/3 dp` now get the four-tap
-  detail kernel; Tint 0 and 100 take the 1/3 dp detail reach (authored, #208). Near the top of the Tint range the detail
+  detail kernel; Tint 0 and 100 took a 1/3 dp detail reach in this entry's first fit (superseded: #208 uses the 15.5 dp wide kernel at every tint, see the #208 entry above). Near the top of the Tint range the detail
   copy and the legibility term it feeds now fade out as the larger of the detail share and `|detailLift|` falls from 0.10 to
   0.02 (authored) instead of switching off at one tint; this applies to every wide-kernel style whose fine share or
   `|detailLift|` lies between 0.02 and 0.10, custom styles included. Main switched at Tint 92 to 93 with an 18-level step; now no adjacent pair of whole tints steps
-  more than 1.80 levels rms (dark) or 1.65 (light), and Tints 98 to 100 render as before.
+  more than 1.80 levels rms (dark) or 1.65 (light), and Tints 98 to 100 rendered as before in this entry (superseded at Tint 100 and Tint 0 by #208, see the entry above: dark Tint 0 over grey 128 93 -> 134).
   [Evidence](review/atlas/material-model-2026-11-16/README.md).
 - Scoring tools: `tools/measure_rim_fringe.py --content-split --content-core PX` also scores the page's colour split only at
   edges well inside the lens outline, so the lens's own rim is not counted (#101 item 88). On IMG_6756 the page seen through our
@@ -177,7 +221,7 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   (the tap's appearance reads the spine without the wall), the result does not depend on frame rate, and the wall fades out
   by three slots; mirrored in the Skia and .NET Calm selectors. On docs/1, ten 0 to 2 taps read 0 at the bar's end where
   main read 20 (iOS 0), and 2 to 0 at 167 ms falls from 66.1 to 55.4 (iOS 55.3); arrival is unchanged. On 0 to 2 at 183-217 ms
-  the level reads 4 levels further from iOS than before (38 against 42; both far from iOS 105.7), which belongs to #94.
+  the level reads 4 levels further from iOS than before (38 against 42; both far from iOS 105.7), which belongs to #94 (superseded: the #70 plateau entry above moves that region to 110.6 / 105.7 / 49.3).
   Default look changed: Calm taps that land on the first or last tab stop at the bar's end instead of pressing about 10 px
   past it for three or four frames. [Evidence](review/atlas/tap-end-wall-2026-11-16/README.md).
 - Web/desktop: the path-field image and the placeholder field are declared premultiplied (every alpha is 255, so the
@@ -206,7 +250,8 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
 - Tab bar (Calm): a tap across two tabs reaches its tab sooner: within 6 ms of iOS on docs/1 (was 39 ms late); JGEY2190
   is still 65 ms late (was 98). One-tab taps are unchanged. The pill's level through the tap is not closer to iOS's
   overall (#70 stays open). [Evidence](review/atlas/two-tab-tap-2026-11-02/README.md).
-- New, opt-in: `LocalGlassAdaptiveQuality`. Provide `true` above `LiquidGlassTheme` and, on Android, the theme renders its
+  - Default look changed: Calm taps across two tabs reach the tab within 6 ms of iOS on docs/1 (was 39 ms late); timing only.
+- New, off by default: `LocalGlassAdaptiveQuality`. Provide `true` above `LiquidGlassTheme` and, on Android, the theme renders its
   glass at a lower resolution while frames are being missed (×0.75 a step, floor 0.5 of its `renderScale`), and returns
   after 3 s without a missed frame. A step waits for the glass to be still, so it never cancels a gesture. Off by default;
   the desktop and web do not adapt yet (#118). [Evidence](review/atlas/adaptive-quality-2026-11-02/README.md).
@@ -214,26 +259,34 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   next tab leans toward it and grows into it, as iOS 27's does, instead of stopping short with a neck and a gap (IMG_6756
   35.5 s: left edge 602 against iOS 605, main 585). The sample drops its lens-to-button neck. No public API change (#107).
   [Evidence](review/atlas/lens-over-search-2026-11-01/README.md).
+  - Default look changed: only beside a `GlassTabBarAccessory.yieldsToLens` accessory: the held lens's left edge reads 602 against iOS 605 (was 585).
 - Tab bar (light Calm): the held lens is clear to its lower rim and its shadow sits lower, lighter and longer, as iOS's
   (rows 640-684 below the lens: 3.43 levels rms against IMG_7049, was 7.18) (#104). [Evidence](review/atlas/light-lens-shadow-2026-11-01/README.md).
+  - Default look changed: light Calm held lens, rows 640-684 below it: 3.43 levels rms against IMG_7049 (was 7.18).
 - Tab bar (light Calm): the held lens's outline is a grey line as on iOS (top rim 227 against iOS 226), not a faint
   near-white one (245) (#128). [Evidence](review/atlas/light-held-outline-2026-11-01/README.md).
+  - Default look changed: light Calm held lens outline top rim 227 (iOS 226), was 245.
 - Tab bar (Calm): a thrown lens stays milky as it lands, as iOS's does, instead of clearing about 80 ms early (docs/2
   8.62-8.84 s: 5.2 levels rms, was 9.1) (#111). [Evidence](review/atlas/landing-lift-2026-11-01/README.md).
+  - Default look changed: Calm thrown lens on landing, docs/2 8.62-8.84 s: 5.2 levels rms against iOS (was 9.1); it stays milky about 80 ms longer.
 - Tab bar (Calm): a held lens that travels sweeps the icons it passes round its caps, as iOS's does, instead of carrying
   them nearly unbent to a hard edge (LOLL8185 21.4 s). Its caps mirror over the full band (1.0) while it moves; taps keep
   0.3. The landing label also holds better (docs/2: 825 label px, main 546, iOS 854) (#121).
   [Evidence](review/atlas/held-cap-mirror-2026-11-01/README.md).
+  - Default look changed: Calm held lens caps mirror over the full band (1.0, taps keep 0.3) while it moves; landing label on docs/2 825 px (was 546, iOS 854).
 - Tab bar (light Calm): the bar's top ~45 px read a few levels darker than its body, as iOS's do (IMG_7049: 240-241
   against 245), instead of evenly bright (0.85 levels rms down the bar, was 3.15). Light `Calm()`'s own bar only; no public
   API changes, and the search button and other styles stay even (#128).
   [Evidence](review/atlas/light-top-shade-2026-11-01/README.md).
+  - Default look changed: light `Calm()` bar's top ~45 px read 240-241 (iOS) instead of 245; 0.85 levels rms down the bar (was 3.15).
 - Tab bar (light Calm): the bar's shadow is a faint band straight below it, as iOS 27's is, not a soft halo. The gap to
   the search button stays white (255, as iOS; was 251) (#128). [Evidence](review/atlas/light-bar-shadow-2026-11-01/README.md).
+  - Default look changed: light Calm shadow is a faint band below the bar, not a halo; the gap to the search button reads 255 (was 251).
 - Tab bar (Calm): a thrown lens no longer cuts the label it lands on. Where Calm widened the held lens's mirror band
   (`GlassCalmLensBand`), the band narrows where its rim faces down, restoring the label (docs/2: 724 blue label px against
   457, iOS 854). Fringes move nearer iOS's on docs/2 and IMG_6756; LOLL8185's long-drag fringes, already below iOS's,
   weaken further (0.66 to 0.50 of iOS). Other styles keep their band (#94, #111).
+  - Default look changed: Calm thrown lens keeps its label: 724 blue label px on docs/2 (was 457, iOS 854); LOLL8185 long-drag fringes 0.66 -> 0.50 of iOS's.
 - Sample: the Calls and Contacts glyphs' figures are holes, as iOS's `.fill` symbols are, so the pill or the lens
   shows through them (IMG_7049 held on Contacts: (208, 234, 255) against iOS (249, 254, 255), was a painted
   (0, 79, 166)) (#129). [Evidence](review/atlas/glyph-cutouts-2026-11-01/README.md).
@@ -244,35 +297,46 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
 - Tab bar: in right-to-left layouts the selector rests on the tab you tap, not the mirrored one. Shared-width bars are
   drawn mirrored internally, so press, drag and fling land on the drawn tab, and screen readers keep the logical order (#161).
 - Tab bar (dark Calm): the resting bar's rim dims toward and through its rounded ends, as iOS 27's does, instead of
-  running at full brightness into the caps (IMG_6756: 3.1 levels rms against iOS, was 8.4) (#109).
+  running at full brightness into the caps (IMG_6756: 3.1 levels rms against iOS, was 8.4) (#109; refined by the two #109 and #202 entries at the top).
   [Evidence](review/atlas/cap-rim-fade-2026-11-01/README.md).
+  - Default look changed: dark Calm bar rim at the caps: 3.1 levels rms against iOS (was 8.4, IMG_6756).
 - Accessibility: `LiquidGlassTheme`'s `reduceTransparency` and `increaseContrast`, and `GlassTabBar`'s `motionEnabled`,
   now default to the platform's settings: Android's Remove animations and (API 34+) contrast level, and the web's
   `prefers-reduced-motion`, `prefers-reduced-transparency` and `prefers-contrast`. Explicit values still win (#115).
   [Accessibility](docs/accessibility.md).
+  - Default look changed: apps on a platform with Remove animations, a raised contrast level (API 34+) or the web's `prefers-*` settings now render with reduced transparency, higher contrast or no motion without passing anything; no pixel levels scored (not scored). Pass explicit values to keep the earlier behaviour.
 - Tab bar (Calm): a tap's moving selector rises into a glass lens (formation about .74, was .25) and returns to
   the pill on arrival (#120). Tap travel speed is unchanged: re-measured against four iOS taps, main's timing is
   already the closest (39 ms rms) (#123).
   [Evidence](review/atlas/tap-transit-2026-10-27/README.md).
+  - Default look changed: Calm tap selector formation about .74 (was .25); tap travel timing unchanged (39 ms rms).
 - Tab bar (Calm): the bar's own press swell waits 75 ms of frame time, so a tap no longer swells the bar and a
   hold's swell starts and rises within a frame of iOS's (IMG_6756) (#106).
   [Evidence](review/atlas/bar-press-onset-2026-11-01/README.md).
+  - Default look changed: Calm bar press swell starts after 75 ms of frame time, so a tap no longer swells the bar.
 - Tab bar (Calm): ink seen through a held lens brightens by about 22 levels, as iOS 27's does, and lets go over
   0.35 s after the lift (#105). [Evidence](review/atlas/held-ink-lift-2026-11-01/README.md).
+  - Default look changed: Calm ink through a held lens is about 22 levels brighter, released over 0.35 s.
 - Tab bar (Calm): a selection haptic ticks on a tap and for each tab a held lens is dragged into, through
   Compose's `LocalHapticFeedback` (provide your own to silence it) (#116). See [Haptics](docs/tab-bar.md#haptics).
+  - Default look changed: Calm taps and held-lens tab changes tick a selection haptic by default (no pixel change; not scored).
 - Tab bar (Calm): a still press forms its lens only once it becomes a hold (110 ms), then rises over about 190 ms.
   A still release keeps the lens 35 ms and loses it by about 75 ms, not 330 ms. That also removes the bar's
   6 px dip under the lens. Measured against IMG_6756's three holds (#106).
   [Evidence](review/atlas/press-release-timing-2026-11-01/README.md).
+  - Default look changed: Calm still press forms its lens at 110 ms and rises over about 190 ms; a still release keeps the lens 35 ms and loses it by about 75 ms (was 330 ms); the bar's 6 px dip under the lens is gone.
 - Tab bar (Calm) and shaders: eliminated green and black comb streaks during tap transits and fixed channel crush at the lens rim. In `GlassContentShaderSource.kt`, chromatic split `delta` scales with `abs(shift)` rather than applying full static band displacement along straight runs, and `glassSelectorMaterial` scales transit ink dispersion by `GlassSelectorInkSplitShare`. Outward chromatic displacement is bounded symmetrically by recorded margin (`-maxOutward`), preventing transit channels from sampling outside the bar while preserving legitimate outward held refraction and exact grayscale neutrality across all channels when dispersion is zero. Port shaders and selector fixtures updated across all platforms (#124, #108).
   [Evidence](review/atlas/comb-streaks-2026-10-27/README.md).
+  - Default look changed: green and black comb streaks during Calm tap transits are gone, and rim channel crush is clamped in every shader that uses the content shader; not scored in levels (not scored).
 - Tab bar: at large text sizes (font scale 1.5 and above), holding a tab shows it magnified in a centred platter,
   as iOS's Large Content Viewer does; a tap does not (#145). See [Accessibility](docs/accessibility.md#large-text-the-large-content-viewer).
+  - Default look changed: at font scale 1.5 and above, holding a tab shows it magnified in a centred platter (a tap does not); not scored (not scored).
 - Tab bar: a keyboard-focused tab draws a focus ring (2 dp, system blue, with a dark hairline); pointer input never
   shows it (#117). See [Keyboard focus](docs/tab-bar.md#keyboard-focus).
+  - Default look changed: a keyboard-focused tab draws a 2 dp system-blue ring with a dark hairline; pointer input never shows it.
 - Tab bar (Calm): with a mouse or trackpad, the tab under the pointer lifts (its content grows 6%, authored) and settles
   when the pointer leaves; touch never hovers (#117). See [Pointer hover](docs/tab-bar.md#pointer-hover).
+  - Default look changed: Calm tab under a mouse or trackpad pointer lifts 6% (authored); touch never hovers.
 - Tab bar: the focus ring no longer appears after a touch or a synthetic press on desktop, where the input mode
   stays Keyboard: a pointer press hides it until the next key (#117 follow-up; every desktop touch replay showed it).
 - Sample (Phone scene): Calls carries iOS's red count badge, a 23 pt disc measured on IMG_6756 (#99); the replay
@@ -285,12 +349,14 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   (was ~335 px). In dark appearance, the lens cleanly overlaps the search button without necking or bridging,
   and the soft grey disc on Pixel 7 light is eliminated.
   [Evidence](review/atlas/held-bar-geometry-2026-10-28/README.md).
+  - Default look changed: Calm held lens height ratio 1.183 (was 1.20), crown 2 px lower at row 436, bottom overhang 12.3 px (was 13.7); held lens width on Keypad ~350 px (was ~335).
 - Tab bar (Calm): during fast back-and-forth scrubbing (video 2 18.7–22.0 s), the held lens no longer
   overshoots its steady-state strain or crushes to half height (103 px against a 590 px flattened width).
   Rapid direction reversals decay accumulated strainDrive and suppress the scrub target, maintaining a
   minimum lens height of ~139 px (160 px at 20.0 s vs 102 px previously) and relaxing towards the
   unstrained ~370 × 186 px full-height travelling capsule (#119).
   [Evidence](review/atlas/scrub-flattening-2026-10-27/README.md).
+  - Default look changed: Calm held lens during fast scrubbing keeps a minimum height of ~139 px (160 px at 20.0 s against 102 px before).
 - Free buttons / search accessory: press flash, upright pull, and see-through overlap (#125).
   Touch-down on the search button dims the glyph to ~0.50 alpha for 1 frame (16–33 ms) and recovers
   over 50 ms (internal free-button feedback). Diagonal pulls preserve an upright
@@ -298,29 +364,38 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   shear term strictly zero). When pushed against the tab bar, the bar end shows through the button's
   translucent glass with a moving contact shadow, eliminating the dark ghost at rest.
   [Evidence](review/atlas/search-button-2026-10-28/README.md).
+  - Default look changed: free buttons and the search accessory: glyph dims to ~0.50 alpha for one frame (16-33 ms) on touch-down and recovers over 50 ms; a diagonal pull stays an upright oval (was a body tilted 20 degrees); the bar end shows through the button on overlap.
 - Tab bar (Calm): the held lens's outline is a squircle, not a capsule: it blends .7 of the way toward a
   superellipse with n = 3, the shape iOS's held lens fits, so its top runs flatter and its shoulders squarer. The
   resting selector stays a capsule. The ports draw the same outline (#93).
   [Evidence](review/atlas/lens-squircle-2026-10-26/README.md).
+  - Default look changed: Calm held lens outline blends .7 toward a superellipse with n = 3 (was a capsule); the resting selector stays a capsule.
 - In-app glass (`GlassStyle.inApp`, `toolbar`) uses the measured resting-corner map by default: its caps and round
   buttons fold in what lies beyond them as iOS's do (#97). The tab bar keeps the legacy map.
   [Evidence](review/atlas/inapp-rest-map-2026-10-26/README.md).
+  - Default look changed: `inApp` and `toolbar` caps and round buttons use the measured resting map (fitted on 190 landmark pairs of iOS 27's Photos toolbar) instead of the legacy map; not scored in levels (not scored). Superseded in the outer band by the #202 rim-band entry at the top.
 - Tab bar (Calm, dark): the resting bar's rim line is as bright as iOS's, 98/88/65/45 inward against 99/79/63/45
   (was 70/66/55/44, a halving fitted in the superseded colour space) (#96).
+  - Default look changed: the dark Calm bar's rim line 98/88/65/45 inward (was 70/66/55/44; iOS 99/79/63/45).
+    Superseded in part: the recorded dark `Calm()` bar now reads 100/84/63/45/40 (iOS 99/79/62/45/41) after the one-pixel outline ramp
+    (#202, top of this list), and its caps dim and glint as in the #109 entries.
 - Material 3: `DropdownMenu`'s corners are 34 dp, as iOS 27's menu (~100 px at 3x); they were 24 (#102).
+  - Default look changed: `DropdownMenu` corners 34 dp (was 24).
 - Sample: the Phone scene's selected ink is iOS 27's blue, (8, 151, 255) in display colours (was (54, 156, 254)) (#99).
 - Sample: the held lens joins the search button through a 24 dp neck (was 12), the shallow notch iOS shows
   (#93). [Evidence](review/atlas/search-neck-2026-10-26/README.md).
 - Tab bar (Calm): the held lens's outline is a bright line at the top and bottom and a dark step at the
   sides, and its inner glow falls off within a few pixels, as iOS's does; it drew a grey ring all round and a
   glow 15 px deep (#92). [Evidence](review/atlas/rim-outline-2026-10-26/README.md).
+  - Default look changed: Calm held lens outline is a bright line at the top and bottom with a dark step at the sides, and its inner glow falls off within a few pixels (was a grey ring all round and a glow 15 px deep).
 - Tab bar (Calm): the held lens refracts and fringes like iOS's. Its rim band is back to the body's own
-  (1.1, was 0.3) and its map has no seam at half the band, so the bar's edge bends into the rim as a
+  (1.1, was 0.3; the held lens only: resting capsules and round buttons are the #202 rim-band entry at the top) and its map has no seam at half the band, so the bar's edge bends into the rim as a
   crescent instead of a straight second outline, and content near the rim no longer breaks apart. The
   colour split follows the shift, a thin spectral rim runs along the outline, and both grow with motion.
   A tapped selector stretches its ink into the rim in transit again (a narrow stretch, not the full-band
   mirror). Fringe energy per touch is 0.9-1.4x iOS's on four of five recordings (was 0.01-0.03x)
   (#73, #77, #92, #94). [Evidence](review/atlas/fringe-refraction-2026-10-26/README.md).
+  - Default look changed: Calm held lens: rim band 1.1 (was 0.3); fringe energy per touch 0.9-1.4x iOS's on four of five recordings (was 0.01-0.03x).
 - An [iOS parity audit](review/atlas/ios-audit-2026-10-26/README.md) lists 102 remaining differences by
   state, filed as #92-#104.
 - Custom-path fields: a change of size alone is now built off composition, on
@@ -339,6 +414,7 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
 - Material 3: `Slider` and `RangeSlider` fills follow the thumbs right to left; the track was drawn
   unmirrored, so in RTL layouts the fill grew from the left edge, away from the thumb (#89).
   [Evidence](review/atlas/material3-slider-rtl-2026-10-24/README.md).
+  - Default look changed: `Slider` and `RangeSlider` in right-to-left layouts only: the fill grows from the thumb's side (was from the left edge); not scored in levels (not scored).
 - Custom-path fields build about 15% faster (paired desktop JVM benchmark, phone-width and larger
   panels), with bit-identical output: the distance transform no longer calls a closure with a bounds
   check per neighbour, and the mask is read from packed pixels instead of a `Color` per pixel (#81).
@@ -359,6 +435,7 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   player keeps its controls clear of the card's edge and shows a pause glyph while playing, and its
   hero cover is capped at 280 dp on wide windows, where it filled the screen with sky (#79).
   [Evidence](review/atlas/material3-polish-2026-10-20/README.md).
+  - Default look changed: `Slider` and `RangeSlider` tracks run under the thumb's whole travel (they stopped half a thumb short of each end); superseded in size by #205 above (4 dp track); not scored (not scored).
 - Android: the first tab bar tap after install no longer stalls for one 326-352 ms frame on a Pixel 7
   (67-91 ms now). The selector's record pad followed its deforming body, so its layers were reallocated
   mid-gesture and the first frame at a new size compiled a new GPU pipeline for the glass shader; the pad

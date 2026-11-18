@@ -1918,8 +1918,9 @@ data class GlassTabBarStyle(
                 // Its rounded ends lens what lies beyond them (GlassStyle.capFold, 18 October; IMG_7049).
                 // Its rim line in display colours (#96, 26 October, IMG_6756 34.3 s): 99, 79, 63, 45 inward over an
                 // interior of 37, top and bottom alike; the recorded-space halving read 70, 66, 55, 44. Specular 0.25
-                // (was 0.125 after the halving) reads 98, 88, 65, 45. The bar's line inside a held lens is iOS's too.
-                bar = recorded.bar.copy(tintLift = 32f / 255f, softDetail = 1f, capFold = 1f, specular = 0.25f),
+                // (was 0.125 after the halving) read 98, 88, 65, 45; with the one-pixel outline ramp (#202, 18 November) its
+                // first row read 106, so it is 0.226: 100, 84, 63, 45. The bar's line inside a held lens is iOS's too.
+                bar = recorded.bar.copy(tintLift = 32f / 255f, softDetail = 1f, capFold = 1f, specular = 0.226f),
                 // Pass 16 (all five recordings, catalogued from the touches the bar shows): iOS's held
                 // bar 45-47 (ours 42-43 at 10/255), its held lens on a black page only ~2 above its
                 // bar (ours +12: 55 against 48-49), its resting pill 10 on black pages and 15 on

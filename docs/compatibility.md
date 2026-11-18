@@ -1,8 +1,8 @@
 ---
-description: What LiquidGlass 1.0 promises - semantic versioning across every registry, the stable API on each stack, supported platforms and minimum versions, and how deprecation and visual changes are handled.
+description: What LiquidGlass promises from 1.0 on - semantic versioning across every registry, the stable API on each stack, supported platforms and minimum versions, and how deprecation and visual changes are handled.
 ---
 
-# Support and compatibility (1.0)
+# Support and compatibility (since 1.0)
 
 LiquidGlass 1.0 is the first release with a compatibility promise. This page says what is promised,
 for which stacks, and what is deliberately outside it.
@@ -41,12 +41,13 @@ regenerates it).
 The material and the motion are measured against iOS recordings, and getting closer to iOS is the
 project's purpose, so the default look may be refined in minor releases. Every such change:
 
-- is scored against the recordings, and the release notes say what moved and by how much;
-- keeps the previous values available as a named preset (for example `GlassTabBarStyle.CalmRecordedSpace()`),
-  so an app tuned against them can pin them;
+- is scored against the recordings, and the release notes list it under "Default look changed" with what
+  moved and by how much;
+- is on by default, with no switch: no setting restores the old pixels. A few earlier looks remain as named
+  presets (for example `GlassTabBarStyle.CalmRecordedSpace()`), but a measured fix adds none;
 - never re-fits a measured constant without saying what it was scored against.
 
-New optics arrive behind an opt-in flag, so a default only changes when the release notes say so.
+To keep a look exactly as it is, pin the liquidglass version.
 
 ## Platforms
 

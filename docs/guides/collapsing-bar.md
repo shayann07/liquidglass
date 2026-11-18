@@ -69,49 +69,69 @@ the collapse is Material's.
 ## Safari's bar collapsing to a pill
 
 In the take, Safari's bottom bar (back, address capsule, tabs) collapses to a compact address capsule while the page
-scrolls, and expands again. What the take shows (measured, to within three frames at 60 fps):
+scrolls, and expands again. The page prints its scroll offset in the margin; decoding it frame by frame (checked against
+the take's scripted scrolls, whose speeds it reads back within 0.06 %) gives the trigger and the timing:
 
 | | value | label |
 | :-- | :-- | :-- |
-| Duration | 0.2 s, 0.15 to 0.25 s | measured, +-3 frames |
-| Shape | the capsule narrows from about 208 pt to 122 pt and drops a few points; the buttons fade first | measured |
-| Trigger (direction, distance) | not extracted: the scroll offset code was not decoded | authored below |
-| Easing | not extracted | authored below |
+| What drives it | the finger only (on the recorded iPhone): scripted scrolling (to 800 pt/s, 4,920 pt of travel) and fling settle never collapse it | measured |
+| Collapse | after about 36 pt of downward scroll (the finger travelling up) since the last reversal, mid-drag (commits at +23 to +45 pt; +23 to +29 pt only squeezes it and springs back) | 36 pt fitted |
+| Expand | after about 72 pt of upward scroll (the finger travelling down), twice the collapse distance (commits at 70 to 78 pt) | 72 pt fitted |
+| Shape | the capsule narrows from about 211 pt to 125 pt and drops about 28 pt; the side buttons fade | measured |
+| Easing | `cubic-bezier(0.25, 0.1, 0.25, 1)` over 325 ms (1 % to 99 % in 270 to 286 ms); beats a critically damped spring 1.3x to 7x in rms | fitted |
+| Side buttons | fade out over 180 ms on collapse; fade in over 275 ms after 20 ms on expand, same curve | measured |
 
-A recipe that follows it: collapse when the user scrolls down, expand when they scroll up, one fraction animating
-over 200 ms.
+A recipe that follows it: one fraction, driven by user scroll only, with the collapse and expand distances above. Compose's
+`NestedScrollSource.UserInput` does not tell a finger from a mouse wheel or the keyboard, so on those inputs the recipe
+responds too; excluding fling and programmatic scroll is what it shares with the take.
 
 ```kotlin
 @Composable
-fun rememberBarCollapse(): Pair<State<Float>, NestedScrollConnection> {
+fun rememberBarCollapse(): Triple<State<Float>, State<Float>, NestedScrollConnection> {
     var collapsed by remember { mutableStateOf(false) }
     // One event's delta is small: movement is summed in the current direction, and the sum is reset when it turns.
     var travel by remember { mutableFloatStateOf(0f) }
+    val density = LocalDensity.current
+    val collapseAt = with(density) { 36.dp.toPx() }  // fitted to the take's commits (+23 to +45 pt)
+    val expandAt = with(density) { 72.dp.toPx() }    // fitted (70 to 78 pt)
     val fraction = animateFloatAsState(
         targetValue = if (collapsed) 1f else 0f,
-        animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),  // 200 ms measured, easing authored
+        // iOS's default view curve over 325 ms, fitted to the take (1 % to 99 % in 270 to 286 ms).
+        animationSpec = tween(durationMillis = 325, easing = CubicBezierEasing(0.25f, 0.1f, 0.25f, 1f)),
         label = "barCollapse",
     )
-    val connection = remember {
+    // The side buttons fade on their own clock: out over 180 ms on collapse, in over 275 ms after 20 ms on expand.
+    val buttonAlpha = animateFloatAsState(
+        targetValue = if (collapsed) 0f else 1f,
+        animationSpec = if (collapsed) {
+            tween(durationMillis = 180, easing = CubicBezierEasing(0.25f, 0.1f, 0.25f, 1f))
+        } else {
+            tween(durationMillis = 275, delayMillis = 20, easing = CubicBezierEasing(0.25f, 0.1f, 0.25f, 1f))
+        },
+        label = "barButtons",
+    )
+    val connection = remember(collapseAt, expandAt) {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
                 val dy = available.y
-                if (dy == 0f) return Offset.Zero
+                if (dy == 0f || source != NestedScrollSource.UserInput) return Offset.Zero  // user scroll only
                 travel = if (travel == 0f || (dy < 0f) == (travel < 0f)) travel + dy else dy
-                if (travel < -8f) { collapsed = true; travel = 0f }    // finger moving up: content scrolling down (distance authored)
-                if (travel > 8f) { collapsed = false; travel = 0f }
+                if (!collapsed && travel < -collapseAt) { collapsed = true; travel = 0f }  // content scrolling down
+                if (collapsed && travel > expandAt) { collapsed = false; travel = 0f }
                 return Offset.Zero
             }
         }
     }
-    return fraction to connection
+    return Triple(fraction, buttonAlpha, connection)
 }
 ```
 
-Read `fraction.value` inside `Modifier.layout` or `graphicsLayer` (so scrolling does not recompose), and lerp the
-capsule's width, the buttons' alpha and the bar's offset with it. For the glass itself to morph rather than cross-fade,
+Read `fraction.value` and `buttonAlpha.value` inside `Modifier.layout` or `graphicsLayer` (so scrolling does not
+recompose), and lerp the capsule's width and the bar's offset with the fraction; the side buttons' alpha is `buttonAlpha`. For the glass itself to morph rather than cross-fade,
 draw the compact and full capsules as one `glassEffectID` in a `GlassEffectContainer`
 (see [Interaction](../interaction.md)).
 
-The trigger distance, the easing and the direction are authored until the offset code of the take is decoded. The
-timing is not asserted by a test: the recording fixes it only to +-3 frames, which is wider than one frame.
+The trigger distances and the easing are fitted to the decoded take (36 pt and 72 pt, the cubic-bezier curve); that the
+recipe applies them with `dp` and Compose's tween is authored. No app-owned render or capture of this recipe is published:
+the numbers come from a private recording, so there is no visual evidence under `review/` for it, and the scroll-edge
+report above covers `GlassScrollEdge`, not this bar. The timing is not asserted by a test: the recording fixes it only to +-3 frames, which is wider than one frame.

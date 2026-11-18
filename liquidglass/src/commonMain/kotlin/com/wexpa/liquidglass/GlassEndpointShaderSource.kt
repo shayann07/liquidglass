@@ -96,7 +96,10 @@ half4 main(float2 coord) {
     float2 halfSize = uSize * 0.5;
     float2 p = local - halfSize;
     float d = sdShape(p, halfSize);
-    float coverage = 1.0 - smoothstep(-0.75, 0.75, d);
+    // A one-pixel box ramp across the outline: iOS 27 covers its outermost pixel fully and its AA spans 1.00 px
+    // (Safari lab circles and capsules, m202c, 0.017 rms). The earlier 1.5 px smoothstep let 2/27 of the backdrop
+    // into the outermost pixel, dimming the rim there and tying it to the backdrop.
+    float coverage = clamp(0.5 - d, 0.0, 1.0);
     if (coverage <= 0.0) {
         return half4(0.0);
     }

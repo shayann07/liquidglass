@@ -313,7 +313,10 @@ half4 main(float2 coord) {
     float2 local = coord - float2(uPad);
     float d = fieldAt(local);
 
-    float coverage = 1.0 - smoothstep(-0.75, 0.75, d);
+    // A one-pixel box ramp across the outline: iOS 27 covers its outermost pixel fully and its AA spans 1.00 px
+    // (Safari lab circles and capsules, m202c, 0.017 rms). The earlier 1.5 px smoothstep let 2/27 of the backdrop
+    // into the outermost pixel, dimming the rim there and tying it to the backdrop.
+    float coverage = clamp(0.5 - d, 0.0, 1.0);
     // The contour outside the merged outline (GlassStyle.outerContour), as in GlassShaderSource.
     float outerBand = (uOuterContour.x > 0.0) ? clamp(1.0 - abs(d - 0.25) / 0.75, 0.0, 1.0) : 0.0;
     if (coverage <= 0.0) {
@@ -461,8 +464,16 @@ half4 main(float2 coord) {
     // interior — the profile the reference lens shows, rising over about three points from a
     // dark outermost pixel to its peak and falling over three more.
     float peakAt = clamp(uBevelPeak, 0.0, 0.9) * uBevel;
+    // The measured resting chamfer (#202): iOS 27 lights every resting control with one rim curve, steeper than a
+    // full-bevel smoothstep. Its band ends at 0.835 of the bevel and starts 0.2 of it outside the outline, so the first
+    // pixels keep their level while 1-3 px inside fall to the measured +46 / +31 / +12 (Safari lab pill and Photos
+    // circles, m202; fitted with the resting glow, overhead light, on the iOS 27 rim: bevel 1.6 dp, specular 0.27,
+    // power 2.6). It applies only to resting glass that draws the 2026 outer contour, the styles it was fitted on;
+    // the recorded Calm bar, whose rim was fitted on its own recording, the held lens and the legacy profile keep theirs.
+    float measuredRest = step(0.5, uProfile) * (1.0 - step(1.5, uProfile));
+    float chamfer = measuredRest * step(0.0001, uOuterContour.x);
     float bevelBand = (peakAt < 0.5)
-        ? smoothstep(uBevel, 0.0, depth)
+        ? smoothstep(mix(1.0, 0.835, chamfer) * uBevel, -0.201 * chamfer * uBevel, depth)
         : smoothstep(0.0, peakAt, depth) * smoothstep(uBevel, peakAt, depth);
 
     float innerLine = max(smoothstep(uBevel * 2.2, 0.0, depth) - bevelBand, 0.0);
@@ -480,9 +491,16 @@ half4 main(float2 coord) {
     float counter = pow(max(-facing, 0.0), counterPow) * bevelBand * counterLight;
     float edge = smoothstep(2.0, 0.0, depth);
     float edgeLine = edge * 0.5 * (max(facing, 0.0) + counterLight * max(-facing, 0.0));
+    // See GlassShaderSource: the measured rim line trails a faint glow inward, about a bevel wide (rim fit,
+    // 2026-09-12). Merged glass rests, so it takes the resting share; without it a merged piece lost the
+    // rim's tail 4-12 px inside the outline and, with the #202 chamfer, read 12-17 levels low at the rim.
+    float rimGlow = 0.05 * measuredRest
+        * exp(-max(depth - 0.67 * uBevel, 0.0) / max(uBevel, 1.0))
+        * (max(facing, 0.0) + counterLight * max(-facing, 0.0));
     float highlight = (spec + counter) * uSpecular
         + edgeLine * uSpecular * uEdgeLight
-        + fresnel * uFresnel * bevelBand;
+        + fresnel * uFresnel * bevelBand
+        + rimGlow;
     col = applyHighlight(col, highlight, uHiChroma);
 
     // The dark contour that separates glass from its backdrop. Apple's 2026 revision pairs it

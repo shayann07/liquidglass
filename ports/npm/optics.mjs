@@ -146,7 +146,7 @@ export function geometryAt(shape, px, py) {
  */
 export function displacementAt(shape, px, py) {
   const g = geometryAt(shape, px, py);
-  if (g.d >= 0.75) return [0, 0]; // outside coverage
+  if (g.d >= 0.5) return [0, 0]; // outside coverage
   const {style, band, density} = shape;
   if (style.profile === 'measured') {
     const W = Math.max(band, 0.001);
@@ -197,8 +197,8 @@ export function highlightAt(shape, px, py, g = geometryAt(shape, px, py)) {
     fresnel * s.fresnel * bevelBand + glow;
 }
 
-/** Coverage of the outline at signed distance d (the shader's 1.5 px antialiasing ramp). */
-export const coverageAt = d => 1 - smoothstep(-0.75, 0.75, d);
+/** Coverage of the outline at signed distance d (the shader's one-pixel box ramp, #202). */
+export const coverageAt = d => Math.min(1, Math.max(0, 0.5 - d));
 
 /**
  * The displacement map for feDisplacementMap, at `scale` map pixels per CSS px, covering the
@@ -226,7 +226,7 @@ export function displacementMap(style, {width, height, radius, density = 1, pad 
       maxShift = Math.max(maxShift, Math.abs(ox), Math.abs(oy));
       if (style.profile === 'legacy') {
         const g = geometryAt(shape, cx, cy);
-        crisp[k] = g.d < 0.75 ? (1 - g.e) * (1 - g.e) : 0;
+        crisp[k] = g.d < 0.5 ? (1 - g.e) * (1 - g.e) : 0;
       }
     }
   }
@@ -263,7 +263,7 @@ export function rimMap(style, {width, height, radius, density = 1}) {
     for (let i = 0; i < w; i++) {
       const px = i + 0.5 - w / 2, py = j + 0.5 - h / 2;
       const d = sdRoundRect(px, py, shape.hx, shape.hy, shape.r);
-      if (d > 0.75 || -d > limit) continue;
+      if (d > 0.5 || -d > limit) continue;
       const g = geometryAt(shape, px, py);
       const a = clamp(highlightAt(shape, px, py, g), 0, 1) * coverageAt(g.d);
       const v = Math.round(a * 255);
