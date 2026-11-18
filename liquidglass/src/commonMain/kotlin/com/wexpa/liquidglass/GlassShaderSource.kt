@@ -907,7 +907,10 @@ half4 main(float2 coord) {
     // over the bar and light over a black page, as the reference's does, never a white ring.
     if (uHeldEdgeTone > 0.0 && heldAmt > 0.0) {
         // Two pixels wide, as the reference's: the outermost one is partly covered.
-        float line = smoothstep(3.0, 1.5, depth) * heldAmt * mat;
+        // A dark outline (tone below 0.5, the dark Calm lens) is one pixel wider: iOS's line over the black page peaks ~95 with
+        // 40-60 in the two rows inside it, where two pixels left 22-35 there (IMG_6756 35.5 / 43.8 s, #92). Authored.
+        float lineWide = 1.0 - step(0.5, uHeldEdgeTone);
+        float line = smoothstep(3.0 + lineWide, 1.5 + 0.5 * lineWide, depth) * heldAmt * mat;
         // Top and bottom only (#92): at the sides iOS's outline is the dark step, 14 over a bar of
         // 48 (IMG_6756 43.8 s, display colours), which the fixed grey here used to paint over.
         line *= n.y * n.y;
