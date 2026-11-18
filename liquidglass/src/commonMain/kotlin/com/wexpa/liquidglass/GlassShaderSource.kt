@@ -746,8 +746,13 @@ half4 main(float2 coord) {
     // interior — the profile the reference lens shows, rising over about three points from a
     // dark outermost pixel to its peak and falling over three more.
     float peakAt = clamp(uBevelPeak, 0.0, 0.9) * uBevel;
+    // The measured resting chamfer (#202): iOS 27 lights every resting control with one rim curve, steeper than a
+    // full-bevel smoothstep. Its band ends at 0.8 of the bevel and starts 0.15 of it outside the outline, so the first
+    // pixels keep their level while 1-3 px inside fall to the measured +46 / +31 / +12 (Safari lab pill and Photos
+    // circles, m202; fitted with the held glow below, overhead light). The held lens and the legacy profile keep theirs.
+    float measuredRest = measured * (1.0 - step(1.5, uProfile));
     float bevelBand = (peakAt < 0.5)
-        ? smoothstep(uBevel, 0.0, depth)
+        ? smoothstep(mix(1.0, 0.8, measuredRest) * uBevel, -0.15 * measuredRest * uBevel, depth)
         : smoothstep(0.0, peakAt, depth) * smoothstep(uBevel, peakAt, depth);
 
     // The faint dark line that reads as thickness, sitting just inside the bevel rather than on
