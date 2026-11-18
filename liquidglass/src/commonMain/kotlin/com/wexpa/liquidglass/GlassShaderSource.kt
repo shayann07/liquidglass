@@ -666,7 +666,12 @@ half4 main(float2 coord) {
     // and across a bar, and large text shows as one soft copy, never stepped ghosts (#190).
     half3 wide = bg;
     if (uWideStrip >= 1.0 && mat > 0.001) {
-        wide = wideAt(base);
+        // On the lab material B and D are two filterings of the one refracted image (#97): B is read where D is,
+        // at the refracted point, not under the glass's own pixel. Over the 8 px chart the unshifted B put the
+        // wide tone of the rim's own neighbourhood under content shown from 40 px inside, and the row level
+        // ran left to right where iOS's is flat (d = 8: 114 to 130 against 120 to 124). The styles without the
+        // detail terms (menu, sheet) and the scatter profiles keep the unshifted B.
+        wide = wideAt((uDetailCross >= 0.5 && detailWeight > 0.0) ? base + push : base);
         half3 detail = bg - wide;
         bg = wide + detail * half(clamp(uFineShare, 0.0, 1.0)) + abs(detail) * half(clamp(uDetailLift, -1.0, 1.0));
     }
