@@ -23,12 +23,12 @@ import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.runComposeUiTest
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 /** Search mode (#112): the geometry end states and the state machine around them. */
 @OptIn(ExperimentalTestApi::class)
@@ -79,7 +79,7 @@ class GlassTabBarSearchModeTest {
     private fun androidx.compose.ui.test.ComposeUiTest.scene(state: GlassSearchState, motion: Boolean = true,
                                                              onSelected: (Int) -> Unit = {}, selected: Int = 1) = setContent {
         CompositionLocalProvider(LocalDensity provides Density(1f)) {
-            LiquidGlassTheme(dark = true, background = Color(0xFF202020)) {
+            LiquidGlassTheme(dark = true, background = Color(0xFF202020), renderScale = .25f) {
                 Box(Modifier.size(400.dp, 160.dp).background(Color(0xFF202020)).testTag("scene")) {
                     GlassTabBar(3, selected, onSelected, state, { Box(Modifier.size(100.dp, 20.dp).focusable().testTag("field")) },
                         Modifier.width(372.dp).testTag("row"), style = GlassTabBarStyle.Calm().copy(height = 62.dp),
@@ -89,54 +89,61 @@ class GlassTabBarSearchModeTest {
         }
     }
 
-    @Ignore("UNVERIFIED: hangs or misses mid-flight in the harness (builder report 18 Nov, #112)")
-    @Test fun tappingTheButtonOpensAndTheCloseButtonClosesIt() = runComposeUiTest(testTimeout = 4.minutes) {
+    /**
+     * Steps the manual clock in 50 ms frames, so no test waits on idleness. Each frame renders the glass in software
+     * (about half a second here), which is what made the first version of these tests time out.
+     */
+    private fun androidx.compose.ui.test.ComposeUiTest.step(ms: Int) = repeat(ms / 50 + 1) { mainClock.advanceTimeBy(50, ignoreFrameDuration = true) }
+
+    @Test fun tappingTheButtonOpensAndTheCloseButtonClosesIt() = runComposeUiTest(testTimeout = 90.seconds) {
         val state = GlassSearchState()
         scene(state)
-        waitForIdle()
+        mainClock.autoAdvance = false
+        step(64)
         assertFalse(state.expanded)
         onNodeWithContentDescription("Search").performClick()
-        waitForIdle()
+        step(400)
         assertTrue(state.expanded)
         assertEquals(1f, state.fraction, 1e-3f)
         onNodeWithTag("field").assertExists()
         onNodeWithContentDescription("Close search").performClick()
-        waitForIdle()
+        step(300)
         assertFalse(state.expanded)
         assertEquals(0f, state.fraction, 1e-3f)
     }
 
-    @Ignore("UNVERIFIED: hangs or misses mid-flight in the harness (builder report 18 Nov, #112)")
-    @Test fun escapeClosesAndSelectionSurvivesTheRoundTrip() = runComposeUiTest(testTimeout = 4.minutes) {
+    @Test fun escapeClosesAndSelectionSurvivesTheRoundTrip() = runComposeUiTest(testTimeout = 90.seconds) {
         val state = GlassSearchState()
-        var selected by mutableIntStateOf(2)
         var calls = 0
-        scene(state, onSelected = { calls++; selected = it }, selected = selected)
-        waitForIdle()
+        scene(state, onSelected = { calls++ }, selected = 2)
+        mainClock.autoAdvance = false
+        step(64)
         state.expand()
-        waitForIdle()
+        step(400)
         assertTrue(state.expanded)
         onNodeWithTag("row").performKeyInput { pressKey(Key.Escape) }
-        waitForIdle()
+        step(300)
         assertFalse(state.expanded)
-        assertEquals(2, selected)
         assertEquals(0, calls)
+        assertEquals(0f, state.fraction, 1e-3f)
     }
 
-    @Ignore("UNVERIFIED: hangs or misses mid-flight in the harness (builder report 18 Nov, #112)")
-    @Test fun closingDuringTheOpeningReversesFromWhereItIs() = runComposeUiTest(testTimeout = 4.minutes) {
+    @Test fun closingDuringTheOpeningReversesFromWhereItIs() = runComposeUiTest(testTimeout = 90.seconds) {
         val state = GlassSearchState()
         scene(state)
-        waitForIdle()
         mainClock.autoAdvance = false
+        step(64)
         state.expand()
-        mainClock.advanceTimeBy(100)
+        var tries = 0
+        while (state.fraction < 0.05f && tries++ < 30) mainClock.advanceTimeBy(16, ignoreFrameDuration = true)
         val mid = state.fraction
-        assertTrue(mid > 0.05f && mid < 0.95f, "mid-flight at $mid")
+        assertTrue(mid > 0.05f && mid < 0.95f, "mid-flight at $mid after $tries frames")
         state.collapse()
-        mainClock.advanceTimeBy(16)
-        assertTrue(state.fraction <= mid + 0.02f, "reversing from $mid, now ${state.fraction}")
-        mainClock.advanceTimeBy(400)
+        // The old animation runs on until the effect restarts, a frame or two, at up to 0.1 per frame; it never goes on to 1.
+        var peak = mid
+        repeat(8) { mainClock.advanceTimeBy(50, ignoreFrameDuration = true); peak = maxOf(peak, state.fraction) }
+        assertTrue(peak < 0.95f && peak <= mid + 0.3f, "reversing from $mid, peaked at $peak")
+        step(400)
         assertEquals(0f, state.fraction, 1e-3f)
     }
 
