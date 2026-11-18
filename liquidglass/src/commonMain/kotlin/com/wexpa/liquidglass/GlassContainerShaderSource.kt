@@ -485,9 +485,16 @@ half4 main(float2 coord) {
     float counter = pow(max(-facing, 0.0), counterPow) * bevelBand * counterLight;
     float edge = smoothstep(2.0, 0.0, depth);
     float edgeLine = edge * 0.5 * (max(facing, 0.0) + counterLight * max(-facing, 0.0));
+    // See GlassShaderSource: the measured rim line trails a faint glow inward, about a bevel wide (rim fit,
+    // 2026-09-12). Merged glass rests, so it takes the resting share; without it a merged piece lost the
+    // rim's tail 4-12 px inside the outline and, with the #202 chamfer, read 12-17 levels low at the rim.
+    float rimGlow = ((uProfile >= 0.5 && uProfile < 2.5) ? 0.05 : 0.0)
+        * exp(-max(depth - 0.67 * uBevel, 0.0) / max(uBevel, 1.0))
+        * (max(facing, 0.0) + counterLight * max(-facing, 0.0));
     float highlight = (spec + counter) * uSpecular
         + edgeLine * uSpecular * uEdgeLight
-        + fresnel * uFresnel * bevelBand;
+        + fresnel * uFresnel * bevelBand
+        + rimGlow;
     col = applyHighlight(col, highlight, uHiChroma);
 
     // The dark contour that separates glass from its backdrop. Apple's 2026 revision pairs it
