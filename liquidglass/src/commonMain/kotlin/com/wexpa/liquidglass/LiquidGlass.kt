@@ -1200,9 +1200,15 @@ internal class GlassEffectCache {
         return frostEffect!!
     }
 
+    /**
+     * The raw page of [GlassStyle.rawShare], blurred by a Gaussian of [blurPx] sigma. Android's blur takes a radius
+     * (sigma = 0.57735 * radius + 0.5), the desktop's takes the sigma itself, so the value goes through
+     * [platformBlurRadiusForSigma] like the frost's: passed straight, Android blurred about 1.7x less than the fit.
+     */
     fun raw(blurPx: Float): androidx.compose.ui.graphics.RenderEffect {
         if (blurPx != rawSigma) {
-            rawEffect = BlurEffect(blurPx, blurPx, TileMode.Clamp)
+            val r = platformBlurRadiusForSigma(blurPx)
+            rawEffect = BlurEffect(r, r, TileMode.Clamp)
             rawSigma = blurPx
         }
         return rawEffect!!
@@ -1210,7 +1216,9 @@ internal class GlassEffectCache {
 
     fun shadow(blurPx: Float): androidx.compose.ui.graphics.RenderEffect {
         if (blurPx != shadowSigma) {
-            shadowEffect = BlurEffect(blurPx, blurPx, TileMode.Decal)
+            // A sigma, like the raw page's: see [raw].
+            val r = platformBlurRadiusForSigma(blurPx)
+            shadowEffect = BlurEffect(r, r, TileMode.Decal)
             shadowSigma = blurPx
         }
         return shadowEffect!!
