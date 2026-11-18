@@ -208,6 +208,54 @@ class GlassKnobTest {
         assertEquals(1, changes)
     }
 
+    /** Track colour of a settled switch, read from the rendered pixels at the track end away from the knob. */
+    private fun androidx.compose.ui.test.ComposeUiTest.trackColour(dark: Boolean, checked: Boolean, custom: Color? = null): Color {
+        setContent {
+            CompositionLocalProvider(LocalDensity provides Density(scale)) {
+                MaterialTheme(colorScheme = if (dark) androidx.compose.material3.darkColorScheme() else lightColorScheme()) {
+                    Box(Modifier.background(if (dark) Color.Black else Color.White).padding(8.dp)) {
+                        if (custom != null) Switch(checked, {}, Modifier.testTag("sw"), colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = custom, uncheckedTrackColor = custom))
+                        else Switch(checked, {}, Modifier.testTag("sw"))
+                    }
+                }
+            }
+        }
+        mainClock.advanceTimeBy(1000)
+        val px = onNodeWithTag("sw").captureToImage().toPixelMap()
+        // Off: knob sits left, sample the right end; on: the reverse.
+        val x = if (checked) (px.width * .06f).toInt() else (px.width * .94f).toInt()
+        return px[x, px.height / 2]
+    }
+
+    private fun assertRgb(expected: Int, actual: Float, what: String) =
+        assertEquals(expected.toFloat(), actual * 255f, 2f, what)
+
+    /** Measured on the native switch in the dark appearance (I-menus-dark): on (47, 210, 88), off (90, 90, 94), max channel diff 4. */
+    @Test fun aDarkSwitchUsesTheMeasuredIosTrackColours() = runDesktopComposeUiTest(400, 240, testTimeout = 2.minutes) {
+        mainClock.autoAdvance = false
+        val on = trackColour(dark = true, checked = true)
+        assertRgb(47, on.red, "on red"); assertRgb(210, on.green, "on green"); assertRgb(88, on.blue, "on blue")
+    }
+
+    @Test fun aDarkSwitchOffTrackIsTheMeasuredGrey() = runDesktopComposeUiTest(400, 240, testTimeout = 2.minutes) {
+        mainClock.autoAdvance = false
+        val off = trackColour(dark = true, checked = false)
+        assertRgb(90, off.red, "off red"); assertRgb(90, off.green, "off green"); assertRgb(94, off.blue, "off blue")
+    }
+
+    /** No light-appearance switch is recorded: a light scheme keeps the theme's colours, not the dark grey. */
+    @Test fun aLightSwitchKeepsTheThemeColours() = runDesktopComposeUiTest(400, 240, testTimeout = 2.minutes) {
+        mainClock.autoAdvance = false
+        val off = trackColour(dark = false, checked = false)
+        assertTrue(off.red * 255f > 150f, "the light off track must not be the dark grey: $off")
+    }
+
+    @Test fun aCallersTrackColoursStillWin() = runDesktopComposeUiTest(400, 240, testTimeout = 2.minutes) {
+        mainClock.autoAdvance = false
+        val c = trackColour(dark = true, checked = true, custom = Color(200, 10, 10))
+        assertRgb(200, c.red, "custom red"); assertRgb(10, c.green, "custom green")
+    }
+
     // ---- slider, measured on Safari's web slider ----------------------------------------------------
 
     @Test fun theSliderThumbIs24By16AndDoesNotChangeWhileDragged() = runDesktopComposeUiTest(480, 240, testTimeout = 2.minutes) {

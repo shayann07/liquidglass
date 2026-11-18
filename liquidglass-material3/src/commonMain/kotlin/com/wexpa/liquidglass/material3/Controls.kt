@@ -39,7 +39,7 @@ import androidx.compose.material3.Slider as M3Slider
 
 /**
  * Material 3's `Switch`, iOS style: a 63 x 28 dp capsule track in [colors]' track colours (fading over
- * 420 ms) and a 37 x 24 dp white knob that becomes a clear glass lens, 1.75 x 1.6 times larger, while
+ * 420 ms; in a dark scheme the measured iOS ones by default, see [defaultSwitchColors]) and a 37 x 24 dp white knob that becomes a clear glass lens, 1.75 x 1.6 times larger, while
  * pressed. Sizes, travel and timing are measured on iOS 27's switch; the lens strength, the disabled look
  * and [thumbContent] are authored. The same parameters as Material's.
  */
@@ -50,10 +50,7 @@ fun Switch(
     modifier: Modifier = Modifier,
     thumbContent: (@Composable () -> Unit)? = null,
     enabled: Boolean = true,
-    colors: SwitchColors = SwitchDefaults.colors(
-        checkedTrackColor = MaterialTheme.colorScheme.primary,
-        uncheckedTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = .16f),
-    ),
+    colors: SwitchColors = defaultSwitchColors(),
     interactionSource: MutableInteractionSource? = null,
 ) {
     val source = interactionSource ?: remember { MutableInteractionSource() }
@@ -78,6 +75,21 @@ fun Switch(
             GlassKnob(held = pressed, enabled = enabled)
             thumbContent?.invoke()
         }
+    }
+}
+
+/**
+ * The switch's default track colours. In a dark scheme they are the iOS 27 ones, measured on the native
+ * Bluetooth switch (dark appearance): on (47, 210, 88), off (90, 90, 94). No light-appearance switch is
+ * recorded, so a light scheme keeps the theme's primary and a faint on-surface.
+ */
+@Composable
+private fun defaultSwitchColors(): SwitchColors {
+    val scheme = MaterialTheme.colorScheme
+    return if (scheme.isDark) {
+        SwitchDefaults.colors(checkedTrackColor = KnobSpec.OnTrackDark, uncheckedTrackColor = KnobSpec.OffTrackDark)
+    } else {
+        SwitchDefaults.colors(checkedTrackColor = scheme.primary, uncheckedTrackColor = scheme.onSurface.copy(alpha = .16f))
     }
 }
 

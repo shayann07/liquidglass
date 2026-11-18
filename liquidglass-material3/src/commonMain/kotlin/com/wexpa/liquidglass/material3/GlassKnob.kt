@@ -73,6 +73,10 @@ internal object KnobSpec {
      * mark (6 frames) and settles in 9.
      */
     val TravelSpring: FiniteAnimationSpec<Float> = spring(dampingRatio = 1f, stiffness = 1400f)
+    /** Measured: the native switch's on track in the dark appearance, display sRGB (47, 210, 88). Light appearance not recorded. */
+    val OnTrackDark = Color(47, 210, 88)
+    /** Measured: the native switch's off track in the dark appearance, display sRGB (90, 90, 94). Light appearance not recorded. */
+    val OffTrackDark = Color(90, 90, 94)
     /** Measured on Safari's switch: the track colour lags the knob and settles in about 420 ms. */
     const val TrackFadeMillis = 420
 
