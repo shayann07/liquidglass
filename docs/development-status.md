@@ -246,7 +246,7 @@ See [verification and limits](https://github.com/shayann07/liquidglass/blob/main
 
 ## .NET MAUI (20 October)
 
-`LiquidGlass.Maui` (`ports/dotnet/LiquidGlass.Maui`, unreleased) puts `GlassSurface` over the app's own
+`LiquidGlass.Maui` (`ports/dotnet/LiquidGlass.Maui`, published from 1.0.0) puts `GlassSurface` over the app's own
 MAUI views on Android and Windows. The backdrop is drawn from the element's native view. The demo runs on a
 Pixel 7, with the glass following the page as it scrolls. The first device run found that MAUI's
 `CaptureAsync` copies window pixels on Android, so the glass refracted itself; it now draws the view.
@@ -395,7 +395,8 @@ The ports' surfaces bind `Glass.Regular`'s light, `GlassLight.Default` (-0.35, -
 - The showcase is redesigned (music library, mesh wallpaper, detailed covers).
 - Evidence: [glass quality renders](https://github.com/shayann07/liquidglass/blob/main/review/atlas/glass-quality-2026-10-18/README.md),
   on a Pixel 7 and on desktop. They are not a calibrated comparison against iOS. Rim and specular
-  work toward iOS is next. It will be opt-in.
+  work toward iOS followed on 18 November (#202, #109, above) and is on by default, not opt-in; see
+  the `Default look changed` lines in the 1.1.0 entries of the changelog.
 
 ## Atlas and the current material
 

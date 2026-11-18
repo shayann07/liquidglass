@@ -1249,7 +1249,8 @@ data class GlassStyle(
          * A sheet, measured on iOS 27's share sheet (#102) in both appearances: a pure blur (7.17 dp dark, 8.67 dp
          * light), then a compressed tone (dark: black reads 59, the tone peaks near 129; light: black reads 145),
          * with no detail term. Interior only: rim, shadow, corner and the grabber are not measured, and the rim fields
-         * are [inApp]'s. The page behind it is not dimmed.
+         * are [inApp]'s. iOS does not dim the page behind its share sheet, but this style carries no scrim: Material 3's
+         * `ModalBottomSheet` draws the sheet with this style and keeps its own scrim, a known difference.
          */
         fun sheet(dark: Boolean): GlassStyle = inAppEarlier(dark, GlassMaterial.DEFAULT_TINT_AMOUNT).copy(
             tint = (if (dark) Color.Black else Color.White).copy(alpha = GlassMaterial.sheetOpacity(dark)),
