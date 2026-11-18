@@ -45,12 +45,14 @@ class GlassRestMapTest {
     @Test
     fun testTheKnotsAreUniqueFiniteStrictlyIncreasingAndEndOnIdentity() {
         val t = GlassRestMapTable
-        assertEquals(12, t.U.size); assertEquals(12, t.V.size)
+        // 12 Photos knots (d 6..36) and, since #202, the 6 knots of the lab pill's rim band (d 0.5..5.5) below them.
+        assertEquals(18, t.U.size); assertEquals(18, t.V.size)
         for (i in t.U.indices) assertTrue(t.U[i].isFinite() && t.V[i].isFinite(), "knot $i not finite")
         for (i in 1 until t.U.size) assertTrue(t.U[i] > t.U[i - 1], "knot inputs must strictly increase at $i")
         assertEquals(t.U.last(), t.V.last(), 0f, "the last knot is the identity join, exactly")
         assertEquals(36f / W72, t.IDENTITY_U, 1e-5f)
-        assertEquals(6f / W72, t.U[0], 1e-5f)
+        assertEquals(0.5f / W72, t.U[0], 1e-5f)
+        assertEquals(6f / W72, t.U[6], 1e-5f)
     }
 
     @Test
@@ -71,8 +73,8 @@ class GlassRestMapTest {
         assertTrue(abs(hl - hr) < 0.01f, "the Hermite interval must start at the incoming slope; $hl vs $hr")
         // Units: the table is dimensionless; identity beyond the join at any scale.
         for (u in floatArrayOf(t.IDENTITY_U, 0.9f, 1f, 1.5f, 3f)) assertEquals(u, t.source(u), 1e-6f)
-        // The unmeasured shallow extension is the first knot's value, flat.
-        for (u in floatArrayOf(0f, 0.05f, 0.1f, t.U[0] - 1e-4f)) assertEquals(t.V0, t.source(u), 1e-6f)
+        // Below the first rim knot (d < 0.5 px, under the displacement fade) the map is that knot's value, flat.
+        for (u in floatArrayOf(0f, 0.005f, t.U[0] - 1e-4f)) assertEquals(t.V0, t.source(u), 1e-6f)
     }
 
     @Test
@@ -342,14 +344,20 @@ class GlassRestMapTest {
     fun testTheCandidateHasNoNewDiscontinuityAlongTheNormalOrAcrossTheCornerRunTransitionAndNeverSamplesOutward() {
         val w = 486; val h = 144; val r = 72f; val band = GlassMaterial.BEVEL_RATIO * r; val pad = 8
         val f = GlassSourceField.render(GlassSourceField.Kind.PANEL, w, h, pad, r, band, restMap = 1f)
-        // Along the normal through the right end: the source position may move at most the table's own
-        // steepest slope (2.28 source px per display px, first segment) plus half a pixel of sampling.
-        var prevS = Float.NaN; var worstStep = 0f
+        // Along the normal through the right end: the source position may move at most the table's own steepest
+        // slope plus half a pixel of sampling: 2.28 source px per display px over the Photos knots (d from 6), and,
+        // since #202, the lab pill's measured rim band below that, whose steepest segment is 7.9 source px per display
+        // px at d 0.5 to 1.5 and 4.9 at 1.5 to 2.5 (it was a constant before; the gate for d from 1.5 was 3.0).
+        var prevS = Float.NaN; var worstStep = 0f; var worstRim = 0f
         for ((d, s, _) in profileAlongRay(f, r, band)) {
-            if (d >= 1.5f && !prevS.isNaN()) worstStep = max(worstStep, abs(s - prevS))
+            if (d >= 1.5f && !prevS.isNaN()) {
+                if (d >= 7f) worstStep = max(worstStep, abs(s - prevS)) else worstRim = max(worstRim, abs(s - prevS))
+            }
             prevS = s
             assertTrue(s >= d - 0.1f || d < 1.5f, "outward sample at d=$d: source depth $s")
         }
+        println("candidate rim: max source step per display px for d 1.5 to 7 ${"%.3f".format(worstRim)}")
+        assertTrue(worstRim <= 5.5f, "a jump of $worstRim px along the normal in the rim band (measured slope 4.9 at d 1.5)")
         println("candidate: max source step per display px along the normal ${"%.3f".format(worstStep)}")
         assertTrue(worstStep <= 3.0f, "a jump of $worstStep px along the normal")
         // Across the corner/run transition: walk the row 6.5 px inside the top edge from the straight run
