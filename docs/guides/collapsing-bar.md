@@ -74,18 +74,20 @@ the take's scripted scrolls, whose speeds it reads back within 0.06 %) gives the
 
 | | value | label |
 | :-- | :-- | :-- |
-| What drives it | the finger only: scripted scrolling (to 800 pt/s, 4,920 pt of travel) and fling settle never collapse it | measured |
-| Collapse | after about 36 pt of downward finger travel since the last reversal, mid-drag (commits at +23 to +45 pt; +23 to +29 pt only squeezes it and springs back) | 36 pt fitted |
-| Expand | after about 72 pt of upward travel, twice the collapse distance (commits at 70 to 78 pt) | 72 pt fitted |
+| What drives it | the finger only (on the recorded iPhone): scripted scrolling (to 800 pt/s, 4,920 pt of travel) and fling settle never collapse it | measured |
+| Collapse | after about 36 pt of downward scroll (the finger travelling up) since the last reversal, mid-drag (commits at +23 to +45 pt; +23 to +29 pt only squeezes it and springs back) | 36 pt fitted |
+| Expand | after about 72 pt of upward scroll (the finger travelling down), twice the collapse distance (commits at 70 to 78 pt) | 72 pt fitted |
 | Shape | the capsule narrows from about 211 pt to 125 pt and drops about 28 pt; the side buttons fade | measured |
 | Easing | `cubic-bezier(0.25, 0.1, 0.25, 1)` over 325 ms (1 % to 99 % in 270 to 286 ms); beats a critically damped spring 1.3x to 7x in rms | fitted |
 | Side buttons | fade out over 180 ms on collapse; fade in over 275 ms after 20 ms on expand, same curve | measured |
 
-A recipe that follows it: one fraction, driven by finger travel only, with the collapse and expand distances above.
+A recipe that follows it: one fraction, driven by user scroll only, with the collapse and expand distances above. Compose's
+`NestedScrollSource.UserInput` does not tell a finger from a mouse wheel or the keyboard, so on those inputs the recipe
+responds too; excluding fling and programmatic scroll is what it shares with the take.
 
 ```kotlin
 @Composable
-fun rememberBarCollapse(): Pair<State<Float>, NestedScrollConnection> {
+fun rememberBarCollapse(): Triple<State<Float>, State<Float>, NestedScrollConnection> {
     var collapsed by remember { mutableStateOf(false) }
     // One event's delta is small: movement is summed in the current direction, and the sum is reset when it turns.
     var travel by remember { mutableFloatStateOf(0f) }
@@ -98,11 +100,21 @@ fun rememberBarCollapse(): Pair<State<Float>, NestedScrollConnection> {
         animationSpec = tween(durationMillis = 325, easing = CubicBezierEasing(0.25f, 0.1f, 0.25f, 1f)),
         label = "barCollapse",
     )
+    // The side buttons fade on their own clock: out over 180 ms on collapse, in over 275 ms after 20 ms on expand.
+    val buttonAlpha = animateFloatAsState(
+        targetValue = if (collapsed) 0f else 1f,
+        animationSpec = if (collapsed) {
+            tween(durationMillis = 180, easing = CubicBezierEasing(0.25f, 0.1f, 0.25f, 1f))
+        } else {
+            tween(durationMillis = 275, delayMillis = 20, easing = CubicBezierEasing(0.25f, 0.1f, 0.25f, 1f))
+        },
+        label = "barButtons",
+    )
     val connection = remember(collapseAt, expandAt) {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
                 val dy = available.y
-                if (dy == 0f || source != NestedScrollSource.UserInput) return Offset.Zero  // the finger only
+                if (dy == 0f || source != NestedScrollSource.UserInput) return Offset.Zero  // user scroll only
                 travel = if (travel == 0f || (dy < 0f) == (travel < 0f)) travel + dy else dy
                 if (!collapsed && travel < -collapseAt) { collapsed = true; travel = 0f }  // content scrolling down
                 if (collapsed && travel > expandAt) { collapsed = false; travel = 0f }
@@ -110,14 +122,16 @@ fun rememberBarCollapse(): Pair<State<Float>, NestedScrollConnection> {
             }
         }
     }
-    return fraction to connection
+    return Triple(fraction, buttonAlpha, connection)
 }
 ```
 
-Read `fraction.value` inside `Modifier.layout` or `graphicsLayer` (so scrolling does not recompose), and lerp the
-capsule's width, the buttons' alpha and the bar's offset with it. For the glass itself to morph rather than cross-fade,
+Read `fraction.value` and `buttonAlpha.value` inside `Modifier.layout` or `graphicsLayer` (so scrolling does not
+recompose), and lerp the capsule's width and the bar's offset with the fraction; the side buttons' alpha is `buttonAlpha`. For the glass itself to morph rather than cross-fade,
 draw the compact and full capsules as one `glassEffectID` in a `GlassEffectContainer`
 (see [Interaction](../interaction.md)).
 
-The trigger distance, the easing and the direction are authored until the offset code of the take is decoded. The
-timing is not asserted by a test: the recording fixes it only to +-3 frames, which is wider than one frame.
+The trigger distances and the easing are fitted to the decoded take (36 pt and 72 pt, the cubic-bezier curve); that the
+recipe applies them with `dp` and Compose's tween is authored. No app-owned render or capture of this recipe is published:
+the numbers come from a private recording, so there is no visual evidence under `review/` for it, and the scroll-edge
+report above covers `GlassScrollEdge`, not this bar. The timing is not asserted by a test: the recording fixes it only to +-3 frames, which is wider than one frame.

@@ -5,8 +5,11 @@
 - `fix/202-rim` commits: the iOS 27 rim's measured falloff (gated to styles with the 2026 outer contour), the merged-glass
   resting glow, the #109 two-lobe rim on the dark Calm bar, and the one-pixel box outline in all four shaders
   (dark Calm bar specular 0.25 -> 0.226 to match). Numbers in CHANGELOG and PROGRESS.
-- Next: restate pinned values the outline change moved (each with its reason), regenerate the port shaders, final suite
-  pass (library, Material 3, ABI, ports, strict mkdocs, links), push once, PR, Pixel 7 check.
+- Done: pinned values restated, port shaders regenerated, suite pass (library 570 passed, Material 3 42, ABI, ports,
+  strict mkdocs, links), pushed, PR #231 opened, Pixel 7 release-build check (rim rows, outline halo, frame cost).
+- Next: owner review and merge of #231 on green CI. Still open in #202: the stills gate and the cap scores; #109 items
+  114 and 116 (cap fall, inner lift) are not yet measured; no new rim captures are published (`review/atlas/rim-2026-11-18`
+  is numbers only).
 
 ## RESUME HERE (18 November): #206 Control Center tile, PR open
 
