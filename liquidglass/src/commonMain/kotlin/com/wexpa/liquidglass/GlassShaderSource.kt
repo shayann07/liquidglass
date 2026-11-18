@@ -671,7 +671,11 @@ half4 main(float2 coord) {
         // wide tone of the rim's own neighbourhood under content shown from 40 px inside, and the row level
         // ran left to right where iOS's is flat (d = 8: 114 to 130 against 120 to 124). The styles without the
         // detail terms (menu, sheet) and the scatter profiles keep the unshifted B.
-        wide = wideAt((uDetailCross >= 0.5 && detailWeight > 0.0) ? base + push : base);
+        // iOS reads B at the refracted point along the top and the sides and at the glass's own pixel along the
+        // bottom: k = 0 of the top shift, fitted to the bottom bands of C1a_r50 (dark and light, d = 0..12, k swept
+        // 0 to 1 in 0.1 steps; rms of the mean level 1.3 at k 0 to 9.1 at k 1).
+        float wideShift = (uDetailCross >= 0.5 && detailWeight > 0.0) ? 1.0 - smoothstep(0.0, 0.5, nRefract.y) : 0.0;
+        wide = wideAt(base + push * wideShift);
         half3 detail = bg - wide;
         bg = wide + detail * half(clamp(uFineShare, 0.0, 1.0)) + abs(detail) * half(clamp(uDetailLift, -1.0, 1.0));
     }

@@ -417,7 +417,8 @@ half4 main(float2 coord) {
     half3 wide = bg;
     if (uWideStrip >= 1.0) {
         // The lab material reads B at the refracted point, where D is read (see GlassShaderSource, #97).
-        wide = wideAt((uDetailCross >= 0.5 && detailWeight > 0.0) ? coord + push : coord);
+        float wideShift = (uDetailCross >= 0.5 && detailWeight > 0.0) ? 1.0 - smoothstep(0.0, 0.5, n.y) : 0.0;
+        wide = wideAt(coord + push * wideShift);
         half3 detail = bg - wide;
         bg = wide + detail * half(clamp(uFineShare, 0.0, 1.0)) + abs(detail) * half(clamp(uDetailLift, -1.0, 1.0));
     }
