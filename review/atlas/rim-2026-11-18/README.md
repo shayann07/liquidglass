@@ -2,8 +2,8 @@
 
 Numbers only. iOS values are **measured** on private recordings and lossless stills (iPhone 13 class, 3x, HDR10
 decoded to display sRGB); no iOS frame is published. Ours are **measured** on desktop renders of branch
-`fix/202-rim` (Skia raster in jvmTest for the lab scenes, desktop GPU replay for the Phone scene). Not yet checked on
-a Pixel 7.
+`fix/202-rim` (Skia raster in jvmTest for the lab scenes, desktop GPU replay for the Phone scene) and on a Pixel 7
+(section 4).
 
 ## 1. Outline coverage
 
@@ -51,9 +51,20 @@ Button rim by angle (0 = right, 90 = top):
 
 The bar's caps now read 5 to 10 levels brighter than iOS's (x 160-200 and 800-820); the straight runs match.
 
+## 4. Pixel 7 (release build of `fix/202-rim`, b8929487; `adb screencap`, 2.625 px per dp)
+
+- Merged-glass fixture (`CalibrationActivity --es fixture path`): renders, no shader or runtime errors in logcat.
+- Calibration chart, Tint 50, dark and light, measured rest map: renders; outlines clean by eye.
+- Dark Calm bar (PhoneActivity, at rest, Calls selected) top rim, rows 0..4 at a straight run: **100 80 56 42 40**
+  (iOS 99 79 62 45 41; desktop 3x 100 84 63 45 40).
+- Search button rim, single-pixel peak by angle, top half 0..180 deg: **36 39 46 55 63 75 98 75 63 55 47 40 37**
+  (desktop 32 37 44 55 60 73 98 73 60 55 45 38 34; iOS 32 34 42 50 59 73 96 70 58 52 42 35 32). The bottom half sits over
+  a list row in this scene and is not scored.
+- Material 3 showcase: renders in light; rims by eye only.
+
 ## Limits
 
-- Desktop only; the Pixel 7 check is owed (AGENTS rule 4).
+- Device evidence is the Pixel 7 rows above; the Material 3 rim was not scored on the device.
 - The Calm bar's specular (0.25 -> 0.226) and the round-button factor (0.97) are authored fits to the IMG_6756 rows
   above; the rim lobe (0.47 f^41 + 0.53 f^1.8) is a fit to the measured angular profile.
 - #202's stills gate and cap scores are still open.
