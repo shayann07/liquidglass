@@ -8,7 +8,7 @@
 - Classes: toggle / wide / media / slider track within 2 levels of the take at G 10 / 56 / 102 (rms 0.87); flat interior (spread 0.0). Slider = track tile plus opaque
   active-tile fill (250 / 251 / 252 measured, ours 248 / 250 / 252). Rim by sector (poles equal, sides none, contour at the sides only): the default light tilts 20 degrees,
   so the tile wants `GlassLight(0f, -1f)`; fitted `bevel` 1.25 dp, `bevelPeak` 0.3, `specular` 0.3, `specularPower` 4, `edgeLight` 1.5, `counterLight` 1, `outerContour` 1
-  (rms 23.8 to 11.3). Known gap: the contour is 7 to 35 levels too shallow (shader band 1.5 px, 0.67 deep against 2 px and 1.0).
+  (rms 23.8 to 11.2). Known gap: the contour is 6 to 31 levels too shallow (shader band 1.5 px, 0.67 deep against 2 px and 1.0).
 - #113 item 128: `IMG_6667.MP4` (same file as `MUQJ3680.MP4`): the flashlight grows 1.69 peak, 1.60 held (58 to 93 pt), 0.15-0.20 s in, undershoots to 0.90 on release;
   lit 18 to 137 over black (+119). The older +39 is likely a pre-HDR reading. Ours (`Calm` 1.07, `Pullable` 1.28) was not changed.
 

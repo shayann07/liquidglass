@@ -564,7 +564,7 @@ measured on the same take (3x, dp): toggle 67 across (a circle), wide tile 149 x
 149 x 149 (radius 29.6), slider track 67 x 149, 15 between tiles. The rim and contour are fitted by sector on the toggle: iOS lights
 the tile's top and bottom equally and its sides not at all, so give the tile a vertical light,
 `Glass(GlassStyle.controlCenterTile(), light = GlassLight(0f, -1f))` (the default light tilts 20 degrees); the pole rim then reads within 5
-levels of the measured line and the dark contour lies outside the sides (known gap: it is 7 to 35 levels too shallow). A slider is a
+levels of the measured line and the dark contour lies outside the sides (known gap: it is 6 to 31 levels too shallow). A slider is a
 track tile plus a hard-edged opaque fill: the track is `controlCenterTile()`, the fill `controlCenterTile(active = true)` over a rectangle
 clipped to the track's pill (measured fill 250 / 251 / 252 over layers 10 / 56 / 102; no thumb). Evidence:
 [`review/atlas/control-center-tile-2026-11-18`](https://github.com/shayann07/liquidglass/blob/main/review/atlas/control-center-tile-2026-11-18/README.md).

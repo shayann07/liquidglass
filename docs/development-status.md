@@ -19,8 +19,8 @@ research remains available; this page identifies which later changes supersede i
 - 18 November: Scroll edge effect: dark tint profile within 1.3 levels rms of the measured median (gate 5), light no tint, blur edge widths within 0.8 px of the measured +-10 row table; fade-in, bottom edge, blur strength above 20 dp from the edge authored/lower bounds; blur = two fitted copies, not a per-pixel variable blur; collapse recipe timing +-3 frames, not asserted. Desktop only; no device frame-time pass; no sample scene.
 - 18 November: Control Center tile, second pass (#206, #113): the four element classes (toggle, wide, media, slider track) read within 2 levels of
   `CC-over-lab-dark.MP4` at greys 10 / 56 / 102 (rms 0.87), the interior is flat to r 85 px, the slider is a track tile plus an opaque active-tile fill (measured
-  250 / 251 / 252), and the rim and contour are fitted by sector (pole peak within 5 of 155 / 215, diagonals within 7; the dark contour is 7 to 35 levels too
-  shallow because the shader's outer band is 1.5 px, so the plan's gate of 6 is not met there, and the sides' rim is 7 to 9 too bright). The lock-screen flashlight
+  250 / 251 / 252), and the rim and contour are fitted by sector (pole peak within 5 of 155 / 215, diagonals within 7; the dark contour is 6 to 31 levels too
+  shallow because the shader's outer band is 1.5 px, so the plan's gate of 6 is not met there, and the sides' rim is 8 to 9 too bright). The lock-screen flashlight
   press (#113 item 128) is 1.69 peak / 1.60 held and +119 over black on `IMG_6667.MP4` against `Calm`'s 1.07 and about +10 (computed, not rendered): default
   unchanged, owner question open. Light appearance, a tile's press and hold, Tint Amount and the layer under the tiles against `systemBackdrop()` are not measured.
 - 18 November: Control Center tile glass and a public colour-boost setting (#206): `GlassStyle.controlCenterTile(active)` and

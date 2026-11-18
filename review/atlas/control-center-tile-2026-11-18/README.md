@@ -104,7 +104,7 @@ at the top and bottom equally and not at the sides, and its dark contour lies ou
 over interiors of 60 / 102 / 143; contour minimum at the sides 0 / 7 / 24, at the diagonals 6 / 36 / 68, none at the poles.
 
 Fitted on those profiles (coordinate descent over `bevel`, `bevelPeak`, `specular`, `specularPower`, `edgeLight`, `outerContour`,
-`heldGlow`, `innerShadow`, with `counterLight` 1 so the top and bottom match; 23.8 to 11.3 levels rms over r 96-102.5, three sectors, three
+`heldGlow`, `innerShadow`, with `counterLight` 1 so the top and bottom match; 23.8 to 11.2 levels rms over r 96-102.5, three sectors, three
 greys), with a vertical light `GlassLight(0f, -1f)` (the default light tilts 20 degrees and lights one side of the toggle, +17
 levels at G 10):
 
@@ -112,13 +112,15 @@ levels at G 10):
 | :-- | :-- | :-- | :-- |
 | pole peak, ours / measured | 160 / 155 | 211 / 215 | 251 / 255 (clipped) |
 | diagonal peak | 109 / 102 | 155 / 151 | 201 / 202 |
-| side peak | 70 / 63 | 113 / 104 | 156 / 147 |
-| side contour minimum | 7 / 0 | 37 / 7 | 59 / 24 |
+| side peak | 71 / 63 | 113 / 104 | 156 / 147 |
+| side contour minimum | 6 / 0 | 36 / 7 | 55 / 24 |
 | pole contour | none / none | none / none | none / none |
 
 The rim peaks are within 5 at the poles and within 7 on the diagonals (the plan's gate of 6 is met at the poles at G 10 and 56;
-the G 102 reading clips). The sides' rim is 7 to 9 levels too bright, and the contour is too shallow: the shader's outer band is
-1.5 px wide and at most 0.67 deep against the measured 2 px and up to 1.0, so the side minimum is 7 / 30 / 35 levels above the
+the G 102 reading clips). The sides' rim is 8 to 9 levels too bright, and the contour is too shallow: the shader's outer band is
+1.5 px wide and at most 0.67 deep against the measured 2 px and up to 1.0, so the side minimum is 6 / 29 / 31 levels above the
 measured (the plan's gate of 6 is **not** met there, and a deeper band needs the shader, which this change leaves alone). The glow that
 reaches 6 px in at the poles (+19 at G 10) is 12 to 18 levels short. All of these fields were authored before this pass (`bevel` 1 dp,
 `specular` 0.35, `edgeShadow` 0.06, `counterLight` 0.1); the fit changed this preset's rim only, not any other style.
+
+Re-scored after merging `fix/202-rim` (one-pixel box outline; 18 November, desktop Skia raster, 3x): the table above is the re-scored one, rms 11.3 to 11.2, poles 160 / 211 / 251 unchanged, side contour minimum 7 / 37 / 59 to 6 / 36 / 55. The measured rest chamfer does not reach this tile: it only applies to the chamfer rim (`bevelPeak` below 0.5 px), and the tile's `bevelPeak` 0.3 x 1.25 dp is 1.1 px at 3x, so it takes the bead rim. At 1x the same style would take the chamfer (0.375 px); that scale was not scored.
