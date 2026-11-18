@@ -1,3 +1,13 @@
+## RESUME HERE (18 November, night): 1.1.0 in three PRs, phase 1 on `fix/202-rim`
+
+- The owner split the rest of 1.1.0 into three phases, one PR each, one 1.1.0 tag at the end (owner's yes only).
+  Phase 1 (resting material): #202 rim, #109 button rim, then #97, #96, #207 if they make the final pass.
+- `fix/202-rim` commits: the iOS 27 rim's measured falloff (gated to styles with the 2026 outer contour), the merged-glass
+  resting glow, the #109 two-lobe rim on the dark Calm bar, and the one-pixel box outline in all four shaders
+  (dark Calm bar specular 0.25 -> 0.226 to match). Numbers in CHANGELOG and PROGRESS.
+- Next: restate pinned values the outline change moved (each with its reason), regenerate the port shaders, final suite
+  pass (library, Material 3, ABI, ports, strict mkdocs, links), push once, PR, Pixel 7 check.
+
 ## RESUME HERE (18 November): #206 Control Center tile, PR open
 
 - `feat/206-control-center`: `GlassStyle.chromaGain` and `controlCenterTile(active)`, tests green, ABI dump regenerated (additions only).
