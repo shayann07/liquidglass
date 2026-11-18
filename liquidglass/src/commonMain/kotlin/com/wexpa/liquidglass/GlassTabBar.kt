@@ -1970,7 +1970,7 @@ data class GlassTabBarStyle(
                 // 15 px); at the sides the outline is a dark step, 14 over the bar's 48 (ours 21).
                 lens = recorded.lens.copy(tint = Color.Transparent, rawShare = 0.5f, rawBlur = 50.dp,
                     tintLift = -3f / 255f, softDetail = 1f, bodyBandScale = GlassCalmLensBand,
-                    heldGlow = 0.4f, heldGlowReach = 2.dp),
+                    heldGlow = 0.4f, heldGlowReach = 2.dp, heldEdgeTone = 92f / 255f),
             )
         }
 
