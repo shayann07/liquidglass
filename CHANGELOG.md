@@ -6,6 +6,20 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Default light is straight overhead (owner-approved 19 November): `GlassLight()` and `GlassLight.Default` are now (0, -1), in Compose and in every port (Skia, npm, React Native, Flutter, Qt, Unity, .NET). Every measured resting iOS 27 rim is lit equally at its top and bottom and not at its sides (Safari lab stills, recorded tab bars, Control Center); the earlier (-0.35, -0.94) was authored, not measured. The internal Control Center step that forced an overhead light is removed, so the tile and the preset `copy()` use the default like everything else.
+  - Default look changed: the rim highlight of every glass now sits at the top and bottom instead of leaning to the upper left; the left side loses its extra highlight and the right side gains none. To keep the old look pass `GlassLight(-0.35f, -0.94f)` (Compose) or the matching `light` option in a port. Fixtures that pass a light explicitly are unchanged.
+- Quick-action press and Control Center tile (#113 item 128, #206). New, additive: `GlassInteraction.QuickAction` (the press of iOS's round
+  quick-action buttons) and `Glass.ControlCenterTile` (`GlassStyle.controlCenterTile()` with that press, interactive as it stands).
+  Pressed, the body grows to 1.60 times its size with a spring that overshoots to 1.69 (damping 0.53, stiffness 300) and its glass mixes
+  toward white by 0.51 of the way (a straight 125 ms rise, dropping at the lift); released it returns through 1.0 to 0.90 (damping
+  0.49, stiffness 490). **Measured** on the lock-screen flashlight button, `IMG_6667.MP4` (58 pt; one tap, one 1.9 s hold; display
+  colours): held 1.605, peak 1.694 at 0.19 s, release minimum 0.90 at 0.16 s, body 18 to 137 over black (share of the way to white
+  0.502) and 133 to 197 over a 125 stripe band (0.525), 0.51 for both within 2 levels; the release spring fits the hold and the tap
+  alike (rms 0.003 of the radius), the way down at rms 0.015. **Authored**: other sizes, the light appearance, a moved or cancelled
+  press, and that the Control Center circles (not recorded pressed) take the lock-screen press. New shader uniform `uPressWhite`,
+  exactly 0 for every other glass (the term sits behind `if (uPressWhite > 0.0)` and the host passes the literal 0 unless the
+  interaction is a quick action); merged-glass containers have no touch term and do not draw it. Scored by `GlassQuickActionPressTest`.
+  - Default look changed: none. Nothing uses the preset unless asked: `Glass.interactive()` is still `Fluid`.
 - Pressed glass is lit directionally, and the search button's glow settles once dragged (#114, item 130). A pressed, still
   body is brighter toward the light and darker away from it (a plane of 0.085 levels per px along (-0.49, -0.87) on iOS's held
   search button, IMG_6756, three still readings: `GlassPressGrade` 0.038 of full scale at the half short side, **measured** on
@@ -37,6 +51,11 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   - Default look changed: `systemBackdrop()` (Control Center layer) — black 10 over black, 102 over white (was 142 / 82).
 - Search mode (#112): `GlassTabBar(..., searchState, searchField, ...)` with `GlassSearchState` / `rememberGlassSearchState()` adds the search button that expands into a search field with a close button, as iOS 27's Phone app does. End state measured on the iOS 27 sample reference (one recording, 29 fps, 720 px wide): field 47.7 dp tall, close button 47.1 dp, 9.2 dp apart, the bar gone. The motion between the two states is authored (300 ms entering, 200 ms leaving) until a 60 fps take is scored. Additive API: a bar given no `searchState` is unchanged. Compose only; the ports and the Material 3 wrapper do not have it yet.
   - Default look changed: none for existing apps. A bar given a `searchState` expands on tap with no flag. Measured finding that corrects the audit: the iOS end state has no circle with the selected tab's icon (it is a transient only), so the open state is the field and the close button alone.
+- Scoring tools (#101): `--content-split --rim-exclude` separates page-edge colour split inside the rim band from the interior,
+  `measure_light_hold.py --geometry` scores a cropped recording and a phone capture, `tools/pixel/replay_script.sh` replays a finger path
+  on the Pixel, and `tools/measure_formation_continuity.py` measures the selector's fringe across the formation 0.5 crossing.
+  - Default look changed: none (tools and documentation only).
+
 - Regular glass at Tint 0 and Tint 100 is measured (#208). `GlassStyle.inApp`, `toolbar` and `Regular` at the ends now use the fit on iOS 27's Photos chrome over the calibration target: detail share 0.663 / 0, one-sided term 0.336 / 0, dark bow 101.6 / 49.8 (of 255), opacity dark 0.401 / 0.703 and light 0.382 / 0.682, wide kernel 15.5 dp at every tint, legibility 0. Between Tint 0, 50 and 100 the values are linear (authored). Fit 1.3 to 2.2 levels rms against 5.6 to 24.8 for the authored ends (Python scores on the pooled pill and toolbar, not shader renders). The colour transfer at Tint 0 is the Tint 50 transfer (authored extrapolation; colour at Tint 0 is not measured). [Evidence](review/atlas/tint-ends-2026-11-18/README.md).
   - Default look changed: Regular glass away from Tint 50 (dark at Tint 0 over grey 128: 93 -> 134; light 198 -> 182). Tint 50 is unchanged (every port's Tint 50 parameters are identical). The toolbar shares the pill's end values. All ports' in-app factories follow.
 - The collapsing-bar recipe is measured (#207): `docs/guides/collapsing-bar.md` now drives the collapse by finger travel only,
@@ -127,11 +146,11 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   the rim measured on the iOS 27 toggle by sector (lit at the top and bottom, not at the sides; pole peaks within 5 levels at layers 10 and 56, re-scored on the three frames it was fitted on) and
   its dark contour outside the sides through `outerContour`. The toggle, wide tile, media tile and slider track each read within 2 levels of
   the take at three greys (enforced: 2 per case, rms 1.5, and 3 on the slider fill, where ours reads 248 against 250; measured rms 0.87; the issue's gate is 5), and the slider is documented as a track tile plus a `controlCenterTile(active = true)`
-  fill (250 / 251 / 252 measured). The tile is lit from straight above, as iOS lights Control Center, with no step for the app (a host that passes its own light keeps it; `copy()` of the preset does not carry the overhead light). Known gaps: the contour is 6 to 31 levels too shallow
+  fill (250 / 251 / 252 measured). The tile takes the default overhead light like every other glass (straight above, as iOS lights Control Center; a host that passes its own light keeps it). Known gaps: the contour is 6 to 31 levels too shallow
   (shader band), the sides' rim 8 to 9 too bright. No public API added. The lock-screen flashlight press (#113 item 128) was measured at 1.69 peak /
   1.60 held, 58 pt growing to 93 pt, +119 over black, against `Calm`'s 1.07: not changed, an owner question
   ([numbers](review/atlas/flashlight-press-2026-11-18/README.md)); `measured-model.md`'s older +39 press figure is marked superseded.
-  - Default look changed: none for any shipped style (`controlCenterTile` is new in this unreleased cycle; its rim and its overhead light are new with it).
+  - Default look changed: none for any shipped style (`controlCenterTile` is new in this unreleased cycle; its overhead light is now the library default, see the default light entry above).
 
 - Skia and .NET ports: render a frame at any time (#193). `bakeNavigation(bar, events, {step, duration})` runs a scripted gesture
   through the scene's own navigation motion (now one shared driver, `createNavigationDriver`, used by `addNavigation` and the bake) at a

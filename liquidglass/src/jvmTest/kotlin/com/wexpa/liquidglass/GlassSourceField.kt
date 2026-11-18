@@ -173,6 +173,7 @@ internal object GlassSourceField {
                 b.uniform("uTouch", -1e5f, -1e5f)
                 b.uniform("uTouchAmt", 0f)
                 b.uniform("uPressGrade", 0f)
+                b.uniform("uPressWhite", 0f)
                 if (body != null) {
                     b.uniform(
                         "uBody",

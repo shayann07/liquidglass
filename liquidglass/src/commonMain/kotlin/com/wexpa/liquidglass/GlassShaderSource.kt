@@ -109,6 +109,7 @@ uniform float   uFlip;         // whole-element light/dark inversion, 0..1, deci
 uniform float2  uTouch;        // touch point in panel-local px
 uniform float   uTouchAmt;     // press amount, 0..1
 uniform float   uPressGrade;   // directional grade of a still press, share of full scale at the half short side (#114)
+uniform float   uPressWhite;   // a quick-action press mixes the body toward white by this share (0 for every other glass)
 uniform float   uMaterialize;  // 0 the shader is a pass-through of the backdrop, 1 full material
 uniform float   uFrost;        // Reduce Transparency, 0..1
 uniform float   uContrast;     // Increase Contrast, 0..1
@@ -625,7 +626,7 @@ half4 main(float2 coord) {
     half3 soft = sharp;
     float contrast = 0.0;
     if (detailWeight > 0.0) {
-        half3 detailCopy = (uDetailCross >= 0.5) ? detailAt(base + push, uBlur * mat * e) : blurredAt(base + push, uBlur * mat * e, rot);
+        half3 detailCopy = (uDetailCross >= 0.5) ? detailAt(base + push, uBlur * mat) : blurredAt(base + push, uBlur * mat * e, rot);
         soft = (detailWeight < 1.0) ? mix(sharp, detailCopy, half(detailWeight)) : detailCopy;
         // Local contrast, free: the rim sample and the interior sample already bracket the backdrop's high
         // frequencies, so their luma difference stands in for text scrolling underneath. Apple raises tint and
@@ -665,7 +666,16 @@ half4 main(float2 coord) {
     // and across a bar, and large text shows as one soft copy, never stepped ghosts (#190).
     half3 wide = bg;
     if (uWideStrip >= 1.0 && mat > 0.001) {
-        wide = wideAt(base);
+        // On the lab material B and D are two filterings of the one refracted image (#97): B is read where D is,
+        // at the refracted point, not under the glass's own pixel. Over the 8 px chart the unshifted B put the
+        // wide tone of the rim's own neighbourhood under content shown from 40 px inside, and the row level
+        // ran left to right where iOS's is flat (d = 8: 114 to 130 against 120 to 124). The styles without the
+        // detail terms (menu, sheet) and the scatter profiles keep the unshifted B.
+        // iOS reads B at the refracted point along the top and the sides and at the glass's own pixel along the
+        // bottom: k = 0 of the top shift, fitted to the bottom bands of C1a_r50 (dark and light, d = 0..12, k swept
+        // 0 to 1 in 0.1 steps; rms of the mean level 1.3 at k 0 to 9.1 at k 1).
+        float wideShift = (uDetailCross >= 0.5 && detailWeight > 0.0) ? 1.0 - smoothstep(0.0, 0.5, nRefract.y) : 0.0;
+        wide = wideAt(base + push * wideShift);
         half3 detail = bg - wide;
         bg = wide + detail * half(clamp(uFineShare, 0.0, 1.0)) + abs(detail) * half(clamp(uDetailLift, -1.0, 1.0));
     }
@@ -751,6 +761,11 @@ half4 main(float2 coord) {
     // Pressed and still, the body is brighter toward the light and darker away from it (#114). Zero adds nothing.
     float2 gradePos = (local - 0.5 * uSize) / max(0.5 * min(uSize.x, uSize.y), 1.0);
     col += half3(half(uPressGrade * dot(gradePos, normalize(uLight)) * tintCoverage * mat));
+    // A pressed quick-action button (GlassInteraction.QuickAction) mixes its whole body toward white, as iOS's does. The branch
+    // is skipped, so nothing is read or written, whenever the uniform is 0, which it is for every glass but a quick action.
+    if (uPressWhite > 0.0) {
+        col = mix(col, half3(1.0), half(clamp(uPressWhite, 0.0, 1.0) * mat));
+    }
 
     float facing = dot(n, uLight);
     float heldAmt = step(1.5, uProfile) * (1.0 - step(2.5, uProfile)) * clamp(uHeldLens, 0.0, 1.0);

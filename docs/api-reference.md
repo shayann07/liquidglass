@@ -124,6 +124,7 @@ class Glass {
         val Identity: Glass
         val TabBar: Glass
         val Toolbar: Glass
+        val ControlCenterTile: Glass // the inactive Control Center tile with GlassInteraction.QuickAction (#113, #206)
         fun Lens(magnification: Float = 1.4f): Glass
         operator fun invoke(style: GlassStyle, dark: GlassStyle? = null, light: GlassLight = GlassLight.Default): Glass
     }
@@ -595,11 +596,12 @@ tile (a round toggle, a wide Focus pill, the media tile, a slider track) over th
 Center layer, `Modifier.glassEffect(Glass(GlassStyle.controlCenterTile()), RoundedCornerShape(33.5.dp))`; geometry
 measured on the same take (3x, dp): toggle 67 across (a circle), wide tile 149 x 67 (pill, radius 33.5), media tile
 149 x 149 (radius 29.6), slider track 67 x 149, 15 between tiles. The rim and contour are fitted by sector on the toggle: iOS lights
-the tile's top and bottom equally and its sides not at all, so the tile takes a vertical light by itself
-(`GlassLight(0f, -1f)`, in place of the default light that tilts 20 degrees, unless the host passes another); the pole rim then reads within 5
+the tile's top and bottom equally and its sides not at all, which is the default light (`GlassLight(0f, -1f)`, straight
+above, unless the host passes another); the pole rim then reads within 5
 levels of the measured line and the dark contour lies outside the sides (known gap: it is 6 to 31 levels too shallow). A slider is a
 track tile plus a hard-edged opaque fill: the track is `controlCenterTile()`, the fill `controlCenterTile(active = true)` over a rectangle
-clipped to the track's pill (measured fill 250 / 251 / 252 over layers 10 / 56 / 102; no thumb). Evidence:
+clipped to the track's pill (measured fill 250 / 251 / 252 over layers 10 / 56 / 102; no thumb). `Glass.ControlCenterTile` is the inactive
+tile with its press: `GlassInteraction.QuickAction` (below, the round quick-action buttons of the lock screen and Control Center). Evidence:
 [`review/atlas/control-center-tile-2026-11-18`](https://github.com/shayann07/liquidglass/blob/main/review/atlas/control-center-tile-2026-11-18/README.md).
 
 `GlassStyle.chromaGain` is the public knob behind the tile's colour: unset (`Float.NaN`, the default) leaves the colour transfer
@@ -700,14 +702,16 @@ internal since 18 October).
 
 ```kotlin
 @Immutable
-data class GlassLight(val x: Float = -0.35f, val y: Float = -0.94f) {
+data class GlassLight(val x: Float = 0f, val y: Float = -1f) {
     companion object { val Default = GlassLight() }
 }
 ```
 
 Where the key light sits, as a unit vector in the panel's own space. `y` is negative upward,
-matching Compose, so the default is above and slightly to the left — the direction a highlight
-has to come from for a surface to read as convex rather than concave.
+matching Compose. The default is straight above: every resting iOS 27 rim measured (the Safari
+lab stills, the recorded tab bars, Control Center) is lit the same at its top and bottom edges and
+not at all at its sides. Before 1.1.0 the default was the authored `(-0.35, -0.94)`, above and
+slightly to the left; pass `GlassLight(-0.35f, -0.94f)` to keep that look.
 
 ### `lerpGlassStyle` / `animateGlassStyle`
 
@@ -824,6 +828,7 @@ data class GlassInteraction(
         val Fluid: GlassInteraction // the default of Glass.interactive(): the search button's press and pull, falling with size
         val Pullable: GlassInteraction // historical expressive response
         val ReducedMotion: GlassInteraction // no elastic geometry
+        val QuickAction: GlassInteraction // the round quick-action button's press: grows to 1.60x, lightens toward white
     }
 }
 ```
@@ -1002,13 +1007,15 @@ The `GlassScene` host this section used to open with was removed on 18 October; 
 | `GlassStyle.clearLens(magnification: Float = 1.25f)` | Finite centre magnification 1–2.5; invalid values throw. Continuous map, zero blur and dispersion by default. |
 | `GlassProfile.Lens` | Same smooth elliptical source map for material and refracted foreground; append-only enum addition. |
 | `GlassInteraction.Fluid` | Added (#196), the default of `Glass.interactive()`: `Pullable` with `GlassPullShape.Free` and glow share 0.65, the Phone search button's measured press and pull. Controls up to 80 dp answer in full; 80 to 160 dp blend toward the anchored surface response; from 160 dp the body presses 2 dp a side, does not leave its place and stretches at most 2 dp (authored). A scroll that takes the gesture returns it critically damped, and interactive glass follows the system's Reduce Motion. |
+| `GlassInteraction.QuickAction` | Added (#113 item 128, #206), additive: the press of iOS's round quick-action buttons, **measured** on the lock-screen flashlight (`IMG_6667`, 58 pt): the body grows to 1.60 times its size (1.605 measured), overshooting to 1.69 at about 0.2 s (spring damping 0.53, stiffness 300, fitted on the hold), mixes toward white by 0.51 of the way to full white (iOS: 0.502 over black, 0.525 over a 125 stripe band) in a straight 125 ms rise and drops at the lift, and returns on release through 1.0 to 0.90 (spring damping 0.49, stiffness 490, fitted on the lift of the hold and of the tap, rms 0.003 of the radius). No pull, no touch glow. Authored: other sizes (the 1.60 is a ratio from one 58 pt button), the light appearance and a moved or cancelled press. Not the default of anything. |
+| `Glass.ControlCenterTile` | Added (#113, #206), additive: `GlassStyle.controlCenterTile()` (inactive) with `GlassInteraction.QuickAction`, interactive as it stands (`.interactive(false)` for none; the active tile is `Glass(GlassStyle.controlCenterTile(active = true)).interactive(response = GlassInteraction.QuickAction)`). The press was recorded on the lock-screen flashlight, not on a Control Center circle; the two are the same control. |
 | `GlassInteraction.Calm` | Critical geometric springs; up to 3% press scale and 2dp growth per edge; gradual resisted drag with large-surface attenuation. |
 | `GlassResponse` | `Expressive` preserves historical timing; `Calm` selects slower critical press/pull springs. |
 | `GlassInteraction.response` | Timing parameter, default `Expressive`; existing positional source calls retain their meaning. |
 | `GlassInteraction.pullShape` | Appended parameter, default `GlassPullShape.Adaptive`. `AreaPreserving` couples bounded stretch/narrowing and a material-only directional bias for navigation, without the card size policy; press and layout stay separate. See [generic interaction](generic-interaction.md). |
 | `GlassStyle.softDetail` | Appended parameter, default 0 (a dithered scatter; the along-axis high-pass it once selected was removed in #200). 1 draws the detail seen through the glass as one soft copy: the wide kernel's tone plus `fineShare` of an unrotated fine blur. Dark `Calm()` uses 1 on its bar and lens. |
 | `GlassStyle.detailLift` | Appended parameter (#200), default 0. The one-sided detail term c of `lin = B + k (D - B) + c abs(D - B)`, with k = `fineShare`: detail on the glass's own side of the surroundings is kept at k + c, the other side at k - c. Measured on iOS 27 at Tint 50: +0.22 light, -0.22 dark; the in-app and toolbar styles blend toward it by an authored Tint weight until #208. It also sets the measured colour transfer over saturated colour (#201): the sign picks the dark or light gains and `abs(detailLift) / 0.22` (clamped to 0-1) their weight, so 0 keeps the per-channel tone. Range -1 to 1: the constructor does not check it (only `magnification` is checked), the style stores what it is given, and the draw path clamps it to -1..1 (`coerceIn`), so a value outside is drawn as -1 or 1. |
-| `GlassStyle.toneCurve` | Appended parameter (#200), default 0. The bow `toneCurve * x (1 - x)` added per channel before the tint, where x and the result are fractions of full scale (0 to 1), not 0-255 levels. Measured: 101.01/255 = 0.396 for dark Tint 50 (a fit of the dark tone table, rms 0.22 levels), 0 for light; pass 0.396, not 101. No range is checked or clamped; 0 is straight. Scaled by the same authored Tint weight. |
+| `GlassStyle.toneCurve` | Appended parameter (#200), default 0. The bow `toneCurve * x (1 - x)` added per channel after the tint blend and before the lift, where x and the result are fractions of full scale (0 to 1), not 0-255 levels. Measured: 101.01/255 = 0.396 for dark Tint 50 (a fit of the dark tone table, rms 0.22 levels), 0 for light; pass 0.396, not 101. No range is checked or clamped; 0 is straight. Scaled by the material fade and the tint coverage, not by the tint opacity. |
 | `GlassStyle.chromaGain` | Appended parameter (#206), default `Float.NaN` (unset: the colour transfer stays the one `detailLift` selects, byte-identical to before). Set to g, the glass keeps g times the backdrop's chroma about its own luma after the tint blend and lift (`uChromaGain` = g on all three channels, slope 0, weight 1), clamped to 0..4; a morph snaps it at the midpoint when only one end sets it. |
 | `GlassStyle.controlCenterTile(active)` | Companion factory (#206): the iOS 27 Control Center tile, shell glass. Inactive: black 0.097, lift 51.1/255, no blur, `chromaGain` 1.58 (measured). Active: white body at 250, `chromaGain` 0.5 (fitted). Rim authored. |
 | `GlassStyle.menu(dark: Boolean)` | Companion factory (#102, #204): a menu or popover. Dark: iOS 27's pop-up menu, measured on the Quick Look title-pill menu (black at 0.7047, lift 53.14/255, bow 95.22/255, 8.17 dp blur). Light: the Safari `<select>` panel (11.8 dp; no light pop-up menu was recorded). A pure blur, then a compressed tone, no detail term. Interior only: rim, shadow and corner are not measured, and the rim fields are `inApp`'s. Dimming the page behind it is the host's job. `menu()` without an argument is the earlier dark-only fit and is unchanged. |

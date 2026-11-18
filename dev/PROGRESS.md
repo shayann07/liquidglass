@@ -13,6 +13,11 @@
 ## 18 November 2026 - #112 search mode (Claude, Sonnet builder, branch `p3/112`, not pushed)
 
 - `GlassSearch.kt`: `GlassSearchState`, `rememberGlassSearchState`, `GlassTabBar(..., searchState, searchField)` overload, `glassSearchRects` geometry. End state measured on frame 40.5 s of the iOS 27 sample reference (field 47.7 dp, close 47.1 dp, gap 9.2 dp; no collapsed circle in the end state); transition authored. Tests: `GlassTabBarSearchModeTest`. Open: sample wiring, IME inset, Android back, Material 3 wrapper, ports, a 60 fps scoring.
+## 18 November 2026 - phase 2 on `p2/selector`: scoring tools (#101) (Claude)
+
+- Tools only: `--rim-exclude` three-row page-edge split, `measure_light_hold.py --geometry`, `tools/pixel/replay_script.sh`,
+  `tools/measure_formation_continuity.py`, nine-test `tools/test_measure_rim_fringe.py`. Gate: IMG_7049 `m101` still +6.5 / -6.2, rms 7.80.
+  Not run: IMG_7048 render and score, the phone replay. Record: `review/atlas/scoring-tools-2026-11-07/README.md` addendum.
 
 ## 18 November 2026 - controls bundle #205 #204 #207 (Claude, Sonnet writer)
 

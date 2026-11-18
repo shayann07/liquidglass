@@ -49,7 +49,7 @@ class Glass private constructor(
 
     /** The optical parameters this glass draws with in the given appearance; null for [Identity]. */
     fun style(dark: Boolean): GlassStyle? = resolve?.invoke(dark)?.let { s ->
-        if (tintColor == null) s else s.copy(tint = tintColor).withLitFromAbove(s.litFromAbove)
+        if (tintColor == null) s else s.copy(tint = tintColor)
     }
 
     /** Where the light comes from in the given appearance (see [GlassLight]). */
@@ -79,6 +79,19 @@ class Glass private constructor(
 
         /** A toolbar's material: the pill's, more opaque (measured on the Photos toolbar). */
         val Toolbar: Glass = Glass({ dark -> GlassStyle.toolbar(dark) }, null, false, GlassInteraction.Fluid, "Toolbar")
+
+        /**
+         * A round quick-action button of iOS 27's Control Center (flashlight, timer, camera): the inactive
+         * [GlassStyle.controlCenterTile] with [GlassInteraction.QuickAction], so it is interactive as it stands: pressed, it
+         * grows to 1.60 times its size and its body lightens toward white, as the lock-screen and Control Center circles do.
+         *
+         * The look is measured in the dark appearance only (the light appearance is the same style, authored), and the
+         * press on the lock-screen flashlight (see [GlassInteraction.QuickAction]); the host draws the geometry (a circle 58 dp
+         * across on the lock screen, 67 dp in Control Center). For the active tile, or to change the press, build it from the
+         * parts: `Glass(GlassStyle.controlCenterTile(active = true)).interactive(response = GlassInteraction.QuickAction)`.
+         * Pass `.interactive(false)` for no press.
+         */
+        val ControlCenterTile: Glass = Glass({ GlassStyle.controlCenterTile() }, null, true, GlassInteraction.QuickAction, "ControlCenterTile")
 
         /** A clear magnifier: [magnification] at the centre, easing back to none at the rim (1 to 2.5). */
         fun Lens(magnification: Float = 1.4f): Glass {

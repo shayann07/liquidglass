@@ -41,7 +41,7 @@ internal static class LensChecks
             Check(Math.Abs(lens["uBevel"][0] - 2.4f) < 1e-5f && lens["uRefractDepth"][0] == 28 && Math.Abs(lens["uRefractBand"][0] - 54) < 1e-4f, "dp terms did not scale");
             Check(lens["uSpecular"][0] == .28f && lens["uFresnel"][0] == .02f && lens["uCounterLight"][0] == .35f && lens["uProfile"][0] == 3, "Preset values");
             Check(Math.Abs(lens["uTint"][3] - 4f / 255) < 1e-7f && lens["uTint"][0] == 1, "Preset tint");
-            Check(lens["uLight"].SequenceEqual(new[] { -.35f, -.94f }), "Preset light");
+            Check(lens["uLight"].SequenceEqual(new[] { 0f, -1f }), "Preset light");
             Check(bare["uBevel"][0] == 2 && bare["uSpecular"][0] == 0 && bare["uTint"][3] == 0, "The bare set changed");
             Throws<ArgumentOutOfRangeException>(() => GlassPainter.ClearLensUniforms(effect, 180, 180, 2, 1.4f, 0));
         }

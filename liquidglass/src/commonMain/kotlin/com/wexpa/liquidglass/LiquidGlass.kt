@@ -322,8 +322,6 @@ internal fun Modifier.liquidGlassCore(
     /** Exclude the linked accessory silhouette from its own sampled bar recording. */
     clipThroughToBounds: Boolean = false,
 ): Modifier = composed {
-    @Suppress("NAME_SHADOWING")
-    val light = style.litFrom(light)
     val glassLayer = rememberGraphicsLayer()
     val endpointLayer = rememberGraphicsLayer()
     val contentLayer = rememberGraphicsLayer()
@@ -365,6 +363,7 @@ internal fun Modifier.liquidGlassCore(
         pullLiftShare = interaction?.pullLiftShare ?: 1f,
         freeGlow = interaction?.pullShape == GlassPullShape.Free,
         moveThreshold = 4f * density.density,
+        quickAction = interaction?.quickAction == true,
     )
     val direction = LocalLayoutDirection.current
     val measured = Size(layoutSize.width.toFloat(), layoutSize.height.toFloat())
@@ -432,6 +431,8 @@ internal fun Modifier.liquidGlassCore(
             else pressSource?.downStiffness?.takeIf { it > 0f }?.let {
                 androidx.compose.animation.core.spring<Float>(dampingRatio = 1f, stiffness = it)
             } ?: GlassMotion.CalmDown
+        } else if (pressDown && interaction?.quickAction == true) {
+            GlassMotion.QuickActionDown
         } else if (pressDown) {
             if (sizeMix >= 1f) GlassMotion.CalmDown else if (growthPx > 0f) GlassMotion.BalloonDown else GlassMotion.PressDown
         } else GlassMotion.PressUp,
@@ -700,6 +701,7 @@ internal fun Modifier.liquidGlassCore(
                         touchY = press.y,
                         touchAmount = press.amount * (interaction?.illumination ?: 0f),
                         pressGrade = GlassPressGrade * press.still * (interaction?.illumination ?: 0f),
+                        pressWhite = if (interaction?.quickAction == true) GlassQuickActionWhite * press.amount else 0f,
                         materialize = materialize.coerceIn(0f, 1f),
                         frost = state.frost,
                         contrast = state.contrast,
@@ -1491,6 +1493,8 @@ internal data class GlassUniforms(
     val touchAmount: Float,
     /** [GlassPressGrade] times the still share and the illumination: the directional grade of a still press (#114). */
     val pressGrade: Float = 0f,
+    /** The share the body is mixed toward white by: [GlassQuickActionWhite] times the glow of a quick-action press, else exactly 0. */
+    val pressWhite: Float = 0f,
     val materialize: Float,
     val frost: Float,
     val contrast: Float,
@@ -1533,7 +1537,7 @@ internal data class GlassUniforms(
             fieldRange == other.fieldRange && fieldScale == other.fieldScale &&
             field === other.field &&
             touchX == other.touchX &&
-            touchY == other.touchY && touchAmount == other.touchAmount && pressGrade == other.pressGrade &&
+            touchY == other.touchY && touchAmount == other.touchAmount && pressGrade == other.pressGrade && pressWhite == other.pressWhite &&
             materialize == other.materialize && frost == other.frost &&
             contrast == other.contrast && debugCoverage == other.debugCoverage &&
             fresnel == other.fresnel && highlightChroma == other.highlightChroma &&

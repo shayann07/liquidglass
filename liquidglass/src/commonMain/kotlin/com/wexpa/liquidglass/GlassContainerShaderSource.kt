@@ -396,7 +396,7 @@ half4 main(float2 coord) {
     half3 soft = sharp;
     float contrast = 0.0;
     if (detailWeight > 0.0) {
-        half3 detailCopy = (uDetailCross >= 0.5) ? detailAt(coord + push, uBlur * e) : blurredAt(coord + push, uBlur * e, rot);
+        half3 detailCopy = (uDetailCross >= 0.5) ? detailAt(coord + push, uBlur) : blurredAt(coord + push, uBlur * e, rot);
         soft = (detailWeight < 1.0) ? mix(sharp, detailCopy, half(detailWeight)) : detailCopy;
         // Local contrast, as in the panel shader: the rim sample and the interior sample bracket the backdrop's high
         // frequencies, so their luma difference stands in for text scrolling underneath (legibility term below).
@@ -416,7 +416,9 @@ half4 main(float2 coord) {
     // The measured material, lin = B + k (D - B) + c |D - B|; see the panel shader.
     half3 wide = bg;
     if (uWideStrip >= 1.0) {
-        wide = wideAt(coord);
+        // The lab material reads B at the refracted point, where D is read (see GlassShaderSource, #97).
+        float wideShift = (uDetailCross >= 0.5 && detailWeight > 0.0) ? 1.0 - smoothstep(0.0, 0.5, n.y) : 0.0;
+        wide = wideAt(coord + push * wideShift);
         half3 detail = bg - wide;
         bg = wide + detail * half(clamp(uFineShare, 0.0, 1.0)) + abs(detail) * half(clamp(uDetailLift, -1.0, 1.0));
     }

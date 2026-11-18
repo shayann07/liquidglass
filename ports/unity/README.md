@@ -46,7 +46,7 @@ glass.light = new Vector2(0, -1);   // iOS 27's measured overhead light
 | `radius` | 20 | corner radius in dp, clamped to half the shorter side |
 | `dark` | false | the dark material |
 | `tintAmount` | 50 | 0 to 100 |
-| `light` | (-0.35, -0.94) | toward the light |
+| `light` | (0, -1) | toward the light |
 | `useTint`, `tint` | off | replace the tint; alpha is its opacity |
 | `materialize`, `reducedTransparency`, `increasedContrast` | 1, 0, 0 | 0 to 1 |
 | `density` | 0 | device pixels per dp; 0 uses `Screen.dpi / 160` |
