@@ -1,3 +1,7 @@
+## RESUME HERE (18 November): #112 search mode, branch `p3/112` (local)
+
+- Compose search mode is in `GlassSearch.kt` with tests; docs updated. Next: wire it into the sample's Phone scene, a replay variant and scorer, ABI dump, owner review of the end state (no circle) and of the authored motion.
+
 ## RESUME HERE (18 November): #206 Control Center tile, PR open
 
 - `feat/206-control-center`: `GlassStyle.chromaGain` and `controlCenterTile(active)`, tests green, ABI dump regenerated (additions only).

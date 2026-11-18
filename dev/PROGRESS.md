@@ -1,3 +1,7 @@
+## 18 November 2026 - #112 search mode (Claude, Sonnet builder, branch `p3/112`, not pushed)
+
+- `GlassSearch.kt`: `GlassSearchState`, `rememberGlassSearchState`, `GlassTabBar(..., searchState, searchField)` overload, `glassSearchRects` geometry. End state measured on frame 40.5 s of the iOS 27 sample reference (field 47.7 dp, close 47.1 dp, gap 9.2 dp; no collapsed circle in the end state); transition authored. Tests: `GlassTabBarSearchModeTest`. Open: sample wiring, IME inset, Android back, Material 3 wrapper, ports, a 60 fps scoring.
+
 ## 18 November 2026 - controls bundle #205 #204 #207 (Claude, Sonnet writer)
 
 - `feat/205-204-207-controls`: #205 switch and slider geometry and timing (partial: colours, native thumb), #204 `GlassStyle.menu(dark)` with DropdownMenu on it (held-out Photos context menu still 10-18 levels off, pinned), #207 `Modifier.glassScrollEdge` (partial: sample scene, collapse timing, device frame times).

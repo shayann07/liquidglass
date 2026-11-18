@@ -1,3 +1,7 @@
+## #112 search mode (18 November, `p3/112`)
+
+- [x] State, geometry (measured end state), expansion transition (authored), tests, docs. [ ] sample wiring, IME ride-up, Android back, Material 3 `NavigationBar`, ports, replay and `search112.py` scoring, 60 fps scoring of the motion.
+
 ## Controls bundle (18 November, `feat/205-204-207-controls`)
 
 - [x] #205 geometry and timing; [ ] track colours, native thumb, light switch, drag stretch.
