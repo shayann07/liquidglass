@@ -55,7 +55,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.Shape
@@ -151,7 +154,7 @@ fun GlassTabBar(
     trailingAccessory: GlassTabBarAccessory? = null,
     item: @Composable (index: Int, selected: Boolean) -> Unit,
 ) {
-    GlassPortal(modifier) { state ->
+    GlassPortal(modifier, aboveLink = if (trailingAccessory?.yieldsToLens == true) trailingAccessory.link else null) { state ->
         GlassTabBar(state, itemCount, selectedIndex, onSelected, Modifier, style, motionEnabled, materialize,
             trailingAccessory, item = item)
     }
@@ -214,6 +217,16 @@ internal fun GlassTabBar(
         contrast = state.contrast,
     )
     trailingAccessory?.link?.barState = barState
+
+    // #107: a held lens that reaches over a yielding accessory looks through the bar and the accessory's own glass.
+    val reachesAccessory = trailingAccessory?.yieldsToLens == true && trailingAccessory.link != null
+    val accessoryLink = trailingAccessory?.link
+    androidx.compose.runtime.SideEffect { accessoryLink?.captured = reachesAccessory }
+    val lensThrough = if (reachesAccessory) remember(barState) {
+        LiquidGlassState(barState.background, barState.inversion, barState.frost, barState.contrast, barState.renderScale)
+    } else null
+    val lensThroughLayer = if (reachesAccessory) androidx.compose.ui.graphics.rememberGraphicsLayer() else null
+    val glassRegion = LocalGlassRegion.current
 
     // The keyboard focus ring (#117) is drawn over everything the bar draws, the selector included:
     // drawn on the interactive row it sat under the pill or lens of the selected tab.
@@ -1265,6 +1278,11 @@ internal fun GlassTabBar(
                         // below already does, then take the size that was asked for.
                         .wrapContentSize(Alignment.TopStart, unbounded = true)
                         .size(width = envelopeDp, height = nodeHeightDp)
+                        .then(if (lensThrough != null && lensThroughLayer != null && accessoryLink != null) {
+                            Modifier.drawBehind {
+                                recordLensThrough(lensThrough, lensThroughLayer, barState, accessoryLink, glassRegion?.root)
+                            }
+                        } else Modifier)
                         .liquidGlassCore(
                             state = state,
                             shape = selectorShape,
@@ -1278,7 +1296,7 @@ internal fun GlassTabBar(
                             materialize = materialize,
                             pressSource = press,
                             refractContent = lensCarriesInk,
-                            through = barState,
+                            through = lensThrough ?: barState,
                             // The bar keeps its own outline. The node's declared envelope
                             // accommodates held growth and Calm's rounded moving taps.
                             fuse = lensAccessoryFuse,
@@ -2736,4 +2754,33 @@ private fun Modifier.glassInkLift(amount: Float): Modifier = if (amount <= 0f) t
         drawContent()
         canvas.restore()
     }
+}
+
+/**
+ * The recording a held lens beside a yielding accessory looks through (#107): the bar's own rendering, and over it the
+ * accessory glass's, so the lens over the button refracts the button. Same frame as the bar's source.
+ */
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.recordLensThrough(
+    into: LiquidGlassState,
+    layer: androidx.compose.ui.graphics.layer.GraphicsLayer,
+    bar: LiquidGlassState,
+    link: GlassAccessoryLink,
+    root: androidx.compose.ui.layout.LayoutCoordinates?,
+) {
+    val barLayer = bar.layer ?: return
+    val coords = bar.sourceCoordinates ?: return
+    if (barLayer.isReleased) return
+    val button = link.capture?.takeIf { !it.isReleased }
+    val origin = if (button != null && root != null && root.isAttached && coords.isAttached) {
+        link.captureOrigin - root.localPositionOf(coords, Offset.Zero)
+    } else null
+    layer.record(size = barLayer.size) {
+        drawLayer(barLayer)
+        if (button != null && origin != null) {
+            translate(origin.x, origin.y) { drawLayer(button) }
+        }
+    }
+    into.layer = layer
+    into.sourceCoordinates = coords
+    into.sourceSize = bar.sourceSize
 }

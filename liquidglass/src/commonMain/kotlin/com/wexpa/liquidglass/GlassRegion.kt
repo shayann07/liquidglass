@@ -229,6 +229,26 @@ internal class GlassRegion(val state: LiquidGlassState) {
      * as in an ordinary layout, and a dialog opened later draws over everything before it.
      */
     val layers = mutableStateListOf<Any>()
+
+    /**
+     * [layers] in the order they draw: composition order, except that a portal with an [GlassPortalEntry.aboveLink]
+     * draws right after the glass that publishes that link (#107: the tab bar over its own search button, so a held
+     * lens leaning past the bar's end draws over the button). Everything else, a dialog opened later included, keeps
+     * its place over both.
+     */
+    fun drawOrder(): List<Any> {
+        val raised = layers.filter { l ->
+            l is GlassPortalEntry && l.aboveLink != null && layers.any { it is GlassOverlayEntry && it.link === l.aboveLink }
+        }
+        if (raised.isEmpty()) return layers.toList()
+        val out = ArrayList<Any>(layers.size)
+        for (l in layers) {
+            if (l in raised) continue
+            out += l
+            if (l is GlassOverlayEntry && l.link != null) for (r in raised) if ((r as GlassPortalEntry).aboveLink === l.link) out += r
+        }
+        return out
+    }
 }
 
 /**
@@ -295,7 +315,7 @@ internal class GlassOverlayEntry(
 @Composable
 private fun GlassOverlay(region: GlassRegion, modifier: Modifier) {
     Box(modifier) {
-        for (layer in region.layers) key(layer) {
+        for (layer in region.drawOrder()) key(layer) {
             when (layer) {
                 is GlassOverlayEntry -> OverlayGlass(region, layer)
                 is GlassPortalEntry -> PortalContent(region, layer)
@@ -306,6 +326,7 @@ private fun GlassOverlay(region: GlassRegion, modifier: Modifier) {
 
 @Composable
 private fun OverlayGlass(region: GlassRegion, entry: GlassOverlayEntry) {
+    val captureLayer = rememberGraphicsLayer()
     val flashAlpha = remember { Animatable(1f) }
     var lastAnimatedPress by remember { mutableIntStateOf(0) }
     val isNewPress = entry.press.pressCount != lastAnimatedPress && entry.press.isPressed
@@ -326,6 +347,21 @@ private fun OverlayGlass(region: GlassRegion, entry: GlassOverlayEntry) {
                 val h = b.height.roundToInt().coerceAtLeast(0)
                 val placeable = measurable.measure(Constraints.fixed(w, h))
                 layout(w, h) { placeable.place(b.left.roundToInt(), b.top.roundToInt()) }
+            }
+            // #107: an accessory whose bar's lens reaches over it keeps its own rendering in a layer the lens reads.
+            .drawWithContent {
+                val link = entry.link
+                val keep = link != null && link.captured && !entry.disposed
+                if (keep && !captureLayer.isReleased) {
+                    captureLayer.record { this@drawWithContent.drawContent() }
+                    link!!.capture = captureLayer
+                    val b = entry.drawn
+                    link.captureOrigin = Offset(b.left.roundToInt().toFloat(), b.top.roundToInt().toFloat())
+                    drawLayer(captureLayer)
+                } else {
+                    if (link != null && link.capture === captureLayer) link.capture = null
+                    drawContent()
+                }
             }
             .drawWithContent {
                 val b = entry.drawn
