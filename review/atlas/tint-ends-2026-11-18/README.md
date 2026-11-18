@@ -12,8 +12,8 @@ Zone luma in the pill's interior over flat grey 0 / 128 / 255 (jvmTest render), 
 | :-- | :-- | :-- | :-- |
 | dark Tint 0 | 35.0 / 93.0 / 150.0 | 32.0 / 134.0 / 185.0 | 31.9 / 134.0 / 184.6 |
 | dark Tint 100 | 35.0 / 83.0 / 130.0 | 32.0 / 82.0 / 108.0 | 32.5 / 83.0 / 108.3 |
-| light Tint 0 | 141.0 / 198.0 / 255.0 | 102.7 / 182.0 / 255.0 | 103.1 / 183.2 / 252.7 (white end clipped) |
-| light Tint 100 | 170.0 / 213.0 / 255.0 | 180.0 / 220.0 / 255.0 | 179.4 / 220.5 / 253.7 (clipped) |
+| light Tint 0 | 141.0 / 198.0 / 255.0 | 102.7 / 182.0 / 255.0 | 103.1 / 179.9 / 252.7 (white end clipped) |
+| light Tint 100 | 170.0 / 213.0 / 255.0 | 180.0 / 220.0 / 255.0 | 179.4 / 217.2 / 253.7 (clipped) |
 
 Provenance: the fit is **measured** (`research/datasets/mac-rig/captures/C1a-*`: iPhone 13, iOS 27, 1170 x 2532, lossless
 SDR; rms 1.40 / 2.20 / 1.29 / 2.07 levels against 15.98 / 24.79 / 10.75 / 5.63 for the earlier authored values on the same
@@ -23,5 +23,5 @@ Tint 50 is the Safari-lab fit and unchanged.
 Limits: the fit pools two elements (the Today pill and the toolbar capsule) from one backdrop family (stripes, a hard split,
 flat anchors); the scores are Python forward-model scores, not shader renders; the light white end is clipped, so its slope is
 not identifiable; the 2 px detail, the rim and colour at Tint 0 and 100 were not measured. The table is a render of flat
-greys against the fit's curve: a regression check, not a comparison with a capture and not owner acceptance. The light fit
-column at 128 is computed from the fitted T0, T1 and bow in the plan; the dark ones likewise.
+greys against the fit's curve: a regression check, not a comparison with a capture and not owner acceptance. The fit column at 128 is computed from the fitted T0, T1 and bow. The light renders sit 2.1 and 2.8 levels above it at 128: the light fit's
+clipped white end and its small bow are not in the style (light bow 0, white end 255), within the fit's own 2.2 rms.
