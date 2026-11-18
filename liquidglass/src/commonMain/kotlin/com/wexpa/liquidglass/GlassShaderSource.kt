@@ -371,7 +371,10 @@ half4 main(float2 coord) {
     float2 p = local - halfSize;
 
     float d = sdShape(p, halfSize);
-    float coverage = 1.0 - smoothstep(-0.75, 0.75, d);
+    // A one-pixel box ramp across the outline: iOS 27 covers its outermost pixel fully and its AA spans 1.00 px
+    // (Safari lab circles and capsules, m202c, 0.017 rms). The earlier 1.5 px smoothstep let 2/27 of the backdrop
+    // into the outermost pixel, dimming the rim there and tying it to the backdrop.
+    float coverage = clamp(0.5 - d, 0.0, 1.0);
     // The contour outside the outline (GlassStyle.outerContour): about 1.5 px wide, centred
     // 0.25 px outside, so the outermost wholly covered pixel is untouched, as measured.
     float outerBand = (uOuterContour.x > 0.0) ? clamp(1.0 - abs(d - 0.25) / 0.75, 0.0, 1.0) : 0.0;
@@ -747,7 +750,7 @@ half4 main(float2 coord) {
     // dark outermost pixel to its peak and falling over three more.
     float peakAt = clamp(uBevelPeak, 0.0, 0.9) * uBevel;
     // The measured resting chamfer (#202): iOS 27 lights every resting control with one rim curve, steeper than a
-    // full-bevel smoothstep. Its band ends at 0.8 of the bevel and starts 0.15 of it outside the outline, so the first
+    // full-bevel smoothstep. Its band ends at 0.835 of the bevel and starts 0.2 of it outside the outline, so the first
     // pixels keep their level while 1-3 px inside fall to the measured +46 / +31 / +12 (Safari lab pill and Photos
     // circles, m202; fitted with the resting glow, overhead light, on the iOS 27 rim: bevel 1.6 dp, specular 0.27,
     // power 2.6). It applies only to resting glass that draws the 2026 outer contour, the styles it was fitted on;
@@ -755,7 +758,7 @@ half4 main(float2 coord) {
     float measuredRest = measured * (1.0 - step(1.5, uProfile));
     float chamfer = measuredRest * step(0.0001, uOuterContour.x);
     float bevelBand = (peakAt < 0.5)
-        ? smoothstep(mix(1.0, 0.8, chamfer) * uBevel, -0.15 * chamfer * uBevel, depth)
+        ? smoothstep(mix(1.0, 0.835, chamfer) * uBevel, -0.201 * chamfer * uBevel, depth)
         : smoothstep(0.0, peakAt, depth) * smoothstep(uBevel, peakAt, depth);
 
     // The faint dark line that reads as thickness, sitting just inside the bevel rather than on
@@ -829,8 +832,9 @@ half4 main(float2 coord) {
         * step(0.95 * halfSize.y, minRadius) * step(0.0001, uSpecular);
     float capRim = 1.0 - 0.2 * capRimGate * clamp((2.0 * halfSize.y - (halfSize.x - abs(p.x))) / (1.6 * halfSize.y), 0.0, 1.0);
     // The round button drawn with that bar's style peaks at 96 where its bar's runs reach 100 (IMG_6756 34.2 s); ours
-    // reached 104 with the same rim, so a round piece under the lobe gate draws 0.89 of it. Authored fit.
-    capRim *= 1.0 - 0.11 * rimLobeGate * (1.0 - step(2.0 * halfSize.y, halfSize.x));
+    // reached 104 with the same rim (98 after the bar's specular came down), so a round piece under the lobe gate
+    // draws 0.97 of it. Authored fit.
+    capRim *= 1.0 - 0.03 * rimLobeGate * (1.0 - step(2.0 * halfSize.y, halfSize.x));
     float highlight = ((key + counter) * uSpecular
         + edgeLine * uSpecular * uEdgeLight
         + fresnel * uFresnel * bevelBand
