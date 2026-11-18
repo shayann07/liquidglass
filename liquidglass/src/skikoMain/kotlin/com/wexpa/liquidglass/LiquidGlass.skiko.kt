@@ -100,6 +100,7 @@ internal actual fun createGlassRenderEffect(
     builder.uniform("uTouch", uniforms.touchX, uniforms.touchY)
     builder.uniform("uTouchAmt", uniforms.touchAmount)
     builder.uniform("uPressGrade", uniforms.pressGrade)
+    builder.uniform("uPressWhite", uniforms.pressWhite)
     builder.uniform("uMaterialize", uniforms.materialize)
     builder.uniform("uFrost", uniforms.frost)
     builder.uniform("uContrast", uniforms.contrast)

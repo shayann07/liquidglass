@@ -6,6 +6,18 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Quick-action press and Control Center tile (#113 item 128, #206). New, additive: `GlassInteraction.QuickAction` (the press of iOS's round
+  quick-action buttons) and `Glass.ControlCenterTile` (`GlassStyle.controlCenterTile()` with that press, interactive as it stands).
+  Pressed, the body grows to 1.60 times its size with a spring that overshoots to 1.69 (damping 0.53, stiffness 300) and its glass mixes
+  toward white by 0.51 of the way (a straight 125 ms rise, dropping at the lift); released it returns through 1.0 to 0.90 (damping
+  0.49, stiffness 490). **Measured** on the lock-screen flashlight button, `IMG_6667.MP4` (58 pt; one tap, one 1.9 s hold; display
+  colours): held 1.605, peak 1.694 at 0.19 s, release minimum 0.90 at 0.16 s, body 18 to 137 over black (share of the way to white
+  0.502) and 133 to 197 over a 125 stripe band (0.525), 0.51 for both within 2 levels; the release spring fits the hold and the tap
+  alike (rms 0.003 of the radius), the way down at rms 0.015. **Authored**: other sizes, the light appearance, a moved or cancelled
+  press, and that the Control Center circles (not recorded pressed) take the lock-screen press. New shader uniform `uPressWhite`,
+  exactly 0 for every other glass (the term sits behind `if (uPressWhite > 0.0)` and the host passes the literal 0 unless the
+  interaction is a quick action); merged-glass containers have no touch term and do not draw it. Scored by `GlassQuickActionPressTest`.
+  - Default look changed: none. Nothing uses the preset unless asked: `Glass.interactive()` is still `Fluid`.
 - Pressed glass is lit directionally, and the search button's glow settles once dragged (#114, item 130). A pressed, still
   body is brighter toward the light and darker away from it (a plane of 0.085 levels per px along (-0.49, -0.87) on iOS's held
   search button, IMG_6756, three still readings: `GlassPressGrade` 0.038 of full scale at the half short side, **measured** on

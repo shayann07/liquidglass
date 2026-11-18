@@ -2,6 +2,7 @@ package com.wexpa.liquidglass
 
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.CubicBezierEasing
@@ -207,6 +208,24 @@ data class GlassInteraction(
          * and the glow stays at half strength — the feedback survives, the elasticity does not.
          */
         val ReducedMotion = GlassInteraction(pressScale = 1f, illumination = 0.5f, pressLift = 0f, gel = false, pull = false)
+        /**
+         * The press of iOS's round quick-action buttons (the Control Center and lock-screen controls: flashlight, camera, timer).
+         * Pressed, the body grows to 1.60 times its size, overshooting to about 1.69 on the way (a spring of damping 0.53 and
+         * stiffness 300), and the glass mixes toward white by 0.51 of the way (rising linearly over 125 ms and dropping at the
+         * lift, as iOS's does); released, it returns through 1.0 to about 0.90 and settles (damping 0.49, stiffness 490). It does
+         * not follow the finger and has no touch glow: the white is the whole lightening.
+         *
+         * **Measured** on the lock-screen flashlight button, 58 pt across: `IMG_6667.MP4` (HDR decode, edge fit of the lit disc,
+         * one tap and one 1.9 s hold; `review/atlas/flashlight-press-2026-11-18`, `review/atlas/quick-action-press-2026-11-19`).
+         * The Control Center circles are the same control and take the same press, but their own press was not recorded.
+         * **Authored**: the scale and the white share on other sizes (the 1.60 is a ratio; the measurement is one button size), the light
+         * appearance, and a press that is moved or cancelled (the finger's travel is ignored). Pass it to [Glass.interactive], or
+         * take [Glass.ControlCenterTile], which carries it.
+         */
+        val QuickAction = GlassInteraction(
+            pressScale = GlassQuickActionScale, illumination = 0f, pressLift = 0f, gel = false, pull = false,
+            releaseStiffness = GlassQuickActionReleaseStiffness, releaseDamping = GlassQuickActionReleaseDamping,
+        )
     }
 }
 
@@ -219,6 +238,23 @@ data class GlassInteraction(
  * provisional until a still press over two different pages is scored (#114).
  */
 internal const val GlassPressGrade = 0.038f
+
+/**
+ * [GlassInteraction.QuickAction]'s constants, from the lock-screen flashlight button (`IMG_6667`, 58 pt, display colours; scripts
+ * `.local/sxs/cc206b/press.py`, `press2.py`). The held radius is 1.605 of rest and the hold's peak 1.694 (the tap's 1.648, lifted
+ * 0.17 s in). The release is a spring from the held size to rest fitted on the lift of the hold and of the tap alike (0.49 and
+ * 490, rms 0.003 and 0.003 of the radius; the tap, which starts from 1.648, returns by the same spring); the way down is fitted
+ * on the hold (0.53 and 300, rms 0.015). The white share is the pressed body's rise over the rest body's room to white: 0.502
+ * over the black band (18 to 137) and 0.525 over the stripe band (133 to 197), 0.51 for both within 2 levels.
+ */
+internal const val GlassQuickActionScale = 1.60f
+internal const val GlassQuickActionReleaseStiffness = 490f
+internal const val GlassQuickActionReleaseDamping = 0.49f
+internal const val GlassQuickActionWhite = 0.51f
+
+/** A quick-action press ([GlassInteraction.QuickAction]): recognised by its press scale and release spring, so a copy keeps it. */
+internal val GlassInteraction.quickAction: Boolean
+    get() = !pull && pressScale == GlassQuickActionScale && releaseStiffness == GlassQuickActionReleaseStiffness
 
 /** Internal corrections for the existing free-button role; no constructor or copy ABI changes. */
 internal val GlassInteraction.pressFlash: Boolean get() = pull && pullShape == GlassPullShape.Free
@@ -260,6 +296,17 @@ internal object GlassMotion {
 
     /** Geometry during a morph: no visible overshoot on a large surface. */
     val Morph = spring<Float>(dampingRatio = 0.82f, stiffness = 380f)
+
+    /** [GlassInteraction.QuickAction]'s way down: the hold of IMG_6667, fitted 0.53 and 300 (peak 1.69 at 0.2 s, held 1.60). */
+    val QuickActionDown = spring<Float>(dampingRatio = 0.53f, stiffness = 300f)
+
+    /**
+     * [GlassInteraction.QuickAction]'s white: the body level of IMG_6667's two presses rises from 18 to 137 in a straight
+     * line over 125 ms (21 frames, rms 3.7 of 119 levels; ease-out and ease-in-out curves score worse, 3.9 and 5.1), and is
+     * back at rest on the first frame after the lift, at the release's full size, so it drops at once.
+     */
+    val QuickActionGlowIn = tween<Float>(durationMillis = 125, easing = androidx.compose.animation.core.LinearEasing)
+    val QuickActionGlowOut = snap<Float>()
 
     /** The glow rises fast enough to feel instant. */
     val GlowIn = tween<Float>(durationMillis = 90)
@@ -366,6 +413,8 @@ internal fun rememberGlassPress(
     freeGlow: Boolean = false,
     /** px past which the finger has moved for [pullLiftShare]. */
     moveThreshold: Float = Float.POSITIVE_INFINITY,
+    /** [GlassInteraction.QuickAction]: the glow rises linearly over 125 ms and drops at the lift. */
+    quickAction: Boolean = false,
 ): Pair<GlassPress, Modifier> {
     if (!enabled) return GlassPress.None to Modifier
 
@@ -383,7 +432,8 @@ internal fun rememberGlassPress(
             targetValue = if (!source.isPressed) 0f else if (shareMoved) pullLiftShare.coerceIn(0f, 1f) else 1f,
             animationSpec = when {
                 source.isPressed && shareMoved -> GlassMotion.FreeGlow
-                source.isPressed -> GlassMotion.GlowIn
+                source.isPressed -> if (quickAction) GlassMotion.QuickActionGlowIn else GlassMotion.GlowIn
+                quickAction -> GlassMotion.QuickActionGlowOut
                 freeGlow -> GlassMotion.FreeGlow
                 else -> GlassMotion.GlowOut
             },
@@ -412,7 +462,8 @@ internal fun rememberGlassPress(
         targetValue = if (!down) 0f else if (moved) pullLiftShare.coerceIn(0f, 1f) else 1f,
         animationSpec = when {
             down && moved -> GlassMotion.FreeGlow
-            down -> GlassMotion.GlowIn
+            down -> if (quickAction) GlassMotion.QuickActionGlowIn else GlassMotion.GlowIn
+            quickAction -> GlassMotion.QuickActionGlowOut
             freeGlow -> GlassMotion.FreeGlow
             else -> GlassMotion.GlowOut
         },
