@@ -120,3 +120,35 @@ export function inAppMaterialUniforms(effects, {width,height,pad=2,radius=20,den
   if(tintColor)values.uTint=tintColor.map(x=>Math.round(x*255)/255);
   return values;
 }
+
+/**
+ * The Compose clear lens, GlassStyle.clearLens, as shader uniforms: what `Glass.Lens(magnification)` binds, so a
+ * free-standing lens has its rim, thin tint and highlight without a host binding them by hand. Authored in
+ * Compose ("not an Apple calibration"), not measured: the values are GlassStyle.clearLens's, and every other
+ * term is GlassStyle's default, as LiquidGlass.kt binds it. `clearMaterialUniforms` stays the bare magnifier.
+ * Lengths are device pixels; `density` converts the dp terms (bevel 1.2 dp, refraction depth 14 dp).
+ * `light` ([x, y], toward the light, y up negative) defaults to GlassLight.Default. `contactShadow` is the host
+ * term (0.15 of glassShadow's alpha), which the painter draws under the lens.
+ */
+export const CLEAR_LENS = Object.freeze({
+  bevel: 1.2, refractDepth: 14, bevelPeak: 0, specular: .28, specularPower: 6, fresnel: .02, counterLight: .35,
+  edgeLight: 1, tint: [1, 1, 1, .015], contactShadow: .15, highlightChroma: .7, legibility: .6,
+  bandRatio: .6, light: [-.35, -.94],
+});
+export function clearLensUniforms(effects, {width, height, pad = 2, magnification = 1.25, density = 1, light = CLEAR_LENS.light}) {
+  if (![density].every(Number.isFinite) || density <= 0) throw new RangeError('Lens density must be positive');
+  const lightDir = Array.from(light ?? []);
+  if (lightDir.length !== 2 || lightDir.some(x => !Number.isFinite(x))) throw new RangeError('Light requires two finite components');
+  const values = clearMaterialUniforms(effects, {width, height, pad, magnification});
+  const radius = Math.min(width, height) / 2, c = CLEAR_LENS;
+  Object.assign(values, {
+    uProfile: 3, uFormation: 0, uHeldLens: 1, uHeldMagnification: 1 - 1 / magnification, uHeldGlow: 1,
+    uRadii: Array(4).fill(radius), uRefractBand: c.bandRatio * radius, uRefractDepth: c.refractDepth * density,
+    uScale: Math.max(0, Math.min(1, (Math.min(width, height) / density - 56) / 264)),
+    uBevel: c.bevel * density, uBevelPeak: c.bevelPeak, uSpecular: c.specular, uSpecularPow: c.specularPower,
+    uFresnel: c.fresnel, uCounterLight: c.counterLight, uEdgeLight: c.edgeLight, uHiChroma: c.highlightChroma,
+    uLegibility: c.legibility, uAberration: 0, uInnerShadow: 0, uBlur: 0, uWideKernel: 0, uFineShare: 1,
+    uLift: 0, uTint: c.tint.map((x, i) => i === 3 ? Math.round(x * 255) / 255 : x), uLight: lightDir,
+  });
+  return values;
+}

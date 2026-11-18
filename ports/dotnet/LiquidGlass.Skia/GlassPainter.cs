@@ -3,6 +3,14 @@ using SkiaSharp;
 
 namespace LiquidGlass.Skia;
 
+/// <summary>A lens's options. By default (<c>Lighting</c> true) a lens has the Compose clear-lens preset (<c>GlassStyle.clearLens</c>,
+/// what <c>Glass.Lens</c> draws): a rim highlight, a thin white tint and a contact shadow, so a free-standing lens reads as glass over
+/// flat or low-detail content. It is authored in Compose, not an iOS measurement. <c>Lighting</c> false is the bare magnification
+/// map (the lens before 1.1.0). <c>Shadow</c> false skips the contact shadow;
+/// <c>Density</c> is px per dp (the preset's dp terms scale); <c>LightX</c>/<c>LightY</c> point toward the light (y up is negative).</summary>
+public sealed record GlassLensOptions(bool Lighting = true, bool Shadow = true, float Density = 1,
+    float LightX = -.35f, float LightY = -.94f);
+
 /// <summary>A surface's options. <c>LightX</c>/<c>LightY</c> point toward the light (y up is negative):
 /// the default is Compose's <c>GlassLight.Default</c>, as <c>Glass.Regular</c> binds it; (0, -1) is
 /// iOS 27's measured overhead light.</summary>
@@ -67,12 +75,32 @@ public sealed class GlassPainter : IDisposable
         catch { next.Dispose(); throw; }
     }
 
-    public void DrawLens(SKCanvas canvas, SKRect bounds, float magnification = 1.25f)
+    /// <summary>Draw a clear magnifier with the default <see cref="GlassLensOptions"/>: the Compose clear-lens preset. Pass
+    /// <c>new GlassLensOptions(Lighting: false)</c> for the bare magnification map.</summary>
+    public void DrawLens(SKCanvas canvas, SKRect bounds, float magnification = 1.25f) =>
+        DrawLens(canvas, bounds, new GlassLensOptions(), magnification);
+
+    /// <summary>Draw a clear magnifier with <see cref="GlassLensOptions"/>: with <c>Lighting</c> (the default) it is the Compose clear-lens
+    /// preset (rim, thin tint, contact shadow); without it, the bare magnification map.</summary>
+    public void DrawLens(SKCanvas canvas, SKRect bounds, GlassLensOptions options, float magnification = 1.25f)
     {
-        Ready(canvas, bounds);
+        Ready(canvas, bounds); ArgumentNullException.ThrowIfNull(options);
         if (!float.IsFinite(magnification) || magnification < 1 || magnification > 2.5)
             throw new ArgumentOutOfRangeException(nameof(magnification));
-        var values = ClearUniforms(material, bounds.Width, bounds.Height, 2, magnification);
+        if (!float.IsFinite(options.Density) || options.Density <= 0 || !float.IsFinite(options.LightX) || !float.IsFinite(options.LightY))
+            throw new ArgumentOutOfRangeException(nameof(options));
+        var values = options.Lighting
+            ? ClearLensUniforms(material, bounds.Width, bounds.Height, 2, magnification, options.Density, options.LightX, options.LightY)
+            : ClearUniforms(material, bounds.Width, bounds.Height, 2, magnification);
+        if (options.Lighting && options.Shadow)
+        {
+            // GlassStyle.contactShadow on a lens: glassShadow's alpha (0.14) times the style's 0.15, blur and offset sized from the
+            // element, cast by the lens body and kept off the lens itself.
+            var size = Math.Clamp((Math.Min(bounds.Width, bounds.Height) / options.Density - 56) / 264, 0, 1);
+            var radius = Math.Min(bounds.Width, bounds.Height) / 2;
+            DrawShadow(canvas, new Shadow(bounds, radius, 0, 1, 18 * (.6f + .6f * size) * options.Density, 4 * (.5f + .9f * size) * options.Density, bounds),
+                .14f * ClearLens.ContactShadow, true, radius);
+        }
         var origin = new SKPoint(bounds.Left - 2, bounds.Top - 2);
         using var shader = source!.ToShader(SKShaderTileMode.Clamp, SKShaderTileMode.Clamp, Sampling,
             SKMatrix.CreateTranslation(-origin.X, -origin.Y));
@@ -352,7 +380,7 @@ public sealed class GlassPainter : IDisposable
     private static float Sigma(float radius) => radius > 0 ? .57735f * radius + .5f : 0;
 
     // A contact shadow: the caster's rounded rect in black at `alpha`, blurred and moved down (device px).
-    private static void DrawShadow(SKCanvas target, Shadow s, float alpha, bool outsideBar = false)
+    private static void DrawShadow(SKCanvas target, Shadow s, float alpha, bool outsideBar = false, float? clipRadius = null)
     {
         if (!(alpha > 0)) return;
         using var blur = s.Blur > .01f ? SKImageFilter.CreateBlur(Sigma(s.Blur), Sigma(s.Blur), SKShaderTileMode.Decal) : null;
@@ -360,7 +388,8 @@ public sealed class GlassPainter : IDisposable
         target.Save();
         if (outsideBar)
         {
-            using var bar = new SKRoundRect(s.Bar, s.Bar.Height / 2, s.Bar.Height / 2);
+            var corner = clipRadius ?? s.Bar.Height / 2;
+            using var bar = new SKRoundRect(s.Bar, corner, corner);
             target.ClipRoundRect(bar, SKClipOperation.Difference, true);
         }
         var r = s.Rect; r.Offset(0, s.Offset);
@@ -404,6 +433,28 @@ public sealed class GlassPainter : IDisposable
         Set(v, "uHeldMagnification", 1 - 1 / magnification); Set(v, "uFineShare", 1); Set(v, "uWideScale", .25f);
         Set(v, "uTouch", width / 2, height / 2); Set(v, "uMaterialize", 1);
         Set(v, "uPoseA", 1, 0, 0, 1); Set(v, "uPoseAInv", 1, 0, 0, 1); Set(v, "uPoseD", 1, 1, 1, 0); Set(v, "uPoseE", 0, 3, 0, 0);
+        return v;
+    }
+
+    /// <summary>The Compose clear lens (<c>GlassStyle.clearLens</c>) as uniforms: what <c>Glass.Lens(magnification)</c> binds.
+    /// <see cref="ClearUniforms"/> stays the bare magnifier. Lengths are device px; <paramref name="density"/> converts the dp
+    /// terms. Authored in Compose, not measured.</summary>
+    public static Dictionary<string, float[]> ClearLensUniforms(GlassEffectPass effect, float width, float height, float pad = 2,
+        float magnification = 1.25f, float density = 1, float lightX = ClearLens.LightX, float lightY = ClearLens.LightY)
+    {
+        if (!float.IsFinite(density) || density <= 0 || !float.IsFinite(lightX) || !float.IsFinite(lightY))
+            throw new ArgumentOutOfRangeException(nameof(density));
+        var v = ClearUniforms(effect, width, height, pad, magnification);
+        var radius = Math.Min(width, height) / 2;
+        Set(v, "uProfile", 3); Set(v, "uFormation", 0); Set(v, "uHeldLens", 1); Set(v, "uHeldGlow", 1);
+        Set(v, "uRadii", Enumerable.Repeat(radius, 4).ToArray()); Set(v, "uRefractBand", ClearLens.BandRatio * radius);
+        Set(v, "uRefractDepth", ClearLens.RefractDepth * density);
+        Set(v, "uScale", Math.Clamp((Math.Min(width, height) / density - 56) / 264, 0, 1));
+        Set(v, "uBevel", ClearLens.Bevel * density); Set(v, "uBevelPeak", 0); Set(v, "uSpecular", ClearLens.Specular);
+        Set(v, "uSpecularPow", 6); Set(v, "uFresnel", ClearLens.Fresnel); Set(v, "uCounterLight", ClearLens.CounterLight);
+        Set(v, "uEdgeLight", 1); Set(v, "uHiChroma", .7f); Set(v, "uLegibility", .6f); Set(v, "uAberration", 0);
+        Set(v, "uInnerShadow", 0); Set(v, "uBlur", 0); Set(v, "uWideKernel", 0); Set(v, "uFineShare", 1); Set(v, "uLift", 0);
+        Set(v, "uTint", 1, 1, 1, MathF.Round(ClearLens.TintAlpha * 255) / 255); Set(v, "uLight", lightX, lightY);
         return v;
     }
 

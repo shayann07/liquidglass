@@ -34,14 +34,15 @@ val ColourTransferSwatches: List<Pair<String, Color>> = listOf(
  * with a Regular pill (Tint 50, the default) at its centre, in the [dark] or light appearance. The pill
  * holds no content, so its interior shows the material alone: the measured colour transfer keeps and
  * boosts each band's chroma and leaves the grey band at the grey tone. Nothing here depends on time.
+ * [glass] replaces the pills' material, e.g. `Glass(GlassStyle.controlCenterTile())` for the #206 device check.
  */
 @Composable
-fun ColourTransferScene(dark: Boolean, modifier: Modifier = Modifier) {
+fun ColourTransferScene(dark: Boolean, modifier: Modifier = Modifier, glass: Glass = Glass.Regular) {
     LiquidGlassTheme(dark = dark, background = if (dark) Color.Black else Color.White, glass = Glass.Regular) {
         Column(modifier.fillMaxSize()) {
             for ((_, colour) in ColourTransferSwatches) {
                 Box(Modifier.fillMaxWidth().weight(1f).background(colour), contentAlignment = Alignment.Center) {
-                    Box(Modifier.size(220.dp, 48.dp).glassEffect(Glass.Regular, CapsuleShape))
+                    Box(Modifier.size(220.dp, 48.dp).glassEffect(glass, CapsuleShape))
                 }
             }
         }

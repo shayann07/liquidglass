@@ -242,6 +242,12 @@ public final class com/wexpa/liquidglass/GlassRestMap : java/lang/Enum {
 
 public final class com/wexpa/liquidglass/GlassScrollEdgeKt {
 	public static final fun GlassScrollEdge-tBgoCNw (JLandroidx/compose/ui/Modifier;FLcom/wexpa/liquidglass/GlassScrollEdgeStyle;ZZLandroidx/compose/runtime/Composer;II)V
+	public static final fun glassScrollEdge-T3al52E (Landroidx/compose/ui/Modifier;JLcom/wexpa/liquidglass/GlassScrollEdges;FLcom/wexpa/liquidglass/GlassScrollEdgeStyle;ZLkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Landroidx/compose/ui/Modifier;
+	public static synthetic fun glassScrollEdge-T3al52E$default (Landroidx/compose/ui/Modifier;JLcom/wexpa/liquidglass/GlassScrollEdges;FLcom/wexpa/liquidglass/GlassScrollEdgeStyle;ZLkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)Landroidx/compose/ui/Modifier;
+	public static final fun glassScrollEdge-u6trifg (Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/ScrollState;JLcom/wexpa/liquidglass/GlassScrollEdges;FLcom/wexpa/liquidglass/GlassScrollEdgeStyle;Z)Landroidx/compose/ui/Modifier;
+	public static final fun glassScrollEdge-u6trifg (Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/lazy/LazyListState;JLcom/wexpa/liquidglass/GlassScrollEdges;FLcom/wexpa/liquidglass/GlassScrollEdgeStyle;Z)Landroidx/compose/ui/Modifier;
+	public static synthetic fun glassScrollEdge-u6trifg$default (Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/ScrollState;JLcom/wexpa/liquidglass/GlassScrollEdges;FLcom/wexpa/liquidglass/GlassScrollEdgeStyle;ZILjava/lang/Object;)Landroidx/compose/ui/Modifier;
+	public static synthetic fun glassScrollEdge-u6trifg$default (Landroidx/compose/ui/Modifier;Landroidx/compose/foundation/lazy/LazyListState;JLcom/wexpa/liquidglass/GlassScrollEdges;FLcom/wexpa/liquidglass/GlassScrollEdgeStyle;ZILjava/lang/Object;)Landroidx/compose/ui/Modifier;
 	public static final fun glassShadow (FF)Lcom/wexpa/liquidglass/GlassShadow;
 	public static synthetic fun glassShadow$default (FFILjava/lang/Object;)Lcom/wexpa/liquidglass/GlassShadow;
 }
@@ -252,6 +258,15 @@ public final class com/wexpa/liquidglass/GlassScrollEdgeStyle : java/lang/Enum {
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lcom/wexpa/liquidglass/GlassScrollEdgeStyle;
 	public static fun values ()[Lcom/wexpa/liquidglass/GlassScrollEdgeStyle;
+}
+
+public final class com/wexpa/liquidglass/GlassScrollEdges : java/lang/Enum {
+	public static final field Both Lcom/wexpa/liquidglass/GlassScrollEdges;
+	public static final field Bottom Lcom/wexpa/liquidglass/GlassScrollEdges;
+	public static final field Top Lcom/wexpa/liquidglass/GlassScrollEdges;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/wexpa/liquidglass/GlassScrollEdges;
+	public static fun values ()[Lcom/wexpa/liquidglass/GlassScrollEdges;
 }
 
 public final class com/wexpa/liquidglass/GlassSelectorSpec {
@@ -350,6 +365,8 @@ public final class com/wexpa/liquidglass/GlassStyle {
 	public static final field $stable I
 	public static final field Companion Lcom/wexpa/liquidglass/GlassStyle$Companion;
 	public fun <init> ()V
+	public synthetic fun <init> (Lcom/wexpa/liquidglass/GlassProfile;FFFFFFFFFFFFFFFFFFFFFFFJFFFFFFFFFFFFFFFFFFFFFFJZFLcom/wexpa/liquidglass/GlassRestMap;FFZFFFFFFFFIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lcom/wexpa/liquidglass/GlassProfile;FFFFFFFFFFFFFFFFFFFFFFFJFFFFFFFFFFFFFFFFFFFFFFJZFLcom/wexpa/liquidglass/GlassRestMap;FFZFFFFFFFFLkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public synthetic fun <init> (Lcom/wexpa/liquidglass/GlassProfile;FFFFFFFFFFFFFFFFFFFFFFFJFFFFFFFFFFFFFFFFFFFFFFJZFLcom/wexpa/liquidglass/GlassRestMap;FFZFFFFFFFIILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public synthetic fun <init> (Lcom/wexpa/liquidglass/GlassProfile;FFFFFFFFFFFFFFFFFFFFFFFJFFFFFFFFFFFFFFFFFFFFFFJZFLcom/wexpa/liquidglass/GlassRestMap;FFZFFFFFFFLkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public synthetic fun <init> (Lcom/wexpa/liquidglass/GlassProfile;FFFFFFFFFFFFFFFFFFFFFFFJFFFFFFFFFFFFFFFFFFFFFFJZFLcom/wexpa/liquidglass/GlassRestMap;FFZFFFFFIILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -412,13 +429,16 @@ public final class com/wexpa/liquidglass/GlassStyle {
 	public final fun component6-D9Ej5fM ()F
 	public final fun component60 ()F
 	public final fun component61 ()F
+	public final fun component62 ()F
 	public final fun component7 ()F
 	public final fun component8-D9Ej5fM ()F
 	public final fun component9 ()F
-	public final fun copy-1q6Zvjk (Lcom/wexpa/liquidglass/GlassProfile;FFFFFFFFFFFFFFFFFFFFFFFJFFFFFFFFFFFFFFFFFFFFFFJZFLcom/wexpa/liquidglass/GlassRestMap;FFZFFFFFFF)Lcom/wexpa/liquidglass/GlassStyle;
+	public final synthetic fun copy-1q6Zvjk (Lcom/wexpa/liquidglass/GlassProfile;FFFFFFFFFFFFFFFFFFFFFFFJFFFFFFFFFFFFFFFFFFFFFFJZFLcom/wexpa/liquidglass/GlassRestMap;FFZFFFFFFF)Lcom/wexpa/liquidglass/GlassStyle;
 	public static synthetic fun copy-1q6Zvjk$default (Lcom/wexpa/liquidglass/GlassStyle;Lcom/wexpa/liquidglass/GlassProfile;FFFFFFFFFFFFFFFFFFFFFFFJFFFFFFFFFFFFFFFFFFFFFFJZFLcom/wexpa/liquidglass/GlassRestMap;FFZFFFFFFFIILjava/lang/Object;)Lcom/wexpa/liquidglass/GlassStyle;
 	public final synthetic fun copy-Wh8Nu0c (Lcom/wexpa/liquidglass/GlassProfile;FFFFFFFFFFFFFFFFFFFFFFFJFFFFFFFFFFFFFFFFFFFFFFJZFLcom/wexpa/liquidglass/GlassRestMap;FFZFFFFF)Lcom/wexpa/liquidglass/GlassStyle;
 	public static synthetic fun copy-Wh8Nu0c$default (Lcom/wexpa/liquidglass/GlassStyle;Lcom/wexpa/liquidglass/GlassProfile;FFFFFFFFFFFFFFFFFFFFFFFJFFFFFFFFFFFFFFFFFFFFFFJZFLcom/wexpa/liquidglass/GlassRestMap;FFZFFFFFIILjava/lang/Object;)Lcom/wexpa/liquidglass/GlassStyle;
+	public final fun copy-zrVxvyY (Lcom/wexpa/liquidglass/GlassProfile;FFFFFFFFFFFFFFFFFFFFFFFJFFFFFFFFFFFFFFFFFFFFFFJZFLcom/wexpa/liquidglass/GlassRestMap;FFZFFFFFFFF)Lcom/wexpa/liquidglass/GlassStyle;
+	public static synthetic fun copy-zrVxvyY$default (Lcom/wexpa/liquidglass/GlassStyle;Lcom/wexpa/liquidglass/GlassProfile;FFFFFFFFFFFFFFFFFFFFFFFJFFFFFFFFFFFFFFFFFFFFFFJZFLcom/wexpa/liquidglass/GlassRestMap;FFZFFFFFFFFIILjava/lang/Object;)Lcom/wexpa/liquidglass/GlassStyle;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAdaptivity ()F
 	public final fun getBackdropBlur-D9Ej5fM ()F
@@ -430,6 +450,7 @@ public final class com/wexpa/liquidglass/GlassStyle {
 	public final fun getBodyBandScale ()F
 	public final fun getCapEdgeShadow ()F
 	public final fun getCapFold ()F
+	public final fun getChromaGain ()F
 	public final fun getContactShadow ()F
 	public final fun getContactShadowBlur-D9Ej5fM ()F
 	public final fun getContactShadowInside ()F
@@ -488,6 +509,8 @@ public final class com/wexpa/liquidglass/GlassStyle {
 public final class com/wexpa/liquidglass/GlassStyle$Companion {
 	public final fun clearLens (F)Lcom/wexpa/liquidglass/GlassStyle;
 	public static synthetic fun clearLens$default (Lcom/wexpa/liquidglass/GlassStyle$Companion;FILjava/lang/Object;)Lcom/wexpa/liquidglass/GlassStyle;
+	public final fun controlCenterTile (Z)Lcom/wexpa/liquidglass/GlassStyle;
+	public static synthetic fun controlCenterTile$default (Lcom/wexpa/liquidglass/GlassStyle$Companion;ZILjava/lang/Object;)Lcom/wexpa/liquidglass/GlassStyle;
 	public final fun coverSheet ()Lcom/wexpa/liquidglass/GlassStyle;
 	public final fun dock ()Lcom/wexpa/liquidglass/GlassStyle;
 	public final fun getChrome ()Lcom/wexpa/liquidglass/GlassStyle;
@@ -498,6 +521,7 @@ public final class com/wexpa/liquidglass/GlassStyle$Companion {
 	public final fun inApp (ZF)Lcom/wexpa/liquidglass/GlassStyle;
 	public static synthetic fun inApp$default (Lcom/wexpa/liquidglass/GlassStyle$Companion;ZFILjava/lang/Object;)Lcom/wexpa/liquidglass/GlassStyle;
 	public final fun menu ()Lcom/wexpa/liquidglass/GlassStyle;
+	public final fun menu (Z)Lcom/wexpa/liquidglass/GlassStyle;
 	public final fun shellIcon ()Lcom/wexpa/liquidglass/GlassStyle;
 	public final fun systemBackdrop (F)Lcom/wexpa/liquidglass/GlassStyle;
 	public static synthetic fun systemBackdrop$default (Lcom/wexpa/liquidglass/GlassStyle$Companion;FILjava/lang/Object;)Lcom/wexpa/liquidglass/GlassStyle;

@@ -481,6 +481,7 @@ data class GlassStyle(
     val heldInkContinuous: Boolean = false,
     val detailLift: Float = 0f,
     val toneCurve: Float = 0f,
+    val chromaGain: Float = Float.NaN,
 )
 ```
 
@@ -530,8 +531,32 @@ extrapolation at any other radius. Ignored by the legacy profile and by the held
 buttons; `toolbar(dark, tintAmount)` for a toolbar or tab bar, the pill's kernels with the
 toolbar's own tint (white at 0.55-0.67 in light; black at 0.41-0.63 over the 35/255 lift in
 dark, more opaque than the pill at Clear and less responsive to Tint Amount);
-`systemBackdrop(tintAmount)` for a full-screen layer such as Control Center; `menu()`;
-`shellIcon()`; `dock()`; `coverSheet()`. `Regular` is `inApp(dark = false)`.
+`systemBackdrop(tintAmount)` for a full-screen layer such as Control Center; `menu(dark)` for a menu or popover (below) and `menu()`, the earlier dark-only fit;
+`shellIcon()`; `dock()`; `coverSheet()`; `controlCenterTile(active)` for a Control Center tile (below). `Regular` is `inApp(dark = false)`.
+
+**Menus** (#204): `GlassStyle.menu(dark)` is the panel of iOS 27's Safari `<select>` popup, fitted on that panel's
+interior only: a pure blur (9.9 dp sigma dark, 11.8 dp light) and then a compressed tone, with no detail term (Regular
+keeps 0.277 of the fine detail). Dark: black at 0.6354, lift 29.59/255, bow 155.87/255 (the 17 measured greys within 1.0
+level rms); light: white at 0.5143, lift 3.91/255, bow 35.25/255 (1.4 rms). Stripes score 2.1 (dark) and 3.1 (light)
+levels rms. Rim, shadow and corner are not measured; the rim fields are `inApp`'s. **Open known difference:** the Photos
+context menu (dark, `COSG3073`) reads 10 to 18 levels lighter than this fit predicts over plain patches, so it is a
+different material or state; it is not fitted and `menu()` without an argument remains the earlier fit on it. A host
+that wants iOS's 0.52 dim behind a menu draws it itself. Material 3's `DropdownMenu` draws
+`GlassMaterialDefaults.menu` by default; `GlassMaterialDefaults.panel` is the look before 1.1.0.
+
+**Control Center tiles** (#206): `GlassStyle.controlCenterTile(active = false)` is the glass of an iOS 27 Control Center
+tile (a round toggle, a wide Focus pill, the media tile, a slider track) over the Control Center layer, measured on
+`CC-over-lab-dark.MP4`. Shell glass, so there is no `dark` and no tint amount. The inactive tile is black at 0.097 with a
+51.1/255 lift (interior `51.1 + 0.903 G` over a grey layer G, 0 to 2 levels off at six greys), no blur, and
+`chromaGain = 1.58`; the active tile is a near-opaque white body at 250 with `chromaGain = 0.5`. Draw it on the Control
+Center layer, `Modifier.glassEffect(Glass(GlassStyle.controlCenterTile()), RoundedCornerShape(33.5.dp))`; geometry
+measured on the same take (3x, dp): toggle 67 across (a circle), wide tile 149 x 67 (pill, radius 33.5), media tile
+149 x 149 (radius 29.6), slider track 67 x 149, 15 between tiles. Its rim and contour are authored, not measured. Evidence:
+[`review/atlas/control-center-tile-2026-11-18`](https://github.com/shayann07/liquidglass/blob/main/review/atlas/control-center-tile-2026-11-18/README.md).
+
+`GlassStyle.chromaGain` is the public knob behind the tile's colour: unset (`Float.NaN`, the default) leaves the colour transfer
+to `detailLift`, exactly as before; set to g it makes the finished glass keep g times the backdrop's chroma about its own luma
+(g = 1 returns the backdrop's saturation, 0 greys it), clamped to 0..4. Flat per channel, no slope.
 
 **The two blurs are not interchangeable.** `blurRadius` runs inside the shader and tapers to
 zero at the rim, preserving the signature edge; `backdropBlur` is chained ahead of the shader,
@@ -842,6 +867,30 @@ beneath the chrome.
 a fade to the ground colour over dark content does nothing visible, so without it the effect
 silently stops working exactly when it is needed.
 
+### `glassScrollEdge`
+
+```kotlin
+enum class GlassScrollEdges { Top, Bottom, Both }
+
+fun Modifier.glassScrollEdge(
+    ground: Color, edges: GlassScrollEdges = GlassScrollEdges.Top, height: Dp = 35.dp,
+    style: GlassScrollEdgeStyle = GlassScrollEdgeStyle.Soft, inverted: Boolean = false,
+    topIntensity: () -> Float, bottomIntensity: () -> Float = topIntensity,
+): Modifier
+fun Modifier.glassScrollEdge(state: ScrollState, ground: Color, edges: ..., height: Dp, style: ..., inverted: Boolean): Modifier
+fun Modifier.glassScrollEdge(state: LazyListState, ground: Color, edges: ..., height: Dp, style: ..., inverted: Boolean): Modifier
+// liquidglass-material3
+fun Modifier.glassScrollEdge(scrollBehavior: TopAppBarScrollBehavior, ground: Color, edges: ..., height: Dp, style: ..., inverted: Boolean): Modifier
+```
+
+iOS 27's scroll edge effect on the scrolling container (#207): progressive blur over the first 35 dp from the edge
+(both appearances) and, with `inverted` (the dark appearance), a blend toward grey 124 at 0.41, measured on Safari's
+top edge. The intensity (0 to 1) is read in the draw phase, so scrolling never recomposes; at zero it draws as if
+absent. The blur needs a render effect (Android 12+, desktop, web). The fade-in (24 dp of scroll) and the bottom edge
+(a mirror of the top) are authored. `ground` is used by `GlassScrollEdgeStyle.Hard` only. The Material 3 overload
+follows `scrollBehavior.state.overlappedFraction`, which is experimental in Material 3. Guide:
+[the scroll edge effect and the collapsing bar](guides/collapsing-bar.md).
+
 ---
 
 ## Platform
@@ -910,6 +959,9 @@ The `GlassScene` host this section used to open with was removed on 18 October; 
 | `GlassStyle.softDetail` | Appended parameter, default 0 (a dithered scatter; the along-axis high-pass it once selected was removed in #200). 1 draws the detail seen through the glass as one soft copy: the wide kernel's tone plus `fineShare` of an unrotated fine blur. Dark `Calm()` uses 1 on its bar and lens. |
 | `GlassStyle.detailLift` | Appended parameter (#200), default 0. The one-sided detail term c of `lin = B + k (D - B) + c abs(D - B)`, with k = `fineShare`: detail on the glass's own side of the surroundings is kept at k + c, the other side at k - c. Measured on iOS 27 at Tint 50: +0.22 light, -0.22 dark; the in-app and toolbar styles blend toward it by an authored Tint weight until #208. It also sets the measured colour transfer over saturated colour (#201): the sign picks the dark or light gains and `abs(detailLift) / 0.22` (clamped to 0-1) their weight, so 0 keeps the per-channel tone. |
 | `GlassStyle.toneCurve` | Appended parameter (#200), default 0. The bow `toneCurve * x (1 - x)` added per channel before the tint. Measured: 101.01/255 for dark Tint 50 (a fit of the dark tone table, rms 0.22 levels), 0 for light; scaled by the same authored Tint weight. |
+| `GlassStyle.chromaGain` | Appended parameter (#206), default `Float.NaN` (unset: the colour transfer stays the one `detailLift` selects, byte-identical to before). Set to g, the glass keeps g times the backdrop's chroma about its own luma after the tint blend and lift (`uChromaGain` = g on all three channels, slope 0, weight 1), clamped to 0..4; a morph snaps it at the midpoint when only one end sets it. |
+| `GlassStyle.controlCenterTile(active)` | Companion factory (#206): the iOS 27 Control Center tile, shell glass. Inactive: black 0.097, lift 51.1/255, no blur, `chromaGain` 1.58 (measured). Active: white body at 250, `chromaGain` 0.5 (fitted). Rim authored. |
+| `GlassStyle(...)` and `copy(...)` before `chromaGain` | Kept as hidden deprecated overloads, as the 1.0 ones are. |
 | `GlassStyle(...)` and `copy(...)` of 1.0 | Kept as hidden deprecated overloads, so the 1.0 binary API is preserved (the ABI dump shows additions only). |
 | `GlassPullShape.Free` | Appended enum value. A free-standing button pulled off its place: the body follows the finger by `pullFollow` (resisted by `pullLimit`), stretches along the pull and thins across it, its content moves with it, and on release it squashes against its own resting edge away from the pull before settling (`GlassMotion.FreeRelease`). Drawing only; layout and hit targets stay put. Measured on iOS 26's Phone search button. |
 | `GlassInteraction.pullLiftShare` | Appended parameter, default 1. Share of the press glow that remains once the finger has moved more than 4 dp (iOS's search button: 0.65 since 18 October; 0.6 on 17 October, 0.7 before). |

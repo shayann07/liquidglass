@@ -94,6 +94,14 @@ that picks the glass's appearance (the theme's `dark`) so the two cannot drift.
 
 It samples nothing and has no backdrop of its own. It costs a gradient.
 
+### Tied to the scroll: `Modifier.glassScrollEdge`
+
+The composable above is always drawn. iOS's effect appears only where content has scrolled under the chrome, and
+it is a blur, not just a gradient (#207, measured on iOS 27 Safari). Put `Modifier.glassScrollEdge(...)` on the
+scrolling container: it blurs the content progressively over its first 35 dp, in a dark appearance also blends it
+toward grey 124 at 0.41, and fades in with the scroll position. See
+[the scroll edge effect and the collapsing bar](guides/collapsing-bar.md) for the numbers and what is authored.
+
 ## What the measurements say about appearance
 
 Two families, measured on iOS 27 (see [the calibration study](research/ios27-calibration-study.md)):
@@ -104,4 +112,4 @@ strongly (light: a constant 241/255 tint at 0.43-0.73 opacity; dark: black at th
 a 35/255 lift). Filled shell panels such as Spotlight shift their base colour with appearance
 but keep their blur. So the light/dark decision (the theme's `dark`) is an input to in-app
 material tone, and the shell-role
-factories (`shellIcon`, `dock`, `systemBackdrop`) set `invertsWithBackdrop = false`.
+factories (`shellIcon`, `dock`, `systemBackdrop`, `controlCenterTile`) set `invertsWithBackdrop = false`.

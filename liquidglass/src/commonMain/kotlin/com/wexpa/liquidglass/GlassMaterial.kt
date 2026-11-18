@@ -112,6 +112,27 @@ object GlassMaterial {
     internal fun labToneCurve(dark: Boolean): Float = if (dark) 101.01f / 255f else 0f
 
     /**
+     * Menu panel (#204), fitted on iOS 27's Safari `<select>` popup in `M-select-{dark,light}` and nothing else
+     * (video, HDR10 decoded, 17 flat greys and 12 stripe cases per appearance; panel interior only, no rim,
+     * shadow or corner). `lin = B`, then the tone: a pure blur with no detail term, where Regular has
+     * `lin = B + k (D - B) + c |D - B|` with k 0.277. Sigma of B: dark 29.7 px = 9.9 dp, light 35.4 px = 11.8 dp
+     * (Regular: 15.5 dp). The fitted k (0.018 dark, 0.021 light) and c (-0.019, +0.037) are within noise and are
+     * set to exactly 0 ([GlassStyle.menu] has `fineShare` and `detailLift` 0).
+     */
+    internal fun menuWideKernel(dark: Boolean): Dp = if (dark) 9.9.dp else 11.8.dp
+
+    /**
+     * Menu panel (#204), the tone over flat grey in the same form as [labOpacity], [labLift] and [labToneCurve]:
+     * dark `29.59 + 248.85 x - 155.87 x^2` (rms 1.01 levels over the 17 measured greys), light
+     * `135.06 + 159.10 x - 35.25 x^2` (rms 1.38, clipping at 255 from about in 232). Dark: black at 0.6354, lift
+     * 29.59/255, bow 155.87/255. Light: white at 0.5143, lift 3.91/255, bow 35.25/255. The dark bow is 1.54 times
+     * Regular's: output peaks at 129 near in 200 and falls to 122 at white.
+     */
+    internal fun menuOpacity(dark: Boolean): Float = if (dark) 0.6354f else 0.5143f
+    internal fun menuLift(dark: Boolean): Float = if (dark) 29.59f / 255f else 3.91f / 255f
+    internal fun menuToneCurve(dark: Boolean): Float = if (dark) 155.87f / 255f else 35.25f / 255f
+
+    /**
      * Lab fit, Tint 50 (#201): the colour transfer over flat colour, `tone(y) + (g0 + g1 y) (x - y)` for each channel
      * x about the Rec. 709 luma y of the sRGB code values (0-1), then clipped; g0 and g1 per channel (R, G, B). Fitted
      * on the 125-point RGB cube of the lab stills, converted once from Display P3 to sRGB and clipped to the sRGB
@@ -135,6 +156,20 @@ object GlassMaterial {
         if (weight <= 0f) return FloatArray(7)
         return labChromaGain(dark) + labChromaSlope(dark) + floatArrayOf(weight)
     }
+
+    /**
+     * The colour transfer a style asks for: [chromaOf] of its [GlassStyle.detailLift] when [GlassStyle.chromaGain] is
+     * unset (NaN), else the flat output-referred gain g on all three channels with no slope and full weight, the shader
+     * then leaving the finished colour at g times the backdrop's chroma about its luma.
+     */
+    internal fun chromaOf(detailLift: Float, chromaGain: Float): FloatArray {
+        if (chromaGain.isNaN()) return chromaOf(detailLift)
+        val g = chromaGain.coerceIn(0f, MAX_CHROMA_GAIN)
+        return floatArrayOf(g, g, g, 0f, 0f, 0f, 1f)
+    }
+
+    /** The largest [GlassStyle.chromaGain] the host passes on, authored as a guard (the measured Control Center value is 1.58). */
+    internal const val MAX_CHROMA_GAIN: Float = 4f
 
     /** The light in-app tint colour: a constant 241/255 at every slider position. */
     val lightTint: Color = Color(0xFFF1F1F1)

@@ -156,6 +156,41 @@ ground, device px, the bar's origin) and pass it with `layer.setSelectedInk(imag
 `painter.drawSelectorInk(...)`: it is drawn through the production content pass, so it shows only
 under the selector, refracted and folded with it. Labels and accessibility stay with the host. [Evidence](../../review/atlas/ports-selector-2026-10-14/README.md).
 
+## Render a frame at any time (offline, tests, scrubbing)
+
+A live scene only moves forward: `scene.draw(canvas, time)` and every layer call reject an earlier time, and the
+selector's state at `t` depends on every frame before it. To render a frame out of order, in parallel or at a fixed
+time (video export, screenshot tests, a scrubber, a server), bake the gesture once and draw from the baked state:
+
+```js
+import { bakeNavigation, drawNavigation, createGlassPainter } from './index.mjs';
+
+const bar = { bounds: { x: 24, y: 520, width: 300, height: 62 }, count: 3, viewport: { width: 390, height: 844 } };
+const events = [ // logical page px and seconds, as the scene's layer takes them
+  { type: 'down', x: 60, y: 551, time: 0.5 }, { type: 'move', x: 60, y: 551, time: 1.2 },
+  { type: 'move', x: 180, y: 551, time: 1.6 }, { type: 'up', x: 180, y: 551, time: 1.9 },
+];
+const track = bakeNavigation(bar, events, { duration: 4 });            // steps 1/240 s; the same motion code as the scene
+const sample = track.sample(3.2);                                       // any time, any order, any worker
+const painter = createGlassPainter(CanvasKit); painter.setSource(page); // page: the device-px image
+canvas.drawImage(page, 0, 0);
+drawNavigation(CanvasKit, painter, canvas, { bounds: bar.bounds, pixelRatio: 2, source: page }, sample,
+  { material: { dark: true }, ink });                                   // ink: optional selected-ink image
+```
+
+`bakeNavigation(bar, events, {step = 1/240, duration})` runs the scene's own navigation (the same driver, `createCalmNavigation`
+and the bar's press feedback) one step at a time and stores every step; the selection a gesture commits is applied as the
+host's `onSelect` + `select` would. `track.sample(t)` is exact at a step and, between steps, interpolates linearly (the pose's
+inverse is recomputed from the interpolated matrix; `held`, `tapFormed`, `selected` and `active` keep the earlier step's value);
+before 0 and after the last step it clamps. `track.toJSON()` is plain data and `navigationTrack(json)` rebuilds it, so a worker
+or another process can share one baked track. `drawNavigation(kit, painter, canvas, {bounds, pixelRatio, source}, sample,
+{material, ink})` is the scene's own bar, selector and ink drawing with no clock: `scene.draw` calls it, and `{selector:
+layer.selector, feedback: layer.feedback}` of a live layer draws the same way. The scene itself gets no second drawing method.
+
+Limits: the track is that script at that step, so a live run at another frame cadence differs slightly, as any two live runs do;
+labels and the selected-ink image stay with the host; free surfaces and lenses have no bake (their press feedback is
+`createCalmInteraction` state a host can sample itself). Draw the page first; `drawNavigation` draws only the bar.
+
 ## A free button (the Phone search button)
 
 `createFreeButton({size, density})` is Compose's `GlassInteraction.Pullable` with `GlassPullShape.Free`:
@@ -206,9 +241,30 @@ private/unpublished; no npm registry package or remote CDN is required or implie
 exposes the lower-level bindings and `./shaders` exports the immutable `glassShaderSources` object.
 CanvasKit's runtime/WASM setup, source image and host canvas still belong to the application.
 
-The painter uses the minimal clear configuration below: a circular lens for square bounds, with an
-elliptical source map inside capsule coverage for unequal dimensions. It does not add the Compose
-clear-lens preset's decorative lighting or run its gesture controller.
+The painter draws a circular lens for square bounds, with an elliptical source map inside capsule coverage for
+unequal dimensions; it does not run a gesture controller.
+
+By default the lens has the Compose clear-lens preset (`GlassStyle.clearLens`, what `Glass.Lens` draws): a rim
+highlight, a thin white tint (1.5 %) and a contact shadow under the lens, with no uniforms bound by hand, so it reads as
+glass over flat or low-detail content (the bare lens, with nothing to mark where it is, is invisible there). Pass
+`lighting: false` for the bare magnification map, as before 1.1.0:
+
+```js
+glass.drawLens(canvas, { x: 80, y: 100, width: 180, magnification: 1.4 });                      // the preset
+glass.drawLens(canvas, { x: 80, y: 100, width: 180, magnification: 1.4 }, { lighting: false }); // the bare map
+// options: lighting (true), shadow (true: the contact shadow), density (1: px per dp, scales the dp terms),
+// light ([-0.35, -0.94]: toward the light, y up negative)
+const lens = scene.addLens({ x: 80, y: 100, width: 180 }, { lighting: false }); // logical px; the scene applies pixelRatio
+lens.setMaterial({ shadow: false });
+```
+
+[Render: lighting false against true, over flat grey and stripes](../../review/atlas/skia-lens-and-bake-2026-11-18/README.md).
+The preset is authored in Compose (its KDoc: "Authored, not an Apple calibration"), not measured, and the port makes
+no iOS claim for it. Over a flat grey 128 backdrop the rim reads up to +64 levels at the top and +22 at the bottom
+and the interior stays within 4 levels of the page; over black +42 and +15; over pure white it is invisible (white
+light on white, and a 2 % shadow), as in Compose. The values are read from `GlassStyle.clearLens`, not exported
+from Kotlin: `lens.test.mjs` checks the authored numbers against that source where the repository is present.
+(Default look changed in 1.1.0: free-standing lenses used to be the bare map.)
 
 In a browser, `CanvasKit.MakeImageFromCanvasImageSource(backdropCanvas)` can create the source from
 an application-owned canvas. Origin restrictions still apply. Keep interactive DOM controls above the
@@ -302,7 +358,8 @@ Create effects once, reuse textures until the backdrop changes, and rebuild GPU 
 context/device loss. Returned shaders and caller-owned sources must be deleted by their owner.
 
 `clearMaterialUniforms` configures a simple clear lens. It does **not** recreate the Compose
-toolbar style. Advanced callers can set the production uniforms documented in each shader,
+toolbar style; `clearLensUniforms(effects, {width, height, magnification, density, light})` (from `material.mjs`)
+is the Compose clear-lens preset's uniforms behind `drawLens(..., {lighting: true})`. Advanced callers can set the production uniforms documented in each shader,
 including refraction, blur, shape fields and pose geometry. Provide a correctly constructed
 wide-blur strip before enabling `uWideStrip`; setting a number does not create that texture.
 

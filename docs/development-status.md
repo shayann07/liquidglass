@@ -7,6 +7,21 @@ research remains available; this page identifies which later changes supersede i
 
 ## Main after 1.0 (24 October)
 
+- 18 November: Switch, Slider, RangeSlider: geometry and timing measured (switch: native UIKit take; slider: Safari web take, about 1.12x native); lens strength, slider thumb shadow, disabled looks, second range thumb, thumbContent authored. Native thumb slider, light-mode switch, drag stretch: not measured. Desktop renders only, no device capture.
+- 18 November: GlassStyle.menu(dark): fitted on the Safari <select> popup interior only (dark 2.08, light 3.13 levels rms on 12 stripe cases; 17 greys within 1.0 / 1.4); held-out Photos context menu misses by 10-18 levels (open). Rim, shadow, corner, colour not measured. Desktop renders only.
+- 18 November: Scroll edge effect: dark tint profile within 1.3 levels rms of the measured median (gate 5), light no tint, blur edge widths within 0.8 px of the measured +-10 row table; fade-in, bottom edge, blur strength above 20 dp from the edge authored/lower bounds; blur = two fitted copies, not a per-pixel variable blur; collapse recipe timing +-3 frames, not asserted. Desktop only; no device frame-time pass; no sample scene.
+- 18 November: Control Center tile glass and a public colour-boost setting (#206): `GlassStyle.controlCenterTile(active)` and
+  `GlassStyle.chromaGain` (unset = unchanged). Measured on `CC-over-lab-dark.MP4`: the inactive tile is black 0.097 plus a 51.1/255
+  lift with no blur and 1.58 times the layer's chroma; over six greys the interior is within 0 to 1 level of the measured map
+  (rms 0.41) and over eight hues within 0.7 levels of Y and 4 levels per channel, chroma ratio 1.56 to 1.59 (gate 1.58 +/- 0.10).
+  The active tile is a white body at 250 keeping 0.50 of the chroma (fitted on the active readings, n = 8). Rim and contour are
+  authored; light appearance, press, hold and Tint Amount are not measured. Merged glass carries it; ports already take the
+  three uniforms and have no style layer, so no port changes. No existing style changes (the host passes the same uniforms when
+  unset). [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/control-center-tile-2026-11-18/README.md).
+- 18 November: Skia and .NET ports: a free-standing lens has the Compose clear-lens preset by default (#191, `lighting: false` for the bare lens; rim, thin tint,
+  contact shadow; authored in Compose, no iOS claim), and a navigation gesture can be baked and drawn at any time (#193,
+  `bakeNavigation` / `drawNavigation`, .NET `NavigationBaker`; frames byte-identical to the scene's). A Compose render of `GlassStyle.clearLens` measured the same way reads +62 / +20 over grey 128 and +42 / +15 over black against the port's +64 / +22 and +42 / +15.
+  [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/skia-lens-and-bake-2026-11-18/README.md).
 - 17 November: capsules on the measured resting map (Regular, `inApp`, `toolbar`) fold content along their straight
   edges at rest as their round ends do (cards unchanged), so text lines no longer hook where a capsule's round end begins. Scored on the Safari lab
   pill's stripes: the run's outer band 4.5-12.0 levels rms (was 12.0-25.6). Tab bars (legacy map) unchanged (#216).

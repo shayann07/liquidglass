@@ -1,3 +1,39 @@
+## 18 November 2026 - controls bundle #205 #204 #207 (Claude, Sonnet writer)
+
+- `feat/205-204-207-controls`: #205 switch and slider geometry and timing (partial: colours, native thumb), #204 `GlassStyle.menu(dark)` with DropdownMenu on it (held-out Photos context menu still 10-18 levels off, pinned), #207 `Modifier.glassScrollEdge` (partial: sample scene, collapse timing, device frame times).
+- Pixel 7: switch and slider geometry confirmed by eye on the Material showcase (about 2 px).
+
+## 18 November 2026 - #206 Control Center tile (Claude)
+
+- `feat/206-control-center`: `GlassStyle.chromaGain` (NaN default = `chromaOf(detailLift)`, so existing styles are untouched) and
+  `controlCenterTile(active)`. Constants from `.local/sxs/plans/206-measured.md`; the output-referred gain 1.58 from
+  `206-chroma-check.md` (the plan's pre-tint 1.75 overshoots by 11 %). Active tile: the shader caps tint strength at 0.95, so a
+  white tint at 1.0 reads 238 to 243 over G 10 to 102; `tintLift` 5/255 (authored) returns it to 250 within 2.5 levels. Its colour
+  leak (white body keeps 0.50 of the layer's chroma, e.g. blue 202 over yellow) is in the sweep's active column and gives
+  `chromaGain` 0.5 (0.504, sd 0.03, n = 8, unclipped channels).
+- `GlassControlCenterTileTest`: greys 6 points max 1 level (rms 0.41; gate 2 / 1.5), eight hues Y error <= 0.65 (gate 3), channel error
+  <= 4 (gate 10), chroma ratio 1.559 to 1.588 (gate 1.58 +/- 0.10; yellow skipped, blue clips); active 248 / 250 / 252 over G
+  10 / 56 / 102 and within 3 levels per unclipped channel over six colours; container within 2 levels of a lone piece (yellow's
+  clipped blue 5 vs 0). Opt-in evidence sheet: `CC206_EVIDENCE_DIR=<dir>` in the same test class.
+- Not done: radial flatness, rim peak and contour gates of the measurement plan (the rim is authored), geometry gate (guidance only).
+
+## 18 November 2026 - #203 PR A, tab bar tone on the real draw path (Claude)
+
+- `feat/203a-tone-table`: replay knob `+flat=<levels>[+flatstep=<ms>]` (flat page under the real `GlassTabBar`; `PhoneScene.flatPage`),
+  `+barlab` (public `GlassStyle.toolbar(dark)` with Calm's bar-only fields) and `measured` / `v3` variants. No library change.
+- Table in `review/atlas/tab-bar-tone-2026-11-18/` (`tools/tab_bar_tone.py`, baseline pin `tone.json`): `Calm` and `CalmClear` reproduce the
+  plan's "today" columns exactly; `Calm+barlab` is within 1 level of the lab curve at all 8 levels and within the card tolerances
+  (blue 122,170,220 vs iOS 116,167,219; orange 211,164,85 vs 209,162,79). No inner band: the earlier "bar darkens 4-6 levels inside its rim" reading averaged in columns that sat inside the selected pill; on bar-only columns iOS and ours both read 32 flat over black (Step 0), so `+barshade` is dropped. docs/1 `calm` replay with this branch: 0 of 1934 frames differ from main.
+
+## 18 November 2026 - #191 lens preset and #193 frame at any time, Skia and .NET ports (Claude)
+
+- `feat/191-193-skia` (PR #221): #191, `drawLens` / `addLens` take `{lighting: true}` for the Compose clear-lens preset (rim, 1.5 % tint,
+  contact shadow), on by default (owner retired opt-in, 16 Nov), `lighting: false` is the byte-identical bare lens. Rim over grey 128 +64 / +22, black +42 / +15, white 0. Values read from
+  `GlassStyle.clearLens`, no Kotlin fixture (Kotlin untouched). .NET `DrawLens(..., GlassLensOptions)`.
+- #193: `bakeNavigation` / `navigationTrack` / `drawNavigation`, one shared navigation driver for the scene and the bake; bake equals the
+  live scene, stateless frames byte-identical in any order. .NET `NavigationBaker` / `NavigationTrack`. Skia 59 tests, npm 28, React Native 3,
+  .NET 18 checks pass. Evidence `review/atlas/skia-lens-and-bake-2026-11-18`. Waits for #217 (shaders) before merging main and re-vendoring.
+
 ## 17 November 2026 - #201 colour transfer (Claude)
 
 - `feat/201-colour`: over colour the tone applies to the Rec. 709 luma and the chroma keeps a measured per-channel gain

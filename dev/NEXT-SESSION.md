@@ -1,3 +1,8 @@
+## RESUME HERE (18 November): #206 Control Center tile, PR open
+
+- `feat/206-control-center`: `GlassStyle.chromaGain` and `controlCenterTile(active)`, tests green, ABI dump regenerated (additions only).
+  Next: owner review of the authored rim and the active tile's 0.5 chroma; the rim, press and light appearance are unmeasured.
+
 ## RESUME HERE (17 November): #201 colour transfer, PR open
 
 - `feat/201-colour` merged with main after #212, pushed, PR "Glass colour transfer: measured per-channel chroma gain (#201)".
