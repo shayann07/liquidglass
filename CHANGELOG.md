@@ -39,6 +39,15 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
 - Modifier.glassScrollEdge (#207): iOS 27's scroll edge effect on a scrolling container, measured on Safari's top edge: progressive blur over the first 35 dp (both appearances) and, in a dark appearance, a blend toward grey 124 at 0.41 (flat to 10 dp, gone by 34 dp). Overloads for ScrollState and LazyListState, and (liquidglass-material3) TopAppBarScrollBehavior. The intensity is read in the draw phase, so scrolling does not recompose. The 24 dp fade-in and the bottom edge (a mirror of the top) are authored. New guide: the scroll edge effect and the collapsing bar (the Safari bar's collapse is a documented recipe: 200 ms measured to +-3 frames, trigger and easing authored). The GlassScrollEdge composable is unchanged.
   - Default look changed: none (new API; the composable keeps its authored constants).
 
+- Control Center tile: rim and contour fitted, element classes and slider measured (#206, #113). `GlassStyle.controlCenterTile` now draws
+  the rim measured on the iOS 27 toggle by sector (lit at the top and bottom, not at the sides; pole peaks within 5 levels at layers 10 and 56) and
+  its dark contour outside the sides through `outerContour`. The toggle, wide tile, media tile and slider track each read within 2 levels of
+  the take at three greys (rms 0.87; the issue's gate is 5), and the slider is documented as a track tile plus a `controlCenterTile(active = true)`
+  fill (250 / 251 / 252 measured). Pass `GlassLight(0f, -1f)` to the tile's `Glass`. Known gaps: the contour is 7 to 35 levels too shallow
+  (shader band), the sides' rim 7 to 9 too bright. No public API added. The lock-screen flashlight press (#113 item 128) was measured at 1.69 peak /
+  1.60 held, 58 pt growing to 93 pt, +119 over black, against `Calm`'s 1.07: not changed, an owner question
+  ([numbers](review/atlas/flashlight-press-2026-11-18/README.md)); `measured-model.md`'s older +39 press figure is marked superseded.
+  - Default look changed: none (`controlCenterTile` is new in this unreleased cycle; its rim was authored, now fitted).
 - New: `GlassStyle.controlCenterTile(active = false)` and `GlassStyle.chromaGain` (#206). The factory is the glass of an iOS 27
   Control Center tile over the Control Center layer, measured on `CC-over-lab-dark.MP4` (shell glass: no `dark`, no tint amount):
   inactive is black at 0.097 with a 51.1/255 lift, no blur and 1.58 times the layer's chroma, so the interior is `51.1 + 0.903 G`

@@ -1312,10 +1312,20 @@ data class GlassStyle(
          *   full opacity, which the shader caps at 0.95, so [tintLift] 5/255 (authored) puts the body back at 250 within
          *   2.5 levels from G 10 to 102, and [chromaGain] 0.5.
          *
-         * Not measured, so authored and unchanged from the library defaults except where noted: the rim ([bevel] 1 dp
-         * against a measured bright line about 3 px wide peaking 1.5 px inside the edge, [edgeLight], [specular]), the
-         * dark contour outside the edge ([edgeShadow] 0.06, as [shellIcon]), the active tile's rim, press and hold, the
-         * light appearance and the Tint Amount response.
+         * - Rim and contour (fitted by sector on the toggle, 3 grey frames, then checked by `GlassControlCenterRimTest`): iOS lights
+         *   the tile's top and bottom equally and its sides not at all, so the light is vertical ([GlassLight] `(0, -1)`, pass it
+         *   as `Glass(style, light = GlassLight(0f, -1f))`; the default light tilts 20 degrees and lights one side too), with
+         *   [counterLight] 1. The pole line peaks 155 / 215 over a layer of 10 / 56 (the reading at 102 clips at 255), the
+         *   diagonals about 100 / 150 / 200 and the sides +3; [bevel] 1.25 dp, [bevelPeak] 0.3, [specular] 0.3, [specularPower]
+         *   4 and [edgeLight] 1.5 give 160 / 211 / 251 at the poles (within 5), 109 / 155 / 201 on the diagonals (within 7), but +7 to +9 over
+         *   the measured line at the sides.
+         *   Its dark contour lies outside the outline at the sides and diagonals and is absent at the poles: [outerContour] 1
+         *   with no floor, [innerShadow] and [edgeShadow] 0. Known gap: the measured contour is darker and about 2 px wide
+         *   (24 / 7 / 0 at the sides over a layer of 102 / 56 / 10), the shader's band 1.5 px and at most 0.67 deep
+         *   (59 / 37 / 7); the glow reaching 6 px in at the poles is 12 to 18 levels short.
+         *
+         * Not measured, so authored: the active tile's rim (clipped at 255 over every layer), press and hold, the light
+         * appearance and the Tint Amount response.
          *
          * Geometry is the host's to draw, measured on the same take at 3x: a round toggle 67 dp across (a circle), a wide
          * tile 149 x 67 dp (a pill, radius 33.5 dp), the media tile 149 x 149 dp with radius 29.6 dp, a slider track
@@ -1331,11 +1341,16 @@ data class GlassStyle(
             tint = if (active) Color.White else Color.Black.copy(alpha = 0.097f),
             tintLift = if (active) 5f / 255f else 51.1f / 255f,
             chromaGain = if (active) 0.5f else 1.58f,
-            bevel = 1.dp,
-            specular = 0.35f,
-            counterLight = 0.1f,
+            bevel = 1.25.dp,
+            bevelPeak = 0.3f,
+            specular = 0.3f,
+            specularPower = 4f,
+            counterLight = 1f,
             edgeLight = 1.5f,
-            edgeShadow = 0.06f,
+            fresnel = 0f,
+            innerShadow = 0f,
+            edgeShadow = 0f,
+            outerContour = 1f,
             invertsWithBackdrop = false,
         )
 

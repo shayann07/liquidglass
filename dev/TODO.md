@@ -5,6 +5,14 @@
 - [x] #102 dark `menu(dark)` on the measured pop-up menu, `sheet(dark)` on the share sheet, device frames; [ ] sheet scrim (iOS none), colour, rim and shadow, light pop-up menu (not recorded).
 - [x] #207 `Modifier.glassScrollEdge`; [ ] sample scene, collapse timing, Pixel frame times, Android blur.
 
+## #206 second pass and #113 (18 November, `p3/206`)
+
+- [x] Element classes (toggle, wide, media, slider track) against the take; slider recipe; rim and contour by sector; flashlight press numbers (#113 item 128).
+- [ ] Owner: named large-press interaction for quick-action buttons; a named vertical light for the tile; a deeper outer contour band (shader); the layer under the tiles
+  against `systemBackdrop()`.
+- [ ] Glass text and quick-action circles (COSG3073 60-150 s): file the new issue (#113 step 4; not filed from here, no GitHub writes).
+- [ ] Not measured: light appearance, a tile's press and hold, Tint Amount, active-tile rim.
+
 ## #206 Control Center tile (18 November, `feat/206-control-center`)
 
 - [x] `GlassStyle.chromaGain` (unset = byte-identical), host routing in panel and container, morph, hidden overloads, ABI dump.
