@@ -77,7 +77,7 @@ fun GlassEffectContainer(
         if (style == null) {
             Box { content() }
         } else {
-            LiquidGlassContainer(state, style = style, mergeDistance = merge) {
+            LiquidGlassContainer(state, style = style, light = resolved.light(defaults.dark), mergeDistance = merge) {
                 val scope = this
                 CompositionLocalProvider(LocalGlassMembership provides GlassMembership { shape, morph -> with(scope) { Modifier.glassMember(shape, morph) } }) {
                     content()

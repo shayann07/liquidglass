@@ -17,17 +17,33 @@ function interpolate(table, t) {
 
 function clamp01(v) { return Math.min(1, Math.max(0, v)); }
 
-// GlassStyle.towardLab: the lab fit (#199, #200) laid over the earlier fit by a weight that is 1 at the default
-// Tint Amount and 0 at 0 and 100. The constants are GlassMaterial.lab* in the Compose library.
+// GlassStyle.towardLab: the lab material at a Tint Amount. Measured at Tint 50 in the Safari lab (#199, #200) and at
+// Tint 0 and 100 on the Photos chrome (#208); piecewise-linear between those three nodes (authored). The constants are
+// GlassMaterial.lab* (Tint 50) and the node values below (GlassMaterial.measured*) in the Compose library.
 var LAB_WIDE_KERNEL = 15.5;
 var LAB_DETAIL_REACH = 1 / 3;
 
-function labWeight(amount) { return clamp01(1 - Math.abs(Math.min(100, Math.max(0, amount)) - 50) / 50); }
+// GlassMaterial.measuredNodes + interpolate: linear between the values at Tint 0, 50 and 100.
+function nodes3(atZero, atDefault, atHundred, amount) {
+    var t = Math.min(100, Math.max(0, amount));
+    return t <= 50 ? atZero + (atDefault - atZero) * (t / 50) : atDefault + (atHundred - atDefault) * ((t - 50) / 50);
+}
 function labOpacity(dark) { return dark ? .3985 : .498; }
 function labLift(dark) { return dark ? 31.72 / 255 : 5.5 / 255; }
 function labDetailShare(dark) { return dark ? .277 : .273; }
 function labDetailLift(dark) { return dark ? -.22 : .22; }
 function labToneCurve(dark) { return dark ? 101.01 / 255 : 0; }
+// GlassMaterial.measuredDetailShare: measured at 0 and 100 (dark 0.663 / 0, light 0.664 / 0), the lab value at 50.
+function measuredDetailShare(dark, t) { return nodes3(dark ? .663 : .664, labDetailShare(dark), 0, t); }
+// GlassMaterial.measuredDetailLift: |c| 0.336 (light 0.334) at 0, 0.22 at 50, 0 at 100; negative on dark glass.
+function measuredDetailLift(dark, t) {
+    var m = nodes3(dark ? .336 : .334, Math.abs(labDetailLift(dark)), 0, t);
+    return dark ? -m : m;
+}
+// GlassMaterial.measuredToneCurve: dark bow 101.6 / 255 at 0, 101.01 / 255 at 50, 49.8 / 255 at 100; light none.
+function measuredToneCurve(dark, t) { return dark ? nodes3(101.6 / 255, labToneCurve(true), 49.8 / 255, t) : 0; }
+// GlassMaterial.measuredOpacity: dark 0.401, 0.3985, 0.703 and light 0.382, 0.498, 0.682 at 0, 50 and 100.
+function measuredOpacity(dark, t) { return dark ? nodes3(.401, labOpacity(true), .703, t) : nodes3(.382, labOpacity(false), .682, t); }
 // GlassMaterial.labChromaGain / labChromaSlope (#201): the colour transfer's g0 and g1 per channel (R, G, B).
 function labChromaGain(dark) { return dark ? [1.317, 1.256, 1.314] : [.988, .952, .979]; }
 function labChromaSlope(dark) { return dark ? [-.427, -.351, -.429] : [-.076, .028, -.045]; }
@@ -143,26 +159,18 @@ function uniforms(m, width, height, density) {
     v.uContrast = [clamp01(m.increasedContrast || 0)];
     // The lab fit (GlassStyle.towardLab). The detail reach is the lab's at every tint, which selects the four-tap
     // detail kernel (uDetailCross: 0 < blurRadius <= 1/3 dp, decided in dp).
-    var w = labWeight(tintAmount);
+    // Everything the lab material sets is replaced outright, not blended with the earlier fit (towardLab, #208).
+    var labGrey = m.dark ? 0 : 1;
     v.uBlur = [LAB_DETAIL_REACH * density];
     v.uDetailCross = [1];
-    // The earlier fit's values, written at every tint: GlassEffect.qml keeps a uniform it is not handed, so a move
-    // from Tint 50 to 0 or 100 would otherwise keep the lab's lift, bow and soft detail.
-    v.uDetailLift = [0];
-    v.uToneCurve = [0];
-    v.uSoftDetail = [0];
-    if (w > 0) {
-        var mix = function (a, b) { return a + (b - a) * w; };
-        var labGrey = m.dark ? 0 : 1;
-        v.uTint = lerpColor(v.uTint, [labGrey, labGrey, labGrey, q8(labOpacity(m.dark))], w);
-        v.uLift = [mix(v.uLift[0], labLift(m.dark))];
-        v.uFineShare = [mix(v.uFineShare[0], labDetailShare(m.dark))];
-        v.uWideKernel = [mix(v.uWideKernel[0], LAB_WIDE_KERNEL * density)];
-        v.uDetailLift = [labDetailLift(m.dark) * w];
-        v.uToneCurve = [labToneCurve(m.dark) * w];
-        v.uLegibility = [mix(v.uLegibility[0], 0)];
-        v.uSoftDetail = [mix(0, 1)];
-    }
+    v.uTint = [labGrey, labGrey, labGrey, q8(measuredOpacity(m.dark, tintAmount))];
+    v.uLift = [labLift(m.dark)];
+    v.uFineShare = [measuredDetailShare(m.dark, tintAmount)];
+    v.uWideKernel = [LAB_WIDE_KERNEL * density];
+    v.uDetailLift = [measuredDetailLift(m.dark, tintAmount)];
+    v.uToneCurve = [measuredToneCurve(m.dark, tintAmount)];
+    v.uLegibility = [0];
+    v.uSoftDetail = [1];
     if (m.tint) {
         var q = function (c) { return Math.round(c * 255) / 255; };
         v.uTint = [q(m.tint[0]), q(m.tint[1]), q(m.tint[2]), q(m.tint[3])];

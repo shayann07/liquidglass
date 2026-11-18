@@ -50,9 +50,8 @@ class GlassContainerMaterialTest {
     fun aContainerShowsOneSoftCopyOfText() {
         // A 30 px black stem on an off-white page at the pill's centre, at the measured Tint 50 and at the ends, where
         // the earlier fit's larger detail share made the old filter's copies plain (9 turning points at Tint 0). One soft
-        // stem at every tint; and the container's profile across the interior is the lone piece's within 2 levels, except
-        // at Tint 0: there the earlier fit's legibility (0.6) raises the panel's tint at the stem's edges, a term the
-        // container shader does not carry (about 25 levels in the two edge columns).
+        // stem at every tint; and the container's profile across the interior is the lone piece's within 2 levels at every tint,
+        // Tint 0 included since the container carries the legibility term (#211; it was exempt, about 25 levels in the two edge columns).
         for (dark in listOf(true, false)) for (tint in listOf(0f, 50f, 100f)) {
             val app = "${if (dark) "dark" else "light"} tint ${tint.toInt()}"
             val style = GlassStyle.inApp(dark = dark, tintAmount = tint)
@@ -62,7 +61,7 @@ class GlassContainerMaterialTest {
             val worst = abs(alone[at] - merged[at])
             val turns = GlassLabScene.turningPoints(merged)
             check(
-                (worst <= 2.0 || tint == 0f) && turns <= 7,
+                worst <= 2.0 && turns <= 7,
                 "$app text stem: container differs from the lone piece by up to %.1f levels (%d px from the stem's centre), %d turning points (alone %d)"
                     .format(worst, at + 100 - 316, turns, GlassLabScene.turningPoints(alone)),
             )

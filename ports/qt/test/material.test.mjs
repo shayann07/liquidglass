@@ -38,16 +38,17 @@ fixture.forEach((entry, i) => {
 });
 
 // GlassEffect.qml sets only the keys it is handed and keeps the rest, so every key set at one tint is set at every
-// tint: moving Tint from 50 to 0 or 100 must reset the lab's terms to the earlier fit's (GlassStyle.inApp).
-test('every tint sets the same uniforms, with the earlier fit at the ends', () => {
+// tint: the lab material (#208) is written whole at every tint, so a move from Tint 50 to 0 or 100 keeps nothing over.
+test('every tint sets the same uniforms, and the ends are the measured nodes', () => {
   for (const dark of [true, false]) {
     const at = t => uniforms({radius: 20, dark, tintAmount: t}, 300, 120, 3);
     const keys = Object.keys(at(50)).sort();
     for (const t of [0, 1, 25, 75, 99, 100]) assert.deepEqual(Object.keys(at(t)).sort(), keys, `tint ${t}`);
     for (const t of [0, 100]) {
       const v = at(t);
-      assert.deepEqual([v.uDetailLift[0], v.uToneCurve[0], v.uSoftDetail[0]], [0, 0, 0], `tint ${t} lab terms`);
-      assert.equal(v.uChromaWeight[0], 0, `tint ${t} colour transfer`);
+      assert.equal(v.uSoftDetail[0], 1, `tint ${t} soft detail`);
+      assert.equal(v.uLegibility[0], 0, `tint ${t} legibility`);
+      assert.equal(v.uChromaWeight[0], t === 0 ? 1 : 0, `tint ${t} colour transfer`);
     }
   }
 });

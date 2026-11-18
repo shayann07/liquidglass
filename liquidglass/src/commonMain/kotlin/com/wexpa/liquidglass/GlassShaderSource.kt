@@ -451,6 +451,8 @@ half4 main(float2 coord) {
         smoothstep(1.5, 3.0, aspect) *
         smoothstep(0.75, 1.0, uRefractBand / max(inradius, 1e-4));
     float opticalDepth = depth;
+    // The refraction normal. Lighting reads n and the true-distance slope; only the bend reads the dome (#214).
+    float2 nRefract = n;
     if (domeWeight > 0.001) {
         float2 q = p / max(halfSize, float2(1e-4));
         float2 q2 = q * q;
@@ -459,7 +461,7 @@ half4 main(float2 coord) {
         float2 domeGrad = float2(q.x * (1.0 - q2.y), q.y * (1.0 - q2.x));
         float domeLen = length(domeGrad);
         if (domeLen > 1e-4) {
-            n = normalize(mix(n, domeGrad / domeLen, domeWeight));
+            nRefract = normalize(mix(n, domeGrad / domeLen, domeWeight));
         }
         axisFade = mix(axisFade, 1.0, domeWeight);
     }
@@ -467,6 +469,8 @@ half4 main(float2 coord) {
     float e = clamp(opticalDepth / max(uRefractBand, 0.001), 0.0, 1.0);
     float pw = max(uBevelPower, 1.5);
     float slope = bevelSlope(e, pw);
+    // Lighting's slope comes from the true distance, so the dome never changes the Fresnel term (#214).
+    float slopeLight = (domeWeight > 0.001) ? bevelSlope(clamp(depth / max(uRefractBand, 0.001), 0.0, 1.0), pw) : slope;
 
     // Refraction, normalised by the shift at the rim so uRefractDepth is literally the peak
     // displacement in px. Faded over the inner quarter of the band so the warp field is C1
@@ -507,7 +511,7 @@ half4 main(float2 coord) {
     // That is the only direction consistent with sampling "an area larger than itself", and it
     // is why the host has to record uPad beyond the edge.
     float measured = step(0.5, uProfile);
-    float2 push = n * bend * lens;
+    float2 push = nRefract * bend * lens;
     // Dispersion. Legacy: blue carries the higher index and lands furthest out, as a fraction
     // of the displacement. Measured: red shows content 0.07 W deeper than blue, and only in the
     // mirrored zone; the stretched zone has no colour split at all (FINDINGS 1b).
@@ -521,7 +525,7 @@ half4 main(float2 coord) {
         // content and cut, where iOS keeps it and bends its ends along the rim (docs/2 8.6 s). uBandBottom 0 is off,
         // so every other style keeps its band. Authored.
         float heldBottom = step(1.5, uProfile) * (1.0 - step(2.5, uProfile)) * clamp(uHeldLens, 0.0, 1.0)
-            * smoothstep(0.2, 0.8, n.y);
+            * smoothstep(0.2, 0.8, nRefract.y);
         float W = max(uRefractBand * mix(1.0, (uBandBottom > 0.0) ? uBandBottom : 1.0, heldBottom), 0.001);
         float u = clamp(depth / W, 0.0, 1.0);
         // Chrome at rest lenses at its corner arcs only; a field shape has no runs to exempt.
@@ -551,7 +555,7 @@ half4 main(float2 coord) {
             (1.0 - smoothstep(0.45, 0.55, u)) * held, heldFamily);
         float delta = mix(uAberration * 4.0 * abs(shift) * mirrorZone * mat,
             uAberration * 4.0 * abs(shift) * held * mat, heldFamily);
-        push = -n * shift;
+        push = -nRefract * shift;
         // The fold shows red the deeper content; the held lens shows blue the deeper content,
         // so blue's copy of the pulled-in edge lands outermost (FINDINGS 19).
         float heldOrder = heldFamily * (1.0 - ((uRimMirror > 0.0) ? clamp(uFormation, 0.0, 1.0) * foldMask : 0.0));
@@ -559,8 +563,8 @@ half4 main(float2 coord) {
         float maxOutward = mix(0.0, max(uPad, W), heldOrder);
         float shiftR = max(shift + dR, -maxOutward);
         float shiftB = max(shift - dR, -maxOutward);
-        pushR = -n * shiftR;
-        pushB = -n * shiftB;
+        pushR = -nRefract * shiftR;
+        pushB = -nRefract * shiftB;
         bend = clamp(abs(shift) / W, 0.0, 1.0);
     }
     if (uProfile >= 2.5) {
@@ -580,7 +584,7 @@ half4 main(float2 coord) {
         // as a drawn stroke rather than as compressed image. Averaging three taps across the
         // direction the compression runs turns that line into the short gradient the reference
         // actually shows. After QWEA0/Liquid-Glass-Android, which calls it rimSoft.
-        float2 sm = n * soften;
+        float2 sm = nRefract * soften;
         float2 cr = base + pushR;
         float2 cg = base + push;
         float2 cb = base + pushB;
@@ -639,7 +643,7 @@ half4 main(float2 coord) {
         float mirrorWidth = max(14.0, min(halfSize.x, halfSize.y) * 0.7);
         float mirrorBand = 1.0 - clamp(depth / mirrorWidth, 0.0, 1.0);
         float mirrorMask = mirrorBand * mirrorBand * axisFade * smoothstep(0.0, 1.5, depth);
-        half3 echo = backdropAt(base - n * (mirrorMask * lens * 3.0));
+        half3 echo = backdropAt(base - nRefract * (mirrorMask * lens * 3.0));
         bg = mix(bg, echo, half(clamp(mirrorMask * uMirror * mat, 0.0, 1.0)));
     }
 
@@ -759,9 +763,9 @@ half4 main(float2 coord) {
             * smoothstep(0.0, uBevel, depth) * mat));
     }
 
-    // Schlick, using the same bevel slope the refraction used, so the rim brightens where it
+    // Schlick, using the true-distance bevel slope (not the dome's), so the rim brightens where it
     // turns away from the viewer. It stands in for an environment we do not have.
-    float cosI = inversesqrt(1.0 + slope * slope);
+    float cosI = inversesqrt(1.0 + slopeLight * slopeLight);
     float f0 = (uIor - 1.0) / (uIor + 1.0);
     f0 = f0 * f0;
     float fresnel = f0 + (1.0 - f0) * pow(max(1.0 - cosI, 0.0), 5.0);
