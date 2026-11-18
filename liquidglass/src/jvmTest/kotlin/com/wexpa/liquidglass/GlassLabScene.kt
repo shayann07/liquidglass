@@ -44,6 +44,8 @@ internal class GlassLabScene(
     val container: Boolean = false,
     /** Where the light comes from; the lone piece and the container's [Glass] light take it alike. */
     val light: GlassLight = GlassLight.Default,
+    /** Pixels per dp: the sizes above stay in pixels, so 1 draws the same pixel box at a third of the dp. */
+    val density: Float = 3f,
 ) : AutoCloseable {
     /** The style drawn. Setting it re-draws the same scene, so a sweep over styles need not build one scene each. */
     var style by mutableStateOf(style)
@@ -53,7 +55,7 @@ internal class GlassLabScene(
     private var ground by mutableStateOf(0)
     private var backdrop by mutableStateOf(IntArray(0))
     private var time = 0L
-    private val scene = ImageComposeScene(width, height, Density(3f)) {
+    private val scene = ImageComposeScene(width, height, Density(density)) {
         val glass = rememberLiquidGlassState()
         Box(Modifier.fillMaxSize()) {
             // Drawn content, not a bitmap: the quarter-scale wide strip re-plays the recording at that scale, which
@@ -69,7 +71,7 @@ internal class GlassLabScene(
                     i += 5
                 }
             })
-            val pill = Modifier.offset { IntOffset(pillX, pillY) }.size((pillW / 3f).dp, (pillH / 3f).dp)
+            val pill = Modifier.offset { IntOffset(pillX, pillY) }.size((pillW / density).dp, (pillH / density).dp)
             if (container) {
                 LiquidGlassContainer(glass, Modifier.fillMaxSize(), style = this@GlassLabScene.style, light = light) {
                     Box(Modifier.fillMaxSize()) { Box(pill.glassMember(RoundedCornerShape(50))) }

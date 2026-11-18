@@ -1,3 +1,10 @@
+## RESUME HERE (18 November, p3/206): Control Center tile second pass, committed locally on `p3/206`
+
+- Done: element-class gate (rms 0.87), slider recipe, rim and contour fitted by sector (`GlassControlCenterRimTest`, `GlassControlCenterClassesTest`),
+  flashlight press measured (`review/atlas/flashlight-press-2026-11-18`). Not pushed, no PR.
+- Open owner questions: (1) a named large-press `GlassInteraction` for quick-action buttons (1.69 / 1.60, +119)? (2) a named light constant for the tile
+  (it needs `GlassLight(0f, -1f)`)? (3) the contour is too shallow in the shader's 1.5 px band: a deeper or wider band is a shader change.
+  (4) the layer under the tiles against `systemBackdrop()` is unverified (the lab-grey to layer map is not pinned).
 ## RESUME HERE (18 November, night): 1.1.0 in three PRs, phase 1 on `fix/202-rim`
 
 - The owner split the rest of 1.1.0 into three phases, one PR each, one 1.1.0 tag at the end (owner's yes only).

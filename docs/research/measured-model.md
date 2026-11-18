@@ -372,6 +372,7 @@ holds every channel within 2 levels of `colour()`; all are within 1.
 | dock | 122-136 | 2.5-3.8 (~1) | 4->17, 254->230 (gain 0.85, lift 13) | bends stripes over ~100 px at the ends only |
 | Control Center tile, inactive | 105 | | surround x2-3 (+50-60) | outermost 1-5 px NOT lifted: a dark line |
 | Control Center tile, active | 105 | | opaque white 250 | |
+| Control Center tile, re-measured (iPhone 13, iOS 27, `CC-over-lab-dark`, #206) | 100.5 (33.5 pt) | none: a pointwise map | inactive `51.1 + 0.903 G`, chroma x1.58; active 250, chroma x0.50; slider fill 250-252 | rim lit at the top and bottom only; dark contour outside the sides only (0 / 7 / 24 over layers 10 / 56 / 102) |
 | notification card | ~60 | text softened (no number) | +29 on a 168 backdrop, flat | none |
 | Live Activity card | ~60 | | near-opaque dark (5 over black, 19 over white) | |
 | glass clock digits | | near-opaque (5% of 18 px stripe contrast) | 0->210, 255->211 | +23 rim over dark only |
@@ -456,7 +457,8 @@ visible only below the edge.
 
 | event | measured | note |
 | :--- | :--- | :--- |
-| round button press | +39 luma, ~170 ms in, ~200 ms out, held while down | flashlight button |
+| round button press | +39 luma, ~170 ms in, ~200 ms out, held while down | flashlight button; the +39 is probably an earlier pre-HDR reading (a plain decode of the same frames averages +41 over the two backdrops) and is superseded by the row below |
+| lock-screen flashlight press (#113 item 128) | grows 1.65 (tap) to 1.69 (hold) at its peak, 1.59-1.60 held: 58 pt to 93 pt across; lit 18 to 137 over black (+119) and 133 to 197 over the stripes (+64), i.e. about 0.52 white plus 0.48 of the backdrop; 150-200 ms in; released it undershoots to 0.90 in about 150 ms and is back at 1.0 by about 270 ms | `IMG_6667.MP4`, HDR decode, edge fit of the lit disc (about 1 px), one tap and one 1.9 s hold; `MUQJ3680.MP4` is the same file |
 | Photos chrome show/hide | 16-66 ms (1-4 frames), no fade | |
 | Control Center formation | blur forms with pull progress, tiles appear at the end | durations gesture-bound |
 | cover-sheet lens | forms past ~350 px of tracked pull | see section 5 |
