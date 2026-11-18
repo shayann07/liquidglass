@@ -165,6 +165,8 @@ Merged tonight: #173 (#111 landing lift), #171 (#128 light held outline), #172 (
 | #94 | Item 24 (label cut in a tap transit) resolved and ticked: the label stays whole; iOS's 1.6-1.9× larger label is item 23's stretch. |
 | #149 | Measured: docs/2's short holds (0.7-0.8 s) release with a swell and settle ~250 ms; IMG_6756's long holds (1.3-1.5 s) shrink with no swell and settle at 100-150 ms. A recording with both is on #126. |
 | #109 | Item 115 measured: the search button's rim is one lobe (exponent ~4.4) where iOS's is a sharp lobe on a broad tail; no single constant fits. |
+| #109 | 18 November (`fix/202-rim`): item 115 fixed on the desktop (two-lobe rim, 8.7 -> 2.5 levels rms; desktop GPU replay of ref/rest-keypad against IMG_6756 34.2 s). |
+| #202 | 18 November (`fix/202-rim`): one-pixel box outline (iOS AA measured 1.00 px, Safari lab; Antigravity m202c port reproduced our five d0 values to the level); iOS 27 rim falloff re-centred 0.835 / -0.201 of the bevel and gated to styles with the outer contour (on the dark Calm bar it dimmed runs 98 -> 88); merged glass gains the resting glow (merged = lone on all five greys). Material 3 toolbar d 0..3: dark +67 +47 +28 +14 (iOS +66 +46 +31 +12), light grey 0 +67 (iOS +65), grey 128 +58 (iOS +58). |
 | #122 | Closed: items done, not reproduced or outside the app (swipe-to-home). |
 | #101 | Item 87 half done (light holds and rest are now scored; drags are not). |
 | #128 | Closed: item 3 (pill gradient) re-measured on main with Keypad selected, within 1-2 levels of iOS after #166; item 2 not reproduced; items 1 and 4 fixed (#162, #171). |

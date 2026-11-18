@@ -8,6 +8,42 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
 
 - Regular glass at Tint 0 and Tint 100 is measured (#208). `GlassStyle.inApp`, `toolbar` and `Regular` at the ends now use the fit on iOS 27's Photos chrome over the calibration target: detail share 0.663 / 0, one-sided term 0.336 / 0, dark bow 101.6 / 49.8 (of 255), opacity dark 0.401 / 0.703 and light 0.382 / 0.682, wide kernel 15.5 dp at every tint, legibility 0. Between Tint 0, 50 and 100 the values are linear (authored). Fit 1.3 to 2.2 levels rms against 5.6 to 24.8 for the authored ends (Python scores on the pooled pill and toolbar, not shader renders). The colour transfer at Tint 0 is the Tint 50 transfer (authored extrapolation; colour at Tint 0 is not measured). [Evidence](review/atlas/tint-ends-2026-11-18/README.md).
   - Default look changed: Regular glass away from Tint 50 (dark at Tint 0 over grey 128: 93 -> 134; light 198 -> 182). Tint 50 is unchanged (every port's Tint 50 parameters are identical). The toolbar shares the pill's end values. All ports' in-app factories follow.
+- The collapsing-bar recipe is measured (#207): `docs/guides/collapsing-bar.md` now drives the collapse by finger travel only,
+  collapsing after 36 dp down and expanding after 72 dp up (fitted to the decoded Safari take), over 325 ms with iOS's
+  default curve `cubic-bezier(0.25, 0.1, 0.25, 1)` (fitted; was an authored 200 ms `FastOutSlowInEasing` with 8 px).
+  - Default look changed: none (a documentation recipe, not library code).
+- The outline is a one-pixel box ramp (#202): iOS 27 covers its outermost pixel fully and its anti-aliasing spans
+  1.00 px (Safari lab circles and capsules, 0.017 coverage rms). Ours was a 1.5 px smoothstep that let 2/27 of the
+  backdrop into the outermost pixel, so the rim's first row was dim in light and swung with the backdrop in dark.
+  All four shaders now use `clamp(0.5 - d, 0, 1)`.
+  - Default look changed: the outermost pixel of every glass shape is fully covered, and the pixel outside it no
+    longer picks up glass (at most 2/27 of a level step either way). The recorded dark `Calm()` bar's specular goes
+    from 0.25 to 0.226, because its rim fit had absorbed the old ramp (IMG_6756 rows 0..4: 98 88 65 45 40 before,
+    100 84 63 45 40 now, iOS 99 79 62 45 41).
+- The iOS 27 rim has its measured falloff (#202): iOS 27 lights the rim of every resting control with one curve, steeper
+  than our full-bevel ramp. On the styles that draw the 2026 outer contour (Material 3's iOS 27 rim and
+  `GlassTabBarStyle.Ios27`), the rim band now ends at 0.835 of the bevel and starts just outside the outline. Material 3
+  toolbar, Tint 50, overhead light, rim excess at 0, 1, 2 and 3 px inside the outline (desktop render against the Safari
+  lab stills):
+  dark over grey 128 +73 +65 +45 +24 before, +67 +47 +28 +14 now, iOS +66 +46 +31 +12; dark over grey 0 and 255 the
+  same now (iOS +67 / +64 at the first pixel); light over grey 0 +67 +47 +27 +14 (iOS +65 +46 +30 +12) and over grey 128
+  +58 +47 +28 +14 (iOS +58 +45 +30 +12).
+
+  4 to 12 px inside are unchanged and within 1 level. The recorded Calm bar, the held lens and the legacy profile keep
+  their rim.
+  - Default look changed: the rim of Material 3 components and `GlassTabBarStyle.Ios27` bars, 0 to 3 px inside the
+    outline (toward iOS: up to 18 levels darker 1 to 3 px in, dark over grey 128; brighter on the outermost pixel in light).
+- Merged glass has the resting rim glow (#202): a piece inside `GlassEffectContainer` lacked the faint glow a lone piece
+  draws 4 to 12 px inside its rim, so it read up to 10 levels darker there. Merged and lone glass now render the same
+  rim on flat grey, level for level (Material 3 toolbar, all five measured greys). Held merged pieces are unchanged.
+  - Default look changed: resting merged glass, 4 to 12 px inside the outline (up to 10 levels brighter).
+- The resting dark bar's rim catches light like iOS's round its caps and on its round button (#109): a sharp glint at
+  the poles on a broad tail, 0.47 f^41 + 0.53 f^1.8 of the facing f (two-lobe fit to IMG_6756 34.2 s). A round piece
+  drawn with the bar's style draws 0.97 of that rim (authored). Search button rim against IMG_6756, 18 angles: 8.7 ->
+  2.5 levels rms, peak 104 -> 98 (iOS 96). Bar top rim along x: 4.9 -> 5.3 levels rms (runs 98 -> 100, iOS 100;
+  the caps read 5 to 10 levels brighter than iOS).
+  - Default look changed: the dark `Calm()` bar's caps and any round glass drawn with its style. Every other style is
+    unchanged (it needs `capFold` and a lit rim).
 - Regular glass's rim band is measured (#202): the outer band of a capsule or round button on the measured map shows content from deeper inside, 1.41 to 0.91 W at 0.5 to 5.5 px below the outline (61.0 to 39.4 px at the 72 px reference radius; the map is normalised by the bevel width, 0.6 R, so the band scales with the radius, about 0.083 R: a 144 px radius moves a 12 px band, authored extrapolation), measured on the Safari lab pill; the map held a constant 0.876 W there. The map's knots from 6 px inward are unchanged. Part of #202: the gate against the lab stills, the rim light and the cap and junction scores are open. [Evidence](review/atlas/rim-band-2026-11-18/README.md).
   - Default look changed: the outer band of every capsule and round button on the measured map (6 px at the 72 px reference radius, scaling with the radius). In the ports the generated shaders carry the new knots, but only surfaces that set `uRestMap` to 1 use that map: the exported Calm selector material (Skia, npm, React Native and .NET) and Qt when given those values. The ports' own in-app material factories leave `uRestMap` at 0 (Flutter fills unset uniforms with 0) and keep the earlier map, so their look does not change.
 - Wide pills light from their true shape (#214): refraction still reads the dome field, but facing, highlights, edge shading and Fresnel take the true-distance normal and slope.

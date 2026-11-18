@@ -77,6 +77,7 @@ Merged tonight: #173 (#111 landing lift), #171 (#128 light held outline), #172 (
 | #94 | Item 24 (label cut in a tap transit) resolved and ticked: the label stays whole; iOS's 1.6-1.9× larger label is item 23's stretch. |
 | #149 | Measured: docs/2's short holds (0.7-0.8 s) release with a swell and settle ~250 ms; IMG_6756's long holds (1.3-1.5 s) shrink with no swell and settle at 100-150 ms. A recording with both is on #126. |
 | #109 | Item 115 measured: the search button's rim is one lobe (exponent ~4.4) where iOS's is a sharp lobe on a broad tail; no single constant fits. |
+| #109 | 18 November (`fix/202-rim`): item 115 fixed on the desktop: the dark Calm bar's rim lobe is 0.47 f^41 + 0.53 f^1.8 round its caps and button; button 8.7 -> 2.5 levels rms (peak 98, iOS 96); bar runs 5.3 (gate 5.4). Pixel 7: bar 100 80 56 42 40, button top 98 (iOS 96). |
 | #122 | Closed: items done, not reproduced or outside the app (swipe-to-home). |
 | #101 | 7 Nov (tools, PR): 87 light holds and drags scored (`tools/measure_light_hold.py`: hold/drag top band +6.5/+5.0, shadow -6.2/-6.3 against IMG_7049); 88 content split under the lens (`--content-split`: ours 3.7-3.8 px vs iOS 0.6 px); 98 replays record their script and the fringe scorer checks it (`render.sh`, `replay_meta.py`). 16 Nov: 88 restricted to edges away from the rim (`--content-core 40`): ours 5.3-5.6 px vs iOS 1.1-1.2 (16-19 edges): a split persists away from the rim. Left: score 87 on IMG_7048 (needs an input script inferred from the recording; none exists). |
 | #128 | Closed: item 3 (pill gradient) re-measured on main with Keypad selected, within 1-2 levels of iOS after #166; item 2 not reproduced; items 1 and 4 fixed (#162, #171). |
@@ -166,7 +167,7 @@ bounded completed work, **not completion of full iOS parity**. All open rows rem
 v1.0.0 is released (tag on 4a71394; npm, Maven Central, NuGet incl. `LiquidGlass.Maui`, GitHub
 Release). Main is 1.1.0-SNAPSHOT. Everything below the "PRODUCT PLAN" heading is history; the open
 work is this list. Each row names its issue; close the row and the issue in the same change, with
-evidence under `review/` for anything visible. Rules: AGENTS.md (opt-in optics, never re-fit a
+evidence under `review/` for anything visible. Rules: AGENTS.md (new measured optics on by default, never re-fit a
 measured constant silently, docs/CHANGELOG/dev notes in the same change, ask the owner before
 scope/API/positioning decisions, one Gradle build per worktree).
 

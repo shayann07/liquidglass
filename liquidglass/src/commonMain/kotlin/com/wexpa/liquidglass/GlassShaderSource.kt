@@ -371,7 +371,10 @@ half4 main(float2 coord) {
     float2 p = local - halfSize;
 
     float d = sdShape(p, halfSize);
-    float coverage = 1.0 - smoothstep(-0.75, 0.75, d);
+    // A one-pixel box ramp across the outline: iOS 27 covers its outermost pixel fully and its AA spans 1.00 px
+    // (Safari lab circles and capsules, m202c, 0.017 rms). The earlier 1.5 px smoothstep let 2/27 of the backdrop
+    // into the outermost pixel, dimming the rim there and tying it to the backdrop.
+    float coverage = clamp(0.5 - d, 0.0, 1.0);
     // The contour outside the outline (GlassStyle.outerContour): about 1.5 px wide, centred
     // 0.25 px outside, so the outermost wholly covered pixel is untouched, as measured.
     float outerBand = (uOuterContour.x > 0.0) ? clamp(1.0 - abs(d - 0.25) / 0.75, 0.0, 1.0) : 0.0;
@@ -746,8 +749,16 @@ half4 main(float2 coord) {
     // interior — the profile the reference lens shows, rising over about three points from a
     // dark outermost pixel to its peak and falling over three more.
     float peakAt = clamp(uBevelPeak, 0.0, 0.9) * uBevel;
+    // The measured resting chamfer (#202): iOS 27 lights every resting control with one rim curve, steeper than a
+    // full-bevel smoothstep. Its band ends at 0.835 of the bevel and starts 0.2 of it outside the outline, so the first
+    // pixels keep their level while 1-3 px inside fall to the measured +46 / +31 / +12 (Safari lab pill and Photos
+    // circles, m202; fitted with the resting glow, overhead light, on the iOS 27 rim: bevel 1.6 dp, specular 0.27,
+    // power 2.6). It applies only to resting glass that draws the 2026 outer contour, the styles it was fitted on;
+    // the recorded Calm bar, whose rim was fitted on its own recording, the held lens and the legacy profile keep theirs.
+    float measuredRest = measured * (1.0 - step(1.5, uProfile));
+    float chamfer = measuredRest * step(0.0001, uOuterContour.x);
     float bevelBand = (peakAt < 0.5)
-        ? smoothstep(uBevel, 0.0, depth)
+        ? smoothstep(mix(1.0, 0.835, chamfer) * uBevel, -0.201 * chamfer * uBevel, depth)
         : smoothstep(0.0, peakAt, depth) * smoothstep(uBevel, peakAt, depth);
 
     // The faint dark line that reads as thickness, sitting just inside the bevel rather than on
@@ -786,10 +797,21 @@ half4 main(float2 coord) {
     // reference lens is a broad lobe whose peak sits inside an edge that stays dark.
     float counterLight = clamp(uCounterLight, 0.0, 1.0);
     float counterPow = uSpecularPow * mix(1.6, 1.0, smoothstep(0.35, 1.0, counterLight));
-    float key = pow(max(facing, 0.0), uSpecularPow) * bevelBand;
-    float counter = pow(max(-facing, 0.0), counterPow) * bevelBand * counterLight;
+    // The resting bar's rim round its caps and its round button (#109): iOS lights them with a sharp glint at the
+    // poles on a broad tail, 0.47 f^41 + 0.53 f^1.8 of the facing f (IMG_6756 34.2 s, search button, 18 angles;
+    // a fit to a measured profile). Only resting glass that folds its caps and draws a lit rim (the dark Calm bar
+    // and the button drawn with its style); f = 1 keeps 1, so straight runs are unchanged.
+    float rimLobeGate = clamp(uFoldCorners - 1.0, 0.0, 1.0) * (1.0 - step(1.5, uProfile)) * step(0.0001, uSpecular);
+    float faceUp = max(facing, 0.0);
+    float faceDown = max(-facing, 0.0);
+    float lobeUp = 0.47 * pow(faceUp, 41.0) + 0.53 * pow(faceUp, 1.8);
+    float lobeDown = 0.47 * pow(faceDown, 41.0) + 0.53 * pow(faceDown, 1.8);
+    float key = mix(pow(faceUp, uSpecularPow), lobeUp, rimLobeGate) * bevelBand;
+    float counter = mix(pow(faceDown, counterPow), lobeDown, rimLobeGate) * bevelBand * counterLight;
+    faceUp = mix(faceUp, lobeUp, rimLobeGate);
+    faceDown = mix(faceDown, lobeDown, rimLobeGate);
     float edge = smoothstep(2.0, 0.0, depth);
-    float edgeLine = edge * 0.5 * (max(facing, 0.0) + counterLight * max(-facing, 0.0));
+    float edgeLine = edge * 0.5 * (faceUp + counterLight * faceDown);
 
     // The measured rim line trails a faint glow inward, decaying over about a bevel width: on
     // the pill +10 at 4 px falling to +3 at 8 (rim fit, 2026-09-12); on the held tab-bar lens
@@ -809,6 +831,10 @@ half4 main(float2 coord) {
     float capRimGate = clamp(uFoldCorners - 1.0, 0.0, 1.0) * (1.0 - step(1.5, uProfile)) * step(2.0 * halfSize.y, halfSize.x)
         * step(0.95 * halfSize.y, minRadius) * step(0.0001, uSpecular);
     float capRim = 1.0 - 0.2 * capRimGate * clamp((2.0 * halfSize.y - (halfSize.x - abs(p.x))) / (1.6 * halfSize.y), 0.0, 1.0);
+    // The round button drawn with that bar's style peaks at 96 where its bar's runs reach 100 (IMG_6756 34.2 s); ours
+    // reached 104 with the same rim (98 after the bar's specular came down), so a round piece under the lobe gate
+    // draws 0.97 of it. Authored fit.
+    capRim *= 1.0 - 0.03 * rimLobeGate * (1.0 - step(2.0 * halfSize.y, halfSize.x));
     float highlight = ((key + counter) * uSpecular
         + edgeLine * uSpecular * uEdgeLight
         + fresnel * uFresnel * bevelBand
