@@ -28,6 +28,10 @@ light 0, dark 100, light 100. Per element (the same fit, scored on each zone; `.
 | light Tint 100 | 2.07 | 0.79 | **3.32** |
 | light Tint 50 (shipped lab fit, unchanged) | 2.07 | 0.76 | 3.35 |
 
+Stills: each case has two captures, over the light and the dark chart file, whose scored zones hold the same greys; each
+still scored on its own gives the same rms as the table (the fit output's "on repeat" pair, e.g. 1.40 and 1.40 for dark Tint 0),
+so the table holds per still as well as pooled. They are rig repeats, not independent replicates.
+
 The #208 gate (3 levels rms on the usable Tint 0 and 100 stills) was scored pooled over both elements, as the plan set it,
 and passes that way. Per element it passes for the toolbar capsule everywhere and for the Today pill in dark, and **misses
 for the Today pill in light** (3.59 and 3.32). The Today pill misses by the same amount at Tint 50 with the shipped Safari-lab
