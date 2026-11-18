@@ -58,14 +58,19 @@ function calmDeformation(width, height, dx, dy, pressAmount, radius,
   if (!travel) return { pressX, pressY, along: 1, across: 1, angle: 0 };
   const c = dx / travel, s = dy / travel, r = Math.min(radius, width / 2, height / 2);
   if (pullShape === 'area-preserving') {
-    const amount = Math.max(0,Math.min(1,travel*.2/targetLimit));
+    const roundness=Math.max(0,Math.min(1,2*Math.min(width,height)/Math.max(width,height)-1));
+    // A long bar takes only the pull across its spine (Compose GlassPull): a sideways drag leaves iOS 27's held
+    // Phone bar alone. A round surface keeps the whole pull.
+    const ax=dx*roundness, pull=Math.hypot(ax,dy);
+    if (!pull) return { pressX, pressY, along: 1, across: 1, angle: 0 };
+    const pc=ax/pull, ps=dy/pull;
+    const amount = Math.max(0,Math.min(1,pull*.2/targetLimit));
     // Same authored .047 log-strain as Compose; input compliance/timing remain independent.
     const strain=.047*amount;
-    const roundness=Math.max(0,Math.min(1,2*Math.min(width,height)/Math.max(width,height)-1));
-    const u=strain*(c*c-s*s), v=2*strain*c*s*roundness, magnitude=Math.hypot(u,v);
+    const u=strain*(pc*pc-ps*ps), v=2*strain*pc*ps*roundness, magnitude=Math.hypot(u,v);
     const bias=.056*Math.min(width,height)*amount;
     return {pressX,pressY,along:Math.exp(magnitude),across:Math.exp(-magnitude),angle:Math.atan2(v,u)/2,
-      offsetX:bias*c,offsetY:bias*s};
+      offsetX:bias*pc,offsetY:bias*ps};
   }
   const extent = (nx, ny) => (width - 2*r)*pressX*Math.abs(nx) + (height - 2*r)*pressY*Math.abs(ny) +
     2*r*Math.hypot(pressX*nx, pressY*ny);

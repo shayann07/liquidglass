@@ -82,6 +82,13 @@ class GlassBarShapeReferenceTest {
             "a20dp pull must not saturate the authored input response")
         assertTrue(abs(moderate.translationY)<1.3f,"ordinary pull reached its drawing limit early")
         assertEquals(GlassPullDeformation.None,shape(0f,0f))
+        // iOS 27's held Phone bar keeps its edges through a sideways drag (18 November takes: left edge 42-43 px
+        // through a right drag, 63 -> 42 only at the press); the bar answers the vertical part of a pull only.
+        assertEquals(GlassPullDeformation.None,shape(10000f,0f),"a sideways pull reshaped the bar")
+        assertEquals(GlassPullDeformation.None,shape(-60f,0f),"a sideways pull reshaped the bar")
+        val vertical = glassMaterialPull(w,h,h/2,3f,press,press,0f,-40f,limit,interaction)
+        assertEquals(vertical,glassMaterialPull(w,h,h/2,3f,press,press,90f,-40f,limit,interaction),
+            "a diagonal pull must act as its vertical part alone")
         assertEquals(GlassPullShape.Adaptive,GlassInteraction.Calm.pullShape,
             "navigation's relative deformation must not change card defaults")
     }

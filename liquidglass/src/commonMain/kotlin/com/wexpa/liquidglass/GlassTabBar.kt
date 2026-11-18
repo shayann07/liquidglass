@@ -1886,7 +1886,13 @@ data class GlassTabBarStyle(
 ) {
     companion object {
         /** Recommended navigation preset. Material responds gently; the selector deforms
-         * along travel only. Existing V3/Measured presets remain available for comparison. */
+         * along travel only. Existing V3/Measured presets remain available for comparison.
+         *
+         * The dark bar's tone is the earlier toolbar fit, inherited rather than re-measured: every rest moment of iOS's
+         * Phone bar on the recordings sits over black, where this fit and the measured in-app material both read 32, and
+         * the one touched-bar point over a lit avatar (slope 0.66-0.69) does not separate them (#203). [CalmClear] carries
+         * the measured material. A held bar answers only the vertical part of a pull (it rises toward an upward drag, the
+         * IMG_6756 T04 law); a drag along it leaves its edges where they are and moves the lens instead. */
         fun Calm(dark: Boolean = true): GlassTabBarStyle = CalmRecordedSpace(dark).let { recorded ->
             if (!dark) calmLight(recorded) else recorded.copy(
                 // Re-fitted in display colours (2026-10-15): the recordings are HDR10 and had been
