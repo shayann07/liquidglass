@@ -749,10 +749,13 @@ half4 main(float2 coord) {
     // The measured resting chamfer (#202): iOS 27 lights every resting control with one rim curve, steeper than a
     // full-bevel smoothstep. Its band ends at 0.8 of the bevel and starts 0.15 of it outside the outline, so the first
     // pixels keep their level while 1-3 px inside fall to the measured +46 / +31 / +12 (Safari lab pill and Photos
-    // circles, m202; fitted with the held glow below, overhead light). The held lens and the legacy profile keep theirs.
+    // circles, m202; fitted with the resting glow, overhead light, on the iOS 27 rim: bevel 1.6 dp, specular 0.27,
+    // power 2.6). It applies only to resting glass that draws the 2026 outer contour, the styles it was fitted on;
+    // the recorded Calm bar, whose rim was fitted on its own recording, the held lens and the legacy profile keep theirs.
     float measuredRest = measured * (1.0 - step(1.5, uProfile));
+    float chamfer = measuredRest * step(0.0001, uOuterContour.x);
     float bevelBand = (peakAt < 0.5)
-        ? smoothstep(mix(1.0, 0.8, measuredRest) * uBevel, -0.15 * measuredRest * uBevel, depth)
+        ? smoothstep(mix(1.0, 0.8, chamfer) * uBevel, -0.15 * chamfer * uBevel, depth)
         : smoothstep(0.0, peakAt, depth) * smoothstep(uBevel, peakAt, depth);
 
     // The faint dark line that reads as thickness, sitting just inside the bevel rather than on
