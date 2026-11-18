@@ -92,7 +92,7 @@ class GlassKnobTest {
         onNodeWithTag("sw").performTouchInput { down(center) }
         mainClock.advanceTimeBy(1000)
         val held = onNodeWithTag(GlassKnobTestTag, useUnmergedTree = true).inDp(scale)
-        assertEquals(57.8f, held.width, 1f, "held width (measured 57.8 dp, was 64.5 read off the tap peak)")
+        assertEquals(57.7f, held.width, 1f, "held width (measured 57.7 dp, was 64.5 read off the tap peak)")
         assertEquals(38.5f, held.height, 1.5f, "held height (measured outline 38.5 dp +-1)")
         assertEquals(1.56f, held.width / rest.width, .03f, "width ratio (measured 1.56, was 1.75)")
         assertEquals(1.6f, held.height / rest.height, .05f, "height ratio (measured 1.6)")
@@ -111,17 +111,29 @@ class GlassKnobTest {
         mainClock.advanceTimeBy(100)
         onNodeWithTag("sw").performTouchInput { down(center) }
         val heights = ArrayList<Float>()
+        val widths = ArrayList<Float>()
         repeat(16) {
             mainClock.advanceTimeByFrame()
-            heights += onNodeWithTag(GlassKnobTestTag, useUnmergedTree = true).inDp(scale).height
+            val knob = onNodeWithTag(GlassKnobTestTag, useUnmergedTree = true).inDp(scale)
+            heights += knob.height
+            widths += knob.width
         }
         val first = heights.indexOfFirst { it > 28.5f }
         val peak = heights.indices.maxBy { heights[it] }
         val peakFrames = peak - first
-        assertTrue(peakFrames in 4..7, "the lens peaked $peakFrames frames after clearing the track (measured 5 +-1): $heights")
+        // The PressSpring (zeta .55, omega 25) stepped at 16 ms and quantised to whole pixels at 4x puts the
+        // peak 6 frames after the first frame above 28.5 dp, for either alignment of the first animation frame.
+        // The recording has 5 +- 1, so the window is that +-1 frame (the old 100 ms +-1 frame bound), not wider.
+        assertTrue(peakFrames in 4..6, "the lens peaked $peakFrames frames after clearing the track (measured 5 +-1, spring gives 6): $heights")
         val held = 38.4f
         assertTrue(heights[peak] > held, "no overshoot: the peak is ${heights[peak]} (measured 40.3 dp over a 38.3 dp plateau)")
+        // The spring's overshoot is exp(-pi zeta / sqrt(1 - zeta^2)) = 13 percent of the 14.4 dp growth = 1.9 dp
+        // (peak 40.3 dp measured, 40.0 stepped); a bound of 3 dp is the old "under a quarter of the growth" cap
+        // made to the measured value, and fails a spring with half the damping (about 5.9 dp).
+        assertTrue(heights[peak] - held < 3f, "overshoot too large: the peak is ${heights[peak]} over the $held dp plateau: $heights")
         assertEquals(40.3f, heights[peak], 1.5f, "peak lens height")
+        // Width and height share one fraction today; pin the width at the peak so a per-axis spring cannot drift.
+        assertEquals(1.63f, widths[peak] / 37f, .03f, "peak width over the 37 dp rest knob (measured 1.62-1.64): $widths")
     }
 
     /** Release from a hold: 115 -> 84 px (38.3 dp -> the 28 dp track) in 8 frames (133 ms), never below the rest knob. */

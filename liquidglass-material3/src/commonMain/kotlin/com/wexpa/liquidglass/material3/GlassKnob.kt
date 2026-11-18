@@ -46,7 +46,7 @@ internal object KnobSpec {
 
     /**
      * Measured, settled hold (I-menus-dark, slow-drag holds 30.63-31.21 s and 32.83-33.43 s, n = 73): width 173.35 +- 0.27 px =
-     * 57.8 dp = 1.56 times the 37 dp knob (cap-arc circle fits, validated on the resting knob to 0.07 px), height 115.00 px =
+     * 57.7 dp = 1.56 times the 37 dp knob (cap-arc circle fits, validated on the resting knob to 0.07 px), height 115.00 px =
      * 1.6 times. The earlier 1.75 was read off the soft-edged tap peak (193-200 px), which overshoots. The press spring's
      * overshoot takes the width to 1.63 times at the peak, as measured (1.62-1.64).
      */
@@ -60,7 +60,7 @@ internal object KnobSpec {
     /**
      * Fitted to the lens outline height of a long hold in `I-menus-dark` (30.41-31.35 s, 60 fps): 85 px (the
      * track) -> 121 px in 6 frames (100 ms), settling at 115 px. The outline is only visible above the 84 px
-     * track, so the growth starts about 40 ms before the first visible frame. Under-damped spring, rms
+     * track, so the growth is inferred to start about 40 ms before the first visible frame. Under-damped spring, rms
      * error 1.0 px over the visible frames (the earlier 1050 / 0.5 fit read the track as the knob's rest
      * height and left 2.2 px).
      */

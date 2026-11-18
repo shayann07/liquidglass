@@ -32,7 +32,7 @@ box, as it always did; it is shown as it was.
 | :-- | :-- | :-- |
 | switch track | 63 x 28 dp | measured, native UIKit switch, `I-menus-dark` |
 | knob at rest | 37 x 24 dp, inset 2 dp, travel 22 dp | measured, same take |
-| held knob outline | 57.8 x 38.3 dp (1.56 x 1.6 of rest), clear lens | measured on the settled hold (173.35 +- 0.27 px by 115.00 px, cap-arc fits, I-menus-dark); lens strength authored. Earlier 64.5 x 38.5 was read at the tap peak |
+| held knob outline | 57.7 x 38.3 dp (1.56 x 1.6 of rest), clear lens | measured on the settled hold (173.35 +- 0.27 px by 115.00 px, cap-arc fits, I-menus-dark); lens strength authored. Earlier 64.5 x 38.5 was read at the tap peak |
 | press-in, release, travel springs | peak about 100 ms, settle 133 ms, 90 percent in 7 frames | measured timing; spring parameters fitted |
 | track colour fade | 420 ms | measured on Safari's web switch (timing class only) |
 | slider track | 4 dp | measured on Safari's web slider, rendered about 1.12x native |
@@ -50,7 +50,7 @@ fits, rms over the visible frames: press stiffness 625, damping 0.55 (1.0 px; wa
 critically damped (0.9 px; was 1900 at 4.6 px). A tap shows the lens above the track for 18-19 frames (300-317 ms) in all five taps
 of the take. Slow drag: while the lens moves 20 px in 0.7 s its size stays 178 x 115 px, so no stretch is measured at that speed; a
 fast drag is not recorded (Safari's web take has no lens). Width, resolved: a later cap-arc circle-fit pass (settled holds 30.63-31.21 s and 32.83-33.43 s, 73 frames, validated on the resting
-knob to 0.07 px) gives 173.35 +- 0.27 px = 57.8 dp = 1.56x the knob, so the held width is now 1.56x (was 1.75x, read at the tap
+knob to 0.07 px) gives 173.35 +- 0.27 px = 57.7 dp = 1.56x the knob, so the held width is now 1.56x (was 1.75x, read at the tap
 peak). The press overshoot reaches 1.63x, as measured (1.62-1.64x).
 
 ## Device check (Pixel 7, 18 November)
