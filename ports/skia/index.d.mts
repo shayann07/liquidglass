@@ -33,7 +33,7 @@ export interface GlassLensMaterial {
   shadow?: boolean;
   /** Device px per dp, scaling the preset's dp terms (bevel, refraction depth). Default 1; a scene multiplies it by its pixelRatio. */
   density?: number;
-  /** With `lighting`: toward the light, y up negative. Default Compose's GlassLight.Default [-0.35, -0.94]. */
+  /** With `lighting`: toward the light, y up negative. Default Compose's GlassLight.Default [0, -1]. */
   light?: readonly [number, number];
 }
 export interface GlassMaterial {
@@ -44,8 +44,8 @@ export interface GlassMaterial {
   /** Surfaces only: Compose's `Glass.tint(color)`. Replaces the tint colour and opacity ([r, g, b, a],
    * sRGB 0..1, quantized to 8 bits as Compose's Color is); the dark appearance keeps its lift. */
   tint?: readonly [number, number, number, number] | null;
-  /** Toward the light, y up negative. Default Compose's GlassLight.Default [-0.35, -0.94]; [0, -1]
-   * is iOS 27's measured overhead light. */
+  /** Toward the light, y up negative. Default Compose's GlassLight.Default [0, -1], straight overhead, as every measured
+   * resting iOS 27 rim is lit. */
   light?: readonly [number, number];
 }
 export interface GlassFeedback {
@@ -76,10 +76,14 @@ export interface FreeButtonOptions {
   pullFollow?: number; pullElongation?: number; pullWidthRatio?: number; pullLimit?: number; pullLiftShare?: number;
   /** Release damping along x (Compose `GlassInteraction.pullReleaseDampingX`), 0.3; y keeps 0.45. */
   pullReleaseDampingX?: number;
+  /** A control that is not a square button, px (default `size`); `radius` defaults to half the short side. Compose's
+   * `GlassInteraction.Fluid` falls with size: 80 dp or less is the search button, 160 dp and more presses 2 dp a side
+   * and never leaves its place. Authored by size. */
+  width?: number; height?: number; radius?: number;
 }
 export interface FreeButtonTransform {
-  /** Press scale (both axes), then a stretch along and across `angle` (degrees), then the offset. */
-  pressScale: number; along: number; across: number; angle: number; tx: number; ty: number;
+  /** Press scale (x; `pressScaleY` is y), then a stretch along and across `angle` (degrees), then the offset. */
+  pressScale: number; pressScaleY: number; along: number; across: number; angle: number; tx: number; ty: number;
   /** The press glow and the material lift it gives (fraction of white). */
   glow: number; lift: number; pullX: number;
 }
@@ -88,7 +92,10 @@ export interface FreeButton {
   down(time: number): void;
   move(time: number, dx: number, dy: number): void;
   up(time: number): void;
+  /** A scroll took the gesture: everything returns critically damped, with no ring and no landing squash. */
+  cancel(time: number): void;
   sample(time: number): FreeButtonTransform;
+
 }
 export function createFreeButton(options: FreeButtonOptions): FreeButton;
 

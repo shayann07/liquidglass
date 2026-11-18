@@ -1,9 +1,30 @@
+## #196 Fluid default (19 November, `p3/114`)
+
+- [x] `GlassInteraction.Fluid`, size policy, scroll cancel, Reduce Motion, ports and fixtures, docs.
+- [ ] Pixel feel check (buttons in a scrolling list, a FAB, a chip row); optional recording of non-search glass pulled (owner list #126).
+## #112 search mode (18 November, `p3/112`)
+
+- [x] State, geometry (measured end state), expansion transition (authored), tests, docs. [ ] sample wiring, IME ride-up, Android back, Material 3 `NavigationBar`, ports, replay and `search112.py` scoring, 60 fps scoring of the motion.
+## Scoring tools #101 (18 November, `p2/selector`)
+
+- [x] Item 88 `--rim-exclude` split; [x] `--geometry` for IMG_7048 and the phone; [x] `replay_script.sh` dry run; [x] formation-continuity scorer.
+- [ ] Render `ref/light/IMG_7048-hold.txt` (`calm-light`) and score it; [ ] run `replay_script.sh` on the Pixel (+-25 ms, +-6 px).
+
 ## Controls bundle (18 November, `feat/205-204-207-controls`)
 
-- [x] #205 geometry and timing; [ ] track colours, native thumb, light switch, drag stretch.
+- [x] #205 geometry and timing; press and release springs refitted to the visible lens (p3/205); [ ] track colours (owner decision: measured green 47,210,88 and grey 90,90,94 are not default), native thumb, light switch. Drag stretch: I-menus-dark holds (30.4-31.3 s, 32.6-33.5 s) are slow drags; width and height stay constant (178 x 115 px) while the lens moves 20 px, so no stretch at that speed; a fast drag is not recorded.
 - [x] #204 `menu(dark)`; [ ] held-out context menu (10-18 levels), rim and shadow, device capture.
+- [x] #102 item 91: `GlassToolbarGroup` (authored geometry); [ ] measured group geometry, alert dialog look (authored, no recording).
 - [x] #102 dark `menu(dark)` on the measured pop-up menu, `sheet(dark)` on the share sheet, device frames; [ ] sheet scrim (iOS none), colour, rim and shadow, light pop-up menu (not recorded).
 - [x] #207 `Modifier.glassScrollEdge`; [ ] sample scene, collapse timing, Pixel frame times, Android blur.
+
+## #206 second pass and #113 (18 November, `p3/206`)
+
+- [x] Element classes (toggle, wide, media, slider track) against the take; slider recipe; rim and contour by sector; flashlight press numbers (#113 item 128).
+- [ ] Owner: named large-press interaction for quick-action buttons; a named vertical light for the tile; a deeper outer contour band (shader); the layer under the tiles
+  against `systemBackdrop()`.
+- [ ] Glass text and quick-action circles (COSG3073 60-150 s): file the new issue (#113 step 4; not filed from here, no GitHub writes).
+- [ ] Not measured: light appearance, a tile's press and hold, Tint Amount, active-tile rim.
 
 ## #206 Control Center tile (18 November, `feat/206-control-center`)
 

@@ -32,7 +32,7 @@ box, as it always did; it is shown as it was.
 | :-- | :-- | :-- |
 | switch track | 63 x 28 dp | measured, native UIKit switch, `I-menus-dark` |
 | knob at rest | 37 x 24 dp, inset 2 dp, travel 22 dp | measured, same take |
-| held knob outline | 64.5 x 38.5 dp (1.75 x 1.6 of rest), clear lens | measured outline, +-1 dp; lens strength authored |
+| held knob outline | 57.7 x 38.3 dp (1.56 x 1.6 of rest), clear lens | measured on the settled hold (173.35 +- 0.27 px by 115.00 px, cap-arc fits, I-menus-dark); lens strength authored. Earlier 64.5 x 38.5 was read at the tap peak |
 | press-in, release, travel springs | peak about 100 ms, settle 133 ms, 90 percent in 7 frames | measured timing; spring parameters fitted |
 | track colour fade | 420 ms | measured on Safari's web switch (timing class only) |
 | slider track | 4 dp | measured on Safari's web slider, rendered about 1.12x native |
@@ -40,6 +40,18 @@ box, as it always did; it is shown as it was.
 | slider thumb shadow, disabled looks, second range thumb, `thumbContent` | - | authored |
 
 Measurement record: `.local/sxs/plans/205-measured.md` (private working notes).
+
+## Refit of press and release (19 November, p3/205)
+
+Re-read from the same `I-menus-dark` take (numbers only, no frames): the lens outline is visible only where it is taller than the 84 px
+track, so the first fit (release 133 ms to the 24 dp knob) ended the visible part in 58 ms. Measured on a 0.9 s hold (30.41-31.35 s,
+60 fps): outline height 85 -> 121 -> 115 px (press, peak at +100 ms, settle), then 115 -> 84 px in 8 frames (133 ms) on release. Spring
+fits, rms over the visible frames: press stiffness 625, damping 0.55 (1.0 px; was 1050 / 0.5 at 2.2 px), release stiffness 361,
+critically damped (0.9 px; was 1900 at 4.6 px). A tap shows the lens above the track for 18-19 frames (300-317 ms) in all five taps
+of the take. Slow drag: while the lens moves 20 px in 0.7 s its size stays 178 x 115 px, so no stretch is measured at that speed; a
+fast drag is not recorded (Safari's web take has no lens). Width, resolved: a later cap-arc circle-fit pass (settled holds 30.63-31.21 s and 32.83-33.43 s, 73 frames, validated on the resting
+knob to 0.07 px) gives 173.35 +- 0.27 px = 57.7 dp = 1.56x the knob, so the held width is now 1.56x (was 1.75x, read at the tap
+peak). The press overshoot reaches 1.63x, as measured (1.62-1.64x).
 
 ## Device check (Pixel 7, 18 November)
 

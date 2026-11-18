@@ -47,7 +47,7 @@ useEffect(() => { makeImageFromView(pageRef).then(setBackdrop); }, []);
 | `dark` | false | the dark material |
 | `tintAmount` | 50 | 0 to 100 |
 | `tint` | none | `[r, g, b, a]` in sRGB 0..1, as Compose's `Glass.tint(color)` |
-| `light` | `[-0.35, -0.94]` | toward the light; `[0, -1]` is iOS 27's measured overhead light |
+| `light` | `[0, -1]` | toward the light; straight overhead, as every measured resting iOS 27 rim is lit |
 | `materialize`, `reducedTransparency`, `increasedContrast` | 1, 0, 0 | 0 to 1 |
 
 `GlassLens` takes `magnification` (1 to 2.5, 1.25 by default).

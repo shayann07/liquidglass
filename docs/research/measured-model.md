@@ -372,6 +372,7 @@ holds every channel within 2 levels of `colour()`; all are within 1.
 | dock | 122-136 | 2.5-3.8 (~1) | 4->17, 254->230 (gain 0.85, lift 13) | bends stripes over ~100 px at the ends only |
 | Control Center tile, inactive | 105 | | surround x2-3 (+50-60) | outermost 1-5 px NOT lifted: a dark line |
 | Control Center tile, active | 105 | | opaque white 250 | |
+| Control Center tile, re-measured (iPhone 13, iOS 27, `CC-over-lab-dark`, #206) | 100.5 (33.5 pt) | none: a pointwise map | inactive `51.1 + 0.903 G`, chroma x1.58; active 250, chroma x0.50; slider fill 250-252 | rim lit at the top and bottom only; dark contour outside the sides only (0 / 7 / 24 over layers 10 / 56 / 102) |
 | notification card | ~60 | text softened (no number) | +29 on a 168 backdrop, flat | none |
 | Live Activity card | ~60 | | near-opaque dark (5 over black, 19 over white) | |
 | glass clock digits | | near-opaque (5% of 18 px stripe contrast) | 0->210, 255->211 | +23 rim over dark only |
@@ -385,7 +386,7 @@ Icon and folder bevels: section 6. Clear icons displace colour boundaries +5..+5
 
 | layer | blur sigma px (pt) | tone | notes |
 | :--- | :--- | :--- | :--- |
-| Control Center over app content | 23.2 (7.7) at t<=50; 24 at 62; 27.5 at 86; 32-33 (11) at 100 | gain 0.32; offset = 142 - 0.864 * mean luma behind (60 over the dark target, 10 over the light) | identical over both targets and both appearances |
+| Control Center over app content | 23.2 (7.7) at t<=50; 24 at 62; 27.5 at 86; 32-33 (11) at 100 | gain 0.3608; offset 10.23 (levels of 255), no luma adaptation: G = 10.23 + 0.3608 L, black reads 10, white 102 (measured: lab take CC-over-lab-dark.MP4 via hdr.py, rms 0.33; confirmed per pixel on the mac-rig C1b PNGs and PUSM9766) | identical over Tint 0-100 and both appearances; the earlier 142 - 0.864 * luma law regressed whole-image means (retired) |
 | Control Center over the Home Screen | 16-21 (5.5-7) | | busier backdrop, same family |
 | App Library | 15-26 (5-9) | | |
 | Today view | 26-28 (9) | | |
@@ -456,7 +457,8 @@ visible only below the edge.
 
 | event | measured | note |
 | :--- | :--- | :--- |
-| round button press | +39 luma, ~170 ms in, ~200 ms out, held while down | flashlight button |
+| round button press | +39 luma, ~170 ms in, ~200 ms out, held while down | flashlight button; the +39 is probably an earlier pre-HDR reading (a plain decode of the same frames averages +41 over the two backdrops) and is superseded by the row below |
+| lock-screen flashlight press (#113 item 128) | grows 1.65 (tap) to 1.69 (hold) at its peak, 1.59-1.60 held: 58 pt to 93 pt across; lit 18 to 137 over black (+119) and 133 to 197 over the stripes (+64), i.e. about 0.52 white plus 0.48 of the backdrop; 150-200 ms in; released it undershoots to 0.90 in about 150 ms and is back at 1.0 by about 270 ms | `IMG_6667.MP4`, HDR decode, edge fit of the lit disc (about 1 px), one tap and one 1.9 s hold; `MUQJ3680.MP4` is the same file |
 | Photos chrome show/hide | 16-66 ms (1-4 frames), no fade | |
 | Control Center formation | blur forms with pull progress, tiles appear at the end | durations gesture-bound |
 | cover-sheet lens | forms past ~350 px of tracked pull | see section 5 |
@@ -489,7 +491,7 @@ visible only below the edge.
 | mirror | 0.18 amplitude | full-strength mirrored copy in the outer 0.28 W once formed; 0 before | amplitude 1 x formation |
 | dispersion | 0.018 of displacement everywhere | 0.07 W, mirrored zone only | zone-gated |
 | blurRadius / backdropBlur | one blur | fine 0.5 pt + wide >= 25 pt mixed by w(t) = 0.78(1 - t/100) | two-kernel mix |
-| tint, adaptivity | white 10% + adaptivity 0.65 | light: C 241 at a(t) 0.44-0.73; dark: black at a(t) + lift 35; system backdrops: gain 0.32, offset 142 - 0.864 * mean luma | per-appearance constants; adaptive offset for full-screen layers |
+| tint, adaptivity | white 10% + adaptivity 0.65 | light: C 241 at a(t) 0.44-0.73; dark: black at a(t) + lift 35; system backdrops: gain 0.3608, offset 10.23, no adaptation (measured) | per-appearance constants; a constant affine map for full-screen layers |
 | specular / edgeLight / bevel | tuned | pill +33 (2-4 px) over black in light, +32/+48 in dark; buttons +6 top; icons rim top + contour bottom; tiles dark 1-5 px line | per-role |
 | edgeShadow | 0 | tiles 1-5 px unlifted ring; sheet dark line over bright at k < 0.84 | per-role |
 | dimmingLayer | 0.35 for Clear | sheet: 1 - 0.311(1 - e^(-x/150pt)); menus: 0.52 behind | progress-driven for sheets |

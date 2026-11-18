@@ -6,6 +6,56 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Default light is straight overhead (owner-approved 19 November): `GlassLight()` and `GlassLight.Default` are now (0, -1), in Compose and in every port (Skia, npm, React Native, Flutter, Qt, Unity, .NET). Every measured resting iOS 27 rim is lit equally at its top and bottom and not at its sides (Safari lab stills, recorded tab bars, Control Center); the earlier (-0.35, -0.94) was authored, not measured. The internal Control Center step that forced an overhead light is removed, so the tile and the preset `copy()` use the default like everything else.
+  - Default look changed: the rim highlight of every glass now sits at the top and bottom instead of leaning to the upper left; the left side loses its extra highlight and the right side gains none. To keep the old look pass `GlassLight(-0.35f, -0.94f)` (Compose) or the matching `light` option in a port. Fixtures that pass a light explicitly are unchanged.
+- Quick-action press and Control Center tile (#113 item 128, #206). New, additive: `GlassInteraction.QuickAction` (the press of iOS's round
+  quick-action buttons) and `Glass.ControlCenterTile` (`GlassStyle.controlCenterTile()` with that press, interactive as it stands).
+  Pressed, the body grows to 1.60 times its size with a spring that overshoots to 1.69 (damping 0.53, stiffness 300) and its glass mixes
+  toward white by 0.51 of the way (a straight 125 ms rise, dropping at the lift); released it returns through 1.0 to 0.90 (damping
+  0.49, stiffness 490). **Measured** on the lock-screen flashlight button, `IMG_6667.MP4` (58 pt; one tap, one 1.9 s hold; display
+  colours): held 1.605, peak 1.694 at 0.19 s, release minimum 0.90 at 0.16 s, body 18 to 137 over black (share of the way to white
+  0.502) and 133 to 197 over a 125 stripe band (0.525), 0.51 for both within 2 levels; the release spring fits the hold and the tap
+  alike (rms 0.003 of the radius), the way down at rms 0.015. **Authored**: other sizes, the light appearance, a moved or cancelled
+  press, and that the Control Center circles (not recorded pressed) take the lock-screen press. New shader uniform `uPressWhite`,
+  exactly 0 for every other glass (the term sits behind `if (uPressWhite > 0.0)` and the host passes the literal 0 unless the
+  interaction is a quick action); merged-glass containers have no touch term and do not draw it. Scored by `GlassQuickActionPressTest`.
+  - Default look changed: none. Nothing uses the preset unless asked: `Glass.interactive()` is still `Fluid`.
+- Pressed glass is lit directionally, and the search button's glow settles once dragged (#114, item 130). A pressed, still
+  body is brighter toward the light and darker away from it (a plane of 0.085 levels per px along (-0.49, -0.87) on iOS's held
+  search button, IMG_6756, three still readings: `GlassPressGrade` 0.038 of full scale at the half short side, **measured** on
+  the search button, **authored** for every other size and preset, scaled by `illumination`); it steps away with the glow once
+  the finger has moved 4 dp or lifted. A press the overlay drives (every `glassEffect`) now settles to `pullLiftShare` once
+  dragged and releases on the measured 350 ms glow curve, as the own-pointer path always did; before, the search button in the
+  replay stayed at its held level (83-96 where iOS reads 69-70). New shader uniform `uPressGrade` (0 changes nothing; the
+  tab bar's own press sources are not graded; merged-glass containers have no touch term and are not graded). The lighting
+  model is provisional until a still press over two different pages is scored.
+  - Default look changed: interactive glass that is pressed and held still is graded toward the light, +-0.038 at full
+    illumination, gone once dragged; the search button drops to its dragged level instead of staying lit.
+- Interactive glass presses and pulls like the search button (#196). `GlassInteraction.Fluid` (new, additive) is the
+  scored Phone search-button preset (`Pullable`, `GlassPullShape.Free`, glow share 0.65), and it is now the default of
+  `Glass.interactive()`. Controls of 80 dp or less on their long side answer in full (8 dp a side, follow and stretch,
+  ring on release; the search button is bit-identical to before: `searchscore.py` equals the baseline render to the
+  printed digit). Between 80 and 160 dp the response blends toward the anchored surface response, and from 160 dp it
+  presses 2 dp a side and stretches at most 2 dp, as `Calm` did. A scroll that takes the gesture returns the press and
+  pull critically damped, with no ring and no landing squash. Interactive glass now follows the system's Reduce Motion
+  (`GlassInteraction.ReducedMotion`, whatever response was passed). The ports' free button takes `width`, `height` and
+  `radius` and has `cancel()`. Provenance: press growth and its spring are measured (IMG_6756 S01, keypad K01); the
+  pull, landing and ring on small controls are measured on the search button and inherited by other small controls;
+  the size blend, the 2 dp surfaces and the scroll cancel are authored.
+  - Default look changed: interactive glass (`interactive()`, glass buttons, FABs, chips, icon buttons) now presses and
+    pulls like the search button; surfaces from 160 dp stay anchored; pass `GlassInteraction.Calm` for the previous
+    response. The Material 3 navigation bar's accessory takes the glow share 0.65 the sample's scored search button
+    has (it settles to 65 % once dragged).
+  - Default look changed: interactive glass follows the system's Reduce Motion (no scale, no pull, half-strength glow).
+- The Control Center layer is re-fitted (#206): `GlassStyle.systemBackdrop()` is a plain affine map of the blurred page, 10.23 + 0.3608 x level (of 255): tint black 0.639, lift 10.23/255, `liftAdaptivity` 0, sigma unchanged. Measured on the lab take CC-over-lab-dark.MP4 (HDR decode via hdr.py, rms 0.33) and confirmed per pixel on the mac-rig C1b PNGs and PUSM9766; identical at Tint 0-100 and both appearances. The earlier 142 - 0.864 x luma law came from whole-image means of a non-flat target.
+  - Default look changed: `systemBackdrop()` (Control Center layer) — black 10 over black, 102 over white (was 142 / 82).
+- Search mode (#112): `GlassTabBar(..., searchState, searchField, ...)` with `GlassSearchState` / `rememberGlassSearchState()` adds the search button that expands into a search field with a close button, as iOS 27's Phone app does. End state measured on the iOS 27 sample reference (one recording, 29 fps, 720 px wide): field 47.7 dp tall, close button 47.1 dp, 9.2 dp apart, the bar gone. The motion between the two states is authored (300 ms entering, 200 ms leaving) until a 60 fps take is scored. Additive API: a bar given no `searchState` is unchanged. Compose only; the ports and the Material 3 wrapper do not have it yet.
+  - Default look changed: none for existing apps. A bar given a `searchState` expands on tap with no flag. Measured finding that corrects the audit: the iOS end state has no circle with the selected tab's icon (it is a transient only), so the open state is the field and the close button alone.
+- Scoring tools (#101): `--content-split --rim-exclude` separates page-edge colour split inside the rim band from the interior,
+  `measure_light_hold.py --geometry` scores a cropped recording and a phone capture, `tools/pixel/replay_script.sh` replays a finger path
+  on the Pixel, and `tools/measure_formation_continuity.py` measures the selector's fringe across the formation 0.5 crossing.
+  - Default look changed: none (tools and documentation only).
+
 - Regular glass at Tint 0 and Tint 100 is measured (#208). `GlassStyle.inApp`, `toolbar` and `Regular` at the ends now use the fit on iOS 27's Photos chrome over the calibration target: detail share 0.663 / 0, one-sided term 0.336 / 0, dark bow 101.6 / 49.8 (of 255), opacity dark 0.401 / 0.703 and light 0.382 / 0.682, wide kernel 15.5 dp at every tint, legibility 0. Between Tint 0, 50 and 100 the values are linear (authored). Fit 1.3 to 2.2 levels rms against 5.6 to 24.8 for the authored ends (Python scores on the pooled pill and toolbar, not shader renders). The colour transfer at Tint 0 is the Tint 50 transfer (authored extrapolation; colour at Tint 0 is not measured). [Evidence](review/atlas/tint-ends-2026-11-18/README.md).
   - Default look changed: Regular glass away from Tint 50 (dark at Tint 0 over grey 128: 93 -> 134; light 198 -> 182). Tint 50 is unchanged (every port's Tint 50 parameters are identical). The toolbar shares the pill's end values. All ports' in-app factories follow.
 - The collapsing-bar recipe is measured (#207): `docs/guides/collapsing-bar.md` now drives the collapse by finger travel only,
@@ -51,6 +101,8 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   - Default look changed: wide pills only (aspect over 1.5); lighting over flat grey differed by up to 83 levels before. [Evidence](review/atlas/dome-lighting-2026-11-18/README.md). The generated port shaders (Skia, npm and React Native canvas engines, .NET, Flutter, Qt, Unity) follow; the npm HTML/CSS engine keeps its own approximation.
 - Merged glass carries the standalone material's parts (#211): `GlassEffectContainer` now has the legibility term, the rim band's colour fringe, the absorbing tint and the soft-detail rotation, and uses its Glass's light direction (it was ignored). A container's tint strength now clamps at 0.95, as a lone piece's does. Deliberate differences (legacy mirror echo, per-size tint scale, tint mask, flip, frost, touch magnifier and the held paths) are listed in the container shader's KDoc. Compose only; the ports have no container shader.
   - Default look changed: slightly, at the rim of merged glass (0.05 levels rms on the default tint) and for styles with legibility (up to 26 levels at text edges under the earlier Tint 0 fit). A merged split-page rim ring still differs from a lone piece by 6.7 / 4.9 levels rms; the change moves it by 0.05, so it predates it. [Evidence](review/atlas/container-parts-2026-11-18/README.md).
+- Toolbar grouping (#102 item 91): new `GlassToolbarGroup`, one glass capsule (`Glass.Toolbar` by default) behind a row of actions, a round glass button placed next to it matches how iOS groups a toolbar (the button is the caller's). The Material 3 `BottomAppBar` and the top bars' action capsules are now built on it. The geometry (44 dp minimum height, 4 dp item padding) is authored: no iOS recording measures a toolbar group's geometry as a rule. The alert dialog is unchanged and stays authored.
+  - Default look changed: none; the app bars keep their earlier heights and paddings (layout-identical by construction; not pixel-compared).
 - Menus and sheets on measured iOS 27 material (#102, #204). `GlassStyle.menu(dark = true)` is now iOS 27's pop-up menu,
   measured on the Quick Look title-pill menu: black at 0.7047 over a 53.14/255 lift, bow 95.22/255, 8.17 dp blur, no detail
   term (2.80 levels rms over its 16 measured greys plus the repeated plateau at 255, 3.11 over 8 stripe cases). The light menu stays the Safari `<select>` fit (no light
@@ -64,8 +116,8 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
     3.00 / 2.79 (dark) and 2.25 / 1.82 (light) levels rms over greys / stripes. The `DropdownMenu` corner is 34 dp (was 24; see the Material 3 entry below). Opt out: `ModalBottomSheet(glass = GlassMaterialDefaults.panel)`.
   - Known difference, open: iOS does not dim the page behind the share sheet; `ModalBottomSheet` keeps its scrim.
 
-- Switch, Slider and RangeSlider (liquidglass-material3) use measured geometry and timing (#205). Switch: 63 x 28 dp track, 37 x 24 dp knob, 2 dp inset, 22 dp travel; held, the knob is a clear glass lens 64.75 x 38.4 dp (1.75 x 1.6 of rest) sized in layout around the knob's centre; press peaks about 100 ms in, release settles in 133 ms, travel is a critically damped spring (90 percent in 6-7 frames, no overshoot), the track colour fades over 420 ms. Slider and RangeSlider: 4 dp track, 24 x 16 dp opaque white thumb with a soft shadow, no lens, no press scale. No public API change; sizes live in an internal KnobSpec.
-  - Default look changed: Switch track 62 -> 63 dp, knob travel 20 -> 22 dp, held knob was 1.4x scale with Lens(1.25) now 1.75 x 1.6 clear lens; Slider/RangeSlider track 6 -> 4 dp, thumb 38 x 24 dp glass lens on drag -> 24 x 16 dp opaque white with no change on drag. Material theme colours are unchanged (the measured iOS green (47,210,88) and grey (90,90,94) are not applied by default: theming decision).
+- Switch, Slider and RangeSlider (liquidglass-material3) use measured geometry and timing (#205). Switch: 63 x 28 dp track, 37 x 24 dp knob, 2 dp inset, 22 dp travel; held, the knob is a clear glass lens 57.7 x 38.4 dp (1.56 x 1.6 of rest; width measured on the settled hold, cap-arc fits 173.35 px at 3 px per dp) sized in layout around the knob's centre; press peaks about 100 ms in, release settles in 133 ms, travel is a critically damped spring (90 percent in 6-7 frames, no overshoot), the track colour fades over 420 ms. Slider and RangeSlider: 4 dp track, 24 x 16 dp opaque white thumb with a soft shadow, no lens, no press scale. No public API change; sizes live in an internal KnobSpec.
+  - Default look changed: the switch lens now takes about 100 ms to clear the track and 133 ms to fall back to it (it fell back in 58 ms), so a tap shows the lens for about 300 ms; the press overshoots the held size by 13 percent of the growth (the fitted spring peaks at 1.126 of the way, 1.63x of rest and 1.05x of the held size at the peak, measured 1.62-1.64 on the width). Fitted again to the recordings (the lens is visible only above the track), see `review/atlas/switch-slider-2026-11-18`. Switch track 62 -> 63 dp, knob travel 20 -> 22 dp, held knob was 1.4x scale with Lens(1.25) now a 1.56 x 1.6 clear lens (held switch lens 64.75 -> 57.7 dp wide, measured); Slider/RangeSlider track 6 -> 4 dp, thumb 38 x 24 dp glass lens on drag -> 24 x 16 dp opaque white with no change on drag. In a dark Material scheme the Switch track is the measured iOS colours by default: on (47, 210, 88), off (90, 90, 94), measured on the native Bluetooth switch in the dark appearance (`I-menus-dark`, display sRGB). No light-appearance switch and no native slider fill are recorded, so a light scheme and the Slider and RangeSlider keep the theme colours; Safari's web slider (blue 0, 136, 255 on 229, 229, 229) is not iOS UIKit and is not applied. The `colors` parameters still override.
   Pixel 7 (release build of 1233f7bd, Material showcase, one screenshot read by eye to about 2 px): slider thumb about
   62 x 42 px (24 x 16 dp = 63 x 42), track about 10 px (4 dp), switch track about 165 x 75 px (63 x 28 dp);
   [device check](review/atlas/switch-slider-2026-11-18/README.md#device-check-pixel-7-18-november).
@@ -90,6 +142,15 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   change: no existing style sets the field. Ports need no change (they set `uChromaGain`, `uChromaSlope`, `uChromaWeight` already
   and have no style layer).
   - Default look changed: none (no existing style sets `chromaGain`).
+- Control Center tile: rim and contour fitted, element classes and slider measured (#206, #113). `GlassStyle.controlCenterTile` now draws
+  the rim measured on the iOS 27 toggle by sector (lit at the top and bottom, not at the sides; pole peaks within 5 levels at layers 10 and 56, re-scored on the three frames it was fitted on) and
+  its dark contour outside the sides through `outerContour`. The toggle, wide tile, media tile and slider track each read within 2 levels of
+  the take at three greys (enforced: 2 per case, rms 1.5, and 3 on the slider fill, where ours reads 248 against 250; measured rms 0.87; the issue's gate is 5), and the slider is documented as a track tile plus a `controlCenterTile(active = true)`
+  fill (250 / 251 / 252 measured). The tile takes the default overhead light like every other glass (straight above, as iOS lights Control Center; a host that passes its own light keeps it). Known gaps: the contour is 6 to 31 levels too shallow
+  (shader band), the sides' rim 8 to 9 too bright. No public API added. The lock-screen flashlight press (#113 item 128) was measured at 1.69 peak /
+  1.60 held, 58 pt growing to 93 pt, +119 over black, against `Calm`'s 1.07: not changed, an owner question
+  ([numbers](review/atlas/flashlight-press-2026-11-18/README.md)); `measured-model.md`'s older +39 press figure is marked superseded.
+  - Default look changed: none for any shipped style (`controlCenterTile` is new in this unreleased cycle; its overhead light is now the library default, see the default light entry above).
 
 - Skia and .NET ports: render a frame at any time (#193). `bakeNavigation(bar, events, {step, duration})` runs a scripted gesture
   through the scene's own navigation motion (now one shared driver, `createNavigationDriver`, used by `addNavigation` and the bake) at a

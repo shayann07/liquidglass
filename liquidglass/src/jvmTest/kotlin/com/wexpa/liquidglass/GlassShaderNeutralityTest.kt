@@ -305,7 +305,7 @@ class GlassShaderNeutralityTest {
         )
         checkNeutrality(darkResult, width, height, pad, "Dark appearance held lens zero-dispersion")
 
-        // 2. Light appearance: light tint 241/255 grey, lift 0.0, light outerContour 0.31
+        // 2. Light appearance: light tint 241/255 grey, lift 0.0, light outerContour -0.30 (plus-darker)
         val lightTint = 241f / 255f
         val lightResult = GlassRender.render(
             width = width, height = height, pad = pad,
@@ -313,7 +313,7 @@ class GlassShaderNeutralityTest {
             aberration = 0f,
             tint = Triple(lightTint, lightTint, lightTint),
             lift = 0f,
-            outerContour = 0.31f,
+            outerContour = -0.30f,
             backdrop = ::ramp
         )
         checkNeutrality(lightResult, width, height, pad, "Light appearance held lens zero-dispersion")

@@ -16,6 +16,8 @@ import com.wexpa.liquidglass.GlassStyle
 import com.wexpa.liquidglass.GlassTabBarStyle
 import com.wexpa.liquidglass.sample.AppStoreGeometry
 import com.wexpa.liquidglass.sample.AppStoreScene
+import com.wexpa.liquidglass.sample.ClockGeometry
+import com.wexpa.liquidglass.sample.ClockScene
 import com.wexpa.liquidglass.sample.WhatsAppGeometry
 import com.wexpa.liquidglass.sample.WhatsAppScene
 import com.wexpa.liquidglass.sample.LoupeScreen
@@ -225,14 +227,15 @@ private fun replay(args: Array<String>) {
                     style = AppStoreGeometry.style(style, light = "light" in variant), light = "light" in variant)
                 // "whatsapp": WhatsApp's five-tab bar on its measured slots (WhatsAppScene);
                 // "+plain": over the bare page, without the settings card.
+                else if (variant.startsWith("clock")) ClockScene(selected, { selected = it }, style = ClockGeometry.style(style))
                 else if (variant.startsWith("whatsapp")) WhatsAppScene(selected, { selected = it },
                     style = WhatsAppGeometry.style(style), card = "+plain" !in variant, light = "light" in variant)
                 else PhoneScene(selected, { selected = it }, palette = palette, style = style,
                     callsBadge = if ("+badge" in variant) 2 else 0,
                     flatPage = flatLevels.getOrNull(flatIndex.intValue),
                     lensFusion = androidx.compose.ui.unit.Dp(variant.substringAfter("+lfuse=", "").substringBefore('+').toFloatOrNull() ?: 0f),
-                    search = if ("+passive" in variant) null else com.wexpa.liquidglass.GlassInteraction.Pullable.copy(
-                        pullShape = com.wexpa.liquidglass.GlassPullShape.Free, pullLiftShare = 0.65f).let { base ->
+                    search = if ("+passive" in variant) null else com.wexpa.liquidglass.GlassInteraction.Fluid.let { base ->
+
                         // "+search=<follow>,<elongation>,<widthRatio>,<limit>,<liftShare>": a search-button candidate.
                         val k = variant.substringAfter("+search=", "").substringBefore('+').split(',').mapNotNull { it.toFloatOrNull() }
                         if (k.size < 5) base else base.copy(pullFollow = k[0], pullElongation = k[1], pullWidthRatio = k[2],

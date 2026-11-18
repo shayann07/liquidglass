@@ -246,4 +246,12 @@ class GlassControlCenterTileTest {
         File(dir).mkdirs()
         ImageIO.write(img, "png", File(dir, "control-center-tile.png"))
     }
+
+    /** The default light is straight overhead, as every measured resting iOS rim is lit; the tile needs no light of its own. */
+    @Test
+    fun theDefaultLightIsOverhead() {
+        assertEquals(GlassLight(0f, -1f), GlassLight.Default)
+        assertEquals(GlassLight.Default, GlassLight())
+        assertEquals(GlassLight.Default, Glass(GlassStyle.controlCenterTile()).light(false), "the tile takes the default light")
+    }
 }

@@ -1,5 +1,6 @@
 package com.wexpa.liquidglass
 
+import androidx.compose.ui.unit.dp
 import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
@@ -25,7 +26,7 @@ class GlassCalibrationRenderTest {
         // lines at y 141 and 272, its tips at x 347 and 822, the buttons 128 px wide from x 50
         // and 992 (C1a-r50, both appearances). The earlier boxes sat 19 px too low.
         Box(346, 141, 822, 273, 66), Box(50, 141, 178, 273, 66), Box(992, 141, 1120, 273, 66),
-        Box(342, 2304, 828, 2448, 72), Box(84, 2304, 230, 2448, 73), Box(940, 2304, 1086, 2448, 73),
+        Box(342, 2304, 829, 2448, 72), Box(84, 2304, 228, 2448, 72), Box(940, 2304, 1084, 2448, 72),
     )
 
     /**
@@ -47,8 +48,8 @@ class GlassCalibrationRenderTest {
                 for (tint in tints) {
                     val composite = BufferedImage(src.width, src.height, BufferedImage.TYPE_INT_RGB)
                     composite.graphics.drawImage(src, 0, 0, null)
-                    val style = GlassStyle.inApp(dark = dark, tintAmount = tint)
-                    val toolbar = GlassStyle.toolbar(dark = dark, tintAmount = tint)
+                    val style = ios27Rim(GlassStyle.inApp(dark = dark, tintAmount = tint), dark)
+                    val toolbar = ios27Rim(GlassStyle.toolbar(dark = dark, tintAmount = tint), dark)
                     // The fourth box is the toolbar capsule; the rest are the pill and buttons.
                     boxes.forEachIndexed { i, b ->
                         val measuredRest = restMapMode == "all" || (restMapMode == "toolbar" && i == 3)
@@ -60,6 +61,16 @@ class GlassCalibrationRenderTest {
             }
         }
     }
+
+    /**
+     * The rim the Material 3 module puts on every in-app style (`Ios27Rim` in `GlassMaterialTheme.kt`, copied: this module
+     * cannot depend on it; `GlassRimMeasuredTest` copies it the same way). The composites measure the styles as they ship,
+     * so the panels carry it, with the overhead light the renderer already uses.
+     */
+    private fun ios27Rim(style: GlassStyle, dark: Boolean): GlassStyle = style.copy(
+        bevel = 1.6.dp, bevelPeak = 0f, specular = 0.27f, specularPower = 2.6f,
+        outerContour = if (dark) 0.61f else -0.30f, outerContourFloor = if (dark) 0f else 0.13f, dispersion = 0f,
+    )
 
     /**
      * Dark Calm's bar material in the toolbar capsule's box, over the dark target, for comparing with the
@@ -103,6 +114,8 @@ class GlassCalibrationRenderTest {
             profile = 1f, formation = 0f, restMap = restMap,
             wide = style.wideKernel.value * px, fineShare = style.fineShare, softDetail = style.softDetail,
             lift = style.tintLift, liftAdapt = style.liftAdaptivity,
+            detailLift = style.detailLift, toneCurve = style.toneCurve,
+            outerContour = style.outerContour, outerContourFloor = style.outerContourFloor, bevelPeak = style.bevelPeak,
             bevel = style.bevel.value * px, specularPower = style.specularPower,
             counterLight = style.counterLight, edgeLight = style.edgeLight, legibility = 0f,
             backdrop = { x, y ->

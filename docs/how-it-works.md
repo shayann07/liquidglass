@@ -103,9 +103,10 @@ out = (1 - a) · B + a · tint + lift
 
 Light in-app glass: `tint` is a constant 241/255 grey and `lift` is 0. Dark: `tint` is black and
 `lift` is 35/255. The opacity `a` follows Tint Amount from about 0.43 to 0.73 in both
-([`GlassMaterial.opacity`](api-reference.md)). System backdrops lift by 142/255 minus 0.864 of
-the wide kernel's luma (`liftAdaptivity`), which is what makes Control Center read light over
-dark content and dark over light; in-app glass does not adapt that way. Two facts the captures
+([`GlassMaterial.opacity`](api-reference.md)). The Control Center layer is a plain affine map of
+the blurred page, 10.23 + 0.3608 x its level (of 255), with no luma adaptation (`liftAdaptivity`
+is 0): lighter over lighter. An earlier fit of 142/255 minus 0.864 of the luma regressed
+whole-image means and is retired. Two facts the captures
 settled: shell glass (icons, dock, Control Center, cards) ignores the Light/Dark setting and takes
 its tone from the wallpaper, and in-app glass follows the app's scheme strongly. The legacy tone
 mapping (`adaptivity`) is off on this path.
