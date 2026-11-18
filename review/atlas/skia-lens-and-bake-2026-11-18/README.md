@@ -9,8 +9,10 @@ A 160 px lens at magnification 1.4, density 1.
 - **Source revision:** `feat/191-193-skia` at d46ddb41 (PR #221), plus the commit that adds this record.
 - **Backend:** CanvasKit 0.42 software (`canvaskit-wasm`) on Node, the production SkSL; no GPU, no device.
 - **Method:** `node ports/skia/lens-evidence.mjs review/atlas/skia-lens-and-bake-2026-11-18` draws the four tiles with
-  `painter.drawLens`; the sheet was looked at, and `ports/skia/lens.test.mjs` asserts the numbers: over grey 128 the rim reads
-  +64 levels at the top and +22 at the bottom, over black +42 / +15, over pure white 0, the interior stays within 4 levels of the page.
+  `painter.drawLens`; the sheet was looked at. Observed on this render: over grey 128 the rim reads +64 levels at the top and +22
+  at the bottom, over black +42 / +15, over pure white 0. `ports/skia/lens.test.mjs` asserts only lower bounds (top at least +40
+  and bottom at least +10 over grey 128, +25 / +5 over black) and an interior within 4 levels of the page; pure white is not
+  asserted. A Compose render of `GlassStyle.clearLens` measured the same way reads +62 / +20 and +42 / +15.
 - **What this is:** an authored preset (Compose's `GlassStyle.clearLens`, "not an Apple calibration"), a regression render of
   the port's own output. It is not a measurement and makes no iOS parity claim.
 - **Limits:** one lens size and one magnification; the contact shadow is faint (2 % black) and hardly visible at this scale; over

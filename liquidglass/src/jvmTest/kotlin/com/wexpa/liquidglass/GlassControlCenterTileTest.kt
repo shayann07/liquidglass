@@ -239,7 +239,8 @@ class GlassControlCenterTileTest {
             g2.color = Color(220, 220, 220); g2.drawString("active, over red", 8, 40 + row * (cellH + 8) + 40)
             cell(0, row, null, swatch(g))
             cell(2, row, sc.render(IntArray(sc.width * sc.height) { swatch(g) }), null)
-            cell(3, row, null, swatch(intArrayOf(250, 250, 250)))
+            // The measured active tile over this red (the reference the scoring test uses), not the neutral 250 over greys.
+            cell(3, row, null, swatch(intArrayOf(255, 239, 238)))
         }
         g2.dispose()
         File(dir).mkdirs()

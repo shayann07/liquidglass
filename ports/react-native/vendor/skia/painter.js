@@ -28,14 +28,16 @@ export function createGlassPainter(kit, sources = glassShaderSources) {
   function drawShadow(target,s,alpha,clipOut=null){
     if(!(alpha>0))return;
     const p=new kit.Paint();
+    // The blur filter is its own CanvasKit handle: released with the paint, not left to finalization.
+    const filter=s.blur>.01?kit.ImageFilter.MakeBlur(sigma(s.blur),sigma(s.blur),kit.TileMode.Decal,null):null;
     try {
       p.setColor(kit.Color4f(0,0,0,alpha));p.setAntiAlias(true);
-      if(s.blur>.01)p.setImageFilter(kit.ImageFilter.MakeBlur(sigma(s.blur),sigma(s.blur),kit.TileMode.Decal,null));
+      if(filter)p.setImageFilter(filter);
       target.save();
       if(clipOut)target.clipRRect(kit.RRectXY(kit.XYWHRect(clipOut.x,clipOut.y,clipOut.width,clipOut.height),clipOut.radius,clipOut.radius),kit.ClipOp.Difference,true);
       target.drawRRect(kit.RRectXY(kit.XYWHRect(s.x,s.y+s.offset,s.width,s.height),s.radius,s.radius),p);
       target.restore();
-    } finally {p.delete();}
+    } finally {p.delete();filter?.delete();}
   }
   // The backdrop with the glass the lens looks through over it, plus rawShare of the raw page,
   // blurred by rawBlur (a Compose radius, device px) as Compose's GlassStyle.rawBlur. With `shadow`,
