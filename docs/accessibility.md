@@ -56,13 +56,14 @@ than disappearing, so the element keeps its shape and its affordance.
 ## Reduce Motion — a real analogue
 
 Android's Remove animations (`Settings.Global.ANIMATOR_DURATION_SCALE == 0`) is a genuine equivalent, and
-`GlassTabBar` follows it by default. Other glass controls take `GlassInteraction.ReducedMotion` from you:
+`GlassTabBar` follows it by default, and so does every interactive `glassEffect`: with Remove animations on, whatever
+response was passed is replaced by `GlassInteraction.ReducedMotion`. To choose it yourself:
 
 Apple's guidance is that Reduce Motion "decreases the intensity of some effects and disables any
 elastic properties", which maps cleanly:
 
 ```kotlin
-val response = if (reduceMotion) GlassInteraction.ReducedMotion else GlassInteraction.Calm
+val response = if (reduceMotion) GlassInteraction.ReducedMotion else GlassInteraction.Fluid
 Modifier.glassEffect(Glass.Regular.interactive(response = response), CircleShape)
 
 GlassTabBar(..., motionEnabled = !reduceMotion)

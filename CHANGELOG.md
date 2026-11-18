@@ -6,6 +6,33 @@ A version heading means that version is published; anything above the newest one
 Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>), uploaded by hand on
 20 October; later tags publish it from the release workflow.
 
+- Pressed glass is lit directionally, and the search button's glow settles once dragged (#114, item 130). A pressed, still
+  body is brighter toward the light and darker away from it (a plane of 0.085 levels per px along (-0.49, -0.87) on iOS's held
+  search button, IMG_6756, three still readings: `GlassPressGrade` 0.038 of full scale at the half short side, **measured** on
+  the search button, **authored** for every other size and preset, scaled by `illumination`); it steps away with the glow once
+  the finger has moved 4 dp or lifted. A press the overlay drives (every `glassEffect`) now settles to `pullLiftShare` once
+  dragged and releases on the measured 350 ms glow curve, as the own-pointer path always did; before, the search button in the
+  replay stayed at its held level (83-96 where iOS reads 69-70). New shader uniform `uPressGrade` (0 changes nothing; the
+  tab bar's own press sources are not graded; merged-glass containers have no touch term and are not graded). The lighting
+  model is provisional until a still press over two different pages is scored.
+  - Default look changed: interactive glass that is pressed and held still is graded toward the light, +-0.038 at full
+    illumination, gone once dragged; the search button drops to its dragged level instead of staying lit.
+- Interactive glass presses and pulls like the search button (#196). `GlassInteraction.Fluid` (new, additive) is the
+  scored Phone search-button preset (`Pullable`, `GlassPullShape.Free`, glow share 0.65), and it is now the default of
+  `Glass.interactive()`. Controls of 80 dp or less on their long side answer in full (8 dp a side, follow and stretch,
+  ring on release; the search button is bit-identical to before: `searchscore.py` equals the baseline render to the
+  printed digit). Between 80 and 160 dp the response blends toward the anchored surface response, and from 160 dp it
+  presses 2 dp a side and stretches at most 2 dp, as `Calm` did. A scroll that takes the gesture returns the press and
+  pull critically damped, with no ring and no landing squash. Interactive glass now follows the system's Reduce Motion
+  (`GlassInteraction.ReducedMotion`, whatever response was passed). The ports' free button takes `width`, `height` and
+  `radius` and has `cancel()`. Provenance: press growth and its spring are measured (IMG_6756 S01, keypad K01); the
+  pull, landing and ring on small controls are measured on the search button and inherited by other small controls;
+  the size blend, the 2 dp surfaces and the scroll cancel are authored.
+  - Default look changed: interactive glass (`interactive()`, glass buttons, FABs, chips, icon buttons) now presses and
+    pulls like the search button; surfaces from 160 dp stay anchored; pass `GlassInteraction.Calm` for the previous
+    response. The Material 3 navigation bar's accessory takes the glow share 0.65 the sample's scored search button
+    has (it settles to 65 % once dragged).
+  - Default look changed: interactive glass follows the system's Reduce Motion (no scale, no pull, half-strength glow).
 - The Control Center layer is re-fitted (#206): `GlassStyle.systemBackdrop()` is a plain affine map of the blurred page, 10.23 + 0.3608 x level (of 255): tint black 0.639, lift 10.23/255, `liftAdaptivity` 0, sigma unchanged. Measured on the lab take CC-over-lab-dark.MP4 (HDR decode via hdr.py, rms 0.33) and confirmed per pixel on the mac-rig C1b PNGs and PUSM9766; identical at Tint 0-100 and both appearances. The earlier 142 - 0.864 x luma law came from whole-image means of a non-flat target.
   - Default look changed: `systemBackdrop()` (Control Center layer) — black 10 over black, 102 over white (was 142 / 82).
 - Search mode (#112): `GlassTabBar(..., searchState, searchField, ...)` with `GlassSearchState` / `rememberGlassSearchState()` adds the search button that expands into a search field with a close button, as iOS 27's Phone app does. End state measured on the iOS 27 sample reference (one recording, 29 fps, 720 px wide): field 47.7 dp tall, close button 47.1 dp, 9.2 dp apart, the bar gone. The motion between the two states is authored (300 ms entering, 200 ms leaving) until a 60 fps take is scored. Additive API: a bar given no `searchState` is unchanged. Compose only; the ports and the Material 3 wrapper do not have it yet.

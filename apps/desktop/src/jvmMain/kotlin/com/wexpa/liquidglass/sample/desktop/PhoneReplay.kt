@@ -231,8 +231,8 @@ private fun replay(args: Array<String>) {
                     callsBadge = if ("+badge" in variant) 2 else 0,
                     flatPage = flatLevels.getOrNull(flatIndex.intValue),
                     lensFusion = androidx.compose.ui.unit.Dp(variant.substringAfter("+lfuse=", "").substringBefore('+').toFloatOrNull() ?: 0f),
-                    search = if ("+passive" in variant) null else com.wexpa.liquidglass.GlassInteraction.Pullable.copy(
-                        pullShape = com.wexpa.liquidglass.GlassPullShape.Free, pullLiftShare = 0.65f).let { base ->
+                    search = if ("+passive" in variant) null else com.wexpa.liquidglass.GlassInteraction.Fluid.let { base ->
+
                         // "+search=<follow>,<elongation>,<widthRatio>,<limit>,<liftShare>": a search-button candidate.
                         val k = variant.substringAfter("+search=", "").substringBefore('+').split(',').mapNotNull { it.toFloatOrNull() }
                         if (k.size < 5) base else base.copy(pullFollow = k[0], pullElongation = k[1], pullWidthRatio = k[2],

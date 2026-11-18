@@ -1,3 +1,10 @@
+## 19 November 2026 - #196 interactive glass presses like the search button (Claude, p3/114)
+
+- `GlassInteraction.Fluid` (additive) is the default of `Glass.interactive()`; `glassSizeMix` and `glassFreeSizeBlend` make it fall with size
+  (authored); a scroll that takes the gesture cancels the press without a ring (own pointer and the overlay's source, read in the Final pass);
+  interactive `glassEffect` follows Reduce Motion. Search button: render `c196` equals baseline `m114` to the printed digit
+  (`searchscore.py IMG_6756`). Ports: Skia/web/npm free button takes width/height/radius and has `cancel()`, .NET `FreeButton` likewise,
+  `fixtures/free-button-sizes.json` (circle, pill, card, each with a cancel) matches Kotlin to 0.006 px / 2e-3. Not device-checked.
 ## 18 November 2026 - #102 item 91 toolbar grouping (Claude, Sonnet)
 
 - `p3/91`: new `GlassToolbarGroup` (one `Glass.Toolbar` capsule behind a row of actions); Material 3 `BottomAppBar` and the top bars'

@@ -321,8 +321,8 @@ internal fun GlassTabBar(
         var settleTarget by remember { mutableFloatStateOf(restingAt) }
         var motion by remember { mutableStateOf<Job?>(null) }
         val scope = rememberCoroutineScope()
-        val press = rememberGlassPressSource()
-        val barPress = rememberGlassPressSource()
+        val press = rememberGlassPressSource().also { it.graded = false }
+        val barPress = rememberGlassPressSource().also { it.graded = false }
         val barDrawing = remember(style.deformItemsWithBar) {
             if (style.deformItemsWithBar) GlassMaterialDrawingState() else null
         }

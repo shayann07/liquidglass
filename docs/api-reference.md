@@ -113,7 +113,7 @@ rim lighting.
 @Immutable
 class Glass {
     fun tint(color: Color?): Glass
-    fun interactive(enabled: Boolean = true, response: GlassInteraction = GlassInteraction.Calm): Glass
+    fun interactive(enabled: Boolean = true, response: GlassInteraction = GlassInteraction.Fluid): Glass
     val isIdentity: Boolean
     fun style(dark: Boolean): GlassStyle?
     fun light(dark: Boolean): GlassLight
@@ -820,7 +820,8 @@ data class GlassInteraction(
 ) {
     companion object {
         val Default = GlassInteraction()
-        val Calm: GlassInteraction // recommended control/card preset
+        val Calm: GlassInteraction // restrained preset: 2dp growth per edge, anchored body
+        val Fluid: GlassInteraction // the default of Glass.interactive(): the search button's press and pull, falling with size
         val Pullable: GlassInteraction // historical expressive response
         val ReducedMotion: GlassInteraction // no elastic geometry
     }
@@ -1000,6 +1001,7 @@ The `GlassScene` host this section used to open with was removed on 18 October; 
 | --- | --- |
 | `GlassStyle.clearLens(magnification: Float = 1.25f)` | Finite centre magnification 1–2.5; invalid values throw. Continuous map, zero blur and dispersion by default. |
 | `GlassProfile.Lens` | Same smooth elliptical source map for material and refracted foreground; append-only enum addition. |
+| `GlassInteraction.Fluid` | Added (#196), the default of `Glass.interactive()`: `Pullable` with `GlassPullShape.Free` and glow share 0.65, the Phone search button's measured press and pull. Controls up to 80 dp answer in full; 80 to 160 dp blend toward the anchored surface response; from 160 dp the body presses 2 dp a side, does not leave its place and stretches at most 2 dp (authored). A scroll that takes the gesture returns it critically damped, and interactive glass follows the system's Reduce Motion. |
 | `GlassInteraction.Calm` | Critical geometric springs; up to 3% press scale and 2dp growth per edge; gradual resisted drag with large-surface attenuation. |
 | `GlassResponse` | `Expressive` preserves historical timing; `Calm` selects slower critical press/pull springs. |
 | `GlassInteraction.response` | Timing parameter, default `Expressive`; existing positional source calls retain their meaning. |

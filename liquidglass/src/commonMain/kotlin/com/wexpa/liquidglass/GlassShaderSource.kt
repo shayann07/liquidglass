@@ -108,6 +108,7 @@ uniform float   uFlip;         // whole-element light/dark inversion, 0..1, deci
 
 uniform float2  uTouch;        // touch point in panel-local px
 uniform float   uTouchAmt;     // press amount, 0..1
+uniform float   uPressGrade;   // directional grade of a still press, share of full scale at the half short side (#114)
 uniform float   uMaterialize;  // 0 the shader is a pass-through of the backdrop, 1 full material
 uniform float   uFrost;        // Reduce Transparency, 0..1
 uniform float   uContrast;     // Increase Contrast, 0..1
@@ -747,6 +748,9 @@ half4 main(float2 coord) {
     // Clamped only when it adapts: a fixed lift may be negative (the resting tab-bar indicator).
     lift = ((uLiftAdapt > 0.0) ? max(lift, 0.0) : lift) * mat;
     col += half3(half(lift));
+    // Pressed and still, the body is brighter toward the light and darker away from it (#114). Zero adds nothing.
+    float2 gradePos = (local - 0.5 * uSize) / max(0.5 * min(uSize.x, uSize.y), 1.0);
+    col += half3(half(uPressGrade * dot(gradePos, normalize(uLight)) * tintCoverage * mat));
 
     float facing = dot(n, uLight);
     float heldAmt = step(1.5, uProfile) * (1.0 - step(2.5, uProfile)) * clamp(uHeldLens, 0.0, 1.0);

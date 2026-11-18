@@ -183,6 +183,7 @@ internal object GlassEndpointRender {
         pb.uniform("uFlip", 0f)
         pb.uniform("uTouch", -1e5f, -1e5f)
         pb.uniform("uTouchAmt", 0f)
+        pb.uniform("uPressGrade", 0f)
         pb.uniform("uMaterialize", 1f)
         pb.uniform("uFrost", 0f)
         pb.uniform("uContrast", 0f)

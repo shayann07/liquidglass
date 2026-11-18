@@ -76,10 +76,14 @@ export interface FreeButtonOptions {
   pullFollow?: number; pullElongation?: number; pullWidthRatio?: number; pullLimit?: number; pullLiftShare?: number;
   /** Release damping along x (Compose `GlassInteraction.pullReleaseDampingX`), 0.3; y keeps 0.45. */
   pullReleaseDampingX?: number;
+  /** A control that is not a square button, px (default `size`); `radius` defaults to half the short side. Compose's
+   * `GlassInteraction.Fluid` falls with size: 80 dp or less is the search button, 160 dp and more presses 2 dp a side
+   * and never leaves its place. Authored by size. */
+  width?: number; height?: number; radius?: number;
 }
 export interface FreeButtonTransform {
-  /** Press scale (both axes), then a stretch along and across `angle` (degrees), then the offset. */
-  pressScale: number; along: number; across: number; angle: number; tx: number; ty: number;
+  /** Press scale (x; `pressScaleY` is y), then a stretch along and across `angle` (degrees), then the offset. */
+  pressScale: number; pressScaleY: number; along: number; across: number; angle: number; tx: number; ty: number;
   /** The press glow and the material lift it gives (fraction of white). */
   glow: number; lift: number; pullX: number;
 }
@@ -88,7 +92,10 @@ export interface FreeButton {
   down(time: number): void;
   move(time: number, dx: number, dy: number): void;
   up(time: number): void;
+  /** A scroll took the gesture: everything returns critically damped, with no ring and no landing squash. */
+  cancel(time: number): void;
   sample(time: number): FreeButtonTransform;
+
 }
 export function createFreeButton(options: FreeButtonOptions): FreeButton;
 
