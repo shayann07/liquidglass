@@ -42,7 +42,7 @@ research remains available; this page identifies which later changes supersede i
   [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/tap-plateau-2026-11-17/README.md).
 - 16 November: Regular glass follows the measured three-term material (#200, fixes #190): the along-axis detail filter that
   drew stepped ghost copies of text is removed, detail is one soft copy over a 15.5 dp wide kernel, and the dark tone is a fitted
-  curve; merged glass (`GlassEffectContainer`) draws the same material but lacks the legibility term, rim fringe, `uTintAbsorb`, rotated `softDetail` scatter and `Glass.light` (#211). 1.43 dark / 1.42 light levels rms on 89 private lab stills at Tint 50 (gate 3.0; main 24.2 / 15.2); public `GlassLabModelTest`
+  curve; merged glass (`GlassEffectContainer`) draws the same material, and since #211 also the legibility term, rim fringe, absorbing tint, rotated `softDetail` scatter and `Glass.light`. 1.43 dark / 1.42 light levels rms on 89 private lab stills at Tint 50 (gate 3.0; main 24.2 / 15.2); public `GlassLabModelTest`
   222 checks. Open: 6 px stripes (6.9 / 4.5), Tint 0/100 authored (#208), colour (#201), rim band (#202), tab bar on the earlier
   fit (#203); npm HTML/CSS engine and `ports/web` not ported, Flutter Dart not compiled. Pixel 7: 90 fps held, calibration
   screen not worse. Evidence: `review/atlas/material-model-2026-11-16/README.md`.

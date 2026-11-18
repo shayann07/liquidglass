@@ -248,12 +248,16 @@ them is #208.
   outside the sRGB gamut (dark glass over pure red reads 255, 62, 46 in Display P3), the library
   shows the nearest sRGB colour, and the zero channels of such colours read up to 7 levels from iOS.
   The transfer rides on `detailLift`, so a style morphing between the light and dark lab materials
-  passes through the per-channel tone at the midpoint, where c is zero. The **rim band** is #202.
+  passes through the per-channel tone at the midpoint, where c is zero. The **rim band**'s outer 6 px
+  are measured (#202); its rim light and the gate against the lab stills are open.
 - **The tab bar** still uses the earlier toolbar fit (`GlassTabBarStyle.Measured`) until #203. It
   already runs the new shader (no along-axis term), as do the V3 tab bar and merged glass.
-- **Merged glass** (`GlassEffectContainer`) now draws the same three-term material and colour
-  transfer, but still lacks the legibility term, the rim fringe, `uTintAbsorb`, the rotated
-  `softDetail` scatter and `Glass.light`. Tracked by #211.
+- **Merged glass** (`GlassEffectContainer`) draws the same three-term material, colour transfer,
+  legibility term, rim fringe, absorbing tint, rotated `softDetail` scatter and `Glass.light` as a lone
+  piece (#211). It deliberately leaves out the legacy mirror echo, the per-size tint scale, the tint
+  mask, the flip, the Reduce Transparency frost, the touch magnifier and the held paths (listed in
+  the container shader's KDoc), and its rim and junction geometry still differ from a lone piece by
+  about 3 levels rms.
 - **Ports.** The npm HTML/CSS engine and `ports/web` keep their own two-kernel approximation and are
   not ported to the three-term material. The Flutter Dart port carries the change but has not been
   compiled. Every port that carries the three-term material also carries the colour transfer (#201):
