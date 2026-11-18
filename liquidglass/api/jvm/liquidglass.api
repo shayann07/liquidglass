@@ -655,6 +655,10 @@ public final class com/wexpa/liquidglass/GlassTabBarStyle$Companion {
 	public final fun getRestingInsetMeasured ()Lcom/wexpa/liquidglass/GlassStyle;
 }
 
+public final class com/wexpa/liquidglass/GlassToolbarGroupKt {
+	public static final fun GlassToolbarGroup-TN_CM5M (Landroidx/compose/ui/Modifier;Lcom/wexpa/liquidglass/Glass;FLandroidx/compose/foundation/layout/PaddingValues;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
+}
+
 public final class com/wexpa/liquidglass/LiquidGlassCoverSheetKt {
 	public static final fun LiquidGlassCoverSheet-_SDZwk0 (FZLandroidx/compose/ui/Modifier;Landroidx/compose/ui/graphics/Shape;JLcom/wexpa/liquidglass/GlassStyle;Lcom/wexpa/liquidglass/GlassLight;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
 }
