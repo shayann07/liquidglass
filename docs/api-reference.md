@@ -113,7 +113,7 @@ rim lighting.
 @Immutable
 class Glass {
     fun tint(color: Color?): Glass
-    fun interactive(enabled: Boolean = true, response: GlassInteraction = GlassInteraction.Calm): Glass
+    fun interactive(enabled: Boolean = true, response: GlassInteraction = GlassInteraction.Fluid): Glass
     val isIdentity: Boolean
     fun style(dark: Boolean): GlassStyle?
     fun light(dark: Boolean): GlassLight
@@ -124,6 +124,7 @@ class Glass {
         val Identity: Glass
         val TabBar: Glass
         val Toolbar: Glass
+        val ControlCenterTile: Glass // the inactive Control Center tile with GlassInteraction.QuickAction (#113, #206)
         fun Lens(magnification: Float = 1.4f): Glass
         operator fun invoke(style: GlassStyle, dark: GlassStyle? = null, light: GlassLight = GlassLight.Default): Glass
     }
@@ -599,7 +600,8 @@ the tile's top and bottom equally and its sides not at all, which is the default
 above, unless the host passes another); the pole rim then reads within 5
 levels of the measured line and the dark contour lies outside the sides (known gap: it is 6 to 31 levels too shallow). A slider is a
 track tile plus a hard-edged opaque fill: the track is `controlCenterTile()`, the fill `controlCenterTile(active = true)` over a rectangle
-clipped to the track's pill (measured fill 250 / 251 / 252 over layers 10 / 56 / 102; no thumb). Evidence:
+clipped to the track's pill (measured fill 250 / 251 / 252 over layers 10 / 56 / 102; no thumb). `Glass.ControlCenterTile` is the inactive
+tile with its press: `GlassInteraction.QuickAction` (below, the round quick-action buttons of the lock screen and Control Center). Evidence:
 [`review/atlas/control-center-tile-2026-11-18`](https://github.com/shayann07/liquidglass/blob/main/review/atlas/control-center-tile-2026-11-18/README.md).
 
 `GlassStyle.chromaGain` is the public knob behind the tile's colour: unset (`Float.NaN`, the default) leaves the colour transfer
@@ -822,9 +824,11 @@ data class GlassInteraction(
 ) {
     companion object {
         val Default = GlassInteraction()
-        val Calm: GlassInteraction // recommended control/card preset
+        val Calm: GlassInteraction // restrained preset: 2dp growth per edge, anchored body
+        val Fluid: GlassInteraction // the default of Glass.interactive(): the search button's press and pull, falling with size
         val Pullable: GlassInteraction // historical expressive response
         val ReducedMotion: GlassInteraction // no elastic geometry
+        val QuickAction: GlassInteraction // the round quick-action button's press: grows to 1.60x, lightens toward white
     }
 }
 ```
@@ -1002,6 +1006,9 @@ The `GlassScene` host this section used to open with was removed on 18 October; 
 | --- | --- |
 | `GlassStyle.clearLens(magnification: Float = 1.25f)` | Finite centre magnification 1–2.5; invalid values throw. Continuous map, zero blur and dispersion by default. |
 | `GlassProfile.Lens` | Same smooth elliptical source map for material and refracted foreground; append-only enum addition. |
+| `GlassInteraction.Fluid` | Added (#196), the default of `Glass.interactive()`: `Pullable` with `GlassPullShape.Free` and glow share 0.65, the Phone search button's measured press and pull. Controls up to 80 dp answer in full; 80 to 160 dp blend toward the anchored surface response; from 160 dp the body presses 2 dp a side, does not leave its place and stretches at most 2 dp (authored). A scroll that takes the gesture returns it critically damped, and interactive glass follows the system's Reduce Motion. |
+| `GlassInteraction.QuickAction` | Added (#113 item 128, #206), additive: the press of iOS's round quick-action buttons, **measured** on the lock-screen flashlight (`IMG_6667`, 58 pt): the body grows to 1.60 times its size (1.605 measured), overshooting to 1.69 at about 0.2 s (spring damping 0.53, stiffness 300, fitted on the hold), mixes toward white by 0.51 of the way to full white (iOS: 0.502 over black, 0.525 over a 125 stripe band) in a straight 125 ms rise and drops at the lift, and returns on release through 1.0 to 0.90 (spring damping 0.49, stiffness 490, fitted on the lift of the hold and of the tap, rms 0.003 of the radius). No pull, no touch glow. Authored: other sizes (the 1.60 is a ratio from one 58 pt button), the light appearance and a moved or cancelled press. Not the default of anything. |
+| `Glass.ControlCenterTile` | Added (#113, #206), additive: `GlassStyle.controlCenterTile()` (inactive) with `GlassInteraction.QuickAction`, interactive as it stands (`.interactive(false)` for none; the active tile is `Glass(GlassStyle.controlCenterTile(active = true)).interactive(response = GlassInteraction.QuickAction)`). The press was recorded on the lock-screen flashlight, not on a Control Center circle; the two are the same control. |
 | `GlassInteraction.Calm` | Critical geometric springs; up to 3% press scale and 2dp growth per edge; gradual resisted drag with large-surface attenuation. |
 | `GlassResponse` | `Expressive` preserves historical timing; `Calm` selects slower critical press/pull springs. |
 | `GlassInteraction.response` | Timing parameter, default `Expressive`; existing positional source calls retain their meaning. |

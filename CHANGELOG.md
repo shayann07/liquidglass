@@ -8,6 +8,45 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
 
 - Default light is straight overhead (owner-approved 19 November): `GlassLight()` and `GlassLight.Default` are now (0, -1), in Compose and in every port (Skia, npm, React Native, Flutter, Qt, Unity, .NET). Every measured resting iOS 27 rim is lit equally at its top and bottom and not at its sides (Safari lab stills, recorded tab bars, Control Center); the earlier (-0.35, -0.94) was authored, not measured. The internal Control Center step that forced an overhead light is removed, so the tile and the preset `copy()` use the default like everything else.
   - Default look changed: the rim highlight of every glass now sits at the top and bottom instead of leaning to the upper left; the left side loses its extra highlight and the right side gains none. To keep the old look pass `GlassLight(-0.35f, -0.94f)` (Compose) or the matching `light` option in a port. Fixtures that pass a light explicitly are unchanged.
+- Quick-action press and Control Center tile (#113 item 128, #206). New, additive: `GlassInteraction.QuickAction` (the press of iOS's round
+  quick-action buttons) and `Glass.ControlCenterTile` (`GlassStyle.controlCenterTile()` with that press, interactive as it stands).
+  Pressed, the body grows to 1.60 times its size with a spring that overshoots to 1.69 (damping 0.53, stiffness 300) and its glass mixes
+  toward white by 0.51 of the way (a straight 125 ms rise, dropping at the lift); released it returns through 1.0 to 0.90 (damping
+  0.49, stiffness 490). **Measured** on the lock-screen flashlight button, `IMG_6667.MP4` (58 pt; one tap, one 1.9 s hold; display
+  colours): held 1.605, peak 1.694 at 0.19 s, release minimum 0.90 at 0.16 s, body 18 to 137 over black (share of the way to white
+  0.502) and 133 to 197 over a 125 stripe band (0.525), 0.51 for both within 2 levels; the release spring fits the hold and the tap
+  alike (rms 0.003 of the radius), the way down at rms 0.015. **Authored**: other sizes, the light appearance, a moved or cancelled
+  press, and that the Control Center circles (not recorded pressed) take the lock-screen press. New shader uniform `uPressWhite`,
+  exactly 0 for every other glass (the term sits behind `if (uPressWhite > 0.0)` and the host passes the literal 0 unless the
+  interaction is a quick action); merged-glass containers have no touch term and do not draw it. Scored by `GlassQuickActionPressTest`.
+  - Default look changed: none. Nothing uses the preset unless asked: `Glass.interactive()` is still `Fluid`.
+- Pressed glass is lit directionally, and the search button's glow settles once dragged (#114, item 130). A pressed, still
+  body is brighter toward the light and darker away from it (a plane of 0.085 levels per px along (-0.49, -0.87) on iOS's held
+  search button, IMG_6756, three still readings: `GlassPressGrade` 0.038 of full scale at the half short side, **measured** on
+  the search button, **authored** for every other size and preset, scaled by `illumination`); it steps away with the glow once
+  the finger has moved 4 dp or lifted. A press the overlay drives (every `glassEffect`) now settles to `pullLiftShare` once
+  dragged and releases on the measured 350 ms glow curve, as the own-pointer path always did; before, the search button in the
+  replay stayed at its held level (83-96 where iOS reads 69-70). New shader uniform `uPressGrade` (0 changes nothing; the
+  tab bar's own press sources are not graded; merged-glass containers have no touch term and are not graded). The lighting
+  model is provisional until a still press over two different pages is scored.
+  - Default look changed: interactive glass that is pressed and held still is graded toward the light, +-0.038 at full
+    illumination, gone once dragged; the search button drops to its dragged level instead of staying lit.
+- Interactive glass presses and pulls like the search button (#196). `GlassInteraction.Fluid` (new, additive) is the
+  scored Phone search-button preset (`Pullable`, `GlassPullShape.Free`, glow share 0.65), and it is now the default of
+  `Glass.interactive()`. Controls of 80 dp or less on their long side answer in full (8 dp a side, follow and stretch,
+  ring on release; the search button is bit-identical to before: `searchscore.py` equals the baseline render to the
+  printed digit). Between 80 and 160 dp the response blends toward the anchored surface response, and from 160 dp it
+  presses 2 dp a side and stretches at most 2 dp, as `Calm` did. A scroll that takes the gesture returns the press and
+  pull critically damped, with no ring and no landing squash. Interactive glass now follows the system's Reduce Motion
+  (`GlassInteraction.ReducedMotion`, whatever response was passed). The ports' free button takes `width`, `height` and
+  `radius` and has `cancel()`. Provenance: press growth and its spring are measured (IMG_6756 S01, keypad K01); the
+  pull, landing and ring on small controls are measured on the search button and inherited by other small controls;
+  the size blend, the 2 dp surfaces and the scroll cancel are authored.
+  - Default look changed: interactive glass (`interactive()`, glass buttons, FABs, chips, icon buttons) now presses and
+    pulls like the search button; surfaces from 160 dp stay anchored; pass `GlassInteraction.Calm` for the previous
+    response. The Material 3 navigation bar's accessory takes the glow share 0.65 the sample's scored search button
+    has (it settles to 65 % once dragged).
+  - Default look changed: interactive glass follows the system's Reduce Motion (no scale, no pull, half-strength glow).
 - The Control Center layer is re-fitted (#206): `GlassStyle.systemBackdrop()` is a plain affine map of the blurred page, 10.23 + 0.3608 x level (of 255): tint black 0.639, lift 10.23/255, `liftAdaptivity` 0, sigma unchanged. Measured on the lab take CC-over-lab-dark.MP4 (HDR decode via hdr.py, rms 0.33) and confirmed per pixel on the mac-rig C1b PNGs and PUSM9766; identical at Tint 0-100 and both appearances. The earlier 142 - 0.864 x luma law came from whole-image means of a non-flat target.
   - Default look changed: `systemBackdrop()` (Control Center layer) — black 10 over black, 102 over white (was 142 / 82).
 - Search mode (#112): `GlassTabBar(..., searchState, searchField, ...)` with `GlassSearchState` / `rememberGlassSearchState()` adds the search button that expands into a search field with a close button, as iOS 27's Phone app does. End state measured on the iOS 27 sample reference (one recording, 29 fps, 720 px wide): field 47.7 dp tall, close button 47.1 dp, 9.2 dp apart, the bar gone. The motion between the two states is authored (300 ms entering, 200 ms leaving) until a 60 fps take is scored. Additive API: a bar given no `searchState` is unchanged. Compose only; the ports and the Material 3 wrapper do not have it yet.

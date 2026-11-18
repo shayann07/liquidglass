@@ -1,3 +1,7 @@
+## #196 Fluid default (19 November, `p3/114`)
+
+- [x] `GlassInteraction.Fluid`, size policy, scroll cancel, Reduce Motion, ports and fixtures, docs.
+- [ ] Pixel feel check (buttons in a scrolling list, a FAB, a chip row); optional recording of non-search glass pulled (owner list #126).
 ## #112 search mode (18 November, `p3/112`)
 
 - [x] State, geometry (measured end state), expansion transition (authored), tests, docs. [ ] sample wiring, IME ride-up, Android back, Material 3 `NavigationBar`, ports, replay and `search112.py` scoring, 60 fps scoring of the motion.

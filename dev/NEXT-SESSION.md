@@ -1,3 +1,8 @@
+## RESUME HERE (19 November): phase 3 `p3/114` = #196 then #114 then the Control Center quick-action press
+
+- Local branch `p3/114` off `fix/202-rim`, one commit per issue, nothing pushed. #196 is committed first; the press-grade (#114)
+  and the quick-action press follow. Scores and gates in PROGRESS.md.
+
 ## RESUME HERE (18 November, p3/206): Control Center tile second pass, committed locally on `p3/206`
 
 - Done: element-class gate (rms 0.87), slider recipe, rim and contour fitted by sector (`GlassControlCenterRimTest`, `GlassControlCenterClassesTest`),

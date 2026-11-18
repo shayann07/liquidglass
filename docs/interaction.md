@@ -12,7 +12,9 @@ Modifier.glassEffect(Glass.Regular.interactive(), RoundedCornerShape(30.dp))
 Modifier.glassEffect(Glass.Regular.interactive(response = GlassInteraction.Default), RoundedCornerShape(30.dp))
 ```
 
-`interactive()` uses `GlassInteraction.Calm` unless told otherwise. The table below describes
+`interactive()` uses `GlassInteraction.Fluid` unless told otherwise: the Phone search button's press and pull,
+falling with size (full response up to 80 dp, anchored from 160 dp; see `generic-interaction.md`). Pass
+`GlassInteraction.Calm` for the restrained response it replaced. The table below describes
 `GlassInteraction.Default`, the expressive response.
 
 Apple describes an interactive element as one that "scales, bounces and shimmers", where the
@@ -60,6 +62,26 @@ parity. See [implementation status](implementation-status.md) for the current ev
 Large surfaces now receive a subtler drag response than small controls. R14 preserves touch
 expansion and reduces only drag strain, with a smooth size transition and a 2dp total extension
 cap on surfaces at least 160dp long. See the [size policy](generic-interaction.md#separate-touch-expansion-from-drag-stretch).
+
+### Quick-action buttons
+
+`GlassInteraction.QuickAction` is the press of iOS's round quick-action buttons (the flashlight, camera and timer circles of the
+lock screen and Control Center). It is a different press from `Fluid`: the body grows to 1.60 times its size, overshoots to 1.69
+at about 0.2 s, lightens toward white by 0.51 of the way to full white in 125 ms, and on release drops back at once to its rest
+body while the size returns through 1.0 to 0.90 and settles. It does not follow the finger. `Glass.ControlCenterTile` is the
+inactive Control Center tile glass with this press, interactive as it stands:
+
+```kotlin
+Box(Modifier.size(58.dp).glassEffect(Glass.ControlCenterTile, CircleShape)) { Icon(/* flashlight */) }
+// the active tile, or any other glass, with the same press:
+Modifier.glassEffect(Glass(GlassStyle.controlCenterTile(active = true)).interactive(response = GlassInteraction.QuickAction), CircleShape)
+```
+
+Measured on the lock-screen flashlight button (`IMG_6667.MP4`, one tap and one 1.9 s hold): peak 1.69, held 1.605, onset to full
+lightening 0.125 s, release minimum 0.90 at 0.16 s, body 18 to 137 over black and 133 to 197 over a 125 stripe band. The Control
+Center circles take the same press, but their own press was not recorded; the size on other buttons, the light appearance and a
+press that is moved or cancelled are authored. With Reduce Motion the system response replaces it (glow only, no growth).
+Numbers and method: [`review/atlas/quick-action-press-2026-11-19`](https://github.com/shayann07/liquidglass/blob/main/review/atlas/quick-action-press-2026-11-19/README.md).
 
 ### When something else owns the gesture
 

@@ -28,6 +28,7 @@ public final class com/wexpa/liquidglass/Glass$Companion {
 	public final fun Lens (F)Lcom/wexpa/liquidglass/Glass;
 	public static synthetic fun Lens$default (Lcom/wexpa/liquidglass/Glass$Companion;FILjava/lang/Object;)Lcom/wexpa/liquidglass/Glass;
 	public final fun getClear ()Lcom/wexpa/liquidglass/Glass;
+	public final fun getControlCenterTile ()Lcom/wexpa/liquidglass/Glass;
 	public final fun getIdentity ()Lcom/wexpa/liquidglass/Glass;
 	public final fun getRegular ()Lcom/wexpa/liquidglass/Glass;
 	public final fun getTabBar ()Lcom/wexpa/liquidglass/Glass;
@@ -123,7 +124,9 @@ public final class com/wexpa/liquidglass/GlassInteraction {
 public final class com/wexpa/liquidglass/GlassInteraction$Companion {
 	public final fun getCalm ()Lcom/wexpa/liquidglass/GlassInteraction;
 	public final fun getDefault ()Lcom/wexpa/liquidglass/GlassInteraction;
+	public final fun getFluid ()Lcom/wexpa/liquidglass/GlassInteraction;
 	public final fun getPullable ()Lcom/wexpa/liquidglass/GlassInteraction;
+	public final fun getQuickAction ()Lcom/wexpa/liquidglass/GlassInteraction;
 	public final fun getReducedMotion ()Lcom/wexpa/liquidglass/GlassInteraction;
 }
 

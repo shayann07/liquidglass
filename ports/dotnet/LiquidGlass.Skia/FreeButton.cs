@@ -8,7 +8,8 @@ namespace LiquidGlass.Skia;
 /// <summary>The drawing transform of a <see cref="FreeButton"/>: press scale (both axes), a stretch
 /// along and across <see cref="Angle"/> (degrees), then the offset; the glow and the lift it gives.</summary>
 public readonly record struct FreeButtonTransform(double PressScale, double Along, double Across, double Angle,
-    double OffsetX, double OffsetY, double Glow, double Lift, double PullX);
+    double OffsetX, double OffsetY, double Glow, double Lift, double PullX, double PressScaleY = 0);
+
 
 /// <summary>A free-standing round glass button pulled off its place. Pixels, monotonic seconds.</summary>
 public sealed class FreeButton
@@ -20,6 +21,7 @@ public sealed class FreeButton
     private static readonly Spec GlowIn = new(.09, 0, 0), FreeGlow = new(.35, 0, 0);
     private static readonly Spec BalloonDown = new(0, .62, 644), PressUp = new(0, .72, 700);
     private static readonly Spec PullFollow = new(0, 1, 2500), FreeRelease = new(0, .45, 264);
+    private static readonly Spec CalmDown = new(0, 1, 220), CalmUp = new(0, 1, 260);
 
     private sealed class Animated(double initial)
     {
@@ -80,20 +82,38 @@ public sealed class FreeButton
         return Bez(t, 0, 1);
     }
 
-    private readonly double size, radius, density, balloon, limit, pressLift, follow, elongation, widthRatio, liftShare;
+    private readonly double width, height, radius, density, balloonX, balloonY, limit, pressLift, follow, elongation, widthRatio, liftShare, mix;
     private readonly Animated press = new(0), glow = new(0), px = new(0), py = new(0);
     private double anchor = double.NaN;
     private readonly Spec releaseX;
     private bool moved;
 
+    /// <summary>Compose's glassSizeMix: 0 for a control of 80 dp or less on its long side to 1 at 160 dp (smoothstep). Authored.</summary>
+    internal static double SizeMix(double width, double height, double density)
+    {
+        var t = Math.Clamp((Math.Max(width, height) / density - 80) / 80, 0, 1);
+        return t * t * (3 - 2 * t);
+    }
+
+    /// <summary>The side of a round button (<paramref name="size"/>), or the <paramref name="width"/>, <paramref name="height"/>
+    /// and corner <paramref name="radius"/> of a control, in px. A control of 80 dp or less on its long side is the search
+    /// button; from 160 dp it presses 2 dp a side and stretches at most 2 dp (Compose's GlassInteraction.Fluid, authored
+    /// by size).</summary>
+
     public FreeButton(double size, double density = 1, double pressScale = 1.26, double pressGrowth = 8, double pressLift = .2,
         double pullFollow = .2, double pullElongation = .124, double pullWidthRatio = 1, double pullLimit = .5,
-        double pullLiftShare = .65, double pullReleaseDampingX = .3)
+        double pullLiftShare = .65, double pullReleaseDampingX = .3, double? width = null, double? height = null,
+        double? radius = null)
     {
-        if (!(size > 0) || !(density > 0)) throw new ArgumentOutOfRangeException(nameof(size), "Positive size and density required");
-        (this.size, radius, this.density) = (size, size / 2, density);
-        balloon = Math.Min(1 + 2 * pressGrowth * density / size, pressScale);
-        limit = size * balloon * pullLimit;
+        double w = width ?? size, h = height ?? size;
+        if (!(w > 0) || !(h > 0) || !(density > 0)) throw new ArgumentOutOfRangeException(nameof(size), "Positive size and density required");
+        (this.width, this.height, this.radius, this.density) = (w, h, radius ?? Math.Min(w, h) / 2, density);
+        mix = SizeMix(w, h, density);
+        var growth = pressGrowth * density;
+        if (mix > 0) growth += (2 * density - growth) * mix;
+        balloonX = Math.Min(1 + 2 * growth / Math.Max(w, 1), pressScale);
+        balloonY = Math.Min(1 + 2 * growth / Math.Max(h, 1), pressScale);
+        limit = Math.Min(w * balloonX, h * balloonY) * pullLimit;
         (this.pressLift, follow, elongation, widthRatio, liftShare) = (pressLift, pullFollow, pullElongation, pullWidthRatio, pullLiftShare);
         // Compose's GlassInteraction.pullReleaseDampingX: a separate x damping on release.
         releaseX = double.IsFinite(pullReleaseDampingX) ? new Spec(0, Math.Clamp(pullReleaseDampingX, .05, 2), 264) : FreeRelease;
@@ -102,7 +122,7 @@ public sealed class FreeButton
     public void Down(double time)
     {
         moved = false;
-        glow.To(time, 1, GlowIn); press.To(time, 1, BalloonDown);
+        glow.To(time, 1, GlowIn); press.To(time, 1, mix >= 1 ? CalmDown : BalloonDown);
         px.To(time, 0, PullFollow); py.To(time, 0, PullFollow);
     }
 
@@ -127,23 +147,37 @@ public sealed class FreeButton
         px.To(time, 0, releaseX); py.To(time, 0, FreeRelease);
     }
 
+    /// <summary>A scroll took the gesture: everything returns critically damped, with no ring and no landing squash.</summary>
+    public void Cancel(double time)
+    {
+        anchor = double.NaN;
+        glow.To(time, 0, FreeGlow); press.To(time, 0, CalmUp);
+        px.To(time, 0, CalmUp); py.To(time, 0, CalmUp);
+    }
+
     public FreeButtonTransform Sample(double time)
     {
-        double scale = 1 + (balloon - 1) * press.Value(time), x = px.Value(time), y = py.Value(time);
+        var amount = press.Value(time);
+        double scale = 1 + (balloonX - 1) * amount, scaleY = 1 + (balloonY - 1) * amount;
+        double x = px.Value(time), y = py.Value(time);
         double len = Math.Sqrt(x * x + y * y);
         double along = 1, across = 1, angle = 0, tx = 0, ty = 0;
+        double rawAlong = 1, rawAcross = 1, rawExtent = 1, rawAngle = 0, alongPull = 1, acrossPull = 1;
         if (len >= 1e-3)
         {
-            double e = Extent(scale, x, y), acrossExtent = Extent(scale, -y, x);
+            double e = Extent(scale, scaleY, x, y), acrossExtent = Extent(scale, scaleY, -y, x);
             along = Math.Min(1 + elongation * len / Math.Max(e, 1), 1.6);
             var extension = (along - 1) * Math.Max(e, 1);
             across = Math.Max(1 - widthRatio * extension / Math.Max(acrossExtent, 1), .5);
+            (alongPull, acrossPull) = (along, across);
             var nx2 = x * x / (len * len);
             var ny2 = y * y / (len * len);
             // Continuous screen-axis projection, matching glassPullDeformation.
             (along, across) = (along * ny2 + across * nx2, along * nx2 + across * ny2);
             angle = -90;
             tx = follow * x; ty = follow * y;
+            // The surface response works on the pull's own axes, not on the upright projection of them.
+            (rawAlong, rawAcross, rawExtent, rawAngle) = (alongPull, acrossPull, e, Math.Atan2(y, x));
         }
         (along, across, angle, tx, ty) = Landing(along, across, angle, tx, ty);
         var landingAngle = angle * Math.PI / 180;
@@ -151,16 +185,47 @@ public sealed class FreeButton
         var ly2 = Math.Pow(Math.Sin(landingAngle), 2);
         (along, across) = (along * ly2 + across * lx2, along * lx2 + across * ly2);
         angle = -90;
+        if (mix > 0 && len >= 1e-3)
+        {
+            var (sAlong, sAcross) = Surface(rawAlong, rawAcross, rawExtent, rawAngle);
+            (along, across) = (along + (sAlong - along) * mix, across + (sAcross - across) * mix);
+            (tx, ty) = (tx * (1 - mix), ty * (1 - mix));
+        }
         var g = glow.Value(time);
-        return new(scale, along, across, angle, tx, ty, g, g * pressLift, x);
+        return new(scale, along, across, angle, tx, ty, g, g * pressLift, x, scaleY);
     }
 
-    private double Extent(double s, double x, double y)
+    // glassSurfacePull, then glassAnchoredMaterialPull, then glassUprightPull, of the raw (upright, -90 degree) pull.
+    private (double Along, double Across) Surface(double along, double across, double extent, double rawAngle)
+    {
+        var extension = (along - 1) * extent;
+        if (extension > 0)
+        {
+            var limitPx = 2 * density;
+            var x = .2 * extension / limitPx;
+            var surfaceGain = x < 1e-3 ? .2 * (1 - x * x / 3) : limitPx * Math.Tanh(x) / extension;
+            var gain = 1 + (surfaceGain - 1) * mix;
+            (along, across) = (1 + (along - 1) * gain, 1 + (across - 1) * gain);
+        }
+        var a = rawAngle;
+        double c = Math.Cos(a), s = Math.Sin(a);
+
+        double xx = along * c * c + across * s * s, yy = along * s * s + across * c * c;
+        var roundness = Math.Clamp(2 * Math.Min(width, height) / Math.Max(width, height) - 1, 0, 1);
+        var xy = (along - across) * c * s * roundness;
+        double mean = (xx + yy) / 2, rad = Math.Sqrt((xx - yy) * (xx - yy) / 4 + xy * xy);
+        var angle = Math.Atan2(2 * xy, xx - yy) * (90 / Math.PI) * Math.PI / 180;
+        double nx2 = Math.Pow(Math.Cos(angle), 2), ny2 = Math.Pow(Math.Sin(angle), 2);
+        double al = mean + rad, ac = mean - rad;
+        return (al * ny2 + ac * nx2, al * nx2 + ac * ny2);
+    }
+
+    private double Extent(double sx, double sy, double x, double y)
     {
         var len = Math.Sqrt(x * x + y * y);
-        if (len < 1e-5) return size * s;
+        if (len < 1e-5) return Math.Min(width * sx, height * sy);
         double nx = Math.Abs(x) / len, ny = Math.Abs(y) / len;
-        return 2 * radius * Math.Sqrt(s * s * nx * nx + s * s * ny * ny);
+        return (width - 2 * radius) * sx * nx + (height - 2 * radius) * sy * ny + 2 * radius * Math.Sqrt(sx * sx * nx * nx + sy * sy * ny * ny);
     }
 
     // glassFreeLanding: the edge away from the pull holds at rest; the overshoot lands as a squash.
@@ -168,7 +233,7 @@ public sealed class FreeButton
     {
         if (!double.IsFinite(anchor)) return (along, across, angle, tx, ty);
         double a = anchor * Math.PI / 180, nx = Math.Cos(a), ny = Math.Sin(a);
-        double restHalf = Math.Sqrt(radius * nx * radius * nx + radius * ny * radius * ny);
+        double restHalf = Math.Sqrt(width / 2 * nx * width / 2 * nx + height / 2 * ny * height / 2 * ny);
         double c = tx * nx + ty * ny, perp = -tx * ny + ty * nx;
         double d = (angle - anchor) * Math.PI / 180, cd = Math.Cos(d), sd = Math.Sin(d);
         var stretched = c >= 0;

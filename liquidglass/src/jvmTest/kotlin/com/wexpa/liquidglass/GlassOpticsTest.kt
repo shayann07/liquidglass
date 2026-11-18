@@ -364,9 +364,30 @@ class GlassOpticsTest {
         val pole = pad * lw - lw + c  // the first pixel wholly outside the top edge
         val inside = c * lw + pad + size - 2 // two pixels inside the right edge
         assertTrue(abs(over(off[side]) - 255.0) < 1.0, "off by default; read ${over(off[side])}")
-        // Band 2/3 deep at d = 0.5 times 0.61: about 0.41 of the white removed.
-        assertTrue(over(on[side]) in 140.0..160.0, "the side contour must darken the page; read ${over(on[side])}")
+        // The band is 1 at d = 0.5 (m202d), so 0.61 of the white is removed: 255 * 0.39 = 99.5, as iOS 27 measured.
+        assertTrue(over(on[side]) in 95.0..105.0, "the side contour must darken the page; read ${over(on[side])}")
         assertTrue(abs(over(on[pole]) - 255.0) < 2.0, "nothing at the lit pole; read ${over(on[pole])}")
         assertTrue(abs(over(on[inside]) - over(off[inside])) < 1.0, "the body is untouched")
+    }
+
+    @Test
+    fun testTheLightContourIsPlusDarkerWithAFloorAtThePoles() {
+        // The light appearance (m202d): a plus-darker 0.30 of full scale at the sides, 0.13 of that at the poles.
+        // Over white that is 255 * 0.70 = 178.5 at the first pixel outside and 255 * (1 - 0.039) = 245 at the pole;
+        // the second pixel outside carries half the amount.
+        val pad = 8
+        val size = 132
+        val white = { _: Int, _: Int -> 0xFFFFFF }
+        val shot = GlassRender.render(width = size, height = size, pad = pad, refractBand = 0f,
+            outerContour = -0.30f, outerContourFloor = 0.13f, backdrop = white)
+        val lw = size + pad * 2
+        val c = pad + size / 2
+        fun level(i: Int) = GlassRender.luma(shot[i]) + 255.0 * (1.0 - ((shot[i] ushr 24) and 0xFF) / 255.0)
+        val side = c * lw + pad + size
+        val pole = pad * lw - lw + c
+        assertTrue(level(side) in 176.0..181.0, "side first pixel; read ${level(side)}")
+        assertTrue(level(side + 1) in 214.0..219.0, "side second pixel; read ${level(side + 1)}")
+        assertTrue(level(side + 2) > 253.0, "nothing at the third pixel; read ${level(side + 2)}")
+        assertTrue(level(pole) in 243.0..247.0, "pole first pixel; read ${level(pole)}")
     }
 }

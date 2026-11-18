@@ -202,6 +202,13 @@ button with `sample(t)`: scale by `pressScale`, stretch by `along` / `across` ab
 offset by `tx` / `ty`, and lift the material by `lift`. Its trajectories match Compose's frame by frame
 (`fixtures/free-button.json`, exported by the Kotlin tests). The bar's outline does not follow it here.
 
+The free button is also the default interactive response, `GlassInteraction.Fluid`, which falls with size
+(authored): give it `width`, `height` and `radius` (px; `size` alone is a round button). A control of 80 dp or less on its
+long side is the search button above; from 160 dp it presses 2 dp a side, never leaves its place and stretches at most
+2 dp; between the two it blends. `cancel(t)` is for a scroll that takes the gesture: everything returns critically
+damped with no ring and no landing squash. `fixtures/free-button-sizes.json` holds a 100 dp circle, a 120 x 48 dp pill
+and a 200 x 150 dp card, with a cancelled press each.
+
 ## Draw a lens without managing uniforms
 
 Initialize CanvasKit using its [official setup](https://skia.org/docs/user/modules/canvaskit/).

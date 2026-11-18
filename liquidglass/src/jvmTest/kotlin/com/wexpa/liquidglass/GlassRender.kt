@@ -245,6 +245,8 @@ internal object GlassRender {
         b.uniform("uFlip", 0f)
         b.uniform("uTouch", width / 2f, height / 2f)
         b.uniform("uTouchAmt", 0f)
+        b.uniform("uPressGrade", 0f)
+        b.uniform("uPressWhite", 0f)
         b.uniform("uMaterialize", 1f)
         b.uniform("uFrost", 0f)
         b.uniform("uContrast", 0f)
