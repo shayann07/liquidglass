@@ -17,7 +17,7 @@ What changed:
   sharp-edged, and the tone is compressed (dark black 59, light black 145).
 
 Scores (jvmTest `GlassMenuModelTest`, the production modifier in a Compose scene, Skia raster, against the measured
-grey tables; numbers only, no capture material committed): menu dark 2.80 levels rms over 17 greys and 3.11 over 8 stripe
+grey tables; numbers only, no capture material committed): menu dark 2.80 levels rms over 17 greys (16 measured, the plateau repeated at 255) and 3.11 over 8 stripe
 cases; sheet dark 3.00 and 2.79; sheet light 2.25 and 1.82; menu light (unchanged) 1.00 and 1.08.
 
 Source measurements: `.local` decode of iOS 27 video takes (iPhone 13 class, HDR10 decoded to display sRGB), Quick Look

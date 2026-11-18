@@ -98,11 +98,12 @@ object GlassMaterial {
 
     /**
      * Menu panel, the tone over flat grey in the same form as [labOpacity], [labLift] and [labToneCurve]: dark
-     * (#102) `53.14 + 170.52 x - 95.22 x^2`, fitted on the 16 measured greys of the pop-up menu (rms 2.77 levels,
-     * worst 6.6 at grey 48; the table steps by 15 levels between 48 and 64, which no smooth tone follows); light
-     * (#204) `135.06 + 159.10 x - 35.25 x^2` (rms 1.38, clipping at 255 from about in 232). Dark: black at 0.7047,
-     * lift 53.14/255, bow 95.22/255; output peaks near 129 at in 230. Light: white at 0.5143, lift 3.91/255, bow
-     * 35.25/255.
+     * (#102) `53.14 + 170.52 x - 95.22 x^2`, fitted on the 16 measured greys of the pop-up menu (the fit's own rms
+     * 2.77 levels, worst 6.6 at grey 48; the table steps by 15 levels between 48 and 64, which no smooth tone
+     * follows); light (#204) `135.06 + 159.10 x - 35.25 x^2` (the fit's own rms 1.38, clipping at 255 from about in
+     * 232). Dark: black at 0.7047, lift 53.14/255, bow 95.22/255; output peaks near 129 at in 230. Light: white at
+     * 0.5143, lift 3.91/255, bow 35.25/255. These are the fits' own residuals; the rendered style is scored against
+     * the same tables in `GlassMenuModelTest`.
      */
     internal fun menuOpacity(dark: Boolean): Float = if (dark) 0.7047f else 0.5143f
     internal fun menuLift(dark: Boolean): Float = if (dark) 53.14f / 255f else 3.91f / 255f
@@ -121,7 +122,8 @@ object GlassMaterial {
      * Sheet (#102), the tone over flat grey, fitted on the 17 measured greys: dark `54.10 + 168.53 x - 96.21 x^2`
      * (rms 2.97 levels, worst 5.4), light `145.06 + 143.30 x - 32.72 x^2` (rms 2.20, worst 4.9). Dark: black at
      * 0.7164, lift 54.10/255, bow 96.21/255. Light: white at 0.5664, lift 0.64/255, bow 32.72/255. The dark sheet and
-     * the dark pop-up menu are the same material within 1 to 2 levels; their blurs differ (7.17 against 8.17 dp).
+     * the dark pop-up menu are the same material within 3 levels up to grey 240; their blurs differ (7.17 against
+     * 8.17 dp).
      */
     internal fun sheetOpacity(dark: Boolean): Float = if (dark) 0.7164f else 0.5664f
     internal fun sheetLift(dark: Boolean): Float = if (dark) 54.10f / 255f else 0.64f / 255f

@@ -539,7 +539,7 @@ on the Quick Look title-pill menu, and the Safari `<select>` panel in the light 
 `GlassStyle.sheet(dark)` is iOS 27's share sheet in both appearances. Each is a pure blur and then a compressed tone, with
 no detail term (Regular keeps 0.277 of the fine detail), fitted on the panel's interior only:
 
-| Style | Blur sigma | Tint | Lift | Bow | Greys / stripes, levels rms |
+| Style | Blur sigma | Tint | Lift | Bow | Render against the measured greys / stripe model, levels rms |
 | :-- | --: | :-- | --: | --: | :-- |
 | `menu(dark = true)` | 8.17 dp | black 0.7047 | 53.14/255 | 95.22/255 | 2.80 / 3.11 |
 | `menu(dark = false)` | 11.8 dp | white 0.5143 | 3.91/255 | 35.25/255 | 1.00 / 1.08 |

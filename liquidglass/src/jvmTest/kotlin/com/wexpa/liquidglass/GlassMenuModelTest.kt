@@ -17,8 +17,9 @@ import kotlin.test.assertTrue
  * (#102, the Quick Look title-pill menu), light the Safari `<select>` panel (#204, `M-select-light`). Sheet: the
  * share sheet in both appearances (#102). Rim, shadow and corner are not measured and not scored.
  *
- * The pop-up menu's grey table steps by 15 levels between greys 48 and 64, which no smooth tone follows, so its
- * gate is per grey within 7 levels and 3.5 rms; the light `<select>` keeps its 3-level gate.
+ * Gates over the 17 greys: every panel within 3.5 levels rms; per grey within 3 levels for the light `<select>` menu
+ * and within 7 for the #102 tables (the pop-up menu's steps by 15 levels between greys 48 and 64, which no smooth tone
+ * follows). The pop-up menu has 16 measured greys: no pixel reached 255, so its 17th entry repeats the plateau.
  *
  * Held out, not a gate: the Photos long-press menu (`COSG3073`, dark, 281-283 s) reads 11 to 31 levels lighter
  * than the pop-up menu fit over plain chart patches, a third surface on a dimmed page.

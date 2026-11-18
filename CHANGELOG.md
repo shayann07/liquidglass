@@ -8,7 +8,7 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
 
 - Menus and sheets on measured iOS 27 material (#102, #204). `GlassStyle.menu(dark = true)` is now iOS 27's pop-up menu,
   measured on the Quick Look title-pill menu: black at 0.7047 over a 53.14/255 lift, bow 95.22/255, 8.17 dp blur, no detail
-  term (2.80 levels rms over 17 greys, 3.11 over 8 stripe cases). The light menu stays the Safari `<select>` fit (no light
+  term (2.80 levels rms over its 16 measured greys plus the repeated plateau at 255, 3.11 over 8 stripe cases). The light menu stays the Safari `<select>` fit (no light
   pop-up menu was recorded). New: `GlassStyle.sheet(dark)` and `GlassMaterialDefaults.sheet`, measured on iOS 27's share
   sheet: dark black at 0.7164, lift 54.10/255, bow 96.21/255, 7.17 dp; light white at 0.5664, lift 0.64/255, bow 32.72/255,
   8.67 dp; no detail term (dark 3.00 / 2.79, light 2.25 / 1.82 levels rms over greys / stripes). Rim, shadow, corner and
@@ -24,7 +24,7 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   62 x 42 px (24 x 16 dp = 63 x 42), track about 10 px (4 dp), switch track about 165 x 75 px (63 x 28 dp);
   [device check](review/atlas/switch-slider-2026-11-18/README.md#device-check-pixel-7-18-november).
 
-- GlassStyle.menu(dark): the menu panel measured on iOS 27's Safari <select> popup (#204): a pure blur (9.9 dp dark, 11.8 dp light) and a compressed tone, no detail term. menu() without an argument is unchanged. GlassMaterialDefaults.menu is new; Material 3 DropdownMenu draws it by default.
+- GlassStyle.menu(dark): the menu panel measured on iOS 27's Safari <select> popup (#204; superseded for dark by #102 above): a pure blur (9.9 dp dark, 11.8 dp light) and a compressed tone, no detail term. menu() without an argument is unchanged. GlassMaterialDefaults.menu is new; Material 3 DropdownMenu draws it by default.
   - Default look changed: DropdownMenu is blurrier, more opaque and tone-compressed (was the card-like panel: in-app material over a 7.7 dp frost). Opt out: DropdownMenu(glass = GlassMaterialDefaults.panel).
   - Known difference, open: the Photos context menu (dark) reads 10 to 18 levels lighter than this fit predicts (32 on the worst of seven patches); the held-out gate (5 levels rms, none over 10) is not met and the fit was not changed.
 
