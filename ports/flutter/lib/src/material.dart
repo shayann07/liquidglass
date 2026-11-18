@@ -57,43 +57,9 @@ List<double> _chromaOf(double detailLift) {
   return [..._labChromaGain(dark), ..._labChromaSlope(dark), weight];
 }
 
-// Compose's Color lerp runs in Oklab and stores 8 bits per channel again; the Oklab intermediate keeps alpha in
-// 10 bits, truncated, which is the step the golden values show.
-double _srgbToLinear(double c) => c <= .04045 ? c / 12.92 : math.pow((c + .055) / 1.055, 2.4).toDouble();
-double _linearToSrgb(double c) => c <= .0031308 ? c * 12.92 : 1.055 * math.pow(c, 1 / 2.4).toDouble() - .055;
+// Compose stores 8 bits per channel, the step the golden values show.
 double _clamp01(double x) => x.clamp(0.0, 1.0);
 double _q8(double x) => (_clamp01(x) * 255 + .5).floorToDouble() / 255;
-double _cbrt(double x) => math.pow(x, 1 / 3).toDouble();
-
-List<double> _toOklab(List<double> c) {
-  final r = _srgbToLinear(c[0]), g = _srgbToLinear(c[1]), b = _srgbToLinear(c[2]);
-  final l = _cbrt(.4122214708 * r + .5363325363 * g + .0514459929 * b);
-  final m = _cbrt(.2119034982 * r + .6806995451 * g + .1073969566 * b);
-  final s = _cbrt(.0883024619 * r + .2817188376 * g + .6299787005 * b);
-  return [
-    .2104542553 * l + .793617785 * m - .0040720468 * s,
-    1.9779984951 * l - 2.428592205 * m + .4505937099 * s,
-    .0259040371 * l + .7827717662 * m - .808675766 * s,
-  ];
-}
-
-List<double> _fromOklab(List<double> c) {
-  final l = math.pow(c[0] + .3963377774 * c[1] + .2158037573 * c[2], 3).toDouble();
-  final m = math.pow(c[0] - .1055613458 * c[1] - .0638541728 * c[2], 3).toDouble();
-  final s = math.pow(c[0] - .0894841775 * c[1] - 1.291485548 * c[2], 3).toDouble();
-  return [
-    4.0767416621 * l - 3.3077115913 * m + .2309699292 * s,
-    -1.2684380046 * l + 2.6097574011 * m - .3413193965 * s,
-    -.0041960863 * l - .7034186147 * m + 1.707614701 * s,
-  ].map((v) => _linearToSrgb(_clamp01(v))).toList();
-}
-
-List<double> _lerpColor(List<double> a, List<double> b, double w) {
-  final p = _toOklab(a), q = _toOklab(b);
-  final rgb = _fromOklab([for (var i = 0; i < 3; i++) p[i] + (q[i] - p[i]) * w]);
-  final alpha = (_clamp01(a[3] + (b[3] - a[3]) * w) * 1023).floorToDouble() / 1023;
-  return [...rgb.map(_q8), _q8(alpha)];
-}
 
 /// Every material uniform for a surface of [size] device pixels at [density] device pixels per
 /// logical pixel, keyed by its name in liquid_glass.frag.
