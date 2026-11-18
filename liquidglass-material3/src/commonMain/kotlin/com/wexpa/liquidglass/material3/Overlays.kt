@@ -194,8 +194,10 @@ fun rememberModalBottomSheetState(
 ): SheetState = remember { SheetState(skipPartiallyExpanded, confirmValueChange) }
 
 /**
- * Material 3's `ModalBottomSheet` as an iOS 26 sheet: a floating glass panel inset from the screen's
- * edges, over a light scrim, in the app's window. Drag it down or tap the scrim to dismiss.
+ * Material 3's `ModalBottomSheet` as an iOS sheet: a floating glass panel inset from the screen's
+ * edges, over a light scrim, in the app's window. Drag it down or tap the scrim to dismiss. It draws
+ * [GlassMaterialDefaults.sheet], measured on iOS 27's share sheet; pass [GlassMaterialDefaults.panel] for the
+ * card-like look before 1.1.0. iOS draws no scrim behind the share sheet (measured); this one keeps its scrim.
  */
 @Composable
 fun ModalBottomSheet(
@@ -204,7 +206,7 @@ fun ModalBottomSheet(
     sheetState: SheetState = rememberModalBottomSheetState(),
     sheetMaxWidth: Dp = 640.dp,
     shape: Shape = RoundedCornerShape(38.dp),
-    glass: Glass = GlassMaterialDefaults.panel,
+    glass: Glass = GlassMaterialDefaults.sheet,
     contentColor: Color = MaterialTheme.colorScheme.onSurface,
     scrimColor: Color = Scrim,
     dragHandle: @Composable (() -> Unit)? = { DragHandle() },

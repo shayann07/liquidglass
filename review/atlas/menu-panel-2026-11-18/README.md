@@ -1,5 +1,7 @@
 # Glass menu panel (#204)
 
+> Superseded for the dark appearance (18 November, #102): `GlassStyle.menu(dark = true)` is now the measured iOS 27 pop-up menu; see [menu-sheet-2026-11-18](../menu-sheet-2026-11-18/README.md). The dark frames below show the `<select>` fit.
+
 `DropdownMenu` over a chart (colour bars, 16 px black and white stripes, a 17-step grey ramp), before and after.
 
 | | before (`GlassMaterialDefaults.panel`) | after (`GlassMaterialDefaults.menu`, the new default) |

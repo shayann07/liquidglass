@@ -56,6 +56,8 @@ final object com.wexpa.liquidglass.material3/GlassMaterialDefaults { // com.wexp
         final fun <get-panel>(): com.wexpa.liquidglass/Glass // com.wexpa.liquidglass.material3/GlassMaterialDefaults.panel.<get-panel>|<get-panel>(){}[0]
     final val regular // com.wexpa.liquidglass.material3/GlassMaterialDefaults.regular|{}regular[0]
         final fun <get-regular>(androidx.compose.runtime/Composer?, kotlin/Int): com.wexpa.liquidglass/Glass // com.wexpa.liquidglass.material3/GlassMaterialDefaults.regular.<get-regular>|<get-regular>(androidx.compose.runtime.Composer?;kotlin.Int){}[0]
+    final val sheet // com.wexpa.liquidglass.material3/GlassMaterialDefaults.sheet|{}sheet[0]
+        final fun <get-sheet>(): com.wexpa.liquidglass/Glass // com.wexpa.liquidglass.material3/GlassMaterialDefaults.sheet.<get-sheet>|<get-sheet>(){}[0]
     final val toolbar // com.wexpa.liquidglass.material3/GlassMaterialDefaults.toolbar|{}toolbar[0]
         final fun <get-toolbar>(): com.wexpa.liquidglass/Glass // com.wexpa.liquidglass.material3/GlassMaterialDefaults.toolbar.<get-toolbar>|<get-toolbar>(){}[0]
 

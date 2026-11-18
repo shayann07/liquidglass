@@ -14,6 +14,17 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   - Default look changed: wide pills only (aspect over 1.5); lighting over flat grey differed by up to 83 levels before. [Evidence](review/atlas/dome-lighting-2026-11-18/README.md). The generated port shaders (Skia, npm and React Native canvas engines, .NET, Flutter, Qt, Unity) follow; the npm HTML/CSS engine keeps its own approximation.
 - Merged glass carries the standalone material's parts (#211): `GlassEffectContainer` now has the legibility term, the rim band's colour fringe, the absorbing tint and the soft-detail rotation, and uses its Glass's light direction (it was ignored). A container's tint strength now clamps at 0.95, as a lone piece's does. Deliberate differences (legacy mirror echo, per-size tint scale, tint mask, flip, frost, touch magnifier and the held paths) are listed in the container shader's KDoc. Compose only; the ports have no container shader.
   - Default look changed: slightly, at the rim of merged glass (0.05 levels rms on the default tint) and for styles with legibility (up to 26 levels at text edges under the earlier Tint 0 fit). A merged split-page rim ring still differs from a lone piece by 6.7 / 4.9 levels rms; the change moves it by 0.05, so it predates it. [Evidence](review/atlas/container-parts-2026-11-18/README.md).
+- Menus and sheets on measured iOS 27 material (#102, #204). `GlassStyle.menu(dark = true)` is now iOS 27's pop-up menu,
+  measured on the Quick Look title-pill menu: black at 0.7047 over a 53.14/255 lift, bow 95.22/255, 8.17 dp blur, no detail
+  term (2.80 levels rms over its 16 measured greys plus the repeated plateau at 255, 3.11 over 8 stripe cases). The light menu stays the Safari `<select>` fit (no light
+  pop-up menu was recorded). New: `GlassStyle.sheet(dark)` and `GlassMaterialDefaults.sheet`, measured on iOS 27's share
+  sheet: dark black at 0.7164, lift 54.10/255, bow 96.21/255, 7.17 dp; light white at 0.5664, lift 0.64/255, bow 32.72/255,
+  8.67 dp; no detail term (dark 3.00 / 2.79, light 2.25 / 1.82 levels rms over greys / stripes). Rim, shadow, corner and
+  colour are not measured; the rim fields are `inApp`'s. Device frames: [review/atlas/menu-sheet-2026-11-18](review/atlas/menu-sheet-2026-11-18/README.md).
+  - Default look changed: the dark `DropdownMenu` (and any dark `GlassStyle.menu(dark = true)`) is lighter in the shadows
+    (black reads 59, was 32) and slightly less blurred (8.17 dp, was 9.9). `ModalBottomSheet` draws the measured sheet
+    (was the card panel): frosted, with no fine detail of what is beneath. Opt out: `ModalBottomSheet(glass = GlassMaterialDefaults.panel)`.
+  - Known difference, open: iOS does not dim the page behind the share sheet; `ModalBottomSheet` keeps its scrim.
 
 - Switch, Slider and RangeSlider (liquidglass-material3) use measured geometry and timing (#205). Switch: 63 x 28 dp track, 37 x 24 dp knob, 2 dp inset, 22 dp travel; held, the knob is a clear glass lens 64.75 x 38.4 dp (1.75 x 1.6 of rest) sized in layout around the knob's centre; press peaks about 100 ms in, release settles in 133 ms, travel is a critically damped spring (90 percent in 6-7 frames, no overshoot), the track colour fades over 420 ms. Slider and RangeSlider: 4 dp track, 24 x 16 dp opaque white thumb with a soft shadow, no lens, no press scale. No public API change; sizes live in an internal KnobSpec.
   - Default look changed: Switch track 62 -> 63 dp, knob travel 20 -> 22 dp, held knob was 1.4x scale with Lens(1.25) now 1.75 x 1.6 clear lens; Slider/RangeSlider track 6 -> 4 dp, thumb 38 x 24 dp glass lens on drag -> 24 x 16 dp opaque white with no change on drag. Material theme colours are unchanged (the measured iOS green (47,210,88) and grey (90,90,94) are not applied by default: theming decision).
@@ -21,7 +32,7 @@ Flutter: `liquiglass` 1.0.0 is on pub.dev (<https://pub.dev/packages/liquiglass>
   62 x 42 px (24 x 16 dp = 63 x 42), track about 10 px (4 dp), switch track about 165 x 75 px (63 x 28 dp);
   [device check](review/atlas/switch-slider-2026-11-18/README.md#device-check-pixel-7-18-november).
 
-- GlassStyle.menu(dark): the menu panel measured on iOS 27's Safari <select> popup (#204): a pure blur (9.9 dp dark, 11.8 dp light) and a compressed tone, no detail term. menu() without an argument is unchanged. GlassMaterialDefaults.menu is new; Material 3 DropdownMenu draws it by default.
+- GlassStyle.menu(dark): the menu panel measured on iOS 27's Safari <select> popup (#204; superseded for dark by #102 above): a pure blur (9.9 dp dark, 11.8 dp light) and a compressed tone, no detail term. menu() without an argument is unchanged. GlassMaterialDefaults.menu is new; Material 3 DropdownMenu draws it by default.
   - Default look changed: DropdownMenu is blurrier, more opaque and tone-compressed (was the card-like panel: in-app material over a 7.7 dp frost). Opt out: DropdownMenu(glass = GlassMaterialDefaults.panel).
   - Known difference, open: the Photos context menu (dark) reads 10 to 18 levels lighter than this fit predicts (32 on the worst of seven patches); the held-out gate (5 levels rms, none over 10) is not met and the fit was not changed.
 
