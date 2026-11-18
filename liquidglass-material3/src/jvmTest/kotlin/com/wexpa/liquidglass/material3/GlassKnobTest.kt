@@ -92,51 +92,94 @@ class GlassKnobTest {
         onNodeWithTag("sw").performTouchInput { down(center) }
         mainClock.advanceTimeBy(1000)
         val held = onNodeWithTag(GlassKnobTestTag, useUnmergedTree = true).inDp(scale)
-        assertEquals(64.5f, held.width, 1.5f, "held width (measured outline 64.5 dp +-1)")
+        assertEquals(57.7f, held.width, 1f, "held width (measured 57.7 dp, was 64.5 read off the tap peak)")
         assertEquals(38.5f, held.height, 1.5f, "held height (measured outline 38.5 dp +-1)")
-        assertEquals(1.75f, held.width / rest.width, .05f, "width ratio (measured 1.75)")
+        assertEquals(1.56f, held.width / rest.width, .03f, "width ratio (measured 1.56, was 1.75)")
         assertEquals(1.6f, held.height / rest.height, .05f, "height ratio (measured 1.6)")
         assertEquals(rest.centerX, held.centerX, .5f, "the lens grows around the knob's centre")
         assertEquals(rest.centerY, held.centerY, .5f)
     }
 
-    @Test fun pressInPeaksAbout100MsAfterTheTouch() = runDesktopComposeUiTest(400, 240, testTimeout = 2.minutes) {
+    /**
+     * The recording shows the lens only where it is taller than the 28 dp track, so press and release are timed
+     * on that visible part: the lens outline went 85 -> 121 px (28.3 -> 40.3 dp) in 6 frames (peak 100 ms in,
+     * 5 frames after the first frame clearly above the track), then settled at 115 px (38.3 dp).
+     */
+    @Test fun pressInPeaksAbout100MsAfterTheLensFirstClearsTheTrack() = runDesktopComposeUiTest(400, 240, testTimeout = 2.minutes) {
         mainClock.autoAdvance = false
         setContent { Frame { Switch(false, {}, Modifier.testTag("sw")) } }
         mainClock.advanceTimeBy(100)
         onNodeWithTag("sw").performTouchInput { down(center) }
+        val heights = ArrayList<Float>()
         val widths = ArrayList<Float>()
-        repeat(14) {
+        repeat(16) {
             mainClock.advanceTimeByFrame()
-            widths += onNodeWithTag(GlassKnobTestTag, useUnmergedTree = true).inDp(scale).width
+            val knob = onNodeWithTag(GlassKnobTestTag, useUnmergedTree = true).inDp(scale)
+            heights += knob.height
+            widths += knob.width
         }
-        // Timed from the first frame in which the knob has left rest, as the recording's 100 ms is.
-        val first = widths.indexOfFirst { it > 37.01f }
-        val peak = widths.indices.maxBy { widths[it] }
-        val peakMs = (peak - first) * frame
-        assertTrue(peakMs in 100 - frame..100 + frame, "the lens peaked ${peakMs.toInt()} ms after it first moved (measured 100 ms +-1 frame): $widths")
-        val heldWidth = 64.75f
-        assertTrue(widths[peak] > heldWidth, "no overshoot: the peak is ${widths[peak]} (measured a small overshoot)")
-        assertTrue(widths[peak] - heldWidth < 0.25f * (heldWidth - 37f), "overshoot too large: ${widths[peak]}")
+        val first = heights.indexOfFirst { it > 28.5f }
+        val peak = heights.indices.maxBy { heights[it] }
+        val peakFrames = peak - first
+        // The PressSpring (zeta .55, omega 25) stepped at 16 ms and quantised to whole pixels at 4x puts the
+        // peak 6 frames after the first frame above 28.5 dp, for either alignment of the first animation frame.
+        // The recording has 5 +- 1, so the window is that +-1 frame (the old 100 ms +-1 frame bound), not wider.
+        assertTrue(peakFrames in 4..6, "the lens peaked $peakFrames frames after clearing the track (measured 5 +-1, spring gives 6): $heights")
+        val held = 38.4f
+        assertTrue(heights[peak] > held, "no overshoot: the peak is ${heights[peak]} (measured 40.3 dp over a 38.3 dp plateau)")
+        // The spring's overshoot is exp(-pi zeta / sqrt(1 - zeta^2)) = 13 percent of the 14.4 dp growth = 1.9 dp
+        // (peak 40.3 dp measured, 40.0 stepped); a bound of 3 dp is the old "under a quarter of the growth" cap
+        // made to the measured value, and fails a spring with half the damping (about 5.9 dp).
+        assertTrue(heights[peak] - held < 3f, "overshoot too large: the peak is ${heights[peak]} over the $held dp plateau: $heights")
+        assertEquals(40.3f, heights[peak], 1.5f, "peak lens height")
+        // Width and height share one fraction today; pin the width at the peak so a per-axis spring cannot drift.
+        assertEquals(1.63f, widths[peak] / 37f, .03f, "peak width over the 37 dp rest knob (measured 1.62-1.64): $widths")
     }
 
-    @Test fun releaseSettlesWithin133MsAndTheKnobNeverUndershoots() = runDesktopComposeUiTest(400, 240, testTimeout = 2.minutes) {
+    /** Release from a hold: 115 -> 84 px (38.3 dp -> the 28 dp track) in 8 frames (133 ms), never below the rest knob. */
+    @Test fun releaseReachesTheTrackHeightIn133MsAndTheKnobNeverUndershoots() = runDesktopComposeUiTest(400, 240, testTimeout = 2.minutes) {
         mainClock.autoAdvance = false
         setContent { Frame { Switch(false, {}, Modifier.testTag("sw")) } }
         mainClock.advanceTimeBy(100)
         onNodeWithTag("sw").performTouchInput { down(center) }
         mainClock.advanceTimeBy(1000)
         onNodeWithTag("sw").performTouchInput { up() }
-        val widths = ArrayList<Float>()
-        repeat(14) {
+        val heights = ArrayList<Float>()
+        repeat(16) {
             mainClock.advanceTimeByFrame()
-            widths += onNodeWithTag(GlassKnobTestTag, useUnmergedTree = true).inDp(scale).width
+            heights += onNodeWithTag(GlassKnobTestTag, useUnmergedTree = true).inDp(scale).height
         }
-        val first = widths.indexOfFirst { it < 64.7f }
-        val settled = widths.indexOfFirst { it <= 37.5f }
-        assertTrue(settled >= 0 && (settled - first) * frame <= 133 + frame,
-            "the knob took ${(settled - first) * frame} ms to settle from its first move (measured 133 ms +-1 frame): $widths")
-        assertTrue(widths.all { it >= 36.5f }, "the knob shrank below its rest size: $widths")
+        val first = heights.indexOfFirst { it < 38.2f }
+        val onTrack = heights.indexOfFirst { it <= 28.4f }
+        val frames = onTrack - first + 1
+        assertTrue(onTrack >= 0 && frames in 7..9, "the lens took $frames frames to fall to the track (measured 8 = 133 ms): $heights")
+        assertTrue(heights.all { it >= 23.5f }, "the knob shrank below its rest size: $heights")
+    }
+
+    /**
+     * A whole tap in I-menus-dark (tap A, 24.012-24.328 s, 60 fps): the lens outline is taller than the 84 px
+     * track from 24.012 to 24.295 (18 frames, 300 ms), with its peak
+     * (118 px, 39 dp incl. shadow) 80-130 ms in. The recording does not show the finger, so the 200 ms touch (down to up, which
+     * includes the 40 ms the growth is hidden inside the track) is inferred from where the shrink starts (24.18 s): the assertion is that a touch of that length reproduces
+     * the measured lifetime, not that real taps last 200 ms.
+     */
+    @Test fun aTapsLensLivesAbout300MsFromTheTouch() = runDesktopComposeUiTest(400, 240, testTimeout = 2.minutes) {
+        mainClock.autoAdvance = false
+        var checked by mutableStateOf(false)
+        setContent { Frame { Switch(checked, { checked = it }, Modifier.testTag("sw")) } }
+        mainClock.advanceTimeBy(500)
+        onNodeWithTag("sw").performTouchInput { down(center) }
+        val heights = ArrayList<Float>()
+        repeat(30) { i ->
+            if (i == 12) { onNodeWithTag("sw").performTouchInput { up() }; checked = true }
+            mainClock.advanceTimeByFrame()
+            heights += onNodeWithTag(GlassKnobTestTag, useUnmergedTree = true).inDp(scale).height
+        }
+        val first = heights.indexOfFirst { it > 28.4f }
+        val last = heights.indexOfLast { it > 28.4f }
+        val lifetime = (last - first + 1) * frame
+        assertTrue(lifetime in 300 - 2 * frame..300 + 2 * frame, "the lens lived ${lifetime.toInt()} ms (measured 300 ms +-2 frames): $heights")
+        assertEquals(40.3f, heights.max(), 1.5f, "peak lens height")
     }
 
     @Test fun travelIs90PercentIn7FramesAtRestBy11AndNeverOvershoots() = runDesktopComposeUiTest(400, 240, testTimeout = 2.minutes) {
@@ -175,6 +218,54 @@ class GlassKnobTest {
         mainClock.advanceTimeBy(1000)
         assertEquals(37f, onNodeWithTag(GlassKnobTestTag, useUnmergedTree = true).inDp(scale).width, .5f, "a disabled knob grew")
         assertEquals(1, changes)
+    }
+
+    /** Track colour of a settled switch, read from the rendered pixels at the track end away from the knob. */
+    private fun androidx.compose.ui.test.ComposeUiTest.trackColour(dark: Boolean, checked: Boolean, custom: Color? = null): Color {
+        setContent {
+            CompositionLocalProvider(LocalDensity provides Density(scale)) {
+                MaterialTheme(colorScheme = if (dark) androidx.compose.material3.darkColorScheme() else lightColorScheme()) {
+                    Box(Modifier.background(if (dark) Color.Black else Color.White).padding(8.dp)) {
+                        if (custom != null) Switch(checked, {}, Modifier.testTag("sw"), colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = custom, uncheckedTrackColor = custom))
+                        else Switch(checked, {}, Modifier.testTag("sw"))
+                    }
+                }
+            }
+        }
+        mainClock.advanceTimeBy(1000)
+        val px = onNodeWithTag("sw").captureToImage().toPixelMap()
+        // Off: knob sits left, sample the right end; on: the reverse.
+        val x = if (checked) (px.width * .06f).toInt() else (px.width * .94f).toInt()
+        return px[x, px.height / 2]
+    }
+
+    private fun assertRgb(expected: Int, actual: Float, what: String) =
+        assertEquals(expected.toFloat(), actual * 255f, 2f, what)
+
+    /** Measured on the native switch in the dark appearance (I-menus-dark): on (47, 210, 88), off (90, 90, 94), max channel diff 4. */
+    @Test fun aDarkSwitchUsesTheMeasuredIosTrackColours() = runDesktopComposeUiTest(400, 240, testTimeout = 2.minutes) {
+        mainClock.autoAdvance = false
+        val on = trackColour(dark = true, checked = true)
+        assertRgb(47, on.red, "on red"); assertRgb(210, on.green, "on green"); assertRgb(88, on.blue, "on blue")
+    }
+
+    @Test fun aDarkSwitchOffTrackIsTheMeasuredGrey() = runDesktopComposeUiTest(400, 240, testTimeout = 2.minutes) {
+        mainClock.autoAdvance = false
+        val off = trackColour(dark = true, checked = false)
+        assertRgb(90, off.red, "off red"); assertRgb(90, off.green, "off green"); assertRgb(94, off.blue, "off blue")
+    }
+
+    /** No light-appearance switch is recorded: a light scheme keeps the theme's colours, not the dark grey. */
+    @Test fun aLightSwitchKeepsTheThemeColours() = runDesktopComposeUiTest(400, 240, testTimeout = 2.minutes) {
+        mainClock.autoAdvance = false
+        val off = trackColour(dark = false, checked = false)
+        assertTrue(off.red * 255f > 150f, "the light off track must not be the dark grey: $off")
+    }
+
+    @Test fun aCallersTrackColoursStillWin() = runDesktopComposeUiTest(400, 240, testTimeout = 2.minutes) {
+        mainClock.autoAdvance = false
+        val c = trackColour(dark = true, checked = true, custom = Color(200, 10, 10))
+        assertRgb(200, c.red, "custom red"); assertRgb(10, c.green, "custom green")
     }
 
     // ---- slider, measured on Safari's web slider ----------------------------------------------------

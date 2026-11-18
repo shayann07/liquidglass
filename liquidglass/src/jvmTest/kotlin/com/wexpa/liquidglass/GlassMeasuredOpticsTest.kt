@@ -108,21 +108,22 @@ class GlassMeasuredOpticsTest {
     }
 
     @Test
-    fun testTheAdaptiveLiftReadsLightOverDarkContent() {
-        // The system backdrop: gain 0.32, lift 142/255 - 0.864 x the wide-kernel luma. Over a
-        // flat backdrop of luma 95/255 (the dark test image's mean) that is a lift of 60; over
-        // 153/255 (the light one's) a lift of 10.
+    fun testTheSystemBackdropIsAnAffineMapOfTheBackdrop() {
+        // The system backdrop (measured, lab take CC-over-lab-dark.MP4 via hdr.py; confirmed on
+        // the mac-rig C1b PNGs and PUSM9766): out = 10.23 + 0.3608 x backdrop, no adaptation.
+        // Over a flat backdrop of 95 (the dark test image's mean) that reads 44.5; over 153
+        // (the light one's) 65.4. The earlier 90 / 59 came from regressing whole-image means.
         val pad = 40
         val w = 220
         val h = 160
         val lw = w + pad * 2
         fun centre(px: IntArray) = GlassRender.luma(px[(pad + h / 2) * lw + pad + w / 2])
         fun grey(v: Int) = (v shl 16) or (v shl 8) or v
-        val overDark = centre(GlassRender.render(width = w, height = h, pad = pad, profile = 1f, refractBand = 0f, tintAlpha = 0.68f, tint = Triple(0f, 0f, 0f), lift = 142f / 255f, liftAdapt = 0.864f, wide = 12f, fineShare = 0f, backdrop = { _, _ -> grey(95) }))
-        val overLight = centre(GlassRender.render(width = w, height = h, pad = pad, profile = 1f, refractBand = 0f, tintAlpha = 0.68f, tint = Triple(0f, 0f, 0f), lift = 142f / 255f, liftAdapt = 0.864f, wide = 12f, fineShare = 0f, backdrop = { _, _ -> grey(153) }))
-        // expected: 0.32 * 95 + 60 = 90; 0.32 * 153 + 10 = 59
-        assertTrue(abs(overDark - 90.0) < 6.0, "over dark content: expected 90, got $overDark")
-        assertTrue(abs(overLight - 59.0) < 6.0, "over light content: expected 59, got $overLight")
+        val overDark = centre(GlassRender.render(width = w, height = h, pad = pad, profile = 1f, refractBand = 0f, tintAlpha = 0.639f, tint = Triple(0f, 0f, 0f), lift = 10.23f / 255f, liftAdapt = 0f, wide = 12f, fineShare = 0f, backdrop = { _, _ -> grey(95) }))
+        val overLight = centre(GlassRender.render(width = w, height = h, pad = pad, profile = 1f, refractBand = 0f, tintAlpha = 0.639f, tint = Triple(0f, 0f, 0f), lift = 10.23f / 255f, liftAdapt = 0f, wide = 12f, fineShare = 0f, backdrop = { _, _ -> grey(153) }))
+        // expected: 0.361 * 95 + 10.23 = 44.5; 0.361 * 153 + 10.23 = 65.5
+        assertTrue(abs(overDark - 44.5) < 3.0, "over dark content: expected 44.5, got $overDark")
+        assertTrue(abs(overLight - 65.5) < 3.0, "over light content: expected 65.5, got $overLight")
     }
 
     @Test

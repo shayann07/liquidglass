@@ -270,6 +270,22 @@ public final class com/wexpa/liquidglass/GlassScrollEdges : java/lang/Enum {
 	public static fun values ()[Lcom/wexpa/liquidglass/GlassScrollEdges;
 }
 
+public final class com/wexpa/liquidglass/GlassSearchKt {
+	public static final fun GlassTabBar-wn8IZOc (IILkotlin/jvm/functions/Function1;Lcom/wexpa/liquidglass/GlassSearchState;Lkotlin/jvm/functions/Function2;Landroidx/compose/ui/Modifier;Lcom/wexpa/liquidglass/GlassTabBarStyle;ZFLjava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function4;Landroidx/compose/runtime/Composer;III)V
+	public static final fun rememberGlassSearchState (ZLandroidx/compose/runtime/Composer;II)Lcom/wexpa/liquidglass/GlassSearchState;
+}
+
+public final class com/wexpa/liquidglass/GlassSearchState {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun <init> (Z)V
+	public synthetic fun <init> (ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun collapse ()V
+	public final fun expand ()V
+	public final fun getExpanded ()Z
+	public final fun getFraction ()F
+}
+
 public final class com/wexpa/liquidglass/GlassSelectorSpec {
 	public static final field $stable I
 	public fun <init> ()V
@@ -654,6 +670,10 @@ public final class com/wexpa/liquidglass/GlassTabBarStyle$Companion {
 	public final fun getIos27 ()Lcom/wexpa/liquidglass/GlassTabBarStyle;
 	public final fun getRestingInset ()Lcom/wexpa/liquidglass/GlassStyle;
 	public final fun getRestingInsetMeasured ()Lcom/wexpa/liquidglass/GlassStyle;
+}
+
+public final class com/wexpa/liquidglass/GlassToolbarGroupKt {
+	public static final fun GlassToolbarGroup-TN_CM5M (Landroidx/compose/ui/Modifier;Lcom/wexpa/liquidglass/Glass;FLandroidx/compose/foundation/layout/PaddingValues;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
 }
 
 public final class com/wexpa/liquidglass/LiquidGlassCoverSheetKt {

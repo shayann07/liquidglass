@@ -150,7 +150,7 @@ fun Modifier.glassEffect(glass: Glass? = null, shape: Shape = CapsuleShape, link
         val density = LocalDensity.current
         val direction = LocalLayoutDirection.current
         return@composed drawWithContent {
-            drawGlassFallback(style, resolved.light(defaults.dark), shape.cornerRadiiPx(size, direction, density), with(density) { style.bevel.toPx() })
+            drawGlassFallback(style, style.litFrom(resolved.light(defaults.dark)), shape.cornerRadiiPx(size, direction, density), with(density) { style.bevel.toPx() })
             drawContent()
         }
     }

@@ -1,8 +1,8 @@
 ---
-description: What LiquidGlass 1.0 promises - semantic versioning across every registry, the stable API on each stack, supported platforms and minimum versions, and how deprecation and visual changes are handled.
+description: What LiquidGlass promises from 1.0 on - semantic versioning across every registry, the stable API on each stack, supported platforms and minimum versions, and how deprecation and visual changes are handled.
 ---
 
-# Support and compatibility (1.0)
+# Support and compatibility (since 1.0)
 
 LiquidGlass 1.0 is the first release with a compatibility promise. This page says what is promised,
 for which stacks, and what is deliberately outside it.

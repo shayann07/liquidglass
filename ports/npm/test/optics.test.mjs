@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {kotlin, haveKotlin, skslFunction} from './kotlin.mjs';
 import {regularStyle, clearStyle} from '../material.mjs';
 import {createFreeButton} from '../vendor/skia/interaction.mjs';
-import {restSourceLegacy, bevelSlope, snellShift, smoothstep, sdRoundRect, gradRoundRect, cornerWeight,
+import {restSourceLegacy, bevelSlope, snellShift, smoothstep, coverageAt, sdRoundRect, gradRoundRect, cornerWeight,
   shapeFor, geometryAt, displacementAt, highlightAt, displacementMap, rimMap, decodeOffset} from '../optics.mjs';
 
 const skip = haveKotlin ? false : 'the Kotlin library is not beside this package';
@@ -120,7 +120,7 @@ test('rim map: the measured edge light peaks on the lit edge, both edges lit, si
   // The exact value at the top-centre pixel, from the ported formula.
   const shape = shapeFor(style, {width: 300, height: 56, radius: 28});
   const g = geometryAt(shape, 0.5, -27.5);
-  assert.equal(top, Math.round(Math.min(1, highlightAt(shape, 0.5, -27.5, g)) * (1 - smoothstep(-0.75, 0.75, g.d)) * 255));
+  assert.equal(top, Math.round(Math.min(1, highlightAt(shape, 0.5, -27.5, g)) * coverageAt(g.d) * 255));
   // Density scales the dp bevel: at 3x the rim is three device px wider.
   const dense = rimMap(style, {width: 300, height: 56, radius: 28, density: 3});
   assert.equal(dense.width, 900); assert.equal(dense.height, 168);

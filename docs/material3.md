@@ -66,8 +66,8 @@ The glass `Scaffold` is the root: it records the screen once and every glass com
 | :-- | :-- |
 | `Scaffold` | records the screen for everything glass in it; content runs under the bars |
 | `NavigationBar`, `NavigationBarItem` | iOS's floating tab bar: a glass capsule with a lens you can tap, hold, drag and throw. `accessory` adds the round search button that the bar fuses with |
-| `TopAppBar`, `CenterAlignedTopAppBar`, `MediumTopAppBar`, `LargeTopAppBar` | no container; the navigation icon in a round glass button, the actions grouped on one glass capsule |
-| `BottomAppBar` | the actions on a floating glass capsule (iOS's toolbar), the FAB beside it |
+| `TopAppBar`, `CenterAlignedTopAppBar`, `MediumTopAppBar`, `LargeTopAppBar` | no container; the navigation icon in a round glass button, the actions grouped on one glass capsule (`GlassToolbarGroup`; the capsule's height and padding are authored) |
+| `BottomAppBar` | the actions on a floating glass capsule (iOS's toolbar: `GlassToolbarGroup` in the measured toolbar material, its 52 dp height and padding authored), the FAB beside it |
 | `NavigationRail`, `NavigationRailItem` | a floating glass panel |
 | `Button` | prominent glass (SwiftUI's `.glassProminent`), tinted with the primary colour |
 | `FilledTonalButton` | glass tinted with the secondary container colour |
@@ -77,14 +77,14 @@ The glass `Scaffold` is the root: it records the screen once and every glass com
 | `FloatingActionButton`, `SmallFloatingActionButton`, `LargeFloatingActionButton`, `ExtendedFloatingActionButton` | prominent glass tinted with `containerColor` |
 | `Card` (both), `ElevatedCard`, `OutlinedCard` | frosted glass panels; a clickable card is interactive glass |
 | `AssistChip`, `FilterChip`, `InputChip`, `SuggestionChip` | glass capsules; a selected chip is prominent glass |
-| `Switch` | an iOS switch: a 63 x 28 dp track and a 37 x 24 dp knob (measured) that turns into a clear glass lens 1.75 x 1.6 times larger while pressed |
+| `Switch` | an iOS switch: a 63 x 28 dp track (in a dark scheme the measured iOS on green and off grey, otherwise the theme colours) and a 37 x 24 dp knob (measured) that turns into a clear glass lens 1.56 x 1.6 times larger while pressed |
 | `Slider` | iOS's thin continuous 4 dp track in the primary colour, running under the thumb's whole travel, and a 24 x 16 dp opaque white thumb that does not change while dragged (measured on Safari's slider) |
 | `SingleChoiceSegmentedButtonRow`, `SegmentedButton` | iOS's segmented control: a glass capsule with a lens selection |
 | `MultiChoiceSegmentedButtonRow`, `SegmentedButton(checked)` | a glass capsule; checked segments are prominent glass |
 | `PrimaryTabRow`, `SecondaryTabRow`, `TabRow`, `Tab` | the same segmented control |
 | `ScrollableTabRow` | Material's tabs scrolling inside a glass capsule |
 | `SearchBar`, `DockedSearchBar` | a glass capsule field and, while active, a glass results panel (the classic `query`/`active` parameters) |
-| `AlertDialog`, `BasicAlertDialog` | an iOS alert: a glass panel over a light scrim |
+| `AlertDialog`, `BasicAlertDialog` | an iOS alert: a glass panel over a light scrim. Authored: no iOS recording of an alert exists, and a system alert may be an opaque card over a scrim rather than glass, so the glass panel is a design choice, not a measurement |
 | `ModalBottomSheet`, `rememberModalBottomSheetState` | an iOS sheet: a floating glass panel in the measured sheet material (`GlassMaterialDefaults.sheet`: a 7.17 / 8.67 dp blur and a compressed tone, no detail term); drag down or tap outside to dismiss; pass `glass = GlassMaterialDefaults.panel` for the card-like look before 1.1.0 |
 | `DropdownMenu`, `DropdownMenuItem` | an iOS menu: a glass panel under its anchor, in the measured menu material (`GlassMaterialDefaults.menu`: an 8.17 / 11.8 dp blur and a compressed tone, no detail term); pass `glass = GlassMaterialDefaults.panel` for the card-like look before 1.1.0 |
 | `Snackbar` (both) | a glass capsule |

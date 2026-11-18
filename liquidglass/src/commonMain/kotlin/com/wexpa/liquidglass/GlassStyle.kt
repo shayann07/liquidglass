@@ -236,7 +236,7 @@ data class GlassStyle(
     val tint: Color = Color(0xFFF1F1F1).copy(alpha = 0.565f),
     /**
      * A fixed luminance lift added after the tint, 0 to 1. The dark in-app material's 35/255;
-     * the base of the system backdrops' adaptive lift, 142/255.
+     * the Control Center layer's 10.23/255.
      *
      * May be negative when the lift does not adapt ([liftAdaptivity] 0): the resting tab-bar
      * indicator is the bar's output at 0.857 minus 17/255, over black and over content alike.
@@ -244,8 +244,8 @@ data class GlassStyle(
     val tintLift: Float = 0f,
     /**
      * How far the lift falls with the wide-kernel luma of what is behind the glass, per unit
-     * luma. The system backdrops measure 0.864: over the dark test image they lift black to 60,
-     * over the light one to 10, with the same gain. In-app glass measures 0.
+     * luma. In-app glass measures 0, and so does the Control Center layer (an earlier fit read
+     * 0.864 from whole-image means of a non-flat target; per-pixel and flat-grey reads refute it).
      */
     val liftAdaptivity: Float = 0f,
     /**
@@ -561,7 +561,16 @@ data class GlassStyle(
      */
     val chromaGain: Float = Float.NaN,
 ) {
-    /** Keeps the constructor before [chromaGain] in the binary API; new code uses the primary constructor. */
+    /**
+     * Internal marker, not a constructor, `copy` or `equals` field (so the binary API is unchanged): this style is lit from straight
+     * above by default (see [litFrom]). Set only by [withLitFromAbove]; [copy] and [lerpGlassStyle] do not carry it on their own.
+     */
+    internal var litFromAbove: Boolean = false
+        private set
+
+    internal fun withLitFromAbove(on: Boolean): GlassStyle = if (litFromAbove == on) this else copy().also { it.litFromAbove = on }
+
+    /** Keeps the constructor before [chromaGain]; new code uses the primary constructor. */
     @Deprecated("Binary compatibility with the constructor before chromaGain", level = DeprecationLevel.HIDDEN)
     constructor(
         profile: GlassProfile = GlassProfile.Measured,
@@ -1192,18 +1201,19 @@ data class GlassStyle(
 
         /**
          * A full-screen system backdrop: Control Center, App Library, the Today view. A 7.7 dp
-         * sigma over app content (11 dp at Tinted), gain 0.32, and a lift that adapts to what is
-         * behind it — 60/255 over the dark test image, 10/255 over the light one — so it reads
-         * light over dark content and dark over light. No lens: a full-screen layer has no rim.
+         * sigma over app content (11 dp at Tinted) and a plain affine map of the page, measured:
+         * out = 10.23 + 0.3608 x the blurred backdrop level (of 255), so black reads 10 and white
+         * 102 — lighter over lighter, no luma adaptation. Tint and Light/Dark do not change it.
+         * No lens: a full-screen layer has no rim.
          */
         fun systemBackdrop(tintAmount: Float = GlassMaterial.DEFAULT_TINT_AMOUNT): GlassStyle = GlassStyle(
             backdropSigma = GlassMaterial.systemBackdropSigma(tintAmount),
             refractionBand = 0.dp,
             wideKernel = 0.dp,
             fineShare = 1f,
-            tint = Color.Black.copy(alpha = 0.68f),
-            tintLift = 142f / 255f,
-            liftAdaptivity = 0.864f,
+            tint = Color.Black.copy(alpha = 0.639f), // measured: 1 - 0.3608
+            tintLift = 10.23f / 255f, // measured offset at black
+            liftAdaptivity = 0f, // measured: none
             bevel = 0.dp,
             specular = 0f,
             edgeLight = 0f,
@@ -1312,10 +1322,21 @@ data class GlassStyle(
          *   full opacity, which the shader caps at 0.95, so [tintLift] 5/255 (authored) puts the body back at 250 within
          *   2.5 levels from G 10 to 102, and [chromaGain] 0.5.
          *
-         * Not measured, so authored and unchanged from the library defaults except where noted: the rim ([bevel] 1 dp
-         * against a measured bright line about 3 px wide peaking 1.5 px inside the edge, [edgeLight], [specular]), the
-         * dark contour outside the edge ([edgeShadow] 0.06, as [shellIcon]), the active tile's rim, press and hold, the
-         * light appearance and the Tint Amount response.
+         * - Rim and contour (fitted by sector on the toggle, 3 grey frames, then checked by `GlassControlCenterRimTest`): iOS lights
+         *   the tile's top and bottom equally and its sides not at all, so the light is vertical ([GlassLight] `(0, -1)`;
+         *   the default light tilts 20 degrees and lights one side too, so this style takes the vertical light itself whenever the
+         *   host passes the default one), with
+         *   [counterLight] 1. The pole line peaks 155 / 215 over a layer of 10 / 56 (the reading at 102 clips at 255), the
+         *   diagonals about 100 / 150 / 200 and the sides +3; [bevel] 1.25 dp, [bevelPeak] 0.3, [specular] 0.3, [specularPower]
+         *   4 and [edgeLight] 1.5 give 160 / 211 / 251 at the poles (within 5), 109 / 155 / 201 on the diagonals (within 7), but +7 to +9 over
+         *   the measured line at the sides.
+         *   Its dark contour lies outside the outline at the sides and diagonals and is absent at the poles: [outerContour] 1
+         *   with no floor, [innerShadow] and [edgeShadow] 0. Known gap: the measured contour is darker and about 2 px wide
+         *   (24 / 7 / 0 at the sides over a layer of 102 / 56 / 10), the shader's band 1.5 px and at most 0.67 deep
+         *   (59 / 37 / 7); the glow reaching 6 px in at the poles is 12 to 18 levels short.
+         *
+         * Not measured, so authored: the active tile's rim (clipped at 255 over every layer), press and hold, the light
+         * appearance and the Tint Amount response.
          *
          * Geometry is the host's to draw, measured on the same take at 3x: a round toggle 67 dp across (a circle), a wide
          * tile 149 x 67 dp (a pill, radius 33.5 dp), the media tile 149 x 149 dp with radius 29.6 dp, a slider track
@@ -1331,13 +1352,18 @@ data class GlassStyle(
             tint = if (active) Color.White else Color.Black.copy(alpha = 0.097f),
             tintLift = if (active) 5f / 255f else 51.1f / 255f,
             chromaGain = if (active) 0.5f else 1.58f,
-            bevel = 1.dp,
-            specular = 0.35f,
-            counterLight = 0.1f,
+            bevel = 1.25.dp,
+            bevelPeak = 0.3f,
+            specular = 0.3f,
+            specularPower = 4f,
+            counterLight = 1f,
             edgeLight = 1.5f,
-            edgeShadow = 0.06f,
+            fresnel = 0f,
+            innerShadow = 0f,
+            edgeShadow = 0f,
+            outerContour = 1f,
             invertsWithBackdrop = false,
-        )
+        ).withLitFromAbove(true)
 
         /**
          * The dock: nearly clear, a 1 dp sigma, gain 0.85 with a lift of 13/255, and stripes that
@@ -1495,6 +1521,14 @@ data class GlassStyle(
         )
     }
 }
+
+/**
+ * The light a style is drawn with when the host passed the default one: a style marked [GlassStyle.litFromAbove] (only
+ * [GlassStyle.controlCenterTile] marks itself) is lit from straight above, as iOS lights Control Center, so it takes
+ * `GlassLight(0f, -1f)`. A light the host chose is kept.
+ */
+internal fun GlassStyle.litFrom(light: GlassLight): GlassLight =
+    if (litFromAbove && light == GlassLight.Default) GlassLight(0f, -1f) else light
 
 /**
  * Where the light sits, as a unit vector in the panel's own space.
