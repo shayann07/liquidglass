@@ -220,6 +220,21 @@ class GlassScrollEdgeTest {
         assertTrue(centre > 60, "the line's centre at the edge is blurred toward the white parent, not black ($centre)")
     }
 
+    @Test fun overlappingEdgesInAShortContainerKeepTheBlur() = scene(90, 60) {
+        // 20 dp high, both edges on: the strips overlap the whole container. A 2 px black line 1 dp from the top on a
+        // transparent page over white must stay blurred; a bottom strip repainting the sharp content would make it black.
+        setContent {
+            Box(Modifier.fillMaxSize().background(Color.White)) {
+                Box(Modifier.fillMaxSize().glassScrollEdge(Color.White, edges = GlassScrollEdges.Both, inverted = false,
+                    topIntensity = { 1f }, bottomIntensity = { 1f })) {
+                    Box(Modifier.fillMaxWidth().padding(top = 1.dp).height(2.dp / 3f).background(Color.Black))
+                }
+            }
+        }
+        val centre = frame().channel(45, 4, 0)
+        assertTrue(centre > 60, "the line's centre where both strips overlap is blurred, not sharp black ($centre)")
+    }
+
     @Test fun aReversedLazyListPutsTheEffectsOnTheirPhysicalEdges() = scene(90, 420) {
         lateinit var state: androidx.compose.foundation.lazy.LazyListState
         setContent {

@@ -198,8 +198,20 @@ fun Modifier.glassScrollEdge(
         if (size.height - topStrip - bottomStrip > 0f) {
             clipRect(0f, topStrip, size.width, size.height - bottomStrip) { drawLayer(src) }
         }
-        if (ti > 0f) drawEdge(src, top, atTop = true, ti, scale, band, inverted)
-        if (bi > 0f) drawEdge(src, bottom, atTop = false, bi, scale, band, inverted)
+        val w = size.width
+        if (ti > 0f && bi > 0f && topStrip + bottomStrip > size.height) {
+            // The strips overlap (a container shorter than both): one isolated layer for the whole height, so the
+            // bottom's mix works on the top's result instead of repainting the overlap from the sharp content.
+            isolated(Rect(0f, 0f, w, size.height), src) {
+                mixEdge(src, top, atTop = true, ti, scale, band)
+                mixEdge(src, bottom, atTop = false, bi, scale, band)
+            }
+        } else {
+            if (ti > 0f) isolated(Rect(0f, 0f, w, topStrip), src) { mixEdge(src, top, atTop = true, ti, scale, band) }
+            if (bi > 0f) isolated(Rect(0f, size.height - bottomStrip, w, size.height), src) { mixEdge(src, bottom, atTop = false, bi, scale, band) }
+        }
+        if (inverted && ti > 0f) tintEdge(atTop = true, ti, scale, band)
+        if (inverted && bi > 0f) tintEdge(atTop = false, bi, scale, band)
     }
 }
 
@@ -223,6 +235,8 @@ fun Modifier.glassScrollEdge(
 /**
  * [glassScrollEdge] driven by a [LazyListState]: the top edge fades in over the first 24 dp of scroll, the bottom out
  * over the last 24 dp. Reads the first and last visible items only, so it costs the same for any list length.
+ * A list knows how far it has scrolled only inside its first visible item, so once that item has scrolled out the edge
+ * is at full strength: with a first item shorter than 24 dp the fade-in is that item's height, not 24 dp.
  */
 fun Modifier.glassScrollEdge(
     state: LazyListState,
@@ -261,11 +275,25 @@ private fun rememberEdgeLayers(): EdgeLayers {
     return remember(a, b) { EdgeLayers(a, b) }
 }
 
-/** One edge: the blurred copies masked over the sharp content, then the dark tint. [intensity] scales every strength. */
-private fun DrawScope.drawEdge(src: GraphicsLayer, layers: EdgeLayers, atTop: Boolean, intensity: Float, scale: Float, band: Float, inverted: Boolean) {
+/** [block] in an isolated layer over [rect] that starts as the sharp content [src] there. */
+private fun DrawScope.isolated(rect: Rect, src: GraphicsLayer, block: DrawScope.() -> Unit) = drawIntoCanvas { canvas ->
+    canvas.saveLayer(rect, Paint())
+    clipRect(rect.left, rect.top, rect.right, rect.bottom) { drawLayer(src); block() }
+    canvas.restore()
+}
+
+/** The strip one edge covers: the band plus room for the wider blur, at most the container's height. */
+private fun DrawScope.stripOf(band: Float): Float =
+    (band + GlassScrollEdgeProfile.SigmaADp * 3f * density).coerceAtMost(size.height)
+
+/**
+ * One edge, inside an isolated layer that already holds the content: B mixed in by its weight, then A by its weight, as
+ * the weights are defined. A mix (what is there x (1 - m) + blurred x m), not blurred over sharp, so transparent content
+ * blurs too; over opaque content the two are the same. [intensity] scales every strength.
+ */
+private fun DrawScope.mixEdge(src: GraphicsLayer, layers: EdgeLayers, atTop: Boolean, intensity: Float, scale: Float, band: Float) {
     val density = this.density
-    val pad = GlassScrollEdgeProfile.SigmaADp * 3f * density
-    val strip = (band + pad).coerceAtMost(size.height)
+    val strip = stripOf(band)
     val stripSize = IntSize(size.width.toInt().coerceAtLeast(1), strip.toInt().coerceAtLeast(1))
     val origin = if (atTop) 0f else size.height - strip
     fun copy(layer: GraphicsLayer, sigmaDp: Float) {
@@ -280,34 +308,27 @@ private fun DrawScope.drawEdge(src: GraphicsLayer, layers: EdgeLayers, atTop: Bo
         val n = 24
         val stops = Array(n + 1) { i ->
             val t = i / n.toFloat()
-            val d = t * strip
-            val dp = d / density
+            val dp = t * strip / density
             (if (atTop) t else 1f - t) to Color.Black.copy(alpha = (f(dp) * intensity).coerceIn(0f, 1f))
         }.sortedBy { it.first }
         return Brush.verticalGradient(*stops.toTypedArray(), startY = origin, endY = origin + strip)
     }
     val rect = Rect(0f, origin, size.width, origin + strip)
-    // The strip in one isolated layer: the sharp content, then B mixed in by its weight, then A by its weight, as the
-    // weights are defined. A mix (sharp x (1 - m) + blurred x m), not blurred over sharp, so transparent content blurs
-    // too; over opaque content the two are the same. When the bottom strip overlaps the top one, the bottom repaints the
-    // overlap from the sharp content (only a container shorter than both strips).
-    drawIntoCanvas { canvas ->
-        canvas.saveLayer(rect, Paint())
-        clipRect(rect.left, rect.top, rect.right, rect.bottom) { drawLayer(src) }
-        mixIn(layers.b, rect, mask { GlassScrollEdgeProfile.maskB(it, scale) })
-        mixIn(layers.a, rect, mask { GlassScrollEdgeProfile.maskA(it, scale) })
-        canvas.restore()
-    }
-    if (inverted) {
-        // The measured tint: grey 124 at 0.41 times the profile, drawn over the blurred strip.
-        val n = 24
-        val stops = Array(n + 1) { i ->
-            val t = i / n.toFloat()
-            val dp = t * strip / density
-            (if (atTop) t else 1f - t) to GlassScrollEdgeProfile.DarkTintColor.copy(alpha = GlassScrollEdgeProfile.tintAlpha(dp, scale) * intensity)
-        }.sortedBy { it.first }
-        drawRect(Brush.verticalGradient(*stops.toTypedArray(), startY = origin, endY = origin + strip), Offset(0f, origin), Size(size.width, strip))
-    }
+    mixIn(layers.b, rect, mask { GlassScrollEdgeProfile.maskB(it, scale) })
+    mixIn(layers.a, rect, mask { GlassScrollEdgeProfile.maskA(it, scale) })
+}
+
+/** The measured dark tint of one edge: grey 124 at 0.41 times the profile, drawn over the blurred strip. */
+private fun DrawScope.tintEdge(atTop: Boolean, intensity: Float, scale: Float, band: Float) {
+    val strip = stripOf(band)
+    val origin = if (atTop) 0f else size.height - strip
+    val n = 24
+    val stops = Array(n + 1) { i ->
+        val t = i / n.toFloat()
+        val dp = t * strip / density
+        (if (atTop) t else 1f - t) to GlassScrollEdgeProfile.DarkTintColor.copy(alpha = GlassScrollEdgeProfile.tintAlpha(dp, scale) * intensity)
+    }.sortedBy { it.first }
+    drawRect(Brush.verticalGradient(*stops.toTypedArray(), startY = origin, endY = origin + strip), Offset(0f, origin), Size(size.width, strip))
 }
 
 /** Inside the strip's isolated layer: what is there times (1 - m), plus [layer] times m, m being [mask]'s alpha. */

@@ -45,5 +45,6 @@ Measurement record: `.local/sxs/plans/205-measured.md` (private working notes).
 
 A release build of `1233f7bd` on a Pixel 7 (Android 17, density 2.625), `MaterialShowcaseActivity`, one screenshot of the mini
 player, sizes read off it by eye to about 2 px: slider thumb about 62 x 42 px (24 x 16 dp is 63 x 42), slider track about 10 px
-(4 dp is 10.5), switch track about 165 x 75 px (63 x 28 dp is 165 x 74). The screenshot is not committed: it carries the phone's
-status bar. Not checked on the device: the held knob, press timing, the light switch.
+(4 dp is 10.5), switch track about 165 x 75 px (63 x 28 dp is 165 x 74). [`pixel7-mini-player.png`](pixel7-mini-player.png) is that
+screenshot cropped to the mini player (rows 1840-2090, columns 40-1040 of 1080 x 2400; the status bar is not in it), unscaled, at the
+phone's own pixels. Not checked on the device: the held knob, press timing, the light switch.
