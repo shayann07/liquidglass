@@ -1,6 +1,7 @@
 # Control Center tile glass (#206) - 18 November 2026
 
-Source revision: branch `feat/206-control-center` on main `fc1abf41`. Backend: desktop Skia (the library's `jvmTest` render path,
+Source revision: the evidence sheet was rendered at `c3840ec1` (branch `feat/206-control-center`, PR #223); the device
+check below used a release build of `a3d699dc`. Backend: desktop Skia (the library's `jvmTest` render path,
 through the production `Modifier.liquidGlass`, 3x). Capture method: `GlassControlCenterTileTest.evidenceSheet`
 (`CC206_EVIDENCE_DIR=<dir> ./gradlew :liquidglass:jvmTest --tests "*GlassControlCenterTileTest*"`), one 632 x 143 px wide tile over
 a flat page of each measured layer colour, shown at half size. The iOS recording the numbers come from is private
