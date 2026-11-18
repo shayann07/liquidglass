@@ -50,7 +50,7 @@ The following r13 material comparisons remain historical evidence, not r14 devic
 - Opt-in press/pull behavior for standalone glass and unchanged Legacy defaults.
 - Lifecycle, cancellation, second-pointer and long-uptime handling.
 
-For the current development source, opt in using `GlassTabBar(..., style = GlassTabBarStyle.Calm())`.
+`GlassTabBar` uses `GlassTabBarStyle.Calm(dark)` unless you pass another style.
 `V3()` retains the earlier response for comparisons.
 The bar refracts what the app's `LiquidGlassTheme` records; it takes no state since 18 October.
 See [Tab bars](tab-bar.md).
