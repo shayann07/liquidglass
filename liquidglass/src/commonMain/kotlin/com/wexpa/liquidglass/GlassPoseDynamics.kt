@@ -1316,9 +1316,15 @@ internal class GlassPoseController(
             holdLookSpring.target = 0f
             holdLookSpring.step(dt, HOLD_LOOK_FALL_OMEGA, 1f)
             if (holdLookSpring.value < 1e-3f && abs(holdLookSpring.velocity) < 1e-2f) holdLookSpring.snapTo(0f)
-            holdRimSpring.target = 0f
-            holdRimSpring.step(dt, HOLD_RIM_FALL_OMEGA, 1f)
-            if (holdRimSpring.value < 1e-3f && abs(holdRimSpring.velocity) < 1e-2f) holdRimSpring.snapTo(0f)
+            // On a moving throw (!releasedStill), keep full rim dispersion while the thrown lens is still formed
+            // above 0.5 (docs2 8.70 s landing label row 614, #103/#111); still-hold releases keep the 64/s decay.
+            if (motionEnabled && mode == GlassPoseMode.Released && releasedFromHold && !releasedStill && formation >= 0.5f) {
+                holdRimSpring.snapTo(1f)
+            } else {
+                holdRimSpring.target = 0f
+                holdRimSpring.step(dt, HOLD_RIM_FALL_OMEGA, 1f)
+                if (holdRimSpring.value < 1e-3f && abs(holdRimSpring.velocity) < 1e-2f) holdRimSpring.snapTo(0f)
+            }
         }
 
         // ---- equilibria
