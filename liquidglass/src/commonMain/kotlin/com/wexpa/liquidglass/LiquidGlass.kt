@@ -798,7 +798,16 @@ internal fun Modifier.liquidGlassCore(
                         // The shape that casts it: the panel, or the selector's body inside it. A
                         // selector's node spans the whole bar, so the panel's rect would shade the
                         // bar wherever the lens is not (inside record {} `size` is the padded layer's).
-                        val caster = glassShadowCaster(size, radii.getOrElse(0) { 0f }, body, poseBody)
+                        val rawCaster = glassShadowCaster(size, radii.getOrElse(0) { 0f }, body, poseBody)
+                        val minHalfPx = shadowRing?.minHalfHeight?.toPx() ?: 0f
+                        val caster = if (shadowRing != null && minHalfPx > 0f && rawCaster.rect.height / 2f < minHalfPx) {
+                            val cy = rawCaster.rect.center.y
+                            val halfW = rawCaster.rect.width / 2f
+                            GlassShadowCaster(
+                                Rect(rawCaster.rect.left, cy - minHalfPx, rawCaster.rect.right, cy + minHalfPx),
+                                kotlin.math.min(halfW, minHalfPx),
+                            )
+                        } else rawCaster
                         val ringWidthPx = shadowRing?.width?.toPx() ?: 0f
                         shadowLayer.record(size = paddedSize) {
                             scale(rs, rs, pivot = Offset.Zero) {
@@ -1118,7 +1127,13 @@ internal class GlassShadowCaster(val rect: Rect, val radius: Float) {
  * 5 dp below it and is gone by 13 dp (IMG_7049, rows 656-696); a rectangle's shadow can only fade away from the rim.
  * [gain] multiplies the style's shadow alpha (0.35 of 0.14).
  */
-internal data class GlassShadowRing(val gain: Float, val offset: Dp, val width: Dp, val blur: Dp)
+internal data class GlassShadowRing(
+    val gain: Float,
+    val offset: Dp,
+    val width: Dp,
+    val blur: Dp,
+    val minHalfHeight: Dp = 0.dp,
+)
 
 /**
  * The contact shadow's caster: the panel ([size], corner [radius]) or, for a selector, the body

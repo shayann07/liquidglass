@@ -2634,14 +2634,19 @@ private val CalmLightLens by lazy { GlassTabBarStyle.Calm(dark = false).lens }
 
 /**
  * The shadow's shape under light `Calm()`'s held lens (#104); a style whose lens differs keeps the rounded rectangle's.
- * Derived from IMG_7049's rows 656-696 (39.41, 39.64, 39.87 and 44.5 s, x 430/480/530, the page separator rows left
- * out): a blurred band 4 dp wide, 5 dp below the lens's lower edge, blur 3.3 dp. The profile fit (0.44 levels rms
- * against the iOS rows; the rounded rectangle's best fit is 3.2) wanted a peak alpha of 0.11, but the replay then
- * drew a trough 18 levels deep against iOS's 13 (237 against 242), so the gain is scaled by 13/18 to 1.6 (alpha 0.078 of
- * the style's 0.35 x glassShadow's 0.14). Measured profile, authored form, gain calibrated on the replay.
+ * Derived from IMG_7049's rows 650-696 across hold and drag frames: a blurred band 4 dp wide, 5.6 dp below the lens's
+ * lower edge, blur 4.8 dp, gain 1.75, with its vertical half-height floored at `style.height / 2 + 4.5.dp` so fast
+ * horizontal drag squash does not pull the ring trough up into rows 650-668 while keeping the tail (rows 678-694)
+ * populated. Measured profile, authored form, parameters fitted on the IMG_7049 replay.
  */
 internal fun glassLensShadowRing(style: GlassTabBarStyle): GlassShadowRing? =
-    if (style.lens == CalmLightLens) GlassShadowRing(gain = 1.6f, offset = 5.dp, width = 4.dp, blur = 3.33.dp) else null
+    if (style.lens == CalmLightLens) GlassShadowRing(
+        gain = 1.75f,
+        offset = 5.6.dp,
+        width = 4.dp,
+        blur = 4.8.dp,
+        minHalfHeight = style.height / 2 + 4.5.dp,
+    ) else null
 
 /**
  * The bar's top shade (#128), for light `Calm()`'s own bar only; a style whose bar differs keeps an even bar.
