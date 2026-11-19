@@ -434,11 +434,12 @@ internal fun GlassTabBar(
         }
         // GlassPoseSpec.heldInkLift: rises within 80 ms of the hold, lets go over about .35 s after the lift.
         val heldInkLift = poseHandle?.controller?.spec?.heldInkLift ?: 0f
-        val inkLift by animateFloatAsState(
+        val inkLiftState = animateFloatAsState(
             targetValue = if (held && heldInkLift > 0f) heldInkLift else 0f,
             animationSpec = if (held) tween(80) else tween(350),
             label = "glass_tab_bar_ink_lift",
         )
+        val inkLift = inkLiftState.value
 
         fun settleTo(target: Float, initialVelocity: Float, spec: AnimationSpec<Float>) {
             motion?.cancel()
@@ -538,7 +539,7 @@ internal fun GlassTabBar(
 
         // Inset to lens and back, size and material on one spring so the rim cannot arrive
         // after the shape.
-        val v2Lift by animateFloatAsState(
+        val v2LiftState = animateFloatAsState(
             targetValue = if (v2Held) 1f else 0f,
             animationSpec = when {
                 !motionEnabled -> snap()
@@ -547,6 +548,7 @@ internal fun GlassTabBar(
             },
             label = "glass_tab_bar_lift",
         )
+        val v2Lift = v2LiftState.value
         // V3 drives formation from the controller, which is what makes a quick tap never start
         // the protruding held lens: only an eligible press that outlives the hold threshold, or
         // a recognized drag, forms it.
@@ -1247,21 +1249,36 @@ internal fun GlassTabBar(
                         if (barFrame != null) snapshotFlow { barFrame.drawing }.collect { poseHandle.publish() }
                     }
                 }
-                val nodeLeftPx = handle?.nodeLeft() ?: poseHandle!!.nodeLeft()
-                val nodeTopPx = poseHandle?.nodeTop() ?: -overflowTopPx
+                // #107 continuity: read poseHandle/animation state directly inside poseSelector so when it is hosted
+                // in its own GlassPortal (aboveLink), Compose invalidates the selector portal in the SAME frame N as
+                // the bar portal instead of waiting for barPortal to push a new content lambda on frame N+1.
+                val poseSelector: @Composable androidx.compose.foundation.layout.BoxScope.() -> Unit = {
+                val selLift = poseHandle?.formation ?: handle?.formation ?: v2LiftState.value
+                val selTransit = poseHandle?.transitAppearance ?: 0f
+                val selHeldTravel = poseHandle?.heldTravel ?: 0f
+                val selFringeSpeed = (abs(if (dragging) liveVelocity else settleVelocity) /
+                    with(density) { GlassSelectorFringeSpeed.toPx() }).coerceIn(0f, 1f)
+                val selStyle = glassSelectorMaterial(style, selLift, selTransit, max(selHeldTravel, selFringeSpeed),
+                    heldLensTravel = selHeldTravel, formedTap = poseHandle?.tapFormed ?: false,
+                    formedHold = poseHandle?.holdFormed ?: false, holdReleasing = poseHandle?.holdReleasing ?: false,
+                    holdLook = poseHandle?.holdLook ?: selLift, holdRim = poseHandle?.holdRim ?: selLift)
+                val selBarScale = 1f + (style.heldScale - 1f) * selLift
+                val selActiveIndex = if (dragIndex >= 0) dragIndex else selected
+                val selNodeLeftPx = handle?.nodeLeft() ?: poseHandle!!.nodeLeft()
+                val selNodeTopPx = poseHandle?.nodeTop() ?: -overflowTopPx
                 // [GlassTabBarAccessory.lensFusion]: a held lens at the accessory's end takes the neck
                 // the bar gives up, in the lens node's own frame.
-                val lensAccessoryFuse = if (trailingAccessory != null && motionEnabled && poseHandle != null &&
+                val selLensAccessoryFuse = if (trailingAccessory != null && motionEnabled && poseHandle != null &&
                     trailingAccessory.lensFusion > 0.dp) {
                     // A formed (held) lens only: the neck bridges just the last few px, so it shows only
                     // once the lens has reached the end; a tap's partial formation never draws it.
-                    val f = ((poseHandle.formation - 0.5f) / 0.5f).coerceIn(0f, 1f)
+                    val f = ((selLift - 0.5f) / 0.5f).coerceIn(0f, 1f)
                     val taken = f * f * (3f - 2f * f)
                     if (taken <= 0.01f) null else with(density) {
                         val sizePx = trailingAccessory.size.toPx()
                         val gapPx = trailingAccessory.gap.toPx()
-                        val left = (if (rtl) -gapPx - sizePx else barWidthPx + gapPx) - nodeLeftPx
-                        val top = (barHeightPx - sizePx) / 2f - nodeTopPx
+                        val left = (if (rtl) -gapPx - sizePx else barWidthPx + gapPx) - selNodeLeftPx
+                        val top = (barHeightPx - sizePx) / 2f - selNodeTopPx
                         GlassFuse(
                             bounds = DpRect(left.toDp(), top.toDp(), (left + sizePx).toDp(), (top + sizePx).toDp()),
                             cornerRadius = (sizePx / 2f).toDp(),
@@ -1270,11 +1287,10 @@ internal fun GlassTabBar(
                         ).apply { follow = trailingAccessory.link }
                     }
                 } else null
-                val poseSelector: @Composable androidx.compose.foundation.layout.BoxScope.() -> Unit = {
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopStart)
-                        .offset { IntOffset(nodeLeftPx, nodeTopPx) }
+                        .offset { IntOffset(selNodeLeftPx, selNodeTopPx) }
                         // `size` alone is COERCED to the parent's constraints, and the parent is
                         // the bar - so the node was silently measured at the bar's height while
                         // the body's uniforms were computed for the taller frame it asked for.
@@ -1294,7 +1310,7 @@ internal fun GlassTabBar(
                         .liquidGlassCore(
                             state = state,
                             shape = selectorShape,
-                            style = selectorStyle,
+                            style = selStyle,
                             light = style.light,
                             interaction = if (motionEnabled) {
                                 style.lensInteraction
@@ -1307,9 +1323,9 @@ internal fun GlassTabBar(
                             through = lensThrough ?: barState,
                             // The bar keeps its own outline. The node's declared envelope
                             // accommodates held growth and Calm's rounded moving taps.
-                            fuse = lensAccessoryFuse,
-                            lensFormation = glassSelectorFormation(style, lift, transitAppearance, poseHandle?.heldTravel ?: 0f),
-                            body = handle?.body?.movedInto(nodeLeftPx.toFloat(), overflowTopPx.toFloat()),
+                            fuse = selLensAccessoryFuse,
+                            lensFormation = glassSelectorFormation(style, selLift, selTransit, selHeldTravel),
+                            body = handle?.body?.movedInto(selNodeLeftPx.toFloat(), overflowTopPx.toFloat()),
                             poseBody = poseHandle?.render,
                             endpointComposite = lensCarriesInk,
                             packedEndpoint = supportsGlassEndpointInputs && spec?.response == GlassResponse.Calm,
@@ -1337,7 +1353,7 @@ internal fun GlassTabBar(
                                         // The same rounded origin the node and the body use, and
                                         // at scale 1: native ink never borrows the material's
                                         // render scale.
-                                        placeable.place(-nodeLeftPx, -nodeTopPx)
+                                        placeable.place(-selNodeLeftPx, -selNodeTopPx)
                                     }
                                 }
                                 .graphicsLayer {
@@ -1345,28 +1361,28 @@ internal fun GlassTabBar(
                                     // endpoints scale about the BAR centre. A default .5 pivot
                                     // shifted the selected source by (scale-1)*(barCentre-nodeCentre).
                                     transformOrigin = TransformOrigin(
-                                        (barWidthPx / 2f - nodeLeftPx) / envelopePx,
-                                        (barHeightPx / 2f - nodeTopPx) / nodeHeightPx,
+                                        (barWidthPx / 2f - selNodeLeftPx) / envelopePx,
+                                        (barHeightPx / 2f - selNodeTopPx) / nodeHeightPx,
                                     )
-                                    scaleX = barScale
-                                    scaleY = barScale
+                                    scaleX = selBarScale
+                                    scaleY = selBarScale
                                 }
                                 // In the bar-sized child's own frame (the layout above measures
                                 // everything after it at the bar's size), so the press pivots on
                                 // the bar centre: passing the node origin moved the held ink about
                                 // 17 px left and 10 up of the bar's own icons (video2, 1.8 s).
                                 .glassMaterialForeground(barDrawing, share = itemShare)
-                                .glassInkLift(inkLift),
+                                .glassInkLift(inkLiftState.value),
                         ) {
                             ItemRow(
                                 count = itemCount,
                                 inset = style.contentPadding,
                                 geometry = geometry,
-                                selectedFor = { index -> !usePose || style.lensInkAll || index == activeIndex },
+                                selectedFor = { index -> !usePose || style.lensInkAll || index == selActiveIndex },
                                 onClick = null,
                                 item = item,
-                                emphasisIndex = activeIndex,
-                                emphasis = glassTransitInkScale(style,lift,transitAppearance),
+                                emphasisIndex = selActiveIndex,
+                                emphasis = glassTransitInkScale(style, selLift, selTransit),
                             )
                         }
                     }
