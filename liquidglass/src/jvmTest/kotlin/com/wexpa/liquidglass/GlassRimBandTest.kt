@@ -46,16 +46,19 @@ class GlassRimBandTest {
 
     /**
      * Displayed depths (the boundary below pixel row d is d + 1) of every local maximum of the row-to-row jump above [level],
-     * from displayed depth 2 on (the outline row's own boundary is left out). [level] is read off the lab's own profiles
-     * (the moving-edge sweeps, run through this same detector with the same grey-128-against-black scaling, 19 November,
-     * contrast from [GlassLabModel.tone]: 102.0 levels dark, 64.3 light): 4.0 (was 8.0). The lab's single-row step at the edges
-     * this test pins is 13.9 to 28.2 levels in the dark glass but only 5.1 to 9.0 in the light glass (33 px edge: 5.1 / 6.9 at the top,
-     * 5.5 / 6.8 at the bottom; 43 px edge: 6.4 / 6.7 at the top, 8.2 / 9.0 at the bottom, near / far), so 8.0 sat above the lab's own
-     * step in six of the eight light cells. 4.0 is 0.78 of the weakest.
+     * from displayed depth 4 on. Both the level and the first depth are read off the lab's own profiles (the moving-edge
+     * sweeps, run through this same detector with the same grey-128-against-black scaling, 19 November):
+     * - [level] 4.0 (was 8.0). The lab's single-row step at the edges this test pins is 13.9 to 28.2 levels in the dark
+     *   glass but only 5.2 to 9.0 in the light glass (33 px edge: 5.2 / 7.0 at the top, 5.6 / 6.9 at the bottom; 43 px edge:
+     *   6.5 / 6.8 at the top, 8.2 / 9.0 at the bottom), so 8.0 was above the lab's own step. 4.0 is 0.75 of the weakest.
+     * - From depth 4 on (was 2): the lab's own rim ramp (the bead's falloff over the outer 3 px) makes a jump at depth 2 in the
+     *   dark glass and at depth 3 in the light glass under every edge page, 11 to 15 levels, on its own flat-grey-minus-edge reading,
+     *   and the light glass's bead clips on the grey page there. It is lighting, not content shown from deeper inside.
+     * The outline row's own boundary stays left out.
      */
     private fun jumps(r: DoubleArray, level: Double = 4.0): List<Double> {
         val step = DoubleArray(r.size - 1) { abs(r[it + 1] - r[it]) }
-        return (1 until step.size - 1).filter { step[it] > level && step[it] >= step[it - 1] && step[it] > step[it + 1] }.map { it + 1.0 }
+        return (3 until step.size - 1).filter { step[it] > level && step[it] >= step[it - 1] && step[it] > step[it + 1] }.map { it + 1.0 }
     }
 
     @Test
