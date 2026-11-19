@@ -8,6 +8,7 @@ import kotlin.math.atan2
 import kotlin.math.exp
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.round
 import kotlin.math.sqrt
 import kotlin.math.tanh
 
@@ -546,6 +547,15 @@ internal fun poseHeldPressure(heldHeightRatio: Float, barHeight: Float, referenc
 /** Which of the controller's states owns the body right now. */
 internal enum class GlassPoseMode { Rest, TapTransit, PressPending, Held, Released }
 
+/** Tolerance, in seconds, for a frame boundary to count as on the fine (1/960 s) substep grid. */
+private const val FINE_GRID_NOISE = 2e-5f
+
+/** Frames shorter than this (presentation above 66 Hz) carry their fine-substep remainder to the next frame. */
+private const val FINE_CARRY_MAX_FRAME = 0.015f
+
+/** Shorter intervals (above 250 Hz) are wake-up or catch-up slices, not a presentation cadence, and never carry. */
+private const val FINE_CARRY_MIN_FRAME = 0.004f
+
 /**
  * The pose selector controller: one persistent body, its pose states, and the rules that decide
  * what it is doing.
@@ -648,6 +658,12 @@ internal class GlassPoseController(
 
     /** Seconds since the controller's own origin. Only differences matter. */
     private var now: Float = 0f
+
+    /** Presented-frame time not yet integrated: a frame ends on a whole fine substep and carries the rest, so the
+     * coupled tap takes the same substep sequence at every presentation cadence. Always zero off that path. */
+    private var stepDebt: Float = 0f
+    private var lastFrameTime: Float = Float.NaN
+    private var lastFrameInterval: Float = Float.NaN
     private var pressStart: Float = 0f
     /** Where the finger went down: the grasp a hold takes is of the material touched there. */
     private var downX: Float = 0f
@@ -810,6 +826,7 @@ internal class GlassPoseController(
 
     /** Put the body at rest on [index] with no motion. */
     fun snapToRest(index: Int) {
+        stepDebt = 0f
         releaseEdgeActive = false
         tapAreaActive = false
         tapWallEngaged = false
@@ -1055,7 +1072,18 @@ internal class GlassPoseController(
      * is not a simulation clock reset. Explicit [advanceTo] still supports genuine rebasing. */
     fun advanceFrameTo(time: Float) {
         if (spec.travelOnly && time < now) return
-        advanceTo(time)
+        // Only steady presentation faster than 66 Hz (two short frames in a row: 90, 144 Hz) carries. 60 Hz and slower keep
+        // their verified cadence, which a 60 Hz clock rounded to milliseconds (16 and 17 ms frames) or a short wake-up frame
+        // would otherwise lose. A frame that is a whole number of fine substeps long (120 Hz) integrates as it always did,
+        // even when input events split it.
+        val interval = time - lastFrameTime
+        val previousInterval = lastFrameInterval
+        lastFrameTime = time
+        if (interval > 0f) lastFrameInterval = interval
+        val fine = interval / (1f / 960f)
+        val onGrid = abs(fine - round(fine)) * (1f / 960f) <= FINE_GRID_NOISE
+        advanceTo(time, carryFineRemainder = interval >= FINE_CARRY_MIN_FRAME && interval < FINE_CARRY_MAX_FRAME &&
+            !(previousInterval >= FINE_CARRY_MAX_FRAME) && !onGrid)
     }
 
     /** The frame loop sleeps during a stationary hold. Input time can advance meanwhile;
@@ -1067,10 +1095,11 @@ internal class GlassPoseController(
      * the origin is rebased and every stored controller timestamp shifts with it, so no measured
      * duration is rewound. Pointer timestamps are on the event clock and are never shifted.
      */
-    fun advanceTo(time: Float, maxCatchUpSeconds: Float = 0.5f) {
+    fun advanceTo(time: Float, maxCatchUpSeconds: Float = 0.5f, carryFineRemainder: Boolean = false) {
         if (time.isNaN()) return
         if (time < now) {
             val shift = time - now
+            stepDebt = 0f
             now = time
             pressStart += shift
             lastSampleAt += shift
@@ -1083,6 +1112,7 @@ internal class GlassPoseController(
             // Disabling motion mid-throw must also discard the material's stored energy.
             // Moving only its centre left the raised/compressed body recovering visibly.
             snapToRest(restIndex)
+            stepDebt = 0f
             now = time
             return
         }
@@ -1100,7 +1130,16 @@ internal class GlassPoseController(
         // Keep the previously verified integration cadence for all other paths.
         val maxStep = if (releaseImpactActive || (spec.tapAreaGain > 0f && tapDistance > .25f &&
             (mode == GlassPoseMode.TapTransit || mode == GlassPoseMode.PressPending))) 1f / 960f else 1f / 240f
+        remaining += stepDebt
+        stepDebt = 0f
+        // Only a frame boundary that falls clearly inside a fine substep (more than 20 us from either end) is carried;
+        // frames on the substep grid (60 and 120 Hz) and float noise around it step exactly as before.
+        val carry = carryFineRemainder && maxStep < 1f / 480f
         while (remaining > 1e-7f) {
+            if (carry && remaining > FINE_GRID_NOISE && remaining < maxStep - FINE_GRID_NOISE) {
+                stepDebt = remaining
+                break
+            }
             val dt = min(remaining, maxStep)
             substep(dt)
             remaining -= dt
