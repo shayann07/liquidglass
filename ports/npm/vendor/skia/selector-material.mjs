@@ -53,11 +53,13 @@ function lerpStyle(style, t) {
  * share of raw backdrop over the bar it looks through) and `uFormation` (the band's fold or
  * rim-mirror blend).
  */
-export function calmSelectorMaterial({dark = true, formation = 0, transit = 0, heldTravel = 0, formedTap = false} = {}) {
-  if (![formation, transit, heldTravel].every(Number.isFinite)) throw new RangeError('Finite formation, transit and heldTravel required');
+export function calmSelectorMaterial({dark = true, formation = 0, transit = 0, heldTravel = 0, formedTap = false,
+  formedHold = false, holdReleasing = false, holdLook = formation, holdRim = formation} = {}) {
+  if (![formation, transit, heldTravel, holdLook, holdRim].every(Number.isFinite)) throw new RangeError('Finite formation, transit, heldTravel, holdLook and holdRim required');
   const style = DATA.styles[dark ? 'dark' : 'light'];
   // Pigment: the lens/pill blend, its tint faded by the transit (glassTransitStyle).
-  const pigment = lerpStyle(style, formation);
+  // holdLook lets a released hold's fill drain slower than its formation (#103).
+  const pigment = lerpStyle(style, Math.max(formation, holdLook));
   const amount = clamp(transit * style.tapTintFade, 0, .95);
   if (amount > 0) {
     pigment.uTint = [pigment.uTint[0], pigment.uTint[1], pigment.uTint[2], q8(pigment.uTint[3] * (1 - amount))];
@@ -84,8 +86,16 @@ export function calmSelectorMaterial({dark = true, formation = 0, transit = 0, h
       // The formed lens's family while formed past half, and for the rest of a tap that formed it (#70).
       uFoldCorners: DATA.fold.transitFoldCorners, uProfile: (formation >= .5 || formedTap ? values.uProfile : DATA.fold.measuredProfile)};
     // A held lens as it travels keeps its own, wider mirror band (#121).
-    else if (style.tapOpticsFold > 0 && (formation >= .5 || heldTravel > 0)) values = {...values, ...mirror,
-      uRimMirror: heldTravel > 0 ? (DATA.fold.heldRimMirror ?? DATA.fold.rimMirror) : DATA.fold.rimMirror, uAberration: split, uInkSplit: split * DATA.fold.inkSplitShare};
+    else if (style.tapOpticsFold > 0 && (formation >= .5 || heldTravel > 0 || formedHold)) {
+      // #103: a lens formed by a hold keeps its identity (profile, restMap) and, once releasing, its outline tone through
+      // release instead of snapping at 0.5, while its dispersion decays on iOS's faster rim rate (holdRim, 64/s).
+      const rimScale = holdReleasing ? Math.max(clamp(holdRim, 0, 1), clamp(heldTravel, 0, 1)) : 1;
+      const lens = formedHold ? {...values, uProfile: style.lens.uProfile, uRestMap: style.lens.uRestMap,
+        uHeldEdgeTone: holdReleasing ? style.lens.uHeldEdgeTone : values.uHeldEdgeTone} : values;
+      values = {...lens, ...mirror,
+        uRimMirror: heldTravel > 0 ? (DATA.fold.heldRimMirror ?? DATA.fold.rimMirror) : DATA.fold.rimMirror,
+        uAberration: split * rimScale, uInkSplit: split * rimScale * DATA.fold.inkSplitShare};
+    }
   }
   const uFormation = style.tapOpticsFold > 0 && heldTravel > 0
     ? clamp(heldTravel * style.tapOpticsFold, 0, 1) : fold;

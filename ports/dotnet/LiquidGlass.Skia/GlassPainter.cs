@@ -268,9 +268,9 @@ public sealed class GlassPainter : IDisposable
         DrawSelector(canvas, bar, pose, formation, transit, heldTravel, false, options, through, fuse, shadow);
 
     /// <summary>As the overload without it; <paramref name="formedTap"/> is <see cref="CalmSelectorController.TapFormed"/>
-    /// (#70).</summary>
+    /// (#70); <paramref name="hold"/> is <see cref="CalmSelectorController.Hold"/> (#103).</summary>
     public void DrawSelector(SKCanvas canvas, SKRect bar, CalmSelectorPose pose, float formation, float transit, float heldTravel,
-        bool formedTap, GlassSurfaceOptions? options = null, SKImage? through = null, float[]? fuse = null, bool shadow = true)
+        bool formedTap, GlassSurfaceOptions? options = null, SKImage? through = null, float[]? fuse = null, bool shadow = true, CalmHold? hold = null)
     {
         Ready(canvas, bar);
         if (!float.IsFinite(formation) || !float.IsFinite(transit) || !float.IsFinite(heldTravel))
@@ -291,7 +291,7 @@ public sealed class GlassPainter : IDisposable
         var pad = fusing
             ? MathF.Ceiling(Math.Max(2, Math.Max(Math.Abs(fuse![0]) + fuse[2] - node.Width / 2, Math.Abs(fuse[1]) + fuse[3] - node.Height / 2)) + fuse[5] / 4 + 2)
             : 2;
-        var calm = CalmSelectorMaterial.Selector(options.Dark, formation, transit, heldTravel, formedTap);
+        var calm = CalmSelectorMaterial.Selector(options.Dark, formation, transit, heldTravel, formedTap, hold);
         var v = ClearUniforms(material, node.Width, node.Height, pad, 1);
         Apply(v, calm, options);
         Set(v, "uFormation", calm.Formation);
@@ -334,9 +334,9 @@ public sealed class GlassPainter : IDisposable
         DrawSelectorInk(canvas, bar, pose, ink, formation, transit, heldTravel, false, options);
 
     /// <summary>As the overload without it; <paramref name="formedTap"/> is <see cref="CalmSelectorController.TapFormed"/>
-    /// (#70).</summary>
+    /// (#70); <paramref name="hold"/> is <see cref="CalmSelectorController.Hold"/> (#103).</summary>
     public void DrawSelectorInk(SKCanvas canvas, SKRect bar, CalmSelectorPose pose, SKImage ink, float formation, float transit,
-        float heldTravel, bool formedTap, GlassSurfaceOptions? options = null)
+        float heldTravel, bool formedTap, GlassSurfaceOptions? options = null, CalmHold? hold = null)
     {
         Ready(canvas, bar); ArgumentNullException.ThrowIfNull(ink);
         if (!float.IsFinite(formation) || !float.IsFinite(transit) || !float.IsFinite(heldTravel))
@@ -347,7 +347,7 @@ public sealed class GlassPainter : IDisposable
         if (!float.IsFinite(options.Density) || options.Density <= 0) throw new ArgumentOutOfRangeException(nameof(options));
         float mx = bar.Height * .6f, my = bar.Height * .4f;
         var node = SKRect.Create(bar.Left - mx, bar.Top - my, bar.Width + 2 * mx, bar.Height + 2 * my);
-        var calm = CalmSelectorMaterial.Selector(options.Dark, formation, transit, heldTravel, formedTap);
+        var calm = CalmSelectorMaterial.Selector(options.Dark, formation, transit, heldTravel, formedTap, hold);
         var m = ClearUniforms(material, node.Width, node.Height, 2, 1);
         Apply(m, calm, options);
         Set(m, "uFormation", calm.Formation);

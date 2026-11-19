@@ -31,7 +31,7 @@ internal static class NavigationTrackChecks
     private static bool Same(NavigationSample a, NavigationSample b) =>
         a.CentreX == b.CentreX && a.CentreY == b.CentreY && a.Extents == b.Extents && a.Formation == b.Formation &&
         a.TransitAppearance == b.TransitAppearance && a.Touch == b.Touch && a.HeldTravel == b.HeldTravel && a.Protrusion == b.Protrusion &&
-        a.ItemFollow == b.ItemFollow && a.Held == b.Held && a.TapFormed == b.TapFormed && a.Feedback == b.Feedback &&
+        a.ItemFollow == b.ItemFollow && a.Held == b.Held && a.TapFormed == b.TapFormed && a.Hold == b.Hold && a.Feedback == b.Feedback &&
         a.Selected == b.Selected && a.Active == b.Active && a.Pose.A.SequenceEqual(b.Pose.A) && a.Pose.AInv.SequenceEqual(b.Pose.AInv) &&
         a.Pose.C.SequenceEqual(b.Pose.C) && a.Pose.D.SequenceEqual(b.Pose.D) && a.Pose.E!.SequenceEqual(b.Pose.E!);
 

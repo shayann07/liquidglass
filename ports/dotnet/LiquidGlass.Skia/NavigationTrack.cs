@@ -11,7 +11,7 @@ public readonly record struct NavigationEvent(NavigationEventType Type, double T
 /// take, plus the bar's own press feedback. Pose lengths are bar-local logical px, as <see cref="CalmSelectorController.Render"/> returns them.</summary>
 public sealed record NavigationSample(double CentreX, double CentreY, CalmSelectorExtents Extents, double Formation,
     double TransitAppearance, double Touch, double HeldTravel, double Protrusion, double ItemFollow, bool Held, bool TapFormed,
-    CalmSelectorPose Pose, GlassFeedback Feedback, int Selected, bool Active);
+    CalmSelectorPose Pose, GlassFeedback Feedback, int Selected, bool Active, CalmHold? Hold = null);
 
 /// <summary>A track as plain data (numbers only): store it, or hand it to another thread, and rebuild with
 /// <see cref="NavigationTrack.FromData"/>.</summary>
@@ -19,12 +19,12 @@ public sealed record NavigationTrackData(int Version, double Step, double Durati
 
 /// <summary>A baked navigation: <see cref="Sample"/> is the bar's state at any time, whatever order it is asked in. Exact at a step;
 /// in between, numbers interpolate linearly (the pose's inverse is recomputed from the interpolated matrix) and decisions
-/// (<c>Held</c>, <c>TapFormed</c>, <c>Selected</c>, <c>Active</c>) keep the earlier step's value. Before 0 it is the first step,
+/// (<c>Held</c>, <c>TapFormed</c>, <c>Hold.Formed</c>, <c>Hold.Releasing</c>, <c>Selected</c>, <c>Active</c>) keep the earlier step's value. Before 0 it is the first step,
 /// after the last the last. Immutable and safe to share between threads.</summary>
 public sealed class NavigationTrack
 {
     // Columns: numbers that interpolate, then decisions that snap, then the stored inverse (never interpolated).
-    private const int Numbers = 8 + 4 + 7 + 16, Decisions = 6, Columns = Numbers + Decisions + 4;
+    private const int Numbers = 8 + 4 + 7 + 16 + 2, Decisions = 8, Columns = Numbers + Decisions + 4;
     internal const int ColumnCount = Columns;
     private readonly double[][] columns;
 
@@ -38,12 +38,12 @@ public sealed class NavigationTrack
     /// <summary>The number of stored steps.</summary>
     public int Length { get; }
 
-    public NavigationTrackData ToData() => new(1, Step, Duration, columns.Select(c => (double[])c.Clone()).ToArray());
+    public NavigationTrackData ToData() => new(2, Step, Duration, columns.Select(c => (double[])c.Clone()).ToArray());
 
     public static NavigationTrack FromData(NavigationTrackData data)
     {
         ArgumentNullException.ThrowIfNull(data);
-        if (data.Version != 1 || !(data.Step > 0) || !double.IsFinite(data.Duration) || data.Columns is not { Length: Columns } cols ||
+        if (data.Version != 2 || !(data.Step > 0) || !double.IsFinite(data.Duration) || data.Columns is not { Length: Columns } cols ||
             cols[0] is not { Length: >= 1 } || cols.Any(c => c is null || c.Length != cols[0].Length || c.Any(v => !double.IsFinite(v))))
             throw new ArgumentException("Not a navigation track", nameof(data));
         return new NavigationTrack(data.Step, data.Duration, cols.Select(c => (double[])c.Clone()).ToArray());
@@ -60,7 +60,8 @@ public sealed class NavigationTrack
         row.AddRange(new[] { f.A, f.B, f.C, f.D, f.OffsetX, f.OffsetY, f.Press });
         row.AddRange(p.A.Select(v => (double)v)); row.AddRange(p.C.Select(v => (double)v));
         row.AddRange(p.D.Select(v => (double)v)); row.AddRange(p.E!.Select(v => (double)v));
-        row.AddRange(new double[] { c.TapFormed ? 1 : 0, c.IsHeld ? 1 : 0, f.Held ? 1 : 0, f.Active ? 1 : 0, active ? 1 : 0, nav.Selected });
+        row.AddRange(new[] { c.HoldLook, c.HoldRim });
+        row.AddRange(new double[] { c.TapFormed ? 1 : 0, c.IsHeld ? 1 : 0, f.Held ? 1 : 0, f.Active ? 1 : 0, active ? 1 : 0, nav.Selected, c.HoldFormed ? 1 : 0, c.HoldReleasing ? 1 : 0 });
         row.AddRange(p.AInv.Select(v => (double)v));
         return row.ToArray();
     }
@@ -68,12 +69,12 @@ public sealed class NavigationTrack
     private static NavigationSample Decode(double[] r)
     {
         float[] Quad(int at) => [(float)r[at], (float)r[at + 1], (float)r[at + 2], (float)r[at + 3]];
-        // Layout of the numbers: 8 selector, 4 extents, 7 feedback, then a, c, d, e (4 each).
+        // Layout of the numbers: 8 selector, 4 extents, 7 feedback, then a, c, d, e (4 each), then holdLook and holdRim (#103).
         var pose = new CalmSelectorPose(Quad(19), Quad(Numbers + Decisions), Quad(23), Quad(27)) { E = Quad(31) };
         var d = Numbers;
         var feedback = new GlassFeedback(r[12], r[13], r[14], r[15], r[16], r[17], r[18], r[d + 2] != 0, r[d + 3] != 0);
         return new NavigationSample(r[0], r[1], new CalmSelectorExtents(r[8], r[9], r[10], r[11]), r[2], r[3], r[4], r[5], r[6], r[7],
-            r[d + 1] != 0, r[d] != 0, pose, feedback, (int)r[d + 5], r[d + 4] != 0);
+            r[d + 1] != 0, r[d] != 0, pose, feedback, (int)r[d + 5], r[d + 4] != 0, new CalmHold(r[d + 6] != 0, r[d + 7] != 0, r[35], r[36]));
     }
 
     /// <summary>The state at <paramref name="seconds"/>.</summary>
