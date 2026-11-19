@@ -91,9 +91,27 @@ function makeTrack({step, duration, columns}) {
   };
 }
 
-/** Rebuild a track from `track.toJSON()`. */
+// Version 1 tracks (before #103) lack the four hold columns. What the old code drew is no hold at all: the fill followed the
+// formation (holdLook = formation, as Compose's default), the lens was never hold-formed or releasing, so the rim scale never applied.
+const V1_ADDED = new Set(['selector.holdLook', 'selector.holdRim', 'selector.holdFormed', 'selector.holdReleasing']);
+const V1_STORED = STORED.filter(name => !V1_ADDED.has(name));
+function upgradeV1(columns) {
+  const old = new Map(V1_STORED.map((name, i) => [name, columns[i]]));
+  const formation = old.get('selector.formation');
+  return STORED.map(name => V1_ADDED.has(name)
+    ? (name === 'selector.holdLook' || name === 'selector.holdRim' ? formation : formation.map(() => 0))
+    : old.get(name));
+}
+
+/** The stored column names in order (for tests; not exported by the package). */
+export const TRACK_COLUMNS = STORED;
+
+/** Rebuild a track from `track.toJSON()`; tracks saved at version 1 (before the hold terms) still load and play as they did. */
 export function navigationTrack(json) {
-  const {version, step, duration, columns} = json ?? {};
+  let {version, step, duration, columns} = json ?? {};
+  if (version === 1 && Array.isArray(columns) && columns.length === V1_STORED.length && columns.every(c => Array.isArray(c))) {
+    columns = upgradeV1(columns); version = 2;
+  }
   if (version !== 2 || !(step > 0) || !Number.isFinite(duration) || !Array.isArray(columns) || columns.length !== STORED.length ||
       !columns.every(c => Array.isArray(c) && c.length === columns[0].length && c.length >= 1 && c.every(Number.isFinite)))
     throw new TypeError('Not a navigation track');

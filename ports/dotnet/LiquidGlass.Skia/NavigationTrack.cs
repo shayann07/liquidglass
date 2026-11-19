@@ -43,10 +43,23 @@ public sealed class NavigationTrack
     public static NavigationTrack FromData(NavigationTrackData data)
     {
         ArgumentNullException.ThrowIfNull(data);
+        // A version 1 track (before #103) lacks the hold columns: what the old code drew is no hold, the fill following the
+        // formation (HoldLook = HoldRim = Formation, as Compose's default) and the lens neither hold-formed nor releasing.
+        if (data is { Version: 1, Columns.Length: Columns - 4 } && data.Columns.All(c => c is not null))
+            data = new NavigationTrackData(2, data.Step, data.Duration, UpgradeV1(data.Columns));
         if (data.Version != 2 || !(data.Step > 0) || !double.IsFinite(data.Duration) || data.Columns is not { Length: Columns } cols ||
             cols[0] is not { Length: >= 1 } || cols.Any(c => c is null || c.Length != cols[0].Length || c.Any(v => !double.IsFinite(v))))
             throw new ArgumentException("Not a navigation track", nameof(data));
         return new NavigationTrack(data.Step, data.Duration, cols.Select(c => (double[])c.Clone()).ToArray());
+    }
+
+    // Version 1 layout: 35 numbers, 6 decisions, 4 inverse. Version 2 adds holdLook and holdRim after the numbers and
+    // holdFormed and holdReleasing after the decisions.
+    private static double[][] UpgradeV1(double[][] v1)
+    {
+        var formation = v1[2];
+        var zero = new double[formation.Length];
+        return [.. v1[..35], (double[])formation.Clone(), (double[])formation.Clone(), .. v1[35..41], zero, (double[])zero.Clone(), .. v1[41..]];
     }
 
     internal static double[] Encode(CalmNavigation nav, GlassFeedback f, bool active, CalmSelectorController c)
