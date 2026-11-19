@@ -81,6 +81,8 @@ ShaderEffect {
     property real uFlip
     property point uTouch
     property real uTouchAmt
+    property real uPressGrade
+    property real uPressWhite
     property real uMaterialize
     property real uFrost
     property real uContrast
@@ -169,6 +171,8 @@ ShaderEffect {
         v = values.uFlip; if (v) uFlip = v[0]
         v = values.uTouch; if (v) uTouch = Qt.point(v[0], v[1])
         v = values.uTouchAmt; if (v) uTouchAmt = v[0]
+        v = values.uPressGrade; if (v) uPressGrade = v[0]
+        v = values.uPressWhite; if (v) uPressWhite = v[0]
         v = values.uMaterialize; if (v) uMaterialize = v[0]
         v = values.uFrost; if (v) uFrost = v[0]
         v = values.uContrast; if (v) uContrast = v[0]
