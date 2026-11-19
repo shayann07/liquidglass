@@ -54,6 +54,7 @@ public sealed record CalmSelectorSpec
     public double ReleaseStillFadeOmega { get; init; } = 0;
     public double ReleaseMovingFadeOmega { get; init; } = 0;
     public double TapLongTripRate { get; init; } = 1;
+    public double TapFarTripRate { get; init; } = 1; public double TapClockSlotDp { get; init; }
     public double TapEndWallReach { get; init; } = -1; public double TapEndWallKnee { get; init; } = .025; public bool TapEndWallOneSided { get; init; }
     /// <summary>A tap that formed the selector past half keeps the formed lens's family in its transit fold until it
     /// settles (Compose's GlassPoseSpec.tapKeepsFormedLens, #70); on in Calm.</summary>
@@ -75,7 +76,7 @@ public sealed record CalmSelectorSpec
         GraspOmega = 120, HeldFormRiseOmega = 26, PressFormation = 0, HoldThresholdSeconds = .11,
         ReleaseTrailingEdge = true, ReleaseRecoveryOmega = 13,
         ReleaseTrailingInOmega = 9, ReleaseTrailingInZeta = .3, ReleaseTrailingCarry = .1, ReleaseWallGive = .35,
-        ReleaseTrailingStiffening = .5, ReleaseStillHoldSeconds = .035, ReleaseStillFadeOmega = 100, ReleaseMovingFadeOmega = 12, TapLongTripRate = 1.2, TapEndWallReach = .03, TapKeepsFormedLens = true,
+        ReleaseTrailingStiffening = .5, ReleaseStillHoldSeconds = .035, ReleaseStillFadeOmega = 100, ReleaseMovingFadeOmega = 12, TapLongTripRate = 1.2, TapFarTripRate = 1.1, TapClockSlotDp = 262.0 / 3, TapEndWallReach = .03, TapKeepsFormedLens = true,
         HeldTravelStrain = .6, HeldTravelStrainOmega = 10,
         HeldSquircle = .7,
     };
@@ -579,10 +580,13 @@ public sealed class CalmSelectorController
         double tapClock = 1;
         if (coupleTapArea)
         {
-            var phase = Math.Clamp(tapDistance / slot - 1, 0, 1); var blend = phase * phase * (3 - 2 * phase);
+            // The trip is measured in slots of TapClockSlotDp when set (the recorded phone bar's), else in the bar's own (#70).
+            var clockSlot = s.TapClockSlotDp > 0 ? s.TapClockSlotDp * Math.Max(b.Density, 1e-3) : slot;
+            var phase = Math.Clamp(tapDistance / clockSlot - 1, 0, 1); var blend = phase * phase * (3 - 2 * phase);
             var shortRate = Math.Clamp(s.TapShortTripRate, .5, 1); var longRate = Math.Clamp(s.TapLongTripRate, .5, 2);
-            var far = Math.Clamp(tapDistance / slot - 2, 0, 1); var back = far * far * (3 - 2 * far);
-            tapClock = shortRate + (longRate + (1 - longRate) * back - shortRate) * blend;
+            var far = Math.Clamp(tapDistance / clockSlot - 2, 0, 1); var back = far * far * (3 - 2 * far);
+            var farRate = Math.Clamp(s.TapFarTripRate, .5, 2);
+            tapClock = shortRate + (longRate + (farRate - longRate) * back - shortRate) * blend;
         }
         var tapShapeVx = vx / tapClock;
         var coupleReleaseArea = MotionEnabled && releaseImpactActive && Mode == CalmSelectorMode.Released;

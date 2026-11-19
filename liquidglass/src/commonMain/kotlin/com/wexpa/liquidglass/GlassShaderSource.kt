@@ -365,6 +365,10 @@ half3 toneMappedTint(half3 tint, float bgLuma, float adapt) {
 // from the backdrop (the light appearance, additive: iOS 27 removes 76 levels at 128 and at 255, m202d).
 float outerContourAlpha(float2 n, float band) {
     float side = pow(max(1.0 - abs(dot(n, uLight)), 0.0), 0.75);
+    // Authored: the measured Control Center toggle shows no contour within 20 degrees of the lit poles (flat to the
+    // page level there, #206), which the 2.5 px band's wider reach would otherwise tint by up to 4 levels; the gate
+    // closes below the 20 degree value (0.122) and is open by 35 degrees, so the diagonals and sides are unchanged.
+    side *= smoothstep(0.12, 0.28, side);
     return clamp(band * abs(uOuterContour.x) * mix(uOuterContour.y, 1.0, side), 0.0, 1.0);
 }
 
@@ -909,11 +913,17 @@ half4 main(float2 coord) {
         // Two pixels wide, as the reference's: the outermost one is partly covered.
         // A dark outline (tone below 0.5, the dark Calm lens) is one pixel wider: iOS's line over the black page peaks ~95 with
         // 40-60 in the two rows inside it, where two pixels left 22-35 there (IMG_6756 35.5 / 43.8 s, #92). Authored.
+        // The extra pixel lifts brightness toward the tone but keeps the colour under it: painting it grey erased the lens's
+        // colour split there and cut IMG_6756's rim fringe from 0.88 to 0.71 of iOS's (#92).
         float lineWide = 1.0 - step(0.5, uHeldEdgeTone);
-        float line = smoothstep(3.0 + lineWide, 1.5 + 0.5 * lineWide, depth) * heldAmt * mat;
+        float line = smoothstep(3.0, 1.5, depth) * heldAmt * mat;
+        float lineExtra = max(smoothstep(4.0, 2.0, depth) * heldAmt * mat - line, 0.0) * lineWide;
         // Top and bottom only (#92): at the sides iOS's outline is the dark step, 14 over a bar of
         // 48 (IMG_6756 43.8 s, display colours), which the fixed grey here used to paint over.
         line *= n.y * n.y;
+        lineExtra *= n.y * n.y;
+        half lineLuma = dot(col, half3(0.299, 0.587, 0.114));
+        col += half3((half(uHeldEdgeTone) - lineLuma) * half(0.9 * lineExtra));
         col = mix(col, half3(half(uHeldEdgeTone)), half(0.9 * line));
     }
     // The held lens's spectral rim (#73): iOS's lens rim carries a thin rainbow whose hue sweeps

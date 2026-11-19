@@ -307,6 +307,10 @@ half3 toneMappedTint(half3 tint, float bgLuma, float adapt) {
 // uOuterContour.x > 0, plus-darker amount when < 0).
 float outerContourAlpha(float2 n, float band) {
     float side = pow(max(1.0 - abs(dot(n, uLight)), 0.0), 0.75);
+    // Authored: the measured Control Center toggle shows no contour within 20 degrees of the lit poles (flat to the
+    // page level there, #206), which the 2.5 px band's wider reach would otherwise tint by up to 4 levels; the gate
+    // closes below the 20 degree value (0.122) and is open by 35 degrees, so the diagonals and sides are unchanged.
+    side *= smoothstep(0.12, 0.28, side);
     return clamp(band * abs(uOuterContour.x) * mix(uOuterContour.y, 1.0, side), 0.0, 1.0);
 }
 

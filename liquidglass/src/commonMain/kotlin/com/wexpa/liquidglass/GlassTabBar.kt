@@ -543,7 +543,8 @@ internal fun GlassTabBar(
         val itemShare: (() -> Float)? = if (style.itemsFollowBarPress) null
             else ({
                 // A tap's transit forms the selector part way; only a hold's formation counts.
-                val f = (((poseHandle?.formation ?: handle?.formation ?: lift) - 0.5f) / 0.5f).coerceIn(0f, 1f)
+                // On a released hold, holdLook lets the bar-press share subside smoothly with fill/lean (#103).
+                val f = (((poseHandle?.holdLook ?: handle?.formation ?: lift) - 0.5f) / 0.5f).coerceIn(0f, 1f)
                 f * f * (3f - 2f * f)
             })
         // [GlassTabBarStyle.touchLift]: the bar's material lift for any touch, not only a hold.
@@ -566,7 +567,9 @@ internal fun GlassTabBar(
         val fringeSpeed = (abs(if (dragging) liveVelocity else settleVelocity) /
             with(density) { GlassSelectorFringeSpeed.toPx() }).coerceIn(0f, 1f)
         val selectorStyle = glassSelectorMaterial(style, lift, transitAppearance, max(poseHandle?.heldTravel ?: 0f, fringeSpeed),
-            heldLensTravel = poseHandle?.heldTravel ?: 0f, formedTap = poseHandle?.tapFormed ?: false)
+            heldLensTravel = poseHandle?.heldTravel ?: 0f, formedTap = poseHandle?.tapFormed ?: false,
+            formedHold = poseHandle?.holdFormed ?: false, holdReleasing = poseHandle?.holdReleasing ?: false,
+            holdLook = poseHandle?.holdLook ?: lift, holdRim = poseHandle?.holdRim ?: lift)
 
         // The V3 body owns its own centre; offsetX follows it so semantics, the press glow and
         // the diagnostics all read one number.
@@ -1208,7 +1211,7 @@ internal fun GlassTabBar(
                             // A zero-width slot (a bar narrower than its insets) has no tab to lean from.
                             val near = if (half > 0f) (1f - abs(x - endCentre) / half).coerceIn(0f, 1f) else 0f
                             (pressShift?.invoke(x) ?: 0f) +
-                                (if (rtl) -1f else 1f) * leanPx * near * controller.formation.coerceIn(0f, 1f) * heldGate(controller)
+                                (if (rtl) -1f else 1f) * leanPx * near * controller.holdLean.coerceIn(0f, 1f)
                         }
                         shift
                     }
@@ -1220,7 +1223,7 @@ internal fun GlassTabBar(
                         val stretch: (Float) -> Float = { x ->
                             // A zero-width slot (a bar narrower than its insets) has no tab to lean from.
                             val near = if (half > 0f) (1f - abs(x - endCentre) / half).coerceIn(0f, 1f) else 0f
-                            (if (rtl) -1f else 1f) * reachPx * near * controller.formation.coerceIn(0f, 1f) * heldGate(controller)
+                            (if (rtl) -1f else 1f) * reachPx * near * controller.holdLean.coerceIn(0f, 1f)
                         }
                         stretch
                     }
@@ -2551,8 +2554,16 @@ internal fun glassSelectorMaterial(style: GlassTabBarStyle, formation: Float, tr
                                    /** The held lens's own travel, without the tap's speed signal folded into [heldTravel] (#121). */
                                    heldLensTravel: Float = heldTravel,
                                    /** [GlassPoseController.tapFormed]: this tap formed the selector past half (#70). */
-                                   formedTap: Boolean = false): GlassStyle {
-    val pigment = glassTransitStyle(lerpGlassStyle(style.pill, style.lens, formation), transitAppearance, style.tapTintFade)
+                                   formedTap: Boolean = false,
+                                   /** [GlassPoseController.holdFormed]: a hold formed the lens past half and has not let go (#103). */
+                                   formedHold: Boolean = false,
+                                   /** [GlassPoseController.holdReleasing]: a formed hold is releasing back to rest (#103). */
+                                   holdReleasing: Boolean = false,
+                                   /** [GlassPoseController.holdLook]: the fill's formation, letting a released hold drain slower (#103). */
+                                   holdLook: Float = formation,
+                                   /** [GlassPoseController.holdRim]: the rim's faster release decay (64/s measured on iOS, #103). */
+                                   holdRim: Float = formation): GlassStyle {
+    val pigment = glassTransitStyle(lerpGlassStyle(style.pill, style.lens, max(formation, holdLook)), transitAppearance, style.tapTintFade)
     if (style.tapOptics <= 0f) return pigment
     // Optics follow the transit appearance; tint keeps its own measured fade and recovery, so
     // adding refraction does not delay the pigment's return after landing.
@@ -2580,11 +2591,20 @@ internal fun glassSelectorMaterial(style: GlassTabBarStyle, formation: Float, tr
             rimSoftness = if (transitSoft > 0f) transitSoft.dp else material.rimSoftness)
     // A held lens keeps the measured held map when still and blends toward the same rim mirror
     // at its caps as it travels ([glassSelectorFormation] carries the travel amount).
-    else if (style.tapOpticsFold > 0f && (formation >= 0.5f || heldTravel > 0f)) {
+    else if (style.tapOpticsFold > 0f && (formation >= 0.5f || heldTravel > 0f || formedHold)) {
         val split = still + (heldMoving - still) * heldTravel.coerceIn(0f, 1f)
         // The held lens's own band only while it travels; a still held lens keeps the tap's.
         val heldMirror = if (heldLensTravel > 0f) fringe?.getOrNull(8) ?: GlassSelectorHeldRimMirror else rimMirror
-        material.copy(foldAtCorners = 1f, rimMirror = heldMirror, rimMirrorGain = rimGain, dispersion = split, inkDispersion = split * GlassSelectorInkSplitShare)
+        // #103: a lens formed by a hold keeps its identity (profile, restMap) and outline tone (linear in heldAmt)
+        // through release instead of snapping at 0.5, while its dispersion decays on iOS's faster rim rate (64/s).
+        val rimScale = if (holdReleasing) max(holdRim.coerceIn(0f, 1f), heldTravel.coerceIn(0f, 1f)) else 1f
+        val lens = if (formedHold) material.copy(
+            profile = style.lens.profile,
+            restMap = style.lens.restMap,
+            heldEdgeTone = if (holdReleasing) style.lens.heldEdgeTone else material.heldEdgeTone,
+        ) else material
+        lens.copy(foldAtCorners = 1f, rimMirror = heldMirror, rimMirrorGain = rimGain,
+            dispersion = split * rimScale, inkDispersion = split * rimScale * GlassSelectorInkSplitShare)
     }
     else material
 }
@@ -2604,9 +2624,6 @@ internal const val GlassSelectorHeldRimMirror = 1.0f
  * (IMG_6756 35.45-35.55 s, 3x scene px). Measured. */
 internal val GlassAccessoryLensLean = 5.7.dp
 
-/** 1 while the lens is held or released from a hold, else 0: a tap in transit leans and stretches nothing (#107). */
-private fun heldGate(controller: GlassPoseController): Float =
-    if (controller.mode == GlassPoseMode.Held || controller.mode == GlassPoseMode.Released) 1f else 0f
 /** How much longer that lens grows at its accessory end (#107): iOS's spans x 603-955 there, about 32 px wider than
  * ours, its outline crossing over the search button (IMG_6756 35.5 s, 3x scene px). Measured. */
 internal val GlassAccessoryLensReach = 10.7.dp

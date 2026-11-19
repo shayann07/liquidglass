@@ -253,6 +253,12 @@
    "uTouchAmt": [
     0
    ],
+   "uPressGrade": [
+    0
+   ],
+   "uPressWhite": [
+    0
+   ],
    "uMaterialize": [
     1
    ],
@@ -567,6 +573,12 @@
     94.5
    ],
    "uTouchAmt": [
+    0
+   ],
+   "uPressGrade": [
+    0
+   ],
+   "uPressWhite": [
     0
    ],
    "uMaterialize": [
@@ -894,6 +906,12 @@
    "uTouchAmt": [
     0
    ],
+   "uPressGrade": [
+    0
+   ],
+   "uPressWhite": [
+    0
+   ],
    "uMaterialize": [
     0.5
    ],
@@ -1210,6 +1228,12 @@
    "uTouchAmt": [
     0
    ],
+   "uPressGrade": [
+    0
+   ],
+   "uPressWhite": [
+    0
+   ],
    "uMaterialize": [
     1
    ],
@@ -1524,6 +1548,12 @@
     32
    ],
    "uTouchAmt": [
+    0
+   ],
+   "uPressGrade": [
+    0
+   ],
+   "uPressWhite": [
     0
    ],
    "uMaterialize": [

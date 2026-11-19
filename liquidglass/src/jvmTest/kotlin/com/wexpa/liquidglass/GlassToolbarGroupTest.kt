@@ -75,12 +75,16 @@ class GlassToolbarGroupTest {
         assertTrue(inside.red > outside.red + 0.03f, "capsule ${inside.red} over page ${outside.red}")
     }
 
-    @Test fun theDefaultMaterialIsTheToolbarsNotRegular() = runComposeUiTest(testTimeout = 4.minutes) {
+    /** The group draws Glass.Toolbar unless told otherwise. Toolbar and Regular share the lab material by measurement (#200:
+     * `GlassStyle.toolbar` and `GlassStyle.inApp` both resolve through `towardLab`), so the two cannot be told apart by pixels;
+     * the check is that the default renders exactly as an explicit Glass.Toolbar, and visibly unlike Glass.Clear. */
+    @Test fun theDefaultMaterialIsTheToolbars() = runComposeUiTest(testTimeout = 4.minutes) {
         setContent {
             LiquidGlassTheme(dark = true, background = Color.Black) {
                 Row(Modifier.size(420.dp, 100.dp).background(Color.Black), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
                     GlassToolbarGroup(Modifier.testTag("default")) { Box(Modifier.size(80.dp, 32.dp)) }
-                    GlassToolbarGroup(Modifier.testTag("regular"), glass = Glass.Regular) { Box(Modifier.size(80.dp, 32.dp)) }
+                    GlassToolbarGroup(Modifier.testTag("toolbar"), glass = Glass.Toolbar) { Box(Modifier.size(80.dp, 32.dp)) }
+                    GlassToolbarGroup(Modifier.testTag("clear"), glass = Glass.Clear) { Box(Modifier.size(80.dp, 32.dp)) }
                 }
             }
         }
@@ -90,10 +94,12 @@ class GlassToolbarGroupTest {
             val node = onNodeWithTag(tag).fetchSemanticsNode()
             return map[node.positionInRoot.x.toInt() + node.size.width / 2, node.positionInRoot.y.toInt() + node.size.height / 2]
         }
-        val toolbar = centre("default")
-        val regular = centre("regular")
-        // Glass.Toolbar is the more opaque material, so on the same page it must not render as Regular glass does.
-        val difference = kotlin.math.abs(toolbar.red - regular.red) + kotlin.math.abs(toolbar.green - regular.green) + kotlin.math.abs(toolbar.blue - regular.blue)
-        assertTrue(difference > 0.01f, "default $toolbar vs Regular $regular")
+        fun diff(a: Color, b: Color) = kotlin.math.abs(a.red - b.red) + kotlin.math.abs(a.green - b.green) + kotlin.math.abs(a.blue - b.blue)
+        val default = centre("default")
+        val toolbar = centre("toolbar")
+        val clear = centre("clear")
+        assertTrue(diff(default, toolbar) < 0.004f, "default $default vs explicit Toolbar $toolbar")
+        // Clear is the see-through material: if the default ever drifted to it, the group would read as a different glass.
+        assertTrue(diff(default, clear) > 0.01f, "default $default vs Clear $clear: the check cannot tell materials apart")
     }
 }
