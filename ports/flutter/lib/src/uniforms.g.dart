@@ -74,6 +74,8 @@ const List<(String, int)> _materialUniforms = [
   ('uFlip', 1),
   ('uTouch', 2),
   ('uTouchAmt', 1),
+  ('uPressGrade', 1),
+  ('uPressWhite', 1),
   ('uMaterialize', 1),
   ('uFrost', 1),
   ('uContrast', 1),
