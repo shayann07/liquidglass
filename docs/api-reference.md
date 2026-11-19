@@ -628,11 +628,14 @@ interior of 42, against the reference's 24 against 41. `fresnel` is the only omn
 brightening term.
 
 `outerContour` is iOS 27's version of that line, and it is a different mechanism: it lies
-entirely **outside** the outline (the outermost wholly covered pixel is untouched), about 1.5 px
-wide, and it is strongest where the rim is unlit and zero at the lit poles. Measured on iOS 27's
-44 pt buttons over white, it removes 0.61 of the backdrop at the sides in a dark appearance and
-0.31 in a light one, where about a quarter remains at the poles (`outerContourFloor`). It is drawn
-as black at that opacity, so it shows over light content and vanishes over black. It is off (0)
+entirely **outside** the outline (the outermost wholly covered pixel is untouched), a 2.5 px band
+that weighs the first three pixel centres outside 1 : 0.5 : 0 (since 1.1.0; it was 1.5 px), and it
+is strongest where the rim is unlit and closed within 20 degrees of the lit poles. Measured on iOS
+27's 44 pt buttons over white, it removes 0.61 of the backdrop at the sides in a dark appearance,
+with no pole share. In a light appearance a negative `outerContour` is a plus-darker blend of its
+magnitude, which Material 3's iOS 27 rim sets to -0.30, with a smaller pole share (0.13,
+`outerContourFloor`; it was 0.31 / 0.25 before 1.1.0). In the dark appearance it is drawn as black
+at that opacity, so it shows over light content and vanishes over black. It is off (0)
 on every core preset. `GlassMaterialDefaults` in `liquidglass-material3` turns it on with the
 measured values, with the light straight overhead (`GlassLight(0f, -1f)`, measured at 0.0
 degrees) and no dispersion. Lone elements and `GlassEffectContainer`'s merged shapes both draw

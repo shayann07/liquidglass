@@ -468,8 +468,8 @@ deformation trails the movement.
 `GlassTabBarStyle.Ios27` is `Dark` with iOS 27's rim, measured on iOS 27's 44 pt navigation buttons
 ([the record](research/ios27-measurements-raw.md)):
 
-- a dark contour outside the outline (`outerContour` 0.61), strongest at the unlit sides and zero
-  at the lit poles;
+- a dark contour outside the outline (`outerContour` 0.61, a 2.5 px band since 1.1.0), strongest at
+  the unlit sides and zero at the lit poles;
 - the bar's lit edge scaled to iOS 27's peak (0.256 against `Dark`'s 0.213) and half-depth
   (2.37 px against 1.8);
 - no dispersion.
