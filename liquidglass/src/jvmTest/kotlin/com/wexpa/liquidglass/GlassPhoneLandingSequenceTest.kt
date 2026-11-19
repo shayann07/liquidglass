@@ -256,9 +256,10 @@ class GlassPhoneLandingSequenceTest {
         assertTrue(old.formation < .9f)
     }
 
-    /** #106, audit item 104: IMG_6756's still-released lens (three holds) keeps its outline ~43 ms
-     * after the lift and is flat by ~93 ms. The replay (holds-41) collapses at 60-77 ms; here the
-     * formation has to still be whole at 25 ms and mostly gone by 65 ms. Authored rate. */
+    /** #103 (updating #106, audit item 104): IMG_6756's still-released lens (spec-103-holds.md,
+     * three holds) begins decaying at release rather than freezing for 35 ms: rim E decays at ~64/s
+     * (nearly gone by ~50-67 ms), outline env at ~46/s, fill at ~21/s. Formation falls smoothly at
+     * releaseStillFadeOmega = 36/s from release while holdRim decays at 64/s. */
     @Test fun aStillReleaseLosesItsGlassAsQuicklyAsIos27() {
         val c = GlassPoseController(GlassPoseSpec.Calm)
         c.attach(phoneBar, null, null); c.snapToRest(0)
@@ -267,11 +268,16 @@ class GlassPhoneLandingSequenceTest {
         assertTrue(c.isHeld && c.formation > .99f)
         c.pointerUp(0)
         c.advanceFrameTo(.625f)
-        assertTrue(c.formation > .95f, "lost its glass before the hold: ${c.formation}")
+        assertTrue(c.formation in .72f..0.84f, "unexpected formation 25 ms after lift: ${c.formation}")
+        assertTrue(c.holdRim in .46f..0.60f, "unexpected rim weight 25 ms after lift: ${c.holdRim}")
         c.advanceFrameTo(.665f)
-        assertTrue(c.formation < .3f, "still formed 65 ms after the lift: ${c.formation}")
+        assertTrue(c.formation in .26f..0.38f, "unexpected formation 65 ms after lift: ${c.formation}")
+        assertTrue(c.holdRim < .12f, "rim still active 65 ms after lift: ${c.holdRim}")
         c.advanceFrameTo(.71f)
-        assertTrue(c.formation < .02f, "still formed 110 ms after the lift: ${c.formation}")
+        assertTrue(c.formation < .12f, "still formed 110 ms after lift: ${c.formation}")
+        assertTrue(c.holdRim < .02f, "rim still present 110 ms after lift: ${c.holdRim}")
+        c.advanceFrameTo(.77f)
+        assertTrue(c.formation < .02f, "still formed 170 ms after lift: ${c.formation}")
     }
 
     /** #106, audit item 107: a still press forms no lens before it becomes a hold (iOS shows none
