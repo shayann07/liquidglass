@@ -680,8 +680,15 @@ public sealed class CalmSelectorController
         {
             holdLookSpring.Target = 0; holdLookSpring.Step(dt, HoldLookFallOmega, 1);
             if (holdLookSpring.Value < 1e-3 && Math.Abs(holdLookSpring.Velocity) < 1e-2) holdLookSpring.SnapTo(0);
-            holdRimSpring.Target = 0; holdRimSpring.Step(dt, HoldRimFallOmega, 1);
-            if (holdRimSpring.Value < 1e-3 && Math.Abs(holdRimSpring.Velocity) < 1e-2) holdRimSpring.SnapTo(0);
+            // A moving throw from a hold keeps full rim dispersion while the lens is still formed above 0.5 (Compose's
+            // GlassPoseController, #103 follow-up); a still release keeps the 64/s decay.
+            if (MotionEnabled && Mode == CalmSelectorMode.Released && releasedFromHold && !releasedStill && Formation >= .5)
+                holdRimSpring.SnapTo(1);
+            else
+            {
+                holdRimSpring.Target = 0; holdRimSpring.Step(dt, HoldRimFallOmega, 1);
+                if (holdRimSpring.Value < 1e-3 && Math.Abs(holdRimSpring.Velocity) < 1e-2) holdRimSpring.SnapTo(0);
+            }
         }
 
         var formation = Formation;

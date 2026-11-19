@@ -145,6 +145,20 @@ internal static class SelectorChecks
         Check(holdCtl.Formation < .02 && !holdCtl.IsIdle, "Held release at 170 ms");
         for (var t = .77 + 1.0 / 60; t < 1.2; t += 1.0 / 60) holdCtl.AdvanceFrameTo(t);
         Check(!holdCtl.HoldFormed && !holdCtl.HoldReleasing && holdCtl.HoldLook == 0 && holdCtl.HoldRim == 0 && holdCtl.IsIdle, "Held release did not settle");
+        // A moving throw from a hold keeps its rim at full while the lens is still more than half formed (#103 follow-up).
+        var throwCtl = new CalmSelectorController(); throwCtl.Attach(bar); throwCtl.SnapToRest(0);
+        throwCtl.PointerDown(bar.CentreOf(0), bar.Height / 2, 0, true);
+        for (var t = 1.0 / 60; t <= .6 + 1e-9; t += 1.0 / 60) throwCtl.AdvanceFrameTo(t);
+        for (var i = 1; i <= 6; i++) { var t = .6 + i / 60.0; throwCtl.PointerMove(bar.CentreOf(0) + i * bar.SlotWidth / 4, bar.Height / 2, t); throwCtl.AdvanceFrameTo(t); }
+        throwCtl.PointerUp(0);
+        var thrownRimHeld = false; var thrownSteps = 0;
+        for (var t = .7 + 1.0 / 60; t < 1.5 && throwCtl.Formation >= .5; t += 1.0 / 60)
+        {
+            throwCtl.AdvanceFrameTo(t); if (throwCtl.Formation < .5) break;
+            thrownSteps++; thrownRimHeld = throwCtl.HoldRim > .999;
+            if (!thrownRimHeld) break;
+        }
+        Check(thrownSteps > 0 && thrownRimHeld, $"Thrown hold release lost its rim while formed: {throwCtl.HoldRim} at formation {throwCtl.Formation} after {thrownSteps} frames");
         var restMat = CalmSelectorMaterial.Selector(true, .4, 0, 0);
         var lensMat = CalmSelectorMaterial.Selector(true, 1, 0, 0);
         var fullMat = CalmSelectorMaterial.Selector(true, 1, 0, 0, false, new CalmHold(true, false, 1, 1));
