@@ -1215,8 +1215,14 @@ internal fun GlassTabBar(
                 // republish when the bar's press moves while the pose loop may be asleep.
                 if (poseHandle != null) {
                     val barFrame = barDrawing
+                    val controller = poseHandle.controller
                     val pressShift: ((Float) -> Float)? = barFrame?.let { state ->
-                        { x: Float -> (state.drawing.contentPoint(x, barHeightPx / 2f).x - x) * (itemShare?.invoke() ?: 1f) }
+                        { x: Float ->
+                            // #121: keep full bar-press alignment while still and fade toward GlassSelectorDragPressShare
+                            // during held drag so bar press expansion does not bias the travelling lens away from icons.
+                            val pressWeight = 1f - (1f - GlassSelectorDragPressShare) * heldTravelGate(controller.heldTravel)
+                            (state.drawing.contentPoint(x, barHeightPx / 2f).x - x) * (itemShare?.invoke() ?: 1f) * pressWeight
+                        }
                     }
                     // #107: on the tab beside an accessory that yields to the lens, the formed lens leans toward it,
                     // past the bar's end and over the accessory's edge (iOS: the same width, 17 px further out).
@@ -1224,12 +1230,12 @@ internal fun GlassTabBar(
                     poseHandle.barShift = if (leanPx <= 0f) pressShift else {
                         val endCentre = geometry.centreOf(if (rtl) 0 else itemCount - 1)
                         val half = geometry.slotWidth / 2f
-                        val controller = poseHandle.controller
                         val shift: (Float) -> Float = { x ->
                             // A zero-width slot (a bar narrower than its insets) has no tab to lean from.
                             val near = if (half > 0f) (1f - abs(x - endCentre) / half).coerceIn(0f, 1f) else 0f
+                            val stillWeight = 1f - heldTravelGate(controller.heldTravel)
                             (pressShift?.invoke(x) ?: 0f) +
-                                (if (rtl) -1f else 1f) * leanPx * near * controller.holdLean.coerceIn(0f, 1f)
+                                (if (rtl) -1f else 1f) * leanPx * near * controller.holdLean.coerceIn(0f, 1f) * stillWeight
                         }
                         shift
                     }
@@ -1237,11 +1243,11 @@ internal fun GlassTabBar(
                         val endCentre = geometry.centreOf(if (rtl) 0 else itemCount - 1)
                         val half = geometry.slotWidth / 2f
                         val reachPx = with(density) { GlassAccessoryLensReach.toPx() }
-                        val controller = poseHandle.controller
                         val stretch: (Float) -> Float = { x ->
                             // A zero-width slot (a bar narrower than its insets) has no tab to lean from.
                             val near = if (half > 0f) (1f - abs(x - endCentre) / half).coerceIn(0f, 1f) else 0f
-                            (if (rtl) -1f else 1f) * reachPx * near * controller.holdLean.coerceIn(0f, 1f)
+                            val stillWeight = 1f - heldTravelGate(controller.heldTravel)
+                            (if (rtl) -1f else 1f) * reachPx * near * controller.holdLean.coerceIn(0f, 1f) * stillWeight
                         }
                         stretch
                     }
@@ -1375,6 +1381,9 @@ internal fun GlassTabBar(
                                 .glassMaterialForeground(barDrawing, share = itemShare)
                                 .glassInkLift(inkLiftState.value),
                         ) {
+                            val selAllItemScale = if (style.tapOpticsFold > 0f) {
+                                1f + (GlassSelectorHeldTravelScale - 1f) * heldTravelGate(selHeldTravel) * selLift.coerceIn(0f, 1f)
+                            } else 1f
                             ItemRow(
                                 count = itemCount,
                                 inset = style.contentPadding,
@@ -1384,6 +1393,7 @@ internal fun GlassTabBar(
                                 item = item,
                                 emphasisIndex = selActiveIndex,
                                 emphasis = glassTransitInkScale(style, selLift, selTransit),
+                                allItemScale = selAllItemScale,
                             )
                         }
                     }
@@ -1495,6 +1505,8 @@ private fun ItemRow(
     semanticSelected: Int = -1,
     /** The bar's item layout, in px; with fixed slots the items sit at its centres. */
     geometry: GlassTabBarGeometry? = null,
+    /** Uniform per-item self-centred zoom for every tab inside a moving held lens (#121). */
+    allItemScale: Float = 1f,
 ) {
     // The interactive row is the one accessibility sees: a group of tabs. Every other copy
     // (the lens's refracted row, the V3 selected ink) is decoration and is hidden, or a
@@ -1511,7 +1523,7 @@ private fun ItemRow(
         // target half the gap to the nearer neighbour, so a closed-up end never overlaps the next.
         Layout(
             modifier = group,
-            content = { repeat(count) { index -> ItemCell(index, Modifier, true, selectedFor, onClick, item, emphasisIndex, emphasis, onMeasured, semanticSelected) } },
+            content = { repeat(count) { index -> ItemCell(index, Modifier, true, selectedFor, onClick, item, emphasisIndex, emphasis, onMeasured, semanticSelected, allItemScale) } },
         ) { measurables, constraints ->
             val h = constraints.maxHeight
             val placeables = measurables.mapIndexed { index, m ->
@@ -1533,7 +1545,7 @@ private fun ItemRow(
             // Keyed by the app's own tab, so a mirrored bar (#161) whose item count changes keeps each tab's state
             // and focus with that tab, not with the slot it was drawn in.
             androidx.compose.runtime.key(if (mirrorCount > 0) mirrorCount - 1 - index else index) {
-                ItemCell(index, Modifier.weight(1f), false, selectedFor, onClick, item, emphasisIndex, emphasis, onMeasured, semanticSelected)
+                ItemCell(index, Modifier.weight(1f), false, selectedFor, onClick, item, emphasisIndex, emphasis, onMeasured, semanticSelected, allItemScale)
             }
         }
     }
@@ -1551,6 +1563,7 @@ private fun ItemCell(
     emphasis: Float,
     onMeasured: ((index: Int, width: Float) -> Unit)?,
     semanticSelected: Int,
+    allItemScale: Float = 1f,
 ) {
     Box(
         modifier = sizing
@@ -1623,8 +1636,12 @@ private fun ItemCell(
             modifier = (if (unboundedWidth) Modifier.wrapContentWidth(unbounded = true) else Modifier)
                 .then(measured)
                 .drawWithContent {
-                    if (hoverScale == 1f) drawContent()
-                    else scale(hoverScale) { this@drawWithContent.drawContent() }
+                    val drawScale = hoverScale * allItemScale
+                    if (drawScale == 1f) drawContent()
+                    else scale(
+                        scale = drawScale,
+                        pivot = Offset(size.width / 2f, size.height * if (allItemScale == 1f) 0.5f else GlassSelectorHeldTravelPivotY),
+                    ) { this@drawWithContent.drawContent() }
                 }
                 .graphicsLayer {
                     scaleX = itemScale
@@ -2667,6 +2684,29 @@ internal const val GlassSelectorRimMirror = 0.3f
  * At the tap's 0.3 ours kept the icon nearly unbent to a hard edge; 1.0 sweeps it as iOS's does, judged by eye on
  * that window against 0.3, 0.6 and 0.6 with gain 0.4. Taps keep [GlassSelectorRimMirror], which keeps their labels. Authored. */
 internal const val GlassSelectorHeldRimMirror = 1.0f
+
+/** Per-item self-centred ink zoom inside a moving Calm held lens (#121): replaces lens-centred
+ * [GlassStyle.heldMagnification] during held drag so every crossing icon enlarges about its own centre
+ * as on iOS (LOLL8185 21.38-22.20 s, docs/2 8.625 s). Authored. */
+internal const val GlassSelectorHeldTravelScale = 1.215f
+
+/** Vertical pivot fraction inside each item cell for [GlassSelectorHeldTravelScale] (#121): keeps the
+ * enlarged label aligned to iOS's vertical position (y 584-611 at 21.60 s; docs/2 8.625 s) without pushing
+ * its baseline into the bottom rim. Authored. */
+internal const val GlassSelectorHeldTravelPivotY = 0.56f
+
+/** Share of bar pressShift retained during held drag (#121): still holds keep 1.0, while dragging fades
+ * pressShift down so bar press expansion does not pull the lens rightward off Contacts at 21.38 s or
+ * leftward into Calls at 22.20 s while keeping JGEY2190 tracking within gate. Authored. */
+internal const val GlassSelectorDragPressShare = 0.15f
+
+/** Smooth travel gate matching [GLASS_CONTENT_SHADER_SOURCE] (`smoothstep(0.002, 0.030, heldTravel)`):
+ * strictly 0 on taps and still held lenses, ramping to 1 once held drag begins (#121). */
+private fun heldTravelGate(heldTravel: Float): Float {
+    if (heldTravel <= 0.002f) return 0f
+    val t = ((heldTravel - 0.002f) / 0.028f).coerceIn(0f, 1f)
+    return t * t * (3f - 2f * t)
+}
 
 /** How far a formed lens on the tab beside a yielding accessory leans toward it (#107): iOS's held lens on Keypad
  * spans x 605-920 against ours 585-905, the same width 17 px further out, over the search button's edge

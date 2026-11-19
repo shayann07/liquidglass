@@ -215,14 +215,21 @@ half4 main(float2 coord) {
     float touchFall = exp(-dot(touchDelta, touchDelta) / (touchSigma * touchSigma))
         * clamp(uTouchAmt, 0.0, 1.0);
     float2 base = coord - touchDelta * (touchFall * 0.17);
+    // #121: moving Calm held lens only (uRimMirror == GlassSelectorHeldRimMirror 1.0 > 0.5,
+    // uFormation == heldTravel > 0.002). Taps (uRimMirror <= 0.3) and still held lenses
+    // (uFormation <= 1e-6) evaluate heldMovingGate == 0.0 and stay byte-identical.
+    float heldMovingGate = step(1.5, uProfile) * (1.0 - step(2.5, uProfile))
+        * step(0.5, uRimMirror) * clamp(uHeldLens, 0.0, 1.0)
+        * smoothstep(0.002, 0.030, clamp(uFormation, 0.0, 1.0));
     // Interior magnification of the held lens ([GlassStyle.heldMagnification]): the aperture
     // zooms about the body's centre, so the held item reads larger and the bar's own edge is
     // carried outward inside the lens, which is what the calm held references show. Zero for
-    // every other profile, and it rises and falls with the lens itself.
+    // every other profile, and it rises and falls with the lens itself; fades out on moving
+    // Calm held lenses as per-item self-centred zoom takes over (#121).
     if (uHeldMagnification > 0.0 && uProfile >= 1.5 && uProfile < 2.5) {
         float2 magCentre = (uBodyKind > 1.5) ? uPoseC.xy
             : ((uBodyKind > 0.5) ? float2((uBody.x + uBody.y) * 0.5, uBodyY) : float2(0.0));
-        base -= (p - magCentre) * (uHeldMagnification * clamp(uHeldLens, 0.0, 1.0) * mat);
+        base -= (p - magCentre) * (uHeldMagnification * (1.0 - heldMovingGate) * clamp(uHeldLens, 0.0, 1.0) * mat);
     }
 
     float2 push = n * bend * lens;
@@ -237,19 +244,35 @@ half4 main(float2 coord) {
         // so every other style keeps its band. Authored.
         float heldBottom = step(1.5, uProfile) * (1.0 - step(2.5, uProfile)) * clamp(uHeldLens, 0.0, 1.0)
             * smoothstep(0.2, 0.8, n.y);
-        float W = max(uRefractBand * mix(1.0, (uBandBottom > 0.0) ? uBandBottom : 1.0, heldBottom), 0.001);
-        float u = clamp(depth / W, 0.0, 1.0);
+        float sideCapNoBot = 1.0 - smoothstep(0.45, 0.82, n.y);
+        float sideCapNx = smoothstep(0.08, 0.42, abs(n.x));
+        float heldTopStraight = smoothstep(-0.35, -0.80, n.y) * (1.0 - sideCapNx);
         float corner = (uBodyKind > 1.5)
             ? poseCorner(p, uPoseAInv, uPoseC, uPoseD)
             : ((uBodyKind > 0.5)
                 ? bodyCorner(p, uBody, uBodyY)
                 : ((uShapeKind < 0.5) ? cornerWeight(p, halfSize, uRadii) : 1.0));
+        float sideCapWeight = corner * sideCapNoBot * sideCapNx;
+        float kSide = heldMovingGate * sideCapWeight;
+        float W = max(uRefractBand
+            * mix(1.0, (uBandBottom > 0.0) ? uBandBottom : 1.0, heldBottom)
+            * mix(1.0, 1.12, kSide)
+            * mix(1.0, 0.45, heldMovingGate * heldTopStraight), 0.001);
+        float u = clamp(depth / W, 0.0, 1.0);
         float heldFamily = step(1.5, uProfile);
         float held = heldFamily * clamp(uHeldLens, 0.0, 1.0);
         float heldMap = (uHeldInk > 0.5) ? heldSourceContinuous(u) : heldSource(u);
         // The resting map's weight: corner arcs, plus a capsule's straight runs on the measured map (#216).
         float restW = (uBodyKind < 0.5 && uShapeKind < 0.5) ? restCorner(corner, halfSize, uRadii) : corner;
-        float src = mix(measuredSource(u, uFormation * mix(1.0, corner, clamp(uFoldCorners, 0.0, 1.0)), restW), mix(u, heldMirror(u, heldMap, corner), held), heldFamily);
+        float v = 1.0 - u;
+        float v2 = v * v;
+        float outGate = smoothstep(0.025, 0.050, clamp(uFormation, 0.0, 1.0));
+        // #121: strictly monotonic C1 outward-tip / convex-mid S-curve on moving held side caps
+        // (A = 0.41, B = 0.80 gated on uFormation 0.025..0.050 so slowing/settled lenses keep pure
+        // convex magnification without pulling neighbouring icons; slope > 0 everywhere, C1 at u = 1).
+        float capDome = u + 0.41 * v2 - (0.80 * outGate) * (v2 * v2 * v);
+        float heldSrc = mix(heldMirror(u, heldMap, corner), mix(u, capDome, sideCapWeight), heldMovingGate * sideCapNoBot);
+        float src = mix(measuredSource(u, uFormation * mix(1.0, corner, clamp(uFoldCorners, 0.0, 1.0)), restW), mix(u, heldSrc, held), heldFamily);
         float capLens = clamp(uFoldCorners - 1.0, 0.0, 1.0) * corner * (1.0 - heldFamily);
         src = mix(src, heldMap, capLens);
         float shift = (depth < W) ? (src * W - depth) : 0.0;
@@ -258,18 +281,23 @@ half4 main(float2 coord) {
         float foldMask = mix(1.0, corner, clamp(uFoldCorners, 0.0, 1.0));
         float mirrorZone = mix(rimZone(u) * clamp(uFormation, 0.0, 1.0) * foldMask,
             (1.0 - smoothstep(0.45, 0.55, u)) * held, heldFamily);
+        // #121: bevel-slope dispersion floor on moving side caps preserves rim fringes (#73)
+        // even where the S-curve shift passes through zero near the outer rim.
+        float effShift = max(abs(shift), 0.30 * W * v2 * kSide * mat * axisFade * smoothstep(0.0, 1.5, depth));
         float delta = mix(uInkSplit * 4.0 * abs(shift) * mirrorZone * mat,
-            uInkSplit * 4.0 * abs(shift) * held * mat, heldFamily);
-        push = -n * shift;
+            uInkSplit * 4.0 * effShift * mix(1.0, 1.05, kSide) * held * mat, heldFamily);
+        // #121: damp upward vertical pull on moving side caps so crossing icons wrap smoothly without a top teardrop.
+        float2 pushN = float2(n.x, n.y * mix(1.0, 0.45, kSide * smoothstep(0.0, 0.70, -n.y)));
+        push = -pushN * shift;
         // The fold shows red the deeper content; the held lens shows blue the deeper content,
         // so blue's copy of the pulled-in edge lands outermost (FINDINGS 19).
         float heldOrder = heldFamily * (1.0 - ((uRimMirror > 0.0) ? clamp(uFormation, 0.0, 1.0) * foldMask : 0.0));
         float dR = mix(delta, -delta, heldOrder);
-        float maxOutward = mix(0.0, max(uPad, W), heldOrder);
+        float maxOutward = max(mix(0.0, max(uPad, W), heldOrder), kSide * 1.6 * max(uPad, W));
         float shiftR = max(shift + dR, -maxOutward);
         float shiftB = max(shift - dR, -maxOutward);
-        pushR = -n * shiftR;
-        pushB = -n * shiftB;
+        pushR = -pushN * shiftR;
+        pushB = -pushN * shiftB;
     }
 
     if (uProfile >= 2.5) {
