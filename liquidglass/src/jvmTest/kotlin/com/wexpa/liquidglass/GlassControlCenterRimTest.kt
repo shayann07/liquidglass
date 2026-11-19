@@ -125,10 +125,11 @@ class GlassControlCenterRimTest {
                 check(sideExcess in 6.5..10.5, "G $g side peak %.0f is %+.1f over the measured %.0f (expected +8 to +9, band 6.5 to 10.5; a known gap)".format(peak(side), sideExcess, peak(measured.getValue("$g-side"))))
                 // The contour is the sides' and the diagonals', and nothing at the poles.
                 check(contour(pole) >= g - 3.0, "G $g pole contour %.0f (none: at least %d)".format(contour(pole), g - 3))
-                // Side contour: ours renders 6 / 36 / 55 (measured 0 / 7 / 24: the shader's 1.5 px band is shallower than the measured
-                // 2 px, a known gap). Pinned to what is rendered, plus or minus 3, so a deeper or shallower band both show.
-                val expectedSideContour = mapOf(10 to 6.0, 56 to 36.0, 102 to 55.0).getValue(g)
-                check(abs(contour(side) - expectedSideContour) <= 3.0, "G $g side contour %.0f (rendered 6 / 36 / 55, gate +-3; measured %.0f, so still too shallow)".format(contour(side), contour(measured.getValue("$g-side"))))
+                // Side contour: ours renders 2 / 11 / 21 (measured 0 / 7 / 24) since the 2.5 px contour band (p2/shader); the 1.5 px band
+                // rendered 6 / 36 / 55, 6 to 31 levels away. Pinned to what is rendered, plus or minus 3, so a deeper or shallower band
+                // both show; the band is still a little shallower than measured at G 10 and 56 (2 and 4 above) and 3 deeper at G 102.
+                val expectedSideContour = mapOf(10 to 2.0, 56 to 11.0, 102 to 21.0).getValue(g)
+                check(abs(contour(side) - expectedSideContour) <= 3.0, "G $g side contour %.0f (rendered 2 / 11 / 21, gate +-3; measured %.0f)".format(contour(side), contour(measured.getValue("$g-side"))))
             }
         }
         assertTrue(failures.isEmpty(), failures.joinToString("; "))
