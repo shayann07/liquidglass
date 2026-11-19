@@ -59,8 +59,8 @@ class GlassAccessoryLink internal constructor() {
      * reaches over it (#107): the lens refracts what the button draws, as it refracts the bar. Recorded by the
      * button's overlay only while [captured] (the bar sets it when its lens yields to this accessory).
      */
-    internal var capture: androidx.compose.ui.graphics.layer.GraphicsLayer? = null
-    internal var captureOrigin: Offset = Offset.Zero
+    internal var capture: androidx.compose.ui.graphics.layer.GraphicsLayer? by mutableStateOf(null)
+    internal var captureOrigin: Offset by mutableStateOf(Offset.Zero)
     internal var captured: Boolean by mutableStateOf(false)
 }
 

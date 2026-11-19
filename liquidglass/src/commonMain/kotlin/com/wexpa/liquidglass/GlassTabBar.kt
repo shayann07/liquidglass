@@ -57,6 +57,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.layer.drawLayer
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.Color
@@ -154,7 +155,7 @@ fun GlassTabBar(
     trailingAccessory: GlassTabBarAccessory? = null,
     item: @Composable (index: Int, selected: Boolean) -> Unit,
 ) {
-    GlassPortal(modifier, aboveLink = if (trailingAccessory?.yieldsToLens == true) trailingAccessory.link else null) { state ->
+    GlassPortal(modifier) { state ->
         GlassTabBar(state, itemCount, selectedIndex, onSelected, Modifier, style, motionEnabled, materialize,
             trailingAccessory, item = item)
     }
@@ -221,7 +222,6 @@ internal fun GlassTabBar(
     // #107: a held lens that reaches over a yielding accessory looks through the bar and the accessory's own glass.
     val reachesAccessory = trailingAccessory?.yieldsToLens == true && trailingAccessory.link != null
     val accessoryLink = trailingAccessory?.link
-    androidx.compose.runtime.SideEffect { accessoryLink?.captured = reachesAccessory }
     val lensThrough = if (reachesAccessory) remember(barState) {
         LiquidGlassState(barState.background, barState.inversion, barState.frost, barState.contrast, barState.renderScale)
     } else null
@@ -551,6 +551,9 @@ internal fun GlassTabBar(
         // the protruding held lens: only an eligible press that outlives the hold threshold, or
         // a recognized drag, forms it.
         val lift = poseHandle?.formation ?: handle?.formation ?: v2Lift
+        // Capture the accessory button into a layer only while the selector is actually raised (#107),
+        // keeping resting and search-button-only frames bit-for-bit identical to the direct draw path.
+        androidx.compose.runtime.SideEffect { accessoryLink?.captured = reachesAccessory && lift > 0.005f }
         // [GlassTabBarStyle.itemsFollowBarPress]: false, the ink follows the bar's pressed drawing
         // only as far as the selector has formed (a hold), so a tap's press leaves it in place.
         val itemShare: (() -> Float)? = if (style.itemsFollowBarPress) null
@@ -1264,6 +1267,7 @@ internal fun GlassTabBar(
                         ).apply { follow = trailingAccessory.link }
                     }
                 } else null
+                val poseSelector: @Composable androidx.compose.foundation.layout.BoxScope.() -> Unit = {
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopStart)
@@ -1280,7 +1284,8 @@ internal fun GlassTabBar(
                         .size(width = envelopeDp, height = nodeHeightDp)
                         .then(if (lensThrough != null && lensThroughLayer != null && accessoryLink != null) {
                             Modifier.drawBehind {
-                                recordLensThrough(lensThrough, lensThroughLayer, barState, accessoryLink, glassRegion?.root)
+                                recordLensThrough(lensThrough, lensThroughLayer, barState, barDrawing, accessoryLink,
+                                    glassRegion?.root, darkenAccessory = style.lens.tintLift < 0f)
                             }
                         } else Modifier)
                         .liquidGlassCore(
@@ -1362,6 +1367,16 @@ internal fun GlassTabBar(
                             )
                         }
                     }
+                }
+                }
+                // #107: keep the tab bar under its yielding accessory so the accessory glass and icon stay intact,
+                // and lift only the selector lens into a portal drawn immediately above the accessory.
+                if (reachesAccessory && glassRegion != null) {
+                    GlassPortal(Modifier.fillMaxSize(), aboveLink = accessoryLink) {
+                        Box(Modifier.fillMaxSize()) { poseSelector() }
+                    }
+                } else {
+                    poseSelector()
                 }
                 return@BoxWithConstraints
             }
@@ -2623,9 +2638,10 @@ internal val GlassAccessoryLensLean = 5.7.dp
 /** 1 while the lens is held or released from a hold, else 0: a tap in transit leans and stretches nothing (#107). */
 private fun heldGate(controller: GlassPoseController): Float =
     if (controller.mode == GlassPoseMode.Held || controller.mode == GlassPoseMode.Released) 1f else 0f
-/** How much longer that lens grows at its accessory end (#107): iOS's spans x 603-955 there, about 32 px wider than
- * ours, its outline crossing over the search button (IMG_6756 35.5 s, 3x scene px). Measured. */
-internal val GlassAccessoryLensReach = 10.7.dp
+/** How much longer that lens grows at its accessory end (#107): fitted with the lens drawn over the search button so
+ * the right dark outline crosses row 546 at x 958 and rows 500/590 near x 948-950 (IMG_6756 35.45-35.55 s, 3x scene
+ * px; was 10.7 dp while hidden under the button, which reached x 976). Measured. */
+internal val GlassAccessoryLensReach = 5.5.dp
 
 /** Light `Calm()`'s bar as the preset builds it: the top shade is for exactly this bar (#128). */
 private val CalmLightBar by lazy { GlassTabBarStyle.Calm(dark = false).bar }
@@ -2764,8 +2780,10 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.recordLensThrough(
     into: LiquidGlassState,
     layer: androidx.compose.ui.graphics.layer.GraphicsLayer,
     bar: LiquidGlassState,
+    barDrawing: GlassMaterialDrawingState?,
     link: GlassAccessoryLink,
     root: androidx.compose.ui.layout.LayoutCoordinates?,
+    darkenAccessory: Boolean = false,
 ) {
     val barLayer = bar.layer ?: return
     val coords = bar.sourceCoordinates ?: return
@@ -2774,13 +2792,70 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.recordLensThrough(
     val origin = if (button != null && root != null && root.isAttached && coords.isAttached) {
         link.captureOrigin - root.localPositionOf(coords, Offset.Zero)
     } else null
-    layer.record(size = barLayer.size) {
-        drawLayer(barLayer)
-        if (button != null && origin != null) {
-            translate(origin.x, origin.y) { drawLayer(button) }
+    val recordSize = if (button != null && origin != null) {
+        androidx.compose.ui.unit.IntSize(
+            maxOf(barLayer.size.width, (origin.x + button.size.width).roundToInt()),
+            maxOf(barLayer.size.height, (origin.y + button.size.height).roundToInt()),
+        )
+    } else barLayer.size
+    val barW = barLayer.size.width.toFloat()
+    val barH = barLayer.size.height.toFloat()
+    val d = barDrawing?.drawing
+    val barRight = if (d != null && d.centre.x > 0f) {
+        d.centre.x + (barW - d.centre.x) * d.pressX + d.pull.translationX
+    } else barW
+    val overlapPx = 0.85.dp.toPx()
+    val gapLtr = if (button != null && origin != null) origin.x - barRight else -1f
+    val bridgeLtr = button != null && origin != null && barRight > 0f && gapLtr in 0f..3.dp.toPx()
+    layer.record(size = recordSize) {
+        if (bridgeLtr) {
+            // Draw the accessory first, then the bar's trailing cap extended across the ~3 px press gap
+            // (clipped just inside the accessory's leading edge so the bar's yielded fuse silhouette is
+            // excluded and rows 500/590 stay completely untouched; #107). Authored.
+            drawButtonLayer(button!!, origin!!, darkenAccessory)
+            val clipRight = origin.x + overlapPx
+            val sx = clipRight / barRight
+            clipRect(-barW, -barH, clipRight, recordSize.height.toFloat() + barH) {
+                scale(sx, 1f, pivot = Offset.Zero) { drawLayer(barLayer) }
+            }
+        } else {
+            drawLayer(barLayer)
+            if (button != null && origin != null) {
+                drawButtonLayer(button, origin, darkenAccessory)
+            }
         }
     }
     into.layer = layer
     into.sourceCoordinates = coords
     into.sourceSize = bar.sourceSize
+}
+
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawButtonLayer(
+    button: androidx.compose.ui.graphics.layer.GraphicsLayer,
+    origin: Offset,
+    darkenAccessory: Boolean,
+) {
+    translate(origin.x, origin.y) {
+        if (darkenAccessory) {
+            // Over a dark bar whose negative lens lift is masked by bar footprint, attenuate the captured
+            // accessory in the lens's backdrop copy so the lens's touch glow lands on iOS's 30-31 (#107). Authored.
+            drawIntoCanvas { canvas ->
+                val paint = androidx.compose.ui.graphics.Paint().apply {
+                    colorFilter = androidx.compose.ui.graphics.ColorFilter.lighting(
+                        Color(0.88f, 0.88f, 0.88f),
+                        Color.Black,
+                    )
+                }
+                val rect = androidx.compose.ui.geometry.Rect(
+                    Offset.Zero,
+                    androidx.compose.ui.geometry.Size(button.size.width.toFloat(), button.size.height.toFloat()),
+                )
+                canvas.saveLayer(rect, paint)
+                drawLayer(button)
+                canvas.restore()
+            }
+        } else {
+            drawLayer(button)
+        }
+    }
 }

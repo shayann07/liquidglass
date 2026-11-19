@@ -361,9 +361,10 @@ private fun OverlayGlass(region: GlassRegion, entry: GlassOverlayEntry) {
                 val keep = link != null && link.captured && !entry.disposed
                 if (keep && !captureLayer.isReleased) {
                     captureLayer.record { this@drawWithContent.drawContent() }
-                    link!!.capture = captureLayer
+                    if (link.capture !== captureLayer) link.capture = captureLayer
                     val b = entry.drawn
-                    link.captureOrigin = Offset(b.left.roundToInt().toFloat(), b.top.roundToInt().toFloat())
+                    val origin = Offset(b.left.roundToInt().toFloat(), b.top.roundToInt().toFloat())
+                    if (link.captureOrigin != origin) link.captureOrigin = origin
                     drawLayer(captureLayer)
                 } else {
                     if (link != null && link.capture === captureLayer) link.capture = null
