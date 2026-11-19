@@ -801,7 +801,15 @@ half4 main(float2 coord) {
     // Gated, not just scaled: normalize() of a zero light is NaN, and 0 * NaN would poison every pixel.
     if (uPressGrade != 0.0 && dot(uLight, uLight) > 0.0) {
         float2 gradePos = (local - 0.5 * uSize) / max(0.5 * min(uSize.x, uSize.y), 1.0);
-        col += half3(half(uPressGrade * dot(gradePos, normalize(uLight)) * tintCoverage * mat));
+        // The grade leans 18.7 degrees toward the left of the light (sin 0.32, cos 0.947), an internal constant, not a
+        // style parameter. MEASURED: iOS's held search button over black (IMG_6756) reads +2.5 to +3 levels brighter at
+        // the top left than at the top right (patches 100 px apart), so the plane is not purely along an overhead light;
+        // FITTED: sin = 2.75 / (100 px x 0.0858 levels/px) so TL - TR lands mid-range, the amplitude (GlassPressGrade)
+        // untouched. AUTHORED: that the same tilt applies to every light, size and shape. Rotating the light, not
+        // replacing it, keeps a custom light steering the grade and a zero light gating it off (above).
+        float2 gl = normalize(uLight);
+        float2 gradeDir = float2(0.947 * gl.x + 0.32 * gl.y, -0.32 * gl.x + 0.947 * gl.y);
+        col += half3(half(uPressGrade * dot(gradePos, gradeDir) * tintCoverage * mat));
     }
     // A pressed quick-action button (GlassInteraction.QuickAction) mixes its whole body toward white, as iOS's does. The branch
     // is skipped, so nothing is read or written, whenever the uniform is 0, which it is for every glass but a quick action.
