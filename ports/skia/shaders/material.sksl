@@ -821,10 +821,12 @@ half3 toneMappedTint(half3 tint, float bgLuma, float adapt) {
 // from the backdrop (the light appearance, additive: iOS 27 removes 76 levels at 128 and at 255, m202d).
 float outerContourAlpha(float2 n, float band) {
     float side = pow(max(1.0 - abs(dot(n, uLight)), 0.0), 0.75);
-    // Authored: the measured Control Center toggle shows no contour within 20 degrees of the lit poles (flat to the
-    // page level there, #206), which the 2.5 px band's wider reach would otherwise tint by up to 4 levels; the gate
-    // closes below the 20 degree value (0.122) and is open by 35 degrees, so the diagonals and sides are unchanged.
-    side *= smoothstep(0.12, 0.28, side);
+    // Authored, and only for the style it was measured on: the Control Center toggle (side strength 1, i.e.
+    // GlassStyle.controlCenterTile) shows no contour within 20 degrees of the lit poles (flat to the page level there,
+    // #206), which the 2.5 px band's wider reach would otherwise tint by up to 4 levels. Its gate closes below the 20
+    // degree value (0.122) and is open by 35 degrees, so the diagonals and sides are unchanged. The navigation buttons
+    // (0.61) are measured to keep a faint contour there (5.7% of the side value at 20 degrees) and are not gated.
+    side *= mix(1.0, smoothstep(0.12, 0.28, side), step(0.995, uOuterContour.x));
     return clamp(band * abs(uOuterContour.x) * mix(uOuterContour.y, 1.0, side), 0.0, 1.0);
 }
 
@@ -1257,7 +1259,15 @@ half4 main(float2 coord) {
     // Gated, not just scaled: normalize() of a zero light is NaN, and 0 * NaN would poison every pixel.
     if (uPressGrade != 0.0 && dot(uLight, uLight) > 0.0) {
         float2 gradePos = (local - 0.5 * uSize) / max(0.5 * min(uSize.x, uSize.y), 1.0);
-        col += half3(half(uPressGrade * dot(gradePos, normalize(uLight)) * tintCoverage * mat));
+        // The grade leans 18.7 degrees toward the left of the light (sin 0.32, cos 0.947), an internal constant, not a
+        // style parameter. MEASURED: iOS's held search button over black (IMG_6756) reads +2.5 to +3 levels brighter at
+        // the top left than at the top right (patches 100 px apart), so the plane is not purely along an overhead light;
+        // FITTED: sin = 2.75 / (100 px x 0.0858 levels/px) so TL - TR lands mid-range, the amplitude (GlassPressGrade)
+        // untouched. AUTHORED: that the same tilt applies to every light, size and shape. Rotating the light, not
+        // replacing it, keeps a custom light steering the grade and a zero light gating it off (above).
+        float2 gl = normalize(uLight);
+        float2 gradeDir = float2(0.947 * gl.x + 0.32 * gl.y, -0.32 * gl.x + 0.947 * gl.y);
+        col += half3(half(uPressGrade * dot(gradePos, gradeDir) * tintCoverage * mat));
     }
     // A pressed quick-action button (GlassInteraction.QuickAction) mixes its whole body toward white, as iOS's does. The branch
     // is skipped, so nothing is read or written, whenever the uniform is 0, which it is for every glass but a quick action.
