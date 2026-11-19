@@ -54,6 +54,14 @@ internal class GlassMaterialDrawingState {
 class GlassAccessoryLink internal constructor() {
     internal val drawing = GlassMaterialDrawingState()
     internal var barState: LiquidGlassState? by mutableStateOf(null)
+    /**
+     * The accessory glass's own rendering and where it sits (in the glass region's frame), for a held lens that
+     * reaches over it (#107): the lens refracts what the button draws, as it refracts the bar. Recorded by the
+     * button's overlay only while [captured] (the bar sets it when its lens yields to this accessory).
+     */
+    internal var capture: androidx.compose.ui.graphics.layer.GraphicsLayer? by mutableStateOf(null)
+    internal var captureOrigin: Offset by mutableStateOf(Offset.Zero)
+    internal var captured: Boolean by mutableStateOf(false)
 }
 
 /** A [GlassAccessoryLink] that survives recomposition. */

@@ -162,7 +162,7 @@ internal class MorphTracker(private val id: Any, private val namespace: GlassNam
  * Without a theme the content is composed in place over an empty backdrop, so it draws its fallback.
  */
 @Composable
-internal fun GlassPortal(modifier: Modifier, content: @Composable (LiquidGlassState) -> Unit) {
+internal fun GlassPortal(modifier: Modifier, aboveLink: GlassAccessoryLink? = null, content: @Composable (LiquidGlassState) -> Unit) {
     val region = LocalGlassRegion.current
     if (region == null) {
         GlassWarnings.missingRoot()
@@ -174,6 +174,7 @@ internal fun GlassPortal(modifier: Modifier, content: @Composable (LiquidGlassSt
     entry.state = region.rememberStateFor(LocalGlassDefaults.current)
     entry.locals = currentCompositionLocalContext
     entry.content = content
+    entry.aboveLink = aboveLink
     DisposableEffect(region, entry) {
         region.layers += entry
         onDispose { region.layers -= entry }
@@ -193,6 +194,8 @@ internal class GlassPortalEntry {
     var locals: CompositionLocalContext? by mutableStateOf(null)
     var state: LiquidGlassState? by mutableStateOf(null)
     var content: @Composable (LiquidGlassState) -> Unit by mutableStateOf({})
+    /** Draw just above the glass that publishes this link, instead of in composition order (#107). */
+    var aboveLink: GlassAccessoryLink? by mutableStateOf(null)
     /** Fill the theme's root instead of taking the call site's place (dialogs, sheets, menus). */
     var fillRoot = false
 

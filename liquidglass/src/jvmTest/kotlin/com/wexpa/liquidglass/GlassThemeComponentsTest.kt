@@ -102,6 +102,57 @@ class GlassThemeComponentsTest {
         assertTrue(r > 180 && g < 90, "the accessory's content is hidden under the bar (r=$r g=$g)")
     }
 
+    /**
+     * #107: a linked yielding accessory keeps its icon visible at rest (the bar stays underneath it)
+     * and when the last tab's held lens reaches across it, the lens draws over the accessory and
+     * refracts the accessory's own rendering rather than the bar's fused silhouette.
+     */
+    @Test fun aLinkedYieldingAccessoryStaysVisibleAndRefractsThroughHeldLens() = runComposeUiTest(testTimeout = 4.minutes) {
+        lateinit var linkRef: GlassAccessoryLink
+        setContent {
+            CompositionLocalProvider(LocalDensity provides Density(1f)) {
+                LiquidGlassTheme(dark = true, background = Color.Black) {
+                    val link = rememberGlassAccessoryLink().also { linkRef = it }
+                    Box(Modifier.size(400.dp, 120.dp).background(Color.Black).testTag("scene")) {
+                        Row(Modifier.align(Alignment.Center), verticalAlignment = Alignment.CenterVertically) {
+                            GlassTabBar(3, 2, {}, Modifier.width(278.dp),
+                                style = GlassTabBarStyle.Calm(dark = true),
+                                trailingAccessory = GlassTabBarAccessory(62.dp, gap = 8.dp, yieldsToLens = true, link = link)) { _, _ ->
+                                Box(Modifier.size(18.dp).background(Color.White))
+                            }
+                            Spacer(Modifier.width(8.dp))
+                            Box(Modifier.size(62.dp).glassEffect(Glass(GlassTabBarStyle.Calm(dark = true).bar), CircleShape, link = link),
+                                contentAlignment = Alignment.Center) {
+                                Box(Modifier.size(20.dp).background(Color.Red))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        waitForIdle()
+        val restImg = onNodeWithTag("scene").captureToImage().toAwtImage()
+        // Bar (278) + gap (8) + button (62) = 348, centred in 400 -> left = 26, button x = 312..374, centre = 343.
+        val restRgb = restImg.getRGB(343, 60)
+        val rr = (restRgb shr 16) and 0xFF; val rg = (restRgb shr 8) and 0xFF
+        println("LINKED_107_REST centre=(343,60) r=$rr g=$rg captured=${linkRef.captured} cap=${linkRef.capture != null}")
+        assertTrue(rr > 180 && rg < 90, "linked accessory icon hidden at rest (r=$rr g=$rg)")
+
+        val tab = onNodeWithTag(GlassTabBarSemantics.TAG, useUnmergedTree = true)
+        tab.performTouchInput { down(Offset(width * 0.85f, height / 2f)); advanceEventTime(500); moveTo(Offset(width * 0.85f, height / 2f)) }
+        waitForIdle()
+        val heldImg = onNodeWithTag("scene").captureToImage().toAwtImage()
+        tab.performTouchInput { up() }
+        val heldCenter = heldImg.getRGB(343, 60)
+        val hr = (heldCenter shr 16) and 0xFF; val hg = (heldCenter shr 8) and 0xFF
+        val overBtn = (heldImg.getRGB(318, 60) shr 8) and 0xFF
+        val row = (300..340 step 2).joinToString(" ") { x -> "${(heldImg.getRGB(x, 60) shr 8) and 0xFF}" }
+        println("LINKED_107_HELD centre=(343,60) r=$hr g=$hg overBtn=$overBtn captured=${linkRef.captured} cap=${linkRef.capture != null}")
+        println("LINKED_107_ROW x=300..340 step 2: $row")
+        assertTrue(hr > 180 && hg < 90, "linked accessory icon hidden while held (r=$hr g=$hg)")
+        assertTrue(overBtn in 20..40, "lens over accessory should refract accessory glass (30-36), not bar (49): got $overBtn")
+    }
+
     @Test fun aNestedThemeChangesAccessibilityForItsSubtree() {
         fun level(reduce: Float): Int {
             lateinit var image: java.awt.image.BufferedImage
