@@ -1,6 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import CanvasKitInit from 'canvaskit-wasm';
+import {TRACK_COLUMNS} from './bake.mjs';
 import {createGlassScene, createGlassPainter, bakeNavigation, navigationTrack, drawNavigation} from 'liquidglass-skia-preview';
 import {bakeNavigation as bakeSubpath} from 'liquidglass-skia-preview/bake';
 import {createNavigationDriver} from './navigation.mjs';
@@ -158,6 +159,27 @@ test('a track is plain data: a copy samples identically', () => {
   assert.throws(() => navigationTrack({}), /track/);
   assert.throws(() => navigationTrack({...json, columns: json.columns.slice(1)}), /track/);
   assert.equal(typeof bakeSubpath, 'function');
+});
+
+test('a version 1 track (before the hold terms) still loads and plays as it did', () => {
+  const track = bakeNavigation(config(), events, {step: 1 / 60, duration: DURATION});
+  const json = track.toJSON();
+  assert.equal(json.version, 2);
+  // A v1 file is the v2 one without the four hold columns, in the same order.
+  const added = new Set(['selector.holdLook', 'selector.holdRim', 'selector.holdFormed', 'selector.holdReleasing']);
+  const v1 = {...json, version: 1, columns: json.columns.filter((_, i) => !added.has(TRACK_COLUMNS[i]))};
+  assert.equal(v1.columns.length, json.columns.length - 4);
+  const old = navigationTrack(JSON.parse(JSON.stringify(v1)));
+  assert.equal(old.length, track.length);
+  for (const t of [0, .1, .333, 1.07, 1.5, 2.9, 3]) {
+    const a = old.sample(t), b = track.sample(t);
+    // No hold, as the old code drew: the fill follows the formation, nothing is hold-formed or releasing.
+    assert.equal(a.selector.holdFormed, false); assert.equal(a.selector.holdReleasing, false);
+    assert.equal(a.selector.holdLook, a.selector.formation); assert.equal(a.selector.holdRim, a.selector.formation);
+    const strip = s => ({...s, selector: {...s.selector, holdFormed: 0, holdReleasing: 0, holdLook: 0, holdRim: 0}});
+    assert.equal(FLAT(strip(a)), FLAT(strip(b)), `v1 playback at ${t}`);
+  }
+  assert.throws(() => navigationTrack({...v1, columns: v1.columns.slice(1)}), /track/);
 });
 
 test('bad scripts and bars are rejected', () => {

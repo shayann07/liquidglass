@@ -99,6 +99,20 @@ internal static class NavigationTrackChecks
         Throws<ArgumentException>(() => NavigationBaker.Bake(bar, [new((NavigationEventType)9, 0)], 1));
         Throws<ArgumentOutOfRangeException>(() => NavigationBaker.Bake(bar, [], -1));
         Throws<ArgumentOutOfRangeException>(() => NavigationBaker.Bake(bar, [], 1, 0));
+        // A version 1 track (before the hold terms) still loads and plays as it did: no hold, the fill following the formation.
+        var v2Data = coarse.ToData();
+        int[] added = [35, 36, 43, 44];
+        var v1Data = new NavigationTrackData(1, v2Data.Step, v2Data.Duration, v2Data.Columns.Where((_, i) => !added.Contains(i)).ToArray());
+        var old = NavigationTrack.FromData(JsonSerializer.Deserialize<NavigationTrackData>(JsonSerializer.Serialize(v1Data))!);
+        Check(old.Length == coarse.Length && old.ToData().Version == 2, "A version 1 track did not load");
+        foreach (var t in times)
+        {
+            var o = old.Sample(t); var n = coarse.Sample(t);
+            Check(o.Hold == new CalmHold(false, false, o.Formation, o.Formation), $"A version 1 track has a hold at {t}");
+            Check(Same(o with { Hold = n.Hold }, n with { Hold = n.Hold }), $"A version 1 track plays differently at {t}");
+        }
+        Throws<ArgumentException>(() => NavigationTrack.FromData(new NavigationTrackData(1, 1, 1, v1Data.Columns[1..])));
+        Throws<ArgumentException>(() => NavigationTrack.FromData(new NavigationTrackData(3, 1, 1, v2Data.Columns)));
         Throws<ArgumentException>(() => NavigationTrack.FromData(new NavigationTrackData(2, 1, 1, [])));
         Throws<ArgumentOutOfRangeException>(() => coarse.Sample(double.NaN));
         Check(NavigationBaker.Bake(bar, [], 0).Length == 1, "A zero-length bake has one step");
