@@ -86,7 +86,8 @@ export function drawNavigation(kit, painter, canvas, {bounds, pixelRatio = 1, so
     d: [p.d[0] * r, p.d[1] * r, p.d[2], p.d[3] * r]};
   // As in Compose, the lens looks through the bar: the page with the bar's glass over it.
   const through = barThrough(kit, painter, canvas, source, feedback, deviceBounds, {ratio, bar});
-  const state = {pose, formation: s.formation, transit: s.transitAppearance, heldTravel: s.heldTravel, formedTap: s.tapFormed};
+  const state = {pose, formation: s.formation, transit: s.transitAppearance, heldTravel: s.heldTravel, formedTap: s.tapFormed,
+    formedHold: s.holdFormed, holdReleasing: s.holdReleasing, holdLook: s.holdLook, holdRim: s.holdRim};
   try {
     painter.drawSelector(canvas, deviceBounds, state, {...bar, through});
     if (ink) painter.drawSelectorInk(canvas, deviceBounds, state, ink, bar);

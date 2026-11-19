@@ -180,7 +180,7 @@ export function createGlassPainter(kit, sources = glassShaderSources) {
      * the lens's contact shadow (light Calm's held lens casts one).
      * Labels and selected ink stay with the host.
      */
-    drawSelector(canvas,{x,y,width,height},{pose,formation=0,transit=0,heldTravel=0,formedTap=false},options={}) {
+    drawSelector(canvas,{x,y,width,height},{pose,formation=0,transit=0,heldTravel=0,formedTap=false,formedHold=false,holdReleasing=false,holdLook=formation,holdRim=formation},options={}) {
       checkAlive();
       if(!source)throw new Error('Call setSource before drawing glass');
       if(![x,y,width,height,formation,transit,heldTravel].every(Number.isFinite)||width<=0||height<=0)
@@ -196,7 +196,7 @@ export function createGlassPainter(kit, sources = glassShaderSources) {
       const fusing=fuse&&fuse[5]>0;
       const pad=fusing?Math.ceil(Math.max(2,Math.abs(fuse[0])+fuse[2]-nodeW/2,Math.abs(fuse[1])+fuse[3]-nodeH/2)+fuse[5]/4+2):2;
       const originX=x-mx-pad,originY=y-my-pad;
-      const {values,uFormation}=calmSelectorMaterial({dark,formation,transit,heldTravel,formedTap});
+      const {values,uFormation}=calmSelectorMaterial({dark,formation,transit,heldTravel,formedTap,formedHold,holdReleasing,holdLook,holdRim});
       const uniforms=clearMaterialUniforms(effects,{width:nodeW,height:nodeH,pad,magnification:1});
       // Pose c is bar-local; the node is centred on the bar, as the shader expects.
       const [cx,cy,bx,by]=pose.c;
@@ -250,7 +250,7 @@ export function createGlassPainter(kit, sources = glassShaderSources) {
      * same body, map and band as `drawSelector`; draw it right after `drawSelector`. Every item may
      * be in the image: the lens shows each in its selected colour as it passes (as Calm does).
      */
-    drawSelectorInk(canvas,{x,y,width,height},{pose,formation=0,transit=0,heldTravel=0,formedTap=false},ink,options={}) {
+    drawSelectorInk(canvas,{x,y,width,height},{pose,formation=0,transit=0,heldTravel=0,formedTap=false,formedHold=false,holdReleasing=false,holdLook=formation,holdRim=formation},ink,options={}) {
       checkAlive();
       if(![x,y,width,height,formation,transit,heldTravel].every(Number.isFinite)||width<=0||height<=0)
         throw new RangeError('Selector ink requires a finite bar rect, formation, transit and held travel');
@@ -261,7 +261,7 @@ export function createGlassPainter(kit, sources = glassShaderSources) {
       if(!Number.isFinite(density)||density<=0)throw new RangeError('Selector density must be positive');
       const mx=height*.6,my=height*.4,nodeW=width+2*mx,nodeH=height+2*my,pad=2;
       const originX=x-mx-pad,originY=y-my-pad;
-      const {values,uFormation}=calmSelectorMaterial({dark,formation,transit,heldTravel,formedTap});
+      const {values,uFormation}=calmSelectorMaterial({dark,formation,transit,heldTravel,formedTap,formedHold,holdReleasing,holdLook,holdRim});
       const px=calmMaterialUniforms(values,density);
       const material=clearMaterialUniforms(effects,{width:nodeW,height:nodeH,pad,magnification:1});
       const [cx,cy,bx,by]=pose.c;

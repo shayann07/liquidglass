@@ -848,6 +848,10 @@ vec3 toneMappedTint(vec3 tint, float bgLuma, float adapt) {
 // from the backdrop (the light appearance, additive: iOS 27 removes 76 levels at 128 and at 255, m202d).
 float outerContourAlpha(vec2 n, float band) {
     float side = pow(max(1.0 - abs(dot(n, uLight)), 0.0), 0.75);
+    // Authored: the measured Control Center toggle shows no contour within 20 degrees of the lit poles (flat to the
+    // page level there, #206), which the 2.5 px band's wider reach would otherwise tint by up to 4 levels; the gate
+    // closes below the 20 degree value (0.122) and is open by 35 degrees, so the diagonals and sides are unchanged.
+    side *= smoothstep(0.12, 0.28, side);
     return clamp(band * abs(uOuterContour.x) * mix(uOuterContour.y, 1.0, side), 0.0, 1.0);
 }
 
@@ -1032,32 +1036,67 @@ vec4 glassMain(vec2 coord) {
         // The fold family, or the held-lens family blended from identity (GlassProfile.Held).
         float heldFamily = step(1.5, uProfile);
         float held = heldFamily * clamp(uHeldLens, 0.0, 1.0);
+        // Held lens (#108): over the top run measure depth from the lens's flat top rather than the
+        // squircle's curving contour so the bar's refracted edge stays level across the straight run,
+        // and ease the outward pull near the crown ends (|x|/A in 0.52..0.74) so the edge curves up
+        // into the rim as iOS's does instead of sagging (bottom keeps #94 uBandBottom untouched).
+        // Authored against IMG_6756 44.0/46.5/47.5 s.
+        float heldFlat = 0.0;
+        float heldAx = 0.0;
+        float dMap = depth;
+        if (heldFamily > 0.5 && uBodyKind > 1.5) {
+            vec3 zi = poseInverse(p, uPoseAInv, uPoseC);
+            if (zi.z > 0.5) {
+                vec2 z = zi.xy;
+                float scX = (uPoseD.z == 1.0) ? 1.0 : max(uPoseD.z, 1e-6);
+                float halfSp = uPoseD.x / scX;
+                float rad = uPoseD.y;
+                float A = max(halfSp + rad, 1e-4);
+                heldAx = abs(z.x / scX) / A;
+                float yScale = length(vec2(uPoseA.y, uPoseA.w));
+                float flatDepth = max(rad - abs(z.y), 0.0) * yScale;
+                heldFlat = smoothstep(0.35, 0.80, -nRefract.y) * held;
+                dMap = mix(depth, flatDepth, heldFlat);
+            }
+        }
+        float uHeld = clamp(dMap / W, 0.0, 1.0);
         // The resting map's weight: corner arcs, plus a capsule's straight runs on the measured map (#216).
         float restW = (uBodyKind < 0.5 && uShapeKind < 0.5) ? restCorner(corner, halfSize, uRadii) : corner;
-        float src = mix(measuredSource(u, uFormation * mix(1.0, corner, clamp(uFoldCorners, 0.0, 1.0)), restW), mix(u, heldMirror(u, heldSourceSmooth(u), corner), held), heldFamily);
+        float src = mix(measuredSource(u, uFormation * mix(1.0, corner, clamp(uFoldCorners, 0.0, 1.0)), restW), mix(uHeld, heldMirror(uHeld, heldSourceSmooth(uHeld), corner), held), heldFamily);
         // GlassStyle.capFold (uFoldCorners above 1): the rounded ends of a resting bar lens what lies
         // beyond them, as the held lens does, while its straight runs keep the rest offset.
         float capLens = clamp(uFoldCorners - 1.0, 0.0, 1.0) * corner * (1.0 - heldFamily);
         src = mix(src, heldSource(u), capLens);
-        float shift = (depth < W) ? (src * W - depth) : 0.0;
+        float dShift = mix(depth, dMap, heldFamily);
+        float shift = (dShift < W) ? (src * W - dShift) : 0.0;
         // The fold samples inward only; the held lens pulls the exterior in, so its shift may
         // point outward, into the margin the host recorded for it.
         shift = mix(max(shift, 0.0), shift, max(heldFamily, capLens)) * mat * axisFade * smoothstep(0.0, 1.5, depth);
+        shift *= 1.0 - 0.44 * smoothstep(0.52, 0.74, heldAx) * heldFlat;
         // Dispersion lives in the fold's mirrored zone, and in the held lens's whole outer band.
         // The colour split lives where the fold does: at the caps when uFoldCorners confines it.
         float foldMask = mix(1.0, corner, clamp(uFoldCorners, 0.0, 1.0));
         float mirrorZone = mix(rimZone(u) * clamp(uFormation, 0.0, 1.0) * foldMask,
-            (1.0 - smoothstep(0.45, 0.55, u)) * held, heldFamily);
+            (1.0 - smoothstep(0.45, 0.55, uHeld)) * held, heldFamily);
         float delta = mix(uAberration * 4.0 * abs(shift) * mirrorZone * mat,
             uAberration * 4.0 * abs(shift) * held * mat, heldFamily);
         push = -nRefract * shift;
         // The fold shows red the deeper content; the held lens shows blue the deeper content,
-        // so blue's copy of the pulled-in edge lands outermost (FINDINGS 19).
+        // so blue's copy of the pulled-in edge lands outermost (FINDINGS 19). Inside the top run
+        // (uHeld >= 0.25) damp the inward blue split to 0.48 so the growing outward shift does
+        // not stretch blue five rows ahead of green into a navy band (#108), while keeping full
+        // rim dispersion (uHeld <= 0.08), bottom rim fringe, and the outer shoulder's true-depth
+        // red dispersion intact. Authored.
         float heldOrder = heldFamily * (1.0 - ((uRimMirror > 0.0) ? clamp(uFormation, 0.0, 1.0) * foldMask : 0.0));
-        float dR = mix(delta, -delta, heldOrder);
+        float heldSplitB = mix(0.48, 1.0, 1.0 - smoothstep(0.08, 0.25, uHeld));
+        float heldSrcOrig = mix(u, heldMirror(u, heldSourceSmooth(u), corner), held);
+        float heldShiftOrig = ((depth < W) ? (heldSrcOrig * W - depth) : 0.0) * mat * axisFade * smoothstep(0.0, 1.5, depth);
+        float deltaR = mix(delta, uAberration * 4.0 * abs(heldShiftOrig) * held * mat, heldFamily * heldFlat);
+        float dR = mix(deltaR, -deltaR, heldOrder);
+        float dB = mix(delta, -delta * mix(1.0, heldSplitB, heldFlat), heldOrder);
         float maxOutward = mix(0.0, max(uPad, W), heldOrder);
         float shiftR = max(shift + dR, -maxOutward);
-        float shiftB = max(shift - dR, -maxOutward);
+        float shiftB = max(shift - dB, -maxOutward);
         pushR = -nRefract * shiftR;
         pushB = -nRefract * shiftB;
         bend = clamp(abs(shift) / W, 0.0, 1.0);
@@ -1392,11 +1431,17 @@ vec4 glassMain(vec2 coord) {
         // Two pixels wide, as the reference's: the outermost one is partly covered.
         // A dark outline (tone below 0.5, the dark Calm lens) is one pixel wider: iOS's line over the black page peaks ~95 with
         // 40-60 in the two rows inside it, where two pixels left 22-35 there (IMG_6756 35.5 / 43.8 s, #92). Authored.
+        // The extra pixel lifts brightness toward the tone but keeps the colour under it: painting it grey erased the lens's
+        // colour split there and cut IMG_6756's rim fringe from 0.88 to 0.71 of iOS's (#92).
         float lineWide = 1.0 - step(0.5, uHeldEdgeTone);
-        float line = smoothstep(3.0 + lineWide, 1.5 + 0.5 * lineWide, depth) * heldAmt * mat;
+        float line = smoothstep(3.0, 1.5, depth) * heldAmt * mat;
+        float lineExtra = max(smoothstep(4.0, 2.0, depth) * heldAmt * mat - line, 0.0) * lineWide;
         // Top and bottom only (#92): at the sides iOS's outline is the dark step, 14 over a bar of
         // 48 (IMG_6756 43.8 s, display colours), which the fixed grey here used to paint over.
         line *= n.y * n.y;
+        lineExtra *= n.y * n.y;
+        float lineLuma = dot(col, vec3(0.299, 0.587, 0.114));
+        col += vec3((float(uHeldEdgeTone) - lineLuma) * float(0.9 * lineExtra));
         col = mix(col, vec3(float(uHeldEdgeTone)), float(0.9 * line));
     }
     // The held lens's spectral rim (#73): iOS's lens rim carries a thin rainbow whose hue sweeps
