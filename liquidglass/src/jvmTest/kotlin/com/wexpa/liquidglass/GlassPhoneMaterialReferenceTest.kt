@@ -100,7 +100,7 @@ class GlassPhoneMaterialReferenceTest {
         assertEquals(0f, light.lens.tint.alpha)
         assertEquals(0f, light.lens.rawShare)
         // #128 (1 November): the held outline as dark as iOS's (top rim 227 against 226; 243 read 245).
-        assertEquals(217f / 255f, light.lens.heldEdgeTone, 1e-6f)
+        assertEquals(248f / 255f, light.lens.heldEdgeTone, 1e-6f)
         // #104 (1 November): no inner thickness line, and a lower, softer shadow outside the lens only.
         assertEquals(0f, light.lens.innerShadow)
         assertEquals(0.35f, light.lens.contactShadow)

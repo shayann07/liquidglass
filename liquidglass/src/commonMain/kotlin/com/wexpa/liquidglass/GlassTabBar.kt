@@ -1291,6 +1291,7 @@ internal fun GlassTabBar(
                             endpointComposite = lensCarriesInk,
                             packedEndpoint = supportsGlassEndpointInputs && spec?.response == GlassResponse.Calm,
                             tintWithinThrough = if (spec?.response == GlassResponse.Calm) barDrawing else null,
+                            shadowRing = glassLensShadowRing(style),
                         ),
                 ) {
                     if (lensCarriesInk) {
@@ -2016,10 +2017,11 @@ data class GlassTabBarStyle(
             itemsFollowBarPress = false,
             tapTransitFold = 0f,
             pill = recorded.pill.copy(tint = Color.Transparent, tintLift = -10f / 255f),
-            // The held lens's outline grey (#128, 1 November): iOS's top rim reads 226 over the light bar; 243 read 245 there,
-            // 217 reads 227-228 (IMG_7049 39.4-39.9 s, held on Contacts). Fitted to those frames.
+            // The held lens's outline grey (#104, 19 November; #128 had 217): iOS's own edge reads 248-255 at the lens's top
+            // (rows 436-440) and 252 at its bottom on IMG_7049 37.0, 39.64, 39.87 and 44.5 s. The dark line at rows 454-456
+            // that 217 was fitted to (226) is the page's separator bent by the lens rim, not the outline. Authored: 248.
             lens = recorded.lens.copy(tint = Color.Transparent, rawShare = 0f, rawBlur = 0.dp, tintLift = 0f,
-                softDetail = 1f, heldEdgeTone = 217f / 255f, innerShadow = 0f, contactShadow = 0.35f, bodyBandScale = GlassCalmLensBand,
+                softDetail = 1f, heldEdgeTone = 248f / 255f, innerShadow = 0f, contactShadow = 0.35f, bodyBandScale = GlassCalmLensBand,
                 // No inner thickness line (#104): it drew a dark line along the lens's lower rim (row 648: 238, iOS 254;
                 // with none 248), and the outline (heldEdgeTone) already draws the top rim.
                 // Its shadow lower, lighter and outside the lens only, against the previous light Calm values (0.45, half of it
@@ -2628,6 +2630,23 @@ internal val GlassAccessoryLensReach = 10.7.dp
 
 /** Light `Calm()`'s bar as the preset builds it: the top shade is for exactly this bar (#128). */
 private val CalmLightBar by lazy { GlassTabBarStyle.Calm(dark = false).bar }
+private val CalmLightLens by lazy { GlassTabBarStyle.Calm(dark = false).lens }
+
+/**
+ * The shadow's shape under light `Calm()`'s held lens (#104); a style whose lens differs keeps the rounded rectangle's.
+ * Derived from IMG_7049's rows 650-696 across hold and drag frames: a blurred band 4 dp wide, 5.6 dp below the lens's
+ * lower edge, blur 4.8 dp, gain 1.75, with its vertical half-height floored at `style.height / 2 + 4.5.dp` so fast
+ * horizontal drag squash does not pull the ring trough up into rows 650-668 while keeping the tail (rows 678-694)
+ * populated. Measured profile, authored form, parameters fitted on the IMG_7049 replay.
+ */
+internal fun glassLensShadowRing(style: GlassTabBarStyle): GlassShadowRing? =
+    if (style.lens == CalmLightLens) GlassShadowRing(
+        gain = 1.75f,
+        offset = 5.6.dp,
+        width = 4.dp,
+        blur = 4.8.dp,
+        minHalfHeight = style.height / 2 + 4.5.dp,
+    ) else null
 
 /**
  * The bar's top shade (#128), for light `Calm()`'s own bar only; a style whose bar differs keeps an even bar.

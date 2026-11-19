@@ -22,6 +22,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wexpa.liquidglass.*
@@ -41,6 +42,12 @@ data class PhonePalette(
     val page: Color, val primary: Color, val secondary: Color, val divider: Color,
     val avatar: Color, val button: Color, val accent: Color, val ink: Color, val call: Color,
     val avatarEnd: Color = avatar, val key: Color = button, val missed: Color = primary,
+    // The list's rows: where the first starts, how tall one is, and where its divider starts. The dark pages keep the
+    // 75 dp rows of docs/1 and docs/2; the light Contacts page has its own (see [Light]).
+    val listTop: Dp = 10.dp, val rowHeight: Dp = 75.dp, val dividerStart: Dp = 75.dp, val dividerEnd: Dp = 0.dp,
+    // How many rows the list draws. The light Contacts page ends at its second divider: IMG_7049 is white below it
+    // as far as the bar's shadow reaches (rows 676-700), and a third row would shrink to the room left at the screen's edge.
+    val visibleRows: Int = Int.MAX_VALUE,
 ) {
     companion object {
         val Recorded = PhonePalette(
@@ -61,11 +68,16 @@ data class PhonePalette(
          * keypad's key grey), ASSUMED: there is no light recording to measure the page from. */
         val Light = PhonePalette(
             page = Color.White, primary = Color.Black, secondary = Color(0xFF8A8A8E),
-            divider = Color(0xFFC6C6C8), avatar = Color(0xFFA5ABB8), button = Color(0xFFF2F2F7),
+            divider = Color(0xFFE7E7E7), avatar = Color(0xFFA5ABB8), button = Color(0xFFF2F2F7),
             // IMG_7048 38.5 s (#110 items 121, 122): iOS 27's light accent at rest reads (0, 132, 250), and its
             // unselected glyphs are dark grey (icons 29, labels 32-33), not black.
             accent = Color(0xFF0084FA), ink = Color(0xFF1D1D1D), call = Color(0xFF34C759),
             avatarEnd = Color(0xFF858994), key = Color(0xFFE5E5EA), missed = Color(0xFFFF3B30),
+            // The page's dividers, measured on IMG_7049 37.3 s (a resting bar, nothing held; #104): 231 grey over white, three
+            // pixels thick, from x 231 to 1121 (77 to 374 dp), at rows 442-444 and 673-675 of the 702-row scene, so a row is
+            // 77 dp from divider to divider. Light has no measured palette otherwise (the colours above are assumed), but the
+            // lines a held lens bends are, and the held lens's top reads them as the dark arc iOS shows (rows 452-458).
+            listTop = 71.33.dp, rowHeight = 76.dp, dividerStart = 77.dp, dividerEnd = 16.dp, visibleRows = 2,
         )
     }
 }
@@ -194,9 +206,9 @@ private fun PhoneTab(index: Int, color: Color, badge: Int = 0) {
 
 @Composable
 private fun CallList(palette: PhonePalette, contacts: Boolean, scroll: Float) {
-    Column(Modifier.fillMaxSize().offset(y = (-scroll).dp).padding(top = 10.dp)) {
-        repeat(Names.size) { i ->
-            Row(Modifier.fillMaxWidth().height(75.dp).padding(horizontal = 16.dp),
+    Column(Modifier.fillMaxSize().offset(y = (-scroll).dp).padding(top = palette.listTop)) {
+        repeat(minOf(Names.size, palette.visibleRows)) { i ->
+            Row(Modifier.fillMaxWidth().height(palette.rowHeight).padding(horizontal = 16.dp),
                 verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.size(45.dp).background(Brush.verticalGradient(listOf(palette.avatar, palette.avatarEnd)), CircleShape),
                     contentAlignment = Alignment.Center) {
@@ -221,7 +233,7 @@ private fun CallList(palette: PhonePalette, contacts: Boolean, scroll: Float) {
                     }
                 }
             }
-            Box(Modifier.padding(start = 75.dp).fillMaxWidth().height(1.dp).background(palette.divider))
+            Box(Modifier.padding(start = palette.dividerStart, end = palette.dividerEnd).fillMaxWidth().height(1.dp).background(palette.divider))
         }
     }
 }

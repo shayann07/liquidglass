@@ -23,6 +23,8 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
@@ -319,6 +321,8 @@ internal fun Modifier.liquidGlassCore(
     tintWithinThrough: GlassMaterialDrawingState? = null,
     /** A shade along the top of the glass; null is none (light `GlassTabBarStyle.Calm()`'s bar, #128). */
     topShade: GlassTopShade? = null,
+    /** The shadow's shape for light `GlassTabBarStyle.Calm()`'s held lens (#104); null keeps the offset rounded rectangle. */
+    shadowRing: GlassShadowRing? = null,
     /** Exclude the linked accessory silhouette from its own sampled bar recording. */
     clipThroughToBounds: Boolean = false,
 ): Modifier = composed {
@@ -787,18 +791,31 @@ internal fun Modifier.liquidGlassCore(
                     // panel of this size should sit off its background, recorded into its own
                     // layer so a real blur can be applied before it goes into the backdrop.
                     if (contactShadowAlpha > 0f) {
-                        val shadowBlur = style.contactShadowBlur.takeIf { it.isSpecified }?.toPx()
+                        val shadowBlur = shadowRing?.blur?.toPx() ?: style.contactShadowBlur.takeIf { it.isSpecified }?.toPx()
                             ?: contactShadow.blurRadius.toPx()
-                        val shadowOffset = style.contactShadowOffset.takeIf { it.isSpecified }?.toPx()
+                        val shadowOffset = shadowRing?.offset?.toPx() ?: style.contactShadowOffset.takeIf { it.isSpecified }?.toPx()
                             ?: contactShadow.offsetY.toPx()
                         // The shape that casts it: the panel, or the selector's body inside it. A
                         // selector's node spans the whole bar, so the panel's rect would shade the
                         // bar wherever the lens is not (inside record {} `size` is the padded layer's).
-                        val caster = glassShadowCaster(size, radii.getOrElse(0) { 0f }, body, poseBody)
+                        val rawCaster = glassShadowCaster(size, radii.getOrElse(0) { 0f }, body, poseBody)
+                        val minHalfPx = shadowRing?.minHalfHeight?.toPx() ?: 0f
+                        val caster = if (shadowRing != null && minHalfPx > 0f && rawCaster.rect.height / 2f < minHalfPx) {
+                            val cy = rawCaster.rect.center.y
+                            val halfW = rawCaster.rect.width / 2f
+                            GlassShadowCaster(
+                                Rect(rawCaster.rect.left, cy - minHalfPx, rawCaster.rect.right, cy + minHalfPx),
+                                kotlin.math.min(halfW, minHalfPx),
+                            )
+                        } else rawCaster
+                        val ringWidthPx = shadowRing?.width?.toPx() ?: 0f
                         shadowLayer.record(size = paddedSize) {
                             scale(rs, rs, pivot = Offset.Zero) {
                             translate(pad, pad + shadowOffset) {
-                                drawRoundRect(
+                                if (shadowRing != null) {
+                                    drawPath(caster.lowerArc(), Color.Black.copy(alpha = (contactShadowAlpha * shadowRing.gain).coerceAtMost(1f)),
+                                        style = Stroke(width = ringWidthPx))
+                                } else drawRoundRect(
                                     color = Color.Black.copy(alpha = contactShadowAlpha),
                                     topLeft = caster.rect.topLeft,
                                     cornerRadius = CornerRadius(caster.radius),
@@ -1086,7 +1103,37 @@ internal val EMPTY_POSE_E = floatArrayOf(0f, 3f, 0f, 0f)
  * ([GlassStyle.rawShare]).
  */
 /** The shape a panel's contact shadow is cast by, in the panel's own px frame. */
-internal class GlassShadowCaster(val rect: Rect, val radius: Float)
+internal class GlassShadowCaster(val rect: Rect, val radius: Float) {
+    /**
+     * The lower edge of the caster's outline: the bottom run and the lower 40 degrees of each rounded end, as a path
+     * to stroke. The sides and top are left out, where the lens hides them or iOS draws no shadow (#104).
+     */
+    fun lowerArc(): Path {
+        val r = radius.coerceAtMost(rect.height / 2f)
+        val cy = rect.bottom - r
+        val left = Rect(rect.left, cy - r, rect.left + 2f * r, cy + r)
+        val right = Rect(rect.right - 2f * r, cy - r, rect.right, cy + r)
+        return Path().apply {
+            arcTo(left, 130f, -40f, true)
+            lineTo(rect.right - r, rect.bottom)
+            arcTo(right, 90f, -40f, false)
+        }
+    }
+}
+
+/**
+ * The shadow under light `GlassTabBarStyle.Calm()`'s held lens: a blurred stroke of the lens's lower outline, [offset] below
+ * it, instead of a blurred rounded rectangle (#104). iOS's shadow reads 251 at the lens's lower rim, darkens to 242 about
+ * 5 dp below it and is gone by 13 dp (IMG_7049, rows 656-696); a rectangle's shadow can only fade away from the rim.
+ * [gain] multiplies the style's shadow alpha (0.35 of 0.14).
+ */
+internal data class GlassShadowRing(
+    val gain: Float,
+    val offset: Dp,
+    val width: Dp,
+    val blur: Dp,
+    val minHalfHeight: Dp = 0.dp,
+)
 
 /**
  * The contact shadow's caster: the panel ([size], corner [radius]) or, for a selector, the body
@@ -1221,9 +1268,15 @@ internal class GlassEffectCache {
         return frostEffect!!
     }
 
+    /**
+     * The raw page of [GlassStyle.rawShare], blurred by a Gaussian of [blurPx] sigma. Android's blur takes a radius
+     * (sigma = 0.57735 * radius + 0.5), the desktop's takes the sigma itself, so the value goes through
+     * [platformBlurRadiusForSigma] like the frost's: passed straight, Android blurred about 1.7x less than the fit.
+     */
     fun raw(blurPx: Float): androidx.compose.ui.graphics.RenderEffect {
         if (blurPx != rawSigma) {
-            rawEffect = BlurEffect(blurPx, blurPx, TileMode.Clamp)
+            val r = platformBlurRadiusForSigma(blurPx)
+            rawEffect = BlurEffect(r, r, TileMode.Clamp)
             rawSigma = blurPx
         }
         return rawEffect!!
@@ -1231,7 +1284,9 @@ internal class GlassEffectCache {
 
     fun shadow(blurPx: Float): androidx.compose.ui.graphics.RenderEffect {
         if (blurPx != shadowSigma) {
-            shadowEffect = BlurEffect(blurPx, blurPx, TileMode.Decal)
+            // A sigma, like the raw page's: see [raw].
+            val r = platformBlurRadiusForSigma(blurPx)
+            shadowEffect = BlurEffect(r, r, TileMode.Decal)
             shadowSigma = blurPx
         }
         return shadowEffect!!
