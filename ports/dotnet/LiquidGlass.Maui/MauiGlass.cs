@@ -190,7 +190,7 @@ public class GlassSurface : ContentView
     public static readonly BindableProperty RadiusProperty = Redraws(nameof(Radius), typeof(double), 20.0);
     public static readonly BindableProperty DarkProperty = Redraws(nameof(Dark), typeof(bool), false);
     public static readonly BindableProperty TintAmountProperty = Redraws(nameof(TintAmount), typeof(double), 50.0);
-    public static readonly BindableProperty LightProperty = Redraws(nameof(Light), typeof(Point), new Point(-.35, -.94));
+    public static readonly BindableProperty LightProperty = Redraws(nameof(Light), typeof(Point), new Point(0, -1));
     public static readonly BindableProperty MaterializeProperty = Redraws(nameof(Materialize), typeof(double), 1.0);
     public static readonly BindableProperty ReducedTransparencyProperty = Redraws(nameof(ReducedTransparency), typeof(double), 0.0);
     public static readonly BindableProperty IncreasedContrastProperty = Redraws(nameof(IncreasedContrast), typeof(double), 0.0);

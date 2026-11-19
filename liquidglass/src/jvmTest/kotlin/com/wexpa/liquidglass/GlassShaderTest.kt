@@ -35,7 +35,7 @@ class GlassShaderTest {
         val setByHost = setOf(
             "uHeldEdgeRecovery", "uHeldEdgeTone", "uHeldGlowFloor", "uSoftDetail", "uDetailLift", "uToneCurve", "uDetailCross", "uChromaGain", "uChromaSlope", "uChromaWeight", "uHeldGlowReach", "uFoldCorners", "uRimMirror", "uRimMirrorGain",
             "uSize", "uRadii", "uRefractBand", "uBandBottom", "uBackdrop", "uAberration", "uBase", "uBlur", "uIor", "uBevelPower", "uMirror",
-            "uFresnel", "uHiChroma", "uLegibility", "uCornerPower", "uTouch", "uTouchAmt",
+            "uFresnel", "uHiChroma", "uLegibility", "uCornerPower", "uTouch", "uTouchAmt", "uPressGrade", "uPressWhite",
             "uMaterialize", "uFrost", "uContrast", "uDebugCoverage", "uShapeKind", "uFieldRange", "uFieldScale", "uRefractDepth", "uBevel",
             "uLight", "uSpecular", "uSpecularPow", "uTint", "uTintMaskX", "uTintMaskY", "uInnerShadow", "uAdaptive",
             "uPad", "uScale", "uFlip", "uCounterLight", "uEdgeLight", "uBevelPeak", "uEdgeShadow", "uCapEdgeShadow", "uTopShade", "uOuterContour", "uRimSoft", "uTintAbsorb",

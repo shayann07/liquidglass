@@ -36,9 +36,11 @@ class Glass private constructor(
     /**
      * Makes the glass respond to touch and pointer: it lifts, glows where it is pressed and, with
      * [GlassInteraction.Pullable], stretches toward the finger. Apply it only to elements that act on
-     * a tap, as Apple advises. [response] chooses how it responds; the default is the calm, measured one.
+     * a tap, as Apple advises. [response] chooses how it responds; the default is [GlassInteraction.Fluid], the
+     * Phone search button's press and pull (surfaces of 160 dp and more keep the restrained [GlassInteraction.Calm] size).
+
      */
-    fun interactive(enabled: Boolean = true, response: GlassInteraction = GlassInteraction.Calm): Glass =
+    fun interactive(enabled: Boolean = true, response: GlassInteraction = GlassInteraction.Fluid): Glass =
         Glass(resolve, tintColor, enabled, response, name, lightFor)
 
     /** No glass at all: [glassEffect] draws only the content. For switching glass off without
@@ -47,7 +49,7 @@ class Glass private constructor(
 
     /** The optical parameters this glass draws with in the given appearance; null for [Identity]. */
     fun style(dark: Boolean): GlassStyle? = resolve?.invoke(dark)?.let { s ->
-        if (tintColor == null) s else s.copy(tint = tintColor).withLitFromAbove(s.litFromAbove)
+        if (tintColor == null) s else s.copy(tint = tintColor)
     }
 
     /** Where the light comes from in the given appearance (see [GlassLight]). */
@@ -62,32 +64,45 @@ class Glass private constructor(
 
     companion object {
         /** Apple's regular glass: the measured in-app material (navigation pills, buttons, panels). */
-        val Regular: Glass = Glass({ dark -> GlassStyle.inApp(dark) }, null, false, GlassInteraction.Calm, "Regular")
+        val Regular: Glass = Glass({ dark -> GlassStyle.inApp(dark) }, null, false, GlassInteraction.Fluid, "Regular")
 
         /** Apple's clear glass: permanently more transparent, no adaptive behaviour. Needs content
          * behind it that is dimmed or calm enough to stay legible. */
-        val Clear: Glass = Glass({ GlassStyle.Clear }, null, false, GlassInteraction.Calm, "Clear")
+        val Clear: Glass = Glass({ GlassStyle.Clear }, null, false, GlassInteraction.Fluid, "Clear")
 
         /** No glass: the element draws its content only. */
-        val Identity: Glass = Glass(null, null, false, GlassInteraction.Calm, "Identity")
+        val Identity: Glass = Glass(null, null, false, GlassInteraction.Fluid, "Identity")
 
         /** iOS 26's tab bar material, measured on recordings (`GlassTabBarStyle.Calm`). */
-        val TabBar: Glass = Glass({ dark -> GlassTabBarStyle.Calm(dark).bar }, null, false, GlassInteraction.Calm, "TabBar",
+        val TabBar: Glass = Glass({ dark -> GlassTabBarStyle.Calm(dark).bar }, null, false, GlassInteraction.Fluid, "TabBar",
             { dark -> GlassTabBarStyle.Calm(dark).light })
 
         /** A toolbar's material: the pill's, more opaque (measured on the Photos toolbar). */
-        val Toolbar: Glass = Glass({ dark -> GlassStyle.toolbar(dark) }, null, false, GlassInteraction.Calm, "Toolbar")
+        val Toolbar: Glass = Glass({ dark -> GlassStyle.toolbar(dark) }, null, false, GlassInteraction.Fluid, "Toolbar")
+
+        /**
+         * A round quick-action button of iOS 27's Control Center (flashlight, timer, camera): the inactive
+         * [GlassStyle.controlCenterTile] with [GlassInteraction.QuickAction], so it is interactive as it stands: pressed, it
+         * grows to 1.60 times its size and its body lightens toward white, as the lock-screen and Control Center circles do.
+         *
+         * The look is measured in the dark appearance only (the light appearance is the same style, authored), and the
+         * press on the lock-screen flashlight (see [GlassInteraction.QuickAction]); the host draws the geometry (a circle 58 dp
+         * across on the lock screen, 67 dp in Control Center). For the active tile, or to change the press, build it from the
+         * parts: `Glass(GlassStyle.controlCenterTile(active = true)).interactive(response = GlassInteraction.QuickAction)`.
+         * Pass `.interactive(false)` for no press.
+         */
+        val ControlCenterTile: Glass = Glass({ GlassStyle.controlCenterTile() }, null, true, GlassInteraction.QuickAction, "ControlCenterTile")
 
         /** A clear magnifier: [magnification] at the centre, easing back to none at the rim (1 to 2.5). */
         fun Lens(magnification: Float = 1.4f): Glass {
             val style = GlassStyle.clearLens(magnification)
-            return Glass({ style }, null, false, GlassInteraction.Calm, "Lens($magnification)")
+            return Glass({ style }, null, false, GlassInteraction.Fluid, "Lens($magnification)")
         }
 
         /** Glass with every optical parameter given: see [GlassStyle]. [dark] is used in a dark
          * appearance when given, [style] otherwise; [light] is where the light comes from. */
         operator fun invoke(style: GlassStyle, dark: GlassStyle? = null, light: GlassLight = GlassLight.Default): Glass =
-            Glass({ isDark -> if (isDark && dark != null) dark else style }, null, false, GlassInteraction.Calm,
+            Glass({ isDark -> if (isDark && dark != null) dark else style }, null, false, GlassInteraction.Fluid,
                 "Custom(${style.hashCode()},${dark.hashCode()},${light.hashCode()})", { light })
     }
 }

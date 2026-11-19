@@ -202,6 +202,13 @@ button with `sample(t)`: scale by `pressScale`, stretch by `along` / `across` ab
 offset by `tx` / `ty`, and lift the material by `lift`. Its trajectories match Compose's frame by frame
 (`fixtures/free-button.json`, exported by the Kotlin tests). The bar's outline does not follow it here.
 
+The free button is also the default interactive response, `GlassInteraction.Fluid`, which falls with size
+(authored): give it `width`, `height` and `radius` (px; `size` alone is a round button). A control of 80 dp or less on its
+long side is the search button above; from 160 dp it presses 2 dp a side, never leaves its place and stretches at most
+2 dp; between the two it blends. `cancel(t)` is for a scroll that takes the gesture: everything returns critically
+damped with no ring and no landing squash. `fixtures/free-button-sizes.json` holds a 100 dp circle, a 120 x 48 dp pill
+and a 200 x 150 dp card, with a cancelled press each.
+
 ## Draw a lens without managing uniforms
 
 Initialize CanvasKit using its [official setup](https://skia.org/docs/user/modules/canvaskit/).
@@ -254,7 +261,7 @@ glass over flat or low-detail content (the bare lens, with nothing to mark where
 glass.drawLens(canvas, { x: 80, y: 100, width: 180, magnification: 1.4 });                      // the preset
 glass.drawLens(canvas, { x: 80, y: 100, width: 180, magnification: 1.4 }, { lighting: false }); // the bare map
 // options: lighting (true), shadow (true: the contact shadow), density (1: px per dp, scales the dp terms),
-// light ([-0.35, -0.94]: toward the light, y up negative)
+// light ([0, -1]: toward the light, y up negative)
 const lens = scene.addLens({ x: 80, y: 100, width: 180 }, { lighting: false }); // logical px; the scene applies pixelRatio
 lens.setMaterial({ shadow: false });
 ```
@@ -291,7 +298,7 @@ Options are `dark` (default false), `tintAmount` (0–100, default 50), `density
 `materialize`, `reducedTransparency` and `increasedContrast` (each 0–1; defaults 1, 0, 0), and
 `tint` ([r, g, b, a], sRGB 0–1; default none): Compose's `Glass.tint(color)`, which replaces the tint
 colour and opacity (quantized to 8 bits, as Compose's Color is) and keeps the dark lift. `light`
-([x, y], toward the light, y up negative) defaults to Compose's `GlassLight.Default` (-0.35, -0.94),
+([x, y], toward the light, y up negative) defaults to Compose's `GlassLight.Default` (0, -1),
 as `Glass.Regular` binds it; [0, -1] is iOS 27's measured overhead light. The
 `<liquid-glass>` web component's canvas engine uses it ([ports/npm](../npm/README.md)).
 Geometry remains in device pixels; density scales the material's dp constants. Feed accessibility

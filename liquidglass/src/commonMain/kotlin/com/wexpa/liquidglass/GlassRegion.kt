@@ -133,6 +133,9 @@ fun Modifier.glassEffect(glass: Glass? = null, shape: Shape = CapsuleShape, link
     val defaults = LocalGlassDefaults.current
     val resolved = glass ?: defaults.glass
     val style = resolved.style(defaults.dark) ?: return@composed this
+    // Reduce Motion: no elasticity, whatever response was asked for ([GlassInteraction.ReducedMotion]).
+    val reduceMotion = rememberGlassSystemAccessibility().reduceMotion
+    val responseInUse = glassResponseFor(reduceMotion, resolved.interaction)
     val morph = remember { GlassMorphHandle() }
     val withMorph = modifierLocalProvider(ModifierLocalGlassMorph) { morph }
     LocalGlassMembership.current?.let { return@composed withMorph.then(it.member(shape, morph)) }
@@ -140,14 +143,14 @@ fun Modifier.glassEffect(glass: Glass? = null, shape: Shape = CapsuleShape, link
     if (region != null && LocalInGlassOverlay.current) {
         // In the overlay (a dialog, a sheet, a tab bar's portal) nothing is recorded: draw in place.
         return@composed withMorph.liquidGlass(region.rememberStateFor(defaults), shape, style, resolved.light(defaults.dark),
-            interaction = if (resolved.isInteractive) resolved.interaction else null, link = link)
+            interaction = if (resolved.isInteractive) responseInUse else null, link = link)
     }
     if (region == null) {
         GlassWarnings.missingRoot()
         val density = LocalDensity.current
         val direction = LocalLayoutDirection.current
         return@composed drawWithContent {
-            drawGlassFallback(style, style.litFrom(resolved.light(defaults.dark)), shape.cornerRadiiPx(size, direction, density), with(density) { style.bevel.toPx() })
+            drawGlassFallback(style, resolved.light(defaults.dark), shape.cornerRadiiPx(size, direction, density), with(density) { style.bevel.toPx() })
             drawContent()
         }
     }
@@ -155,7 +158,7 @@ fun Modifier.glassEffect(glass: Glass? = null, shape: Shape = CapsuleShape, link
     val entry = remember(region, foreground) { GlassOverlayEntry(foreground) }
     entry.shape = shape
     entry.style = style
-    entry.interaction = if (resolved.isInteractive) resolved.interaction else null
+    entry.interaction = if (resolved.isInteractive) responseInUse else null
     entry.morph = morph
     entry.light = resolved.light(defaults.dark)
     entry.state = region.rememberStateFor(defaults)
@@ -328,16 +331,20 @@ private fun GlassOverlay(region: GlassRegion, modifier: Modifier) {
 private fun OverlayGlass(region: GlassRegion, entry: GlassOverlayEntry) {
     val captureLayer = rememberGraphicsLayer()
     val flashAlpha = remember { Animatable(1f) }
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    // The press flash is the small free control's; a surface of 160 dp and more has none (authored).
+    val flashes = entry.interaction?.pressFlash == true && glassSizeMix(entry.drawn.width, entry.drawn.height, density.density) < 1f
     var lastAnimatedPress by remember { mutableIntStateOf(0) }
     val isNewPress = entry.press.pressCount != lastAnimatedPress && entry.press.isPressed
     LaunchedEffect(entry.press.pressCount) {
-        if (entry.press.pressCount > 0 && entry.interaction?.pressFlash == true) {
+        if (entry.press.pressCount > 0 && flashes) {
             lastAnimatedPress = entry.press.pressCount
             flashAlpha.snapTo(128f / 255f)
             flashAlpha.animateTo(1f, animationSpec = tween(durationMillis = 50, easing = LinearEasing))
         }
     }
-    val currentFlashAlpha = if (isNewPress && entry.interaction?.pressFlash == true) (128f / 255f) else flashAlpha.value
+    val currentFlashAlpha = if (isNewPress && flashes) (128f / 255f) else flashAlpha.value
+
 
     Box(
         Modifier
@@ -398,16 +405,28 @@ private suspend fun androidx.compose.ui.input.pointer.PointerInputScope.observeP
                 if (change.pressed) {
                     if (!start.isSpecified) start = change.position
                     press.press(change.position, change.position - start)
+                    // After every node has had the event: a move another node consumed (a scroll took the gesture)
+                    // ends the press without a ring.
+                    val final = awaitPointerEvent(PointerEventPass.Final).changes.firstOrNull { it.id == change.id }
+                    if (final != null && final.pressed && final.isConsumed && final.position != final.previousPosition) {
+                        start = Offset.Unspecified
+                        press.cancel()
+                    }
                 } else {
                     start = Offset.Unspecified
                     press.release()
                 }
+
             }
         } finally {
             press.release()
         }
     }
 }
+
+/** Reduce Motion replaces any response with [GlassInteraction.ReducedMotion]: glow only, no elasticity (#196). */
+internal fun glassResponseFor(reduceMotion: Boolean, response: GlassInteraction): GlassInteraction =
+    if (reduceMotion) GlassInteraction.ReducedMotion else response
 
 private val Offset.isSpecified: Boolean get() = this != Offset.Unspecified
 

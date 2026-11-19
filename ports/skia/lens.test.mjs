@@ -53,7 +53,7 @@ test('the preset binds only known uniforms, scales its dp terms and leaves the b
     assert.equal(lens.uProfile, 3);
     assert(Math.abs(lens.uHeldMagnification - (1 - 1 / 1.4)) < 1e-12);
     assert.deepEqual(lens.uTint, [1, 1, 1, 4 / 255]);
-    assert.deepEqual(lens.uLight, [-.35, -.94]);
+    assert.deepEqual(lens.uLight, [0, -1]);
     assert.throws(() => clearLensUniforms(effects, {...args, density: 0}), /density/);
     assert.throws(() => clearLensUniforms(effects, {...args, light: [1]}), /Light/);
   } finally { effects.dispose(); }

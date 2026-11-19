@@ -23,7 +23,7 @@ import kotlin.test.assertEquals
 class GlassFreePullPortFixtureTest {
     private val density = 3f
     private val size = 186f
-    private val interaction = GlassInteraction.Pullable.copy(pullShape = GlassPullShape.Free, pullLiftShare = 0.65f)
+    private val interaction = GlassInteraction.Fluid
 
     /** One animated float with animateFloatAsState's retarget rule. */
     private class Anim(private var value0: Float) {

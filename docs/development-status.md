@@ -7,7 +7,9 @@ research remains available; this page identifies which later changes supersede i
 
 ## Main after 1.0 (24 October)
 
-- 18 November (night): Rim (#202, #109): the outline is a one-pixel box ramp as on iOS (the outermost pixel fully covered); the iOS 27 rim (Material 3, `GlassTabBarStyle.Ios27`) has its measured falloff, +67 +47 +28 +14 at 0-3 px against iOS +66 +46 +31 +12 (dark grey 128; light, outermost pixel, +67 / +58 over grey 0 / 128 against iOS +65 / +58); merged glass draws the same rim as a lone piece; the dark Calm bar's search button rim is a sharp glint on a broad tail (8.7 -> 2.5 levels rms against IMG_6756). Pixel 7: bar rows 0..4 100 80 56 42 40 (iOS 99 79 62 45 41), button top-half peak 98 (iOS 96) (review/atlas/rim-2026-11-18). Open in #202: the stills gate and the cap scores.
+- 19 November: Default light is straight overhead, (0, -1), in Compose and every port (was the authored (-0.35, -0.94)): every measured resting iOS 27 rim is lit equally at top and bottom and not at its sides. Port tests and a JVM compile run; no render score or device capture of the new default.
+- 19 November: Interactive glass (#196): `GlassInteraction.Fluid`, the search button's press and pull, is the default of `Glass.interactive()`; full up to 80 dp, anchored from 160 dp (authored), no ring after a scroll cancel, Reduce Motion honoured. Search-button render bit-identical to the baseline; the free button of the Skia, web and .NET ports takes `width`/`height`/`radius` and has `cancel()`. Desktop renders and jvmTest, not device-checked.
+- 18 November (night): Rim (#202, #109): the outline is a one-pixel box ramp as on iOS (the outermost pixel fully covered); the iOS 27 rim (Material 3, `GlassTabBarStyle.Ios27`) has its measured falloff, +67 +47 +28 +14 at 0-3 px against iOS +66 +46 +31 +12 (dark grey 128; light, outermost pixel, +67 / +58 over grey 0 / 128 against iOS +65 / +58); merged glass draws the same rim as a lone piece; the dark Calm bar's search button rim is a sharp glint on a broad tail (8.7 -> 2.5 levels rms against IMG_6756). Pixel 7: bar rows 0..4 100 80 56 42 40 (iOS 99 79 62 45 41), button top-half peak 98 (iOS 96) ([numbers, no captures](https://github.com/shayann07/liquidglass/blob/main/review/atlas/rim-2026-11-18/README.md)). Open in #202: the stills gate and the cap scores.
 - 18 November: Tab bar (#203): dark `CalmClear()` bar on the measured in-app material (flat pages 0 / 10 / 23 / 28: 32 / 42 / 54 / 59 against iOS 32 / 43 / 54 / 58; App Store cards within 6 levels per channel; Pixel 7 within 1 level of desktop); the band over bright text is not re-scored. Held `Calm` and `CalmClear` bars no longer stretch sideways (`AreaPreserving`: a long horizontal bar takes only the vertical part of a pull, resistance included; Pixel 7, captured before the resistance part: right drag 169 px against 167 before, hold 171, up 177 unchanged; [stretch evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/tab-bar-stretch-2026-11-18/README.md)). Ports: the clear bar in Skia, npm, React Native and .NET; the stretch fix in Skia, npm, web and .NET. [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/tab-bar-material-2026-11-18/README.md).
 - 18 November: Tint 0 and 100 measured (#208): fitted detail share, one-sided term, bow, opacity and wide sigma on the Photos chrome (1.3 to 2.2 levels rms in Python); the light white end is clipped, interpolation between 0, 50 and 100 is authored, and the held-out tints (29 to 86) and a shader render against the stills are not run. The Python scores are pooled over the Today pill and the toolbar capsule. Per element, the original Today zone failed the 3-level gate in light (3.59 at Tint 0, 3.32 at Tint 100; failed baseline, kept in the evidence); the miss came from text and split-edge pixels inside the zone, and with the zone moved off them both elements pass (0.24 to 0.80, constants unchanged); the jvmTest renders over flat greys are regression checks against the fit's curve, up to 2.8 levels from it. Tint 50 unchanged in every port. [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/tint-ends-2026-11-18/README.md).
 - 18 November: Rim band (#202, part): six measured rim knots in the rest map, synthetic edge gate `GlassRimBandTest` passes (24 checks); the 6-level stills gate, the rim light and the cap and junction scores are open. jvmTest renders, not a device capture. [Evidence](https://github.com/shayann07/liquidglass/blob/main/review/atlas/rim-band-2026-11-18/README.md).
@@ -18,6 +20,7 @@ research remains available; this page identifies which later changes supersede i
 - 18 November: GlassStyle.menu(dark): fitted on the Safari <select> popup interior only (dark 2.08, light 3.13 levels rms on 12 stripe cases; 17 greys within 1.0 / 1.4); held-out Photos context menu misses by 10-18 levels (open). Rim, shadow, corner, colour not measured. Desktop renders only.
 - 18 November: Scroll edge effect on a Pixel 7 (#207): dark tint 0.3 levels rms against the measured iOS profile at scroll offsets 0 and 40 (gate 5), light 0.2 (no tint), blur sharp at 35 dp from the edge (iOS 34 to 36 pt). Evidence: review/atlas/scroll-edge-device-2026-11-18.
 - 18 November: Scroll edge effect: dark tint profile within 1.3 levels rms of the measured median (gate 5), light no tint, blur edge widths within 0.8 px of the measured +-10 row table; fade-in, bottom edge, blur strength above 20 dp from the edge authored/lower bounds; blur = two fitted copies, not a per-pixel variable blur; collapse recipe timing +-3 frames, not asserted. Desktop only; no device frame-time pass; no sample scene.
+- 19 November: Quick-action press (#113 item 128, #206): new `GlassInteraction.QuickAction` and `Glass.ControlCenterTile`, additive and not a default. Measured on the lock-screen flashlight `IMG_6667.MP4` (the Control Center circles were not recorded pressed): held 1.605, peak 1.694 at 0.19 s, release minimum 0.90, lightening 0.51 of the way to white (iOS 0.502 over black, 0.525 over a 125 band; levels 18 to 137 and 133 to 197) in 125 ms, dropping at the lift. Scored by `GlassQuickActionPressTest` (jvmTest render, not a device capture; the ports and merged-glass containers do not have the term yet). Authored: other sizes, the light appearance, a moved or cancelled press.
 - 18 November: Control Center tile, second pass (#206, #113): the four element classes (toggle, wide, media, slider track) read within 2 levels of
   `CC-over-lab-dark.MP4` at greys 10 / 56 / 102 (rms 0.87), the interior is flat to r 85 px, the slider is a track tile plus an opaque active-tile fill (measured
   250 / 251 / 252), and the rim and contour are fitted by sector (pole peak within 5 of 155 / 215, diagonals within 7; the dark contour is 6 to 31 levels too
@@ -195,6 +198,11 @@ research remains available; this page identifies which later changes supersede i
   16-19 edges (loose), so a split persists away from the rim (not a subtraction from the whole-lens figure: different edges). Desktop replay, no optics changed:
   [record](https://github.com/shayann07/liquidglass/blob/main/review/atlas/scoring-tools-2026-11-07/README.md).
 
+- 18 November: `--content-split --rim-exclude 24` separates page edges inside the rim band from the interior (IMG_6756: ours 2.95
+  and 3.02 px, iOS 0.57 and 0.62, away from the lens 0.00 both); `measure_light_hold.py --geometry` scores cropped and phone captures
+  (IMG_7049 gate unchanged at +6.5 / -6.2); `tools/pixel/replay_script.sh` replays a finger path on the Pixel (dry run only);
+  `tools/measure_formation_continuity.py` (#103) is new. IMG_7048 is cut, not yet rendered or scored. No optics changed.
+
 ## First tap after install (20 October, #71)
 
 - The first tab bar tap after install had one 326-352 ms frame on a Pixel 7: the selector's layers were
@@ -246,7 +254,7 @@ See [verification and limits](https://github.com/shayann07/liquidglass/blob/main
 
 ## .NET MAUI (20 October)
 
-`LiquidGlass.Maui` (`ports/dotnet/LiquidGlass.Maui`, unreleased) puts `GlassSurface` over the app's own
+`LiquidGlass.Maui` (`ports/dotnet/LiquidGlass.Maui`, published from 1.0.0) puts `GlassSurface` over the app's own
 MAUI views on Android and Windows. The backdrop is drawn from the element's native view. The demo runs on a
 Pixel 7, with the glass following the page as it scrolls. The first device run found that MAUI's
 `CaptureAsync` copies window pixels on Android, so the glass refracted itself; it now draws the view.
@@ -395,7 +403,8 @@ The ports' surfaces bind `Glass.Regular`'s light, `GlassLight.Default` (-0.35, -
 - The showcase is redesigned (music library, mesh wallpaper, detailed covers).
 - Evidence: [glass quality renders](https://github.com/shayann07/liquidglass/blob/main/review/atlas/glass-quality-2026-10-18/README.md),
   on a Pixel 7 and on desktop. They are not a calibrated comparison against iOS. Rim and specular
-  work toward iOS is next. It will be opt-in.
+  work toward iOS followed on 18 November (#202, #109, above) and is on by default, not opt-in; see
+  the `Default look changed` lines in the 1.1.0 entries of the changelog.
 
 ## Atlas and the current material
 

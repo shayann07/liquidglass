@@ -327,24 +327,24 @@ data class GlassStyle(
      *
      * Measured on iOS 27's 44 pt navigation buttons over a white page
      * (`docs/research/ios27-measurements-raw.md`, "The dark contour"). The contour lies entirely
-     * outside the outline: the outermost wholly covered pixel matches the body. It is about 1.5 px
-     * wide, centred 0.25 px outside. It darkens what is behind it by 0.61 (dark appearance) or 0.31
-     * (light appearance) at the sides, and falls to zero at the lit poles: 5.7% of the side value at
-     * 20 degrees off the light, 20.5% at 40, 36.2% at 60 and 37.4% at 120 (dark appearance). Here
-     * the angular law is `(1 - |cos|)^0.75` of the angle to the light ([GlassLight]). It fits the
-     * dark appearance's nine angles within 0.04 of the side value.
-     * Whether iOS darkens multiplicatively or additively is not determinable from the captures
-     * (over black both are invisible). This draws black at this opacity over the backdrop,
-     * which is multiplicative. Lone elements, the tab bar and `GlassEffectContainer`'s merged
-     * shapes all draw it.
+     * outside the outline: the outermost wholly covered pixel matches the body. It is 2.5 px deep:
+     * its three outermost pixel centres weigh 1 : 0.5 : 0 (both appearances, sides and poles). The
+     * dark appearance darkens what is behind it by 0.61 at the sides, multiplicatively, so a positive
+     * value draws black at this opacity. The light appearance is additive, a plus-darker blend that
+     * removes 0.30 of full scale whatever the backdrop (76 levels over 128 and over 255), so a
+     * negative value removes `-outerContour` of full scale. Both fall toward the lit poles: 5.7% of
+     * the side value at 20 degrees off the light, 20.5% at 40, 36.2% at 60 and 37.4% at 120 (dark
+     * appearance). Here the angular law is `(1 - |cos|)^0.75` of the angle to the light
+     * ([GlassLight]). It fits the dark appearance's nine angles within 0.04 of the side value.
+     * Lone elements, the tab bar and `GlassEffectContainer`'s merged shapes all draw it.
      */
     val outerContour: Float = 0f,
     /**
-     * The share of [outerContour] that remains at the lit poles. The light appearance keeps about
-     * 8-9% of the backdrop there (about a quarter of its 31% side value). The dark appearance goes to
-     * zero. The light appearance's profile is flatter than the law above between the pole and 60
-     * degrees (it reads 8.1% at 20 and 11.3% at 40), so a floor of 0.25 overshoots it there by up to
-     * 0.15 of the side value.
+     * The share of [outerContour] that remains at the lit poles. The light appearance keeps 0.13 of
+     * its 0.30 side value there (10 levels at the first pixel, 5 at the second, measured). The dark
+     * appearance goes to zero. The light appearance's profile is flatter than the law above between
+     * the pole and 60 degrees (it reads 8.1% at 20 and 11.3% at 40 of the former multiplicative
+     * value), so those mid angles are inherited, not re-measured.
      */
     val outerContourFloor: Float = 0f,
     /**
@@ -561,15 +561,6 @@ data class GlassStyle(
      */
     val chromaGain: Float = Float.NaN,
 ) {
-    /**
-     * Internal marker, not a constructor, `copy` or `equals` field (so the binary API is unchanged): this style is lit from straight
-     * above by default (see [litFrom]). Set only by [withLitFromAbove]; [copy] and [lerpGlassStyle] do not carry it on their own.
-     */
-    internal var litFromAbove: Boolean = false
-        private set
-
-    internal fun withLitFromAbove(on: Boolean): GlassStyle = if (litFromAbove == on) this else copy().also { it.litFromAbove = on }
-
     /** Keeps the constructor before [chromaGain]; new code uses the primary constructor. */
     @Deprecated("Binary compatibility with the constructor before chromaGain", level = DeprecationLevel.HIDDEN)
     constructor(
@@ -1249,7 +1240,8 @@ data class GlassStyle(
          * A sheet, measured on iOS 27's share sheet (#102) in both appearances: a pure blur (7.17 dp dark, 8.67 dp
          * light), then a compressed tone (dark: black reads 59, the tone peaks near 129; light: black reads 145),
          * with no detail term. Interior only: rim, shadow, corner and the grabber are not measured, and the rim fields
-         * are [inApp]'s. The page behind it is not dimmed.
+         * are [inApp]'s. iOS does not dim the page behind its share sheet, but this style carries no scrim: Material 3's
+         * `ModalBottomSheet` draws the sheet with this style and keeps its own scrim, a known difference.
          */
         fun sheet(dark: Boolean): GlassStyle = inAppEarlier(dark, GlassMaterial.DEFAULT_TINT_AMOUNT).copy(
             tint = (if (dark) Color.Black else Color.White).copy(alpha = GlassMaterial.sheetOpacity(dark)),
@@ -1363,7 +1355,7 @@ data class GlassStyle(
             edgeShadow = 0f,
             outerContour = 1f,
             invertsWithBackdrop = false,
-        ).withLitFromAbove(true)
+        )
 
         /**
          * The dock: nearly clear, a 1 dp sigma, gain 0.85 with a lift of 13/255, and stripes that
@@ -1523,22 +1515,15 @@ data class GlassStyle(
 }
 
 /**
- * The light a style is drawn with when the host passed the default one: a style marked [GlassStyle.litFromAbove] (only
- * [GlassStyle.controlCenterTile] marks itself) is lit from straight above, as iOS lights Control Center, so it takes
- * `GlassLight(0f, -1f)`. A light the host chose is kept.
- */
-internal fun GlassStyle.litFrom(light: GlassLight): GlassLight =
-    if (litFromAbove && light == GlassLight.Default) GlassLight(0f, -1f) else light
-
-/**
  * Where the light sits, as a unit vector in the panel's own space.
  *
- * `y` is negative upward, matching Compose's coordinate system, so the default is a light above
- * and slightly to the left — the direction a highlight has to come from for a surface to read
- * as convex rather than concave.
+ * `y` is negative upward, matching Compose's coordinate system. The default is straight above,
+ * `(0, -1)`: every resting iOS 27 rim measured (the Safari lab stills, the recorded tab bars, Control
+ * Center) is lit the same at its top and bottom edges and not at all at its sides, which is what a
+ * light straight above draws. Before 1.1.0 the default was the authored `(-0.35, -0.94)`.
  */
 @Immutable
-data class GlassLight(val x: Float = -0.35f, val y: Float = -0.94f) {
+data class GlassLight(val x: Float = 0f, val y: Float = -1f) {
     companion object {
         val Default = GlassLight()
     }

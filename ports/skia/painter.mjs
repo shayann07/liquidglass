@@ -105,7 +105,7 @@ export function createGlassPainter(kit, sources = glassShaderSources) {
      * under it, which is what makes a free-standing lens read as glass over flat or low-detail content.
      * Authored in Compose, not an iOS measurement. `lighting: false` is the bare magnification map.
      * With the preset, `density` is px per dp (the dp terms scale), `shadow: false` skips the contact shadow and
-     * `light` ([x, y], toward the light, y up negative) is Compose's GlassLight (default [-0.35, -0.94]).
+     * `light` ([x, y], toward the light, y up negative) is Compose's GlassLight (default [0, -1]).
      */
     drawLens(canvas, {x, y, width, height = width, magnification = 1.25}, options = {}) {
       checkAlive();

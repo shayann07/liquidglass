@@ -322,8 +322,6 @@ internal fun Modifier.liquidGlassCore(
     /** Exclude the linked accessory silhouette from its own sampled bar recording. */
     clipThroughToBounds: Boolean = false,
 ): Modifier = composed {
-    @Suppress("NAME_SHADOWING")
-    val light = style.litFrom(light)
     val glassLayer = rememberGraphicsLayer()
     val endpointLayer = rememberGraphicsLayer()
     val contentLayer = rememberGraphicsLayer()
@@ -365,6 +363,7 @@ internal fun Modifier.liquidGlassCore(
         pullLiftShare = interaction?.pullLiftShare ?: 1f,
         freeGlow = interaction?.pullShape == GlassPullShape.Free,
         moveThreshold = 4f * density.density,
+        quickAction = interaction?.quickAction == true,
     )
     val direction = LocalLayoutDirection.current
     val measured = Size(layoutSize.width.toFloat(), layoutSize.height.toFloat())
@@ -403,7 +402,11 @@ internal fun Modifier.liquidGlassCore(
     // makes the highlight bounce, which reads as a rendering glitch rather than as a press.
     // The balloon grows by a few dp a side whatever the element's size, per axis
     // (glassPressScale); one animated amount drives both axes so they rise and fall together.
-    val growthPx = with(density) { interaction?.pressGrowth?.toPx() ?: 0f }
+    // How far a free control is toward the anchored surface response (authored; 0 up to 80 dp, 1 from 160 dp).
+    val sizeMix = if (interaction?.pullShape == GlassPullShape.Free) glassSizeMix(measured.width, measured.height, density.density) else 0f
+    val growthPx = with(density) { interaction?.pressGrowth?.toPx() ?: 0f }.let {
+        if (sizeMix > 0f) it + (2f * density.density - it) * sizeMix else it
+    }
     fun pressTarget(side: Float, origin: Float, viewport: Int): Float {
         val requested = if (interaction != null) {
             if (growthPx > 0f) glassPressScale(side, growthPx, interaction.pressScale) else interaction.pressScale
@@ -417,7 +420,10 @@ internal fun Modifier.liquidGlassCore(
     val dragShare = if (press.dragging) (interaction?.dragPressShare ?: 1f).coerceIn(0f, 1f) else 1f
     val pressAmount by animateFloatAsState(
         targetValue = if (pressDown) dragShare else 0f,
-        animationSpec = if (!pressDown && (interaction?.releaseStiffness ?: 0f) > 0f) {
+        animationSpec = if (!pressDown && press.cancelled) {
+            // A scroll took the gesture: return without a ring.
+            GlassMotion.CalmUp
+        } else if (!pressDown && (interaction?.releaseStiffness ?: 0f) > 0f) {
             GlassLeadingSpec(androidx.compose.animation.core.spring(dampingRatio = interaction!!.releaseDamping.coerceIn(.05f, 2f),
                 stiffness = interaction.releaseStiffness), GLASS_RELEASE_LEAD_NANOS)
         } else if (interaction?.response == GlassResponse.Calm) {
@@ -425,7 +431,11 @@ internal fun Modifier.liquidGlassCore(
             else pressSource?.downStiffness?.takeIf { it > 0f }?.let {
                 androidx.compose.animation.core.spring<Float>(dampingRatio = 1f, stiffness = it)
             } ?: GlassMotion.CalmDown
-        } else if (pressDown) { if (growthPx > 0f) GlassMotion.BalloonDown else GlassMotion.PressDown } else GlassMotion.PressUp,
+        } else if (pressDown && interaction?.quickAction == true) {
+            GlassMotion.QuickActionDown
+        } else if (pressDown) {
+            if (sizeMix >= 1f) GlassMotion.CalmDown else if (growthPx > 0f) GlassMotion.BalloonDown else GlassMotion.PressDown
+        } else GlassMotion.PressUp,
         label = "glass_press_scale",
     )
     // Reach toward the finger ([GlassInteraction.pressReach]): signed extra width share, the far
@@ -458,6 +468,7 @@ internal fun Modifier.liquidGlassCore(
         animationSpec = if (interaction?.response == GlassResponse.Calm) {
             if (pullDown) GlassMotion.CalmFollow else GlassMotion.CalmUp
         } else if (pullDown) GlassMotion.PullFollow
+        else if (press.cancelled) GlassMotion.CalmUp
         else if (interaction?.pullShape == GlassPullShape.Free) {
             interaction.pullReleaseDampingX.takeIf { it.isFinite() }?.let {
                 androidx.compose.animation.core.spring(dampingRatio = it.coerceIn(.05f, 2f), stiffness = 264f)
@@ -470,6 +481,7 @@ internal fun Modifier.liquidGlassCore(
         animationSpec = if (interaction?.response == GlassResponse.Calm) {
             if (pullDown) GlassMotion.CalmFollow else GlassMotion.CalmUp
         } else if (pullDown) GlassMotion.PullFollow
+        else if (press.cancelled) GlassMotion.CalmUp
         else if (interaction?.pullShape == GlassPullShape.Free) GlassMotion.FreeRelease else GlassMotion.PullRelease,
         label = "glass_pull_y",
     )
@@ -481,20 +493,25 @@ internal fun Modifier.liquidGlassCore(
         val rawAnchor = kotlin.math.atan2(press.pullY, press.pullX) * (180f / kotlin.math.PI.toFloat())
         freeAnchor = rawAnchor
     }
+    // A cancelled press (a scroll took it) plays no landing squash.
+    if (press.cancelled) freeAnchor = Float.NaN
     val pullDeformation = if (pullEnabled && interaction != null) {
         // The element's extent along the pull, as it is while pressed.
         val px = pullX
         val py = pullY
         val radius = shape.glassRadii(measured, direction, density).minOrNull() ?: 0f
         val deformation = glassMaterialPull(measured.width, measured.height, radius,
-            density.density, pressScaleX, pressScaleY, px, py, pullCentreLimit, interaction).let {
-            if (interaction.pullShape != GlassPullShape.Free) it else {
+            density.density, pressScaleX, pressScaleY, px, py, pullCentreLimit, interaction).let { raw ->
+            if (interaction.pullShape != GlassPullShape.Free) raw else {
                 // The resting half extent along the anchor (a round button: its radius).
                 val a = freeAnchor * (kotlin.math.PI.toFloat() / 180f)
-                glassFreeLanding(it, freeAnchor, kotlin.math.hypot(measured.width / 2f * kotlin.math.cos(a),
+                glassFreeLanding(raw, freeAnchor, kotlin.math.hypot(measured.width / 2f * kotlin.math.cos(a),
                     measured.height / 2f * kotlin.math.sin(a))).let { landed -> if (interaction.uprightPull) glassUprightPull(landed) else landed }
+                    .let { free -> glassFreeSizeBlend(free, interaction, measured.width, measured.height, density.density,
+                        pressScaleX, pressScaleY, radius, px, py) }
             }
         }.let {
+
             // Scaling the extra reach about the centre, then moving it toward the finger by half
             // of it, leaves the far edge where the ordinary press puts it.
             if (reach == 0f) it else it.copy(translationX = it.translationX + reach * measured.width / 2f)
@@ -683,6 +700,8 @@ internal fun Modifier.liquidGlassCore(
                         touchX = press.x,
                         touchY = press.y,
                         touchAmount = press.amount * (interaction?.illumination ?: 0f),
+                        pressGrade = GlassPressGrade * press.still * (interaction?.illumination ?: 0f),
+                        pressWhite = if (interaction?.quickAction == true) GlassQuickActionWhite * press.amount else 0f,
                         materialize = materialize.coerceIn(0f, 1f),
                         frost = state.frost,
                         contrast = state.contrast,
@@ -1472,6 +1491,10 @@ internal data class GlassUniforms(
     val touchX: Float,
     val touchY: Float,
     val touchAmount: Float,
+    /** [GlassPressGrade] times the still share and the illumination: the directional grade of a still press (#114). */
+    val pressGrade: Float = 0f,
+    /** The share the body is mixed toward white by: [GlassQuickActionWhite] times the glow of a quick-action press, else exactly 0. */
+    val pressWhite: Float = 0f,
     val materialize: Float,
     val frost: Float,
     val contrast: Float,
@@ -1514,7 +1537,7 @@ internal data class GlassUniforms(
             fieldRange == other.fieldRange && fieldScale == other.fieldScale &&
             field === other.field &&
             touchX == other.touchX &&
-            touchY == other.touchY && touchAmount == other.touchAmount &&
+            touchY == other.touchY && touchAmount == other.touchAmount && pressGrade == other.pressGrade && pressWhite == other.pressWhite &&
             materialize == other.materialize && frost == other.frost &&
             contrast == other.contrast && debugCoverage == other.debugCoverage &&
             fresnel == other.fresnel && highlightChroma == other.highlightChroma &&

@@ -119,6 +119,37 @@ dispersion in the refraction or from a colour fringe the glass adds. Nothing mea
 Self-test, no recording needed: `python tools/test_measure_rim_fringe.py` (capsule geometry, also for a lens near the image edge; the core edge count; a split confined to the rim is
 invisible in the core figure and visible in the plain under-lens figure).
 
+## Addendum, 18 November 2026: three-row split, IMG_7048 geometry, continuity scorer, device replay
+
+Tooling only; no library, shader or port change. Every number below is measured on a private recording, run from the
+repository root against local renders of main `0114b379` (script `script3.txt`); nothing from the recordings is committed.
+
+- **Item 88, `--content-split --rim-exclude 24`** (`--content-core` is kept as an alias). Under-lens page edges are now
+  split by their distance to the lens outline (24 px is authored: about the 0.6 R refraction band of a 62 dp lens at 3x).
+  Ours reads the outline from the replay's `trace.csv` (bar centre, extents, protrusion), iOS from `track.csv`
+  (centre +- 165 px, fitted). IMG_6756 vs `m1115`, 781 lens-up frames: away from the lens iOS 0.00 px, ours 0.00 px (the
+  control passes); inside the rim band iOS 0.57, ours 2.95; away from the rim iOS 0.62, ours 3.02. The two "under"
+  rows differ for ours (edge counts 282 vs 24 per frame, frames with a value 780 vs 429), so the tool separates them, but the
+  interior row stays near 3 px because part of it is the top bezel (y 460-463, 2.4-5.3 px) and the few text edges
+  are themselves split; read it as "a split persists away from the rim", as the 16 November core figure did.
+- **Item 87, second recording.** `measure_light_hold.py --geometry IMG_7049|IMG_7048|pixel7` defines the four bands
+  relative to the bar's rest top (452, 322 and 2120 rows) so a cropped recording or a phone capture scores the same bands;
+  `--sdr-video` reads an SDR capture, `--auto-bar-top` and `--bar-top` override the table. IMG_7048 (1168x570 crop,
+  HDR10) holds all four bands (rows 318-564 of 570). The gate did not move: IMG_7049 `m101` still prints hold top +6.5,
+  shadow -6.2, drag top +5.0, shadow -6.3, all bands 7.80 levels rms over 259 frames. The IMG_7048 hold script
+  (`ref/light/IMG_7048-hold.txt`, 41.20-45.05 s) is cut but **not rendered**, so IMG_7048 has no score yet.
+- **Item 87, device.** `tools/pixel/replay_script.sh <script>` replays a script's finger path with
+  `adb shell input motionevent` in one shell session (scale 0.875 scene to Pixel 7, authored from the measured bar top);
+  `--print-events` is the dry run. Dry runs only: `hold128.txt` 96 events over 5000 ms and the IMG_7048 script 33 events over
+  3847 ms, zero timing drift. **No phone was involved**, so the +-25 ms / +-6 px device check is not run.
+- **New: `tools/measure_formation_continuity.py`** (#103). For each frame pair where `trace.csv` `formation` crosses 0.5 it
+  compares the change in fringe energy (dE) and in luma inside the selector box (dI, motion-compensated) against the
+  neighbouring pairs; the finding on main and the result of the fix are in
+  `review/atlas/formation-continuity-2026-11-18/README.md`.
+
+Self-test: `python tools/test_measure_rim_fringe.py` (nine synthetic checks, including the rim/interior separation, the
+trace outline and fallback, a lens near the image edge and the fast-path equivalences).
+
 ## Reproduce
 
 ```

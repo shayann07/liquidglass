@@ -3,8 +3,15 @@
 Press and pull feedback lives in the shared glass modifier: `Modifier.glassEffect` with an
 `interactive()` `Glass`. Your application supplies layout, content and click actions; no
 per-component shader or gesture copy is needed.
-For new integrations use `GlassInteraction.Calm`, which `interactive()` uses by default. `Pullable`
-preserves the older, more expressive response for comparisons.
+`interactive()` uses `GlassInteraction.Fluid` by default (#196): the Phone search button's press and pull, measured on
+iOS 26 (IMG_6756, seven presses; keypad K01 for the press alone). The body balloons 8 dp a side, follows the finger
+and stretches toward it, holds its far edge on landing and rings on release, and its glow settles to 0.65 once
+dragged. It falls with size (authored: no recording shows other glass pulled): controls up to 80 dp answer in full,
+80 to 160 dp blend smoothly toward the anchored surface response, and surfaces of 160 dp and more press 2 dp a side,
+do not leave their place and stretch at most 2 dp, as `Calm` does. A scroll that takes the gesture returns the press
+and the pull critically damped, with no ring. Interactive glass follows the system's Reduce Motion
+(`ReducedMotion`). Pass `GlassInteraction.Calm` for the restrained response `interactive()` used before 1.1.0.
+`Pullable` preserves the older, more expressive response for comparisons.
 It is opt-in: `Default` retains its Legacy press behavior, and `ReducedMotion` disables elasticity.
 
 ## One theme, many controls

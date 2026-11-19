@@ -131,7 +131,7 @@ function uniforms(m, width, height, density) {
     var r = Math.min((m.radius === undefined ? 20 : m.radius) * density, limit);
     var grey = m.dark ? 0 : 241 / 255;
     var opacity = Math.round(interpolate(m.dark ? DARK_OPACITY : LIGHT_OPACITY, tintAmount) * 255) / 255;
-    var light = m.light || [-0.35, -0.94];
+    var light = m.light || [0, -1];
     v.uRadii = [r, r, r, r];
     v.uRefractBand = [.6 * r];
     v.uRefractDepth = [14 * density];

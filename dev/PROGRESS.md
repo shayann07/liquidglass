@@ -1,3 +1,10 @@
+## 19 November 2026 - #196 interactive glass presses like the search button (Claude, p3/114)
+
+- `GlassInteraction.Fluid` (additive) is the default of `Glass.interactive()`; `glassSizeMix` and `glassFreeSizeBlend` make it fall with size
+  (authored); a scroll that takes the gesture cancels the press without a ring (own pointer and the overlay's source, read in the Final pass);
+  interactive `glassEffect` follows Reduce Motion. Search button: render `c196` equals baseline `m114` to the printed digit
+  (`searchscore.py IMG_6756`). Ports: Skia/web/npm free button takes width/height/radius and has `cancel()`, .NET `FreeButton` likewise,
+  `fixtures/free-button-sizes.json` (circle, pill, card, each with a cancel) matches Kotlin to 0.006 px / 2e-3. Not device-checked.
 ## 18 November 2026 - #102 item 91 toolbar grouping (Claude, Sonnet)
 
 - `p3/91`: new `GlassToolbarGroup` (one `Glass.Toolbar` capsule behind a row of actions); Material 3 `BottomAppBar` and the top bars'
@@ -6,6 +13,11 @@
 ## 18 November 2026 - #112 search mode (Claude, Sonnet builder, branch `p3/112`, not pushed)
 
 - `GlassSearch.kt`: `GlassSearchState`, `rememberGlassSearchState`, `GlassTabBar(..., searchState, searchField)` overload, `glassSearchRects` geometry. End state measured on frame 40.5 s of the iOS 27 sample reference (field 47.7 dp, close 47.1 dp, gap 9.2 dp; no collapsed circle in the end state); transition authored. Tests: `GlassTabBarSearchModeTest`. Open: sample wiring, IME inset, Android back, Material 3 wrapper, ports, a 60 fps scoring.
+## 18 November 2026 - phase 2 on `p2/selector`: scoring tools (#101) (Claude)
+
+- Tools only: `--rim-exclude` three-row page-edge split, `measure_light_hold.py --geometry`, `tools/pixel/replay_script.sh`,
+  `tools/measure_formation_continuity.py`, nine-test `tools/test_measure_rim_fringe.py`. Gate: IMG_7049 `m101` still +6.5 / -6.2, rms 7.80.
+  Not run: IMG_7048 render and score, the phone replay. Record: `review/atlas/scoring-tools-2026-11-07/README.md` addendum.
 
 ## 18 November 2026 - controls bundle #205 #204 #207 (Claude, Sonnet writer)
 

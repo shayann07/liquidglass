@@ -6,6 +6,51 @@ internal static class FreeButtonChecks
 {
     private static void Check(bool condition, string message) { if (!condition) throw new Exception(message); }
 
+    /// <summary>The size blend and the scroll cancel (ports/skia/fixtures/free-button-sizes.json).</summary>
+    public static object RunSizes()
+    {
+        using var fixture = JsonDocument.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "fixtures", "free-button-sizes.json")));
+        var b = fixture.RootElement.GetProperty("button");
+        double G(string key) => b.GetProperty(key).GetDouble();
+        var names = fixture.RootElement.GetProperty("frameFields").EnumerateArray().Select(v => v.GetString()!).ToList();
+        int F(string name) => names.IndexOf(name);
+        double worstPx = 0, worstScalar = 0; var frames = 0;
+        foreach (var scenario in fixture.RootElement.GetProperty("scenarios").EnumerateArray())
+        {
+            var c = scenario.GetProperty("control");
+            double w = c.GetProperty("width").GetDouble(), h = c.GetProperty("height").GetDouble();
+            var button = new FreeButton(Math.Max(w, h), G("density"), G("pressScale"), G("pressGrowth"), G("pressLift"),
+                G("pullFollow"), G("pullElongation"), G("pullWidthRatio"), G("pullLimit"), G("pullLiftShare"),
+                G("pullReleaseDampingX"), w, h, c.GetProperty("radius").GetDouble());
+            var calls = scenario.GetProperty("calls").EnumerateArray().ToList();
+            var next = 0;
+            foreach (var row in scenario.GetProperty("frames").EnumerateArray())
+            {
+                var f = row.EnumerateArray().Select(v => v.GetDouble()).ToArray();
+                var t = f[F("t")];
+                while (next < calls.Count && calls[next][0].GetDouble() <= t + 1e-9)
+                {
+                    var call = calls[next++]; var ct = call[0].GetDouble();
+                    switch (call[1].GetString())
+                    {
+                        case "down": button.Down(ct); break;
+                        case "up": button.Up(ct); break;
+                        case "cancel": button.Cancel(ct); break;
+                        default: button.Move(ct, call[2].GetDouble(), call[3].GetDouble()); break;
+                    }
+                }
+                var o = button.Sample(t);
+                worstPx = Math.Max(worstPx, Math.Max(Math.Abs(o.OffsetX - f[F("tx")]), Math.Max(Math.Abs(o.OffsetY - f[F("ty")]), Math.Abs(o.PullX - f[F("pullX")]))));
+                worstScalar = Math.Max(worstScalar, new[] { o.Glow - f[F("glow")], o.PressScale - f[F("pressScale")],
+                    o.PressScaleY - f[F("pressScaleY")], o.Along - f[F("along")], o.Across - f[F("across")] }.Max(Math.Abs));
+                frames++;
+            }
+        }
+        Check(worstPx < .1, $"Free button sizes offset or pull differs by {worstPx} px");
+        Check(worstScalar < 3e-3, $"Free button sizes scalar differs by {worstScalar}");
+        return new { check = "free button (size blend, scroll cancel) trajectories against Kotlin", frames, worstPx, worstScalar, passed = true };
+    }
+
     public static object Run()
     {
         using var fixture = JsonDocument.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "fixtures", "free-button.json")));

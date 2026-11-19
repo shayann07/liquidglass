@@ -10,6 +10,7 @@ var results = new List<object>();
 results.Add(MotionChecks.Run());
 results.Add(SelectorChecks.Run());
 results.Add(FreeButtonChecks.Run());
+results.Add(FreeButtonChecks.RunSizes());
 results.Add(FuseChecks.Run());
 results.Add(OwnerChecks.Run());
 results.Add(LensChecks.Run());
