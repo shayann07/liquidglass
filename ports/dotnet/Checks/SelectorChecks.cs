@@ -126,6 +126,36 @@ internal static class SelectorChecks
         }
         Check(samples >= 96, "Selector material samples missing");
 
+        // #103: a released hold keeps its lens identity and drains on separate rim and fill curves
+        // (GlassPhoneLandingSequenceTest.aStillReleaseLosesItsGlassAsQuicklyAsIos27; same bounds).
+        var holdCtl = new CalmSelectorController(); holdCtl.Attach(bar); holdCtl.SnapToRest(0);
+        holdCtl.PointerDown(bar.CentreOf(0), bar.Height / 2, 0, true);
+        for (var t = 1.0 / 60; t <= .6 + 1e-9; t += 1.0 / 60) holdCtl.AdvanceFrameTo(t);
+        Check(holdCtl.IsHeld && holdCtl.Formation > .99 && holdCtl.HoldFormed && !holdCtl.HoldReleasing, "Hold did not form");
+        holdCtl.PointerUp(0);
+        holdCtl.AdvanceFrameTo(.625);
+        Check(holdCtl.Formation is > .72 and < .84, $"Held release formation at 25 ms: {holdCtl.Formation}");
+        Check(holdCtl.HoldRim is > .46 and < .60, $"Held release rim at 25 ms: {holdCtl.HoldRim}");
+        Check(holdCtl.HoldFormed && holdCtl.HoldReleasing && holdCtl.HoldLook > holdCtl.Formation, "Held release lost the lens identity");
+        holdCtl.AdvanceFrameTo(.665);
+        Check(holdCtl.Formation is > .26 and < .38 && holdCtl.HoldRim < .12, $"Held release at 65 ms: {holdCtl.Formation} {holdCtl.HoldRim}");
+        holdCtl.AdvanceFrameTo(.71);
+        Check(holdCtl.Formation < .12 && holdCtl.HoldRim < .02, $"Held release at 110 ms: {holdCtl.Formation} {holdCtl.HoldRim}");
+        holdCtl.AdvanceFrameTo(.77);
+        Check(holdCtl.Formation < .02 && !holdCtl.IsIdle, "Held release at 170 ms");
+        for (var t = .77 + 1.0 / 60; t < 1.2; t += 1.0 / 60) holdCtl.AdvanceFrameTo(t);
+        Check(!holdCtl.HoldFormed && !holdCtl.HoldReleasing && holdCtl.HoldLook == 0 && holdCtl.HoldRim == 0 && holdCtl.IsIdle, "Held release did not settle");
+        var restMat = CalmSelectorMaterial.Selector(true, .4, 0, 0);
+        var lensMat = CalmSelectorMaterial.Selector(true, 1, 0, 0);
+        var fullMat = CalmSelectorMaterial.Selector(true, 1, 0, 0, false, new CalmHold(true, false, 1, 1));
+        var heldMat = CalmSelectorMaterial.Selector(true, .4, 0, 0, false, new CalmHold(true, true, .7, .5));
+        Check(Math.Abs(lensMat.Values["uHeldEdgeTone"][0] - 92f / 255) < 1e-6 && heldMat.Values["uHeldEdgeTone"][0] == lensMat.Values["uHeldEdgeTone"][0]
+            && heldMat.Values["uHeldEdgeTone"][0] > restMat.Values["uHeldEdgeTone"][0], "Held-release outline tone");
+        Check(Math.Abs(heldMat.Values["uAberration"][0] - fullMat.Values["uAberration"][0] * .5f) < 1e-6
+            && Math.Abs(heldMat.Values["uInkSplit"][0] - fullMat.Values["uInkSplit"][0] * .5f) < 1e-6, "Held-release rim scale");
+        var holdingMat = CalmSelectorMaterial.Selector(true, .4, 0, 0, false, new CalmHold(true, false, .4, .4));
+        Check(holdingMat.Values["uAberration"][0] == fullMat.Values["uAberration"][0] && holdingMat.Values["uHeldEdgeTone"][0] == restMat.Values["uHeldEdgeTone"][0], "Held, not releasing: no rim scale");
+
         // Drawing: over a dark page the resting selector shows the bar's own glass through itself
         // (the lens looks through the bar, as in Compose) and nothing beyond its node changes.
         const int w = 360, h = 140;

@@ -11,6 +11,11 @@ namespace LiquidGlass.Skia;
 /// backdrop's blur in dp (GlassStyle.rawBlur).</summary>
 public sealed record CalmMaterial(IReadOnlyDictionary<string, float[]> Values, float Formation, float RawShare, float RawBlur = 0);
 
+/// <summary>The held-lens terms of the selector material (Compose's holdFormed, holdReleasing, holdLook and holdRim, #103),
+/// from <see cref="CalmSelectorController.Hold"/>: a lens formed by a hold keeps its identity through release, its fill
+/// drains on <c>Look</c> and its rim dispersion on <c>Rim</c>.</summary>
+public sealed record CalmHold(bool Formed, bool Releasing, double Look, double Rim);
+
 public static class CalmSelectorMaterial
 {
     private sealed record Style(Dictionary<string, float[]> Pill, Dictionary<string, float[]> Lens, Dictionary<string, float[]> Bar,
@@ -87,15 +92,18 @@ public static class CalmSelectorMaterial
     /// <summary>As <see cref="Selector(bool, double, double, double)"/>; <paramref name="formedTap"/> is
     /// <see cref="CalmSelectorController.TapFormed"/>: a tap that formed the selector past half keeps the formed lens's
     /// family in its fold as it settles (#70).</summary>
-    public static CalmMaterial Selector(bool dark, double formation, double transit, double heldTravel, bool formedTap)
+    public static CalmMaterial Selector(bool dark, double formation, double transit, double heldTravel, bool formedTap, CalmHold? hold = null)
     {
         if (!double.IsFinite(formation) || !double.IsFinite(transit) || !double.IsFinite(heldTravel))
             throw new ArgumentOutOfRangeException(nameof(formation));
+        var h0 = hold ?? new CalmHold(false, false, formation, formation);
+        if (!double.IsFinite(h0.Look) || !double.IsFinite(h0.Rim)) throw new ArgumentOutOfRangeException(nameof(hold));
         var (_, fold, darkStyle, lightStyle) = Data.Value;
         var style = dark ? darkStyle : lightStyle;
         float f = (float)formation, a = (float)transit, h = (float)heldTravel;
         // Pigment: the lens/pill blend, its tint faded by the transit (glassTransitStyle).
-        var pigment = LerpStyle(style, f);
+        // holdLook lets a released hold's fill drain slower than its formation (#103).
+        var pigment = LerpStyle(style, Math.Max(f, (float)h0.Look));
         var amount = Math.Clamp(a * style.TapTintFade, 0, .95f);
         if (amount > 0)
         {
@@ -116,7 +124,7 @@ public static class CalmSelectorMaterial
                 var t = Math.Clamp(a * style.TapOptics, 0, 1);
                 folded = (t > f || (h == 0 && t > 0)) ? t * Math.Clamp(style.TapTransitFold, 0, 1) : 0;
             }
-            if (folded > 0 || (style.TapOpticsFold > 0 && (f >= .5f || h > 0)))
+            if (folded > 0 || (style.TapOpticsFold > 0 && (f >= .5f || h > 0 || h0.Formed)))
             {
                 // A held lens as it travels keeps its own, wider mirror band (#121); a fold keeps the tap's.
                 values["uFoldCorners"] = [fold["foldCorners"]];
@@ -125,7 +133,16 @@ public static class CalmSelectorMaterial
                 // The rim split (Compose glassSelectorMaterial, #73): the moving value in transit; a held
                 // lens's split rises from the still value with its travel, its ink taking a share of it.
                 var split = fold["dispersion"] + (fold["heldMovingDispersion"] - fold["dispersion"]) * Math.Clamp(h, 0, 1);
-                values["uAberration"] = [split]; values["uInkSplit"] = [split * fold["inkSplitShare"]];
+                // #103: a lens formed by a hold keeps its identity (profile, restMap) and, once releasing, its outline tone
+                // through release instead of snapping at 0.5, while its dispersion decays on iOS's faster rim rate (holdRim, 64/s).
+                var rimScale = h0.Releasing ? Math.Max(Math.Clamp((float)h0.Rim, 0, 1), Math.Clamp(h, 0, 1)) : 1f;
+                if (folded <= 0 && h0.Formed)
+                {
+                    values["uProfile"] = (float[])style.Lens["uProfile"].Clone();
+                    values["uRestMap"] = (float[])style.Lens["uRestMap"].Clone();
+                    if (h0.Releasing) values["uHeldEdgeTone"] = (float[])style.Lens["uHeldEdgeTone"].Clone();
+                }
+                values["uAberration"] = [split * rimScale]; values["uInkSplit"] = [split * rimScale * fold["inkSplitShare"]];
                 if (folded > 0)
                 {
                     values["uAberration"] = [fold["movingDispersion"]]; values["uInkSplit"] = [fold["movingDispersion"] * fold["transitInkSplitShare"]];

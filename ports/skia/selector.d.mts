@@ -28,6 +28,14 @@ export interface CalmSelectorState {
   /** The tap in transit formed the selector past half and has not settled (Compose's tapFormed, #70): pass it to the
    * selector material as `formedTap`. */
   tapFormed: boolean;
+  /** Compose's holdFormed (#103): a hold formed the selector past half and has not let go. Pass to the selector material as `formedHold`. */
+  holdFormed: boolean;
+  /** Compose's holdReleasing (#103): a formed hold is releasing back to rest. Pass as `holdReleasing`. */
+  holdReleasing: boolean;
+  /** Compose's holdLook (#103): the formation a held lens's fill follows, draining slower after release. Pass as `holdLook`. */
+  holdLook: number;
+  /** Compose's holdRim (#103): the released hold's rim-dispersion scale (64/s fall). Pass as `holdRim`. */
+  holdRim: number;
   /** How much of a press transform the host applies to the bar its items should share, 0 to 1: 0 on a
    * tap, rising to 1 as a hold forms the lens (Compose's GlassTabBarStyle.itemsFollowBarPress = false). */
   itemFollow: number;
@@ -44,6 +52,7 @@ export class CalmSelectorController {
   motionEnabled: boolean;
   readonly mode: 'rest' | 'tap' | 'pending' | 'held' | 'released';
   readonly formation: number; readonly transitAppearance: number; readonly heldTravel: number; readonly tapFormed: boolean;
+  readonly holdFormed: boolean; readonly holdReleasing: boolean; readonly holdLook: number; readonly holdRim: number; readonly holdLean: number;
   readonly isHeld: boolean; readonly isIdle: boolean; readonly centreX: number; readonly centreY: number;
   attach(bar: CalmSelectorBar, itemBounds?: ArrayLike<number> | null, itemCentres?: ArrayLike<number> | null, inkHalfHeight?: number): void;
   snapToRest(index: number): void;

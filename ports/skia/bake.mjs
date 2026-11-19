@@ -6,13 +6,13 @@ const EVENTS = new Set(['down', 'move', 'up', 'cancel', 'select']);
 // The stored state: numeric columns that interpolate, and decisions that snap to the earlier step.
 const LERP = [
   'selector.centreX', 'selector.centreY', 'selector.formation', 'selector.transitAppearance', 'selector.touch',
-  'selector.heldTravel', 'selector.protrusion', 'selector.itemFollow',
+  'selector.heldTravel', 'selector.protrusion', 'selector.itemFollow', 'selector.holdLook', 'selector.holdRim',
   'extents.left', 'extents.right', 'extents.top', 'extents.bottom', 'extents.width', 'extents.height',
   ...['a', 'c', 'd', 'e'].flatMap(k => [0, 1, 2, 3].map(i => `pose.${k}.${i}`)),
   'feedback.matrix.0', 'feedback.matrix.1', 'feedback.matrix.2', 'feedback.matrix.3',
   'feedback.offset.0', 'feedback.offset.1', 'feedback.press',
 ];
-const SNAP = ['selector.tapFormed', 'selector.held', 'feedback.held', 'feedback.active', 'active', 'selected'];
+const SNAP = ['selector.tapFormed', 'selector.holdFormed', 'selector.holdReleasing', 'selector.held', 'feedback.held', 'feedback.active', 'active', 'selected'];
 const FIELDS = [...LERP, ...SNAP];
 const INDEX = new Map(FIELDS.map((name, i) => [name, i]));
 const A = [0, 1, 2, 3].map(i => INDEX.get(`pose.a.${i}`));
@@ -28,6 +28,8 @@ function encode(state) {
     'selector.centreX': s.centreX, 'selector.centreY': s.centreY, 'selector.formation': s.formation,
     'selector.transitAppearance': s.transitAppearance, 'selector.touch': s.touch ?? 0, 'selector.heldTravel': s.heldTravel,
     'selector.protrusion': s.protrusion, 'selector.itemFollow': s.itemFollow,
+    'selector.holdLook': s.holdLook, 'selector.holdRim': s.holdRim,
+    'selector.holdFormed': s.holdFormed ? 1 : 0, 'selector.holdReleasing': s.holdReleasing ? 1 : 0,
     'extents.left': e.left, 'extents.right': e.right, 'extents.top': e.top, 'extents.bottom': e.bottom,
     'extents.width': e.width, 'extents.height': e.height,
     'feedback.press': f.press, 'selector.tapFormed': s.tapFormed ? 1 : 0, 'selector.held': s.held ? 1 : 0,
@@ -51,6 +53,8 @@ function decode(row) {
       formation: v('selector.formation'), transitAppearance: v('selector.transitAppearance'), tapFormed: !!v('selector.tapFormed'),
       touch: v('selector.touch'), heldTravel: v('selector.heldTravel'), held: !!v('selector.held'), protrusion: v('selector.protrusion'),
       itemFollow: v('selector.itemFollow'),
+      holdFormed: !!v('selector.holdFormed'), holdReleasing: !!v('selector.holdReleasing'),
+      holdLook: v('selector.holdLook'), holdRim: v('selector.holdRim'),
       pose: {a: quad('a'), aInv: quad('aInv'), c: quad('c'), d: quad('d'), e: quad('e')},
     },
     feedback: {matrix: [0, 1, 2, 3].map(i => v(`feedback.matrix.${i}`)), offset: [v('feedback.offset.0'), v('feedback.offset.1')],
@@ -83,14 +87,14 @@ function makeTrack({step, duration, columns}) {
     step, duration, length,
     sample: at,
     /** Plain data (numbers and arrays): hand it to a worker, or store it, and rebuild with `navigationTrack`. */
-    toJSON: () => ({version: 1, step, duration, columns: columns.map(column => Array.from(column))}),
+    toJSON: () => ({version: 2, step, duration, columns: columns.map(column => Array.from(column))}),
   };
 }
 
 /** Rebuild a track from `track.toJSON()`. */
 export function navigationTrack(json) {
   const {version, step, duration, columns} = json ?? {};
-  if (version !== 1 || !(step > 0) || !Number.isFinite(duration) || !Array.isArray(columns) || columns.length !== STORED.length ||
+  if (version !== 2 || !(step > 0) || !Number.isFinite(duration) || !Array.isArray(columns) || columns.length !== STORED.length ||
       !columns.every(c => Array.isArray(c) && c.length === columns[0].length && c.length >= 1 && c.every(Number.isFinite)))
     throw new TypeError('Not a navigation track');
   return makeTrack({step, duration, columns: columns.map(c => Float64Array.from(c))});

@@ -292,7 +292,7 @@ var data = track.ToData();  // plain numbers: serialize it, then NavigationTrack
 ```
 
 The bake steps the motion, never jumps; a selection a gesture commits is applied as an `onSelect` handler would. `Sample` is exact
-at a step and interpolates linearly between steps (the pose's inverse is recomputed; `Held`, `TapFormed`, `Selected` and `Active`
+at a step and interpolates linearly between steps (the pose's inverse is recomputed; `Held`, `TapFormed`, `Hold.Formed`, `Hold.Releasing`, `Selected` and `Active`
 keep the earlier step's value), and clamps before 0 and after the last step. A live run at another frame cadence differs
 slightly, as any two live runs do. The painter's draw methods are already stateless, so there is no separate draw call.
 
