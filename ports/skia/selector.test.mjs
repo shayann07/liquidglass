@@ -135,6 +135,49 @@ import CanvasKitInit from 'canvaskit-wasm';
 
 const material = JSON.parse(await readFile(new URL('./fixtures/selector-material.json', import.meta.url), 'utf8'));
 
+// ---- #103: a released hold keeps its lens identity and drains on separate rim and fill curves
+// (GlassPhoneLandingSequenceTest.aStillReleaseLosesItsGlassAsQuicklyAsIos27; same bounds).
+test('held-lens release: formation, rim and fill fall on their own curves (#103)', () => {
+  const b = bar(), c = new CalmSelectorController();
+  c.attach(b); c.snapToRest(0);
+  c.pointerDown(centreOf(b, 0), b.height / 2, 0, true);
+  for (let t = 1 / 60; t <= .6 + 1e-9; t += 1 / 60) c.advanceFrameTo(t);
+  assert.ok(c.isHeld && c.formation > .99 && c.holdFormed && !c.holdReleasing);
+  c.pointerUp(0);
+  c.advanceFrameTo(.625);
+  assert.ok(c.formation > .72 && c.formation < .84, `formation 25 ms after the lift: ${c.formation}`);
+  assert.ok(c.holdRim > .46 && c.holdRim < .60, `rim weight 25 ms after the lift: ${c.holdRim}`);
+  assert.ok(c.holdFormed && c.holdReleasing && c.holdLook > c.formation, 'the lens keeps its identity, its fill drains slower');
+  c.advanceFrameTo(.665);
+  assert.ok(c.formation > .26 && c.formation < .38, `formation 65 ms after the lift: ${c.formation}`);
+  assert.ok(c.holdRim < .12, `rim still active 65 ms after the lift: ${c.holdRim}`);
+  c.advanceFrameTo(.71);
+  assert.ok(c.formation < .12 && c.holdRim < .02, `110 ms after the lift: ${c.formation} ${c.holdRim}`);
+  c.advanceFrameTo(.77);
+  assert.ok(c.formation < .02, `170 ms after the lift: ${c.formation}`);
+  assert.ok(!c.isIdle, 'still settling its fill: the frame loop must not sleep');
+  for (let t = .77 + 1 / 60; t < 1.2; t += 1 / 60) c.advanceFrameTo(t);
+  assert.ok(!c.holdFormed && !c.holdReleasing && c.holdLook === 0 && c.holdRim === 0 && c.isIdle, 'settles and sleeps');
+});
+
+test('material: a hold-formed lens keeps its outline tone and sheds its rim on holdRim (#103)', () => {
+  const rest = calmSelectorMaterial({dark: true, formation: .4}).values;
+  const held = calmSelectorMaterial({dark: true, formation: .4, formedHold: true, holdReleasing: true, holdLook: .7, holdRim: .5}).values;
+  const lens = calmSelectorMaterial({dark: true, formation: 1}).values;
+  assert.equal(held.uHeldEdgeTone, lens.uHeldEdgeTone, 'dark Calm lens outline tone is the 92/255 of the formed lens');
+  assert.ok(Math.abs(lens.uHeldEdgeTone - 92 / 255) < 1e-6);
+  assert.ok(held.uHeldEdgeTone > rest.uHeldEdgeTone, 'identity kept through release');
+  const full = calmSelectorMaterial({dark: true, formation: 1, formedHold: true}).values;
+  assert.ok(Math.abs(held.uAberration - full.uAberration * .5) < 1e-6, 'dispersion scales by holdRim');
+  assert.ok(Math.abs(held.uInkSplit - full.uInkSplit * .5) < 1e-6, 'ink split scales with it');
+  // Held, not releasing: no rim scaling and the blended outline tone.
+  const holding = calmSelectorMaterial({dark: true, formation: .4, formedHold: true, holdLook: .4}).values;
+  assert.equal(holding.uAberration, full.uAberration);
+  assert.equal(holding.uHeldEdgeTone, rest.uHeldEdgeTone);
+  // The fill follows holdLook once it is larger than the formation.
+  assert.ok(held.uLift !== rest.uLift || held.uTint.join() !== rest.uTint.join(), 'pigment follows holdLook');
+});
+
 test('material: every Kotlin-computed selector material is reproduced', () => {
   let worst = 0;
   for (const s of material.samples) {

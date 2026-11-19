@@ -76,7 +76,7 @@ public sealed record CalmSelectorSpec
         GraspOmega = 120, HeldFormRiseOmega = 26, PressFormation = 0, HoldThresholdSeconds = .11,
         ReleaseTrailingEdge = true, ReleaseRecoveryOmega = 13,
         ReleaseTrailingInOmega = 9, ReleaseTrailingInZeta = .3, ReleaseTrailingCarry = .1, ReleaseWallGive = .35,
-        ReleaseTrailingStiffening = .5, ReleaseStillHoldSeconds = .035, ReleaseStillFadeOmega = 100, ReleaseMovingFadeOmega = 12, TapLongTripRate = 1.2, TapFarTripRate = 1.1, TapClockSlotDp = 262.0 / 3, TapEndWallReach = .03, TapKeepsFormedLens = true,
+        ReleaseTrailingStiffening = .5, ReleaseStillHoldSeconds = 0, ReleaseStillFadeOmega = 36, ReleaseMovingFadeOmega = 12, TapLongTripRate = 1.2, TapFarTripRate = 1.1, TapClockSlotDp = 262.0 / 3, TapEndWallReach = .03, TapKeepsFormedLens = true,
         HeldTravelStrain = .6, HeldTravelStrainOmega = 10,
         HeldSquircle = .7,
     };
@@ -307,7 +307,10 @@ public sealed class CalmSelectorController
     private const double QuietPx = .02, ContactTolerance = .05, MaxContactStep = 12, MaxContactPressureStep = .06,
         ContactRegainMargin = 0, ContactRegainAccommodation = 1, AccommodationResolvePx = 1,
         AccommodationResolvePressure = .01, CoverageEpsilon = .5, ContactRegainFormation = .02, RegrabFormation = .15,
-        WallPullHeights = 20, ReleaseImpactReach = .3, ReleaseStillSlots = .5;
+        WallPullHeights = 20, ReleaseImpactReach = .3, ReleaseStillSlots = .5,
+        // #103: critical fall rates (per second) of a released hold's fill/lean/reach, chromatic rim and still-release
+        // outline pressure (IMG_6756: 21/s, 64/s, 46/s).
+        HoldLookFallOmega = 23, HoldRimFallOmega = 64, StillPressureFallOmega = 46;
     private double releasedAt; private bool releasedStill;
     private bool trailImpact;
 
@@ -316,7 +319,8 @@ public sealed class CalmSelectorController
     private readonly SelectorFrame frame = new(), probeFrame = new(), derivFrame = new();
     private readonly SelectorSpring strainDrive = new();
     private readonly SelectorSpring form = new(), transit = new(), travel = new(), tapArea = new(), releaseEdge = new(),
-        releaseTrail = new(), graspX = new(), graspY = new(), scratch = new();
+        releaseTrail = new(), graspX = new(), graspY = new(), scratch = new(), holdLookSpring = new(), holdRimSpring = new();
+    private bool holdFormedLatch;
     private readonly double[] contour = new double[ContourSamples * 2];
     private SelectorReference reference = new(1, 1);
     private CalmSelectorBar? bar;
@@ -347,13 +351,33 @@ public sealed class CalmSelectorController
     /// <summary>The tap in transit formed the selector past half and has not settled (Compose's tapFormed, #70): pass it
     /// to <see cref="CalmSelectorMaterial.Selector(bool, double, double, double, bool)"/>.</summary>
     public bool TapFormed => tapFormedLatch && (transit.Value > 1e-4 || form.Value > 1e-3);
+    /// <summary>A hold formed the selector past half and has not let go; keeps the lens's identity through release (Compose's holdFormed, #103).</summary>
+    public bool HoldFormed => holdFormedLatch;
+    /// <summary>A formed hold is releasing back to rest (Compose's holdReleasing, #103).</summary>
+    public bool HoldReleasing => holdFormedLatch && Mode == CalmSelectorMode.Released && releasedFromHold;
+    /// <summary>The formation a held lens's fill follows, falling at 23/s after a hold release (Compose's holdLook, #103).</summary>
+    public double HoldLook => Math.Max(Formation, Math.Clamp(holdLookSpring.Value, 0, 1));
+    /// <summary>The rim-dispersion scale of a released hold, falling at iOS's measured 64/s (Compose's holdRim, #103).</summary>
+    public double HoldRim => Math.Clamp(holdRimSpring.Value, 0, 1);
+    /// <summary><see cref="HoldLook"/> for accessory lean and reach: active while held or released, 0 for taps (Compose's holdLean, #107, #103).</summary>
+    public double HoldLean
+    {
+        get
+        {
+            var gate = Mode == CalmSelectorMode.Held || Mode == CalmSelectorMode.Released;
+            return Math.Max(gate ? Formation : 0, Math.Clamp(holdLookSpring.Value, 0, 1));
+        }
+    }
+    /// <summary>The hold terms the selector material takes (#103).</summary>
+    public CalmHold Hold => new(HoldFormed, HoldReleasing, HoldLook, HoldRim);
+    private bool HoldLookSettling => Mode != CalmSelectorMode.Held && (holdLookSpring.Value > 0 || holdRimSpring.Value > 0);
     public double HeldTravel => Math.Clamp(travel.Value, 0, 1);
     public bool IsHeld => Mode == CalmSelectorMode.Held;
     public double CentreX => pose.Cx;
     public double CentreY => pose.Cy;
     public CalmSelectorBar Bar => bar ?? throw new InvalidOperationException("Attach a bar first");
     public bool IsIdle => Mode != CalmSelectorMode.PressPending && !tapAreaActive && TransitAppearance < 1e-4 &&
-        HeldTravel < 1e-4 && quietSteps >= QuietSteps && strainDrive.Value == 0 &&
+        HeldTravel < 1e-4 && quietSteps >= QuietSteps && !HoldLookSettling && strainDrive.Value == 0 &&
         // A formation on its way to its target: a still hold's first steps are below the quiet threshold.
         Math.Abs(form.Target - form.Value) < .001 &&
         // A still release keeping its glass: nothing moves yet, but the formation still has to fall.
@@ -385,6 +409,7 @@ public sealed class CalmSelectorController
     {
         var b = Bar;
         releaseEdgeActive = false; tapAreaActive = false; tapWallEngaged = false; tapFormedLatch = false; tapFormedArmed = false; tapDistance = 0; releaseImpactActive = false;
+        holdFormedLatch = false; holdLookSpring.SnapTo(0); holdRimSpring.SnapTo(0);
         requestedIndex = index; RestIndex = Math.Clamp(index, 0, Math.Max(b.Count - 1, 0));
         pose.Reset(); velocity.Reset();
         pose.Cx = b.CentreOf(RestIndex); pose.Cy = b.Height / 2; pose.Dx = reference.A; pose.Dy = 0;
@@ -646,6 +671,18 @@ public sealed class CalmSelectorController
             (transit.Value <= 1e-4 && form.Value <= 1e-3)) tapFormedLatch = false;
         else if (coupleTapArea && tapFormedArmed && Formation >= .5) tapFormedLatch = true;
         if (Formation < .5) tapFormedArmed = true; // this trip's formation has been below half
+        // #103: keep the formed hold's lens identity through release and let fill/lean decay on iOS's slower curve.
+        var holdMode = Mode == CalmSelectorMode.Held || (Mode == CalmSelectorMode.Released && releasedFromHold);
+        if (!MotionEnabled || !holdMode || (Mode == CalmSelectorMode.Released && form.Value <= 1e-3)) holdFormedLatch = false;
+        else if (Mode == CalmSelectorMode.Held && Formation >= .5) holdFormedLatch = true;
+        if (MotionEnabled && Mode == CalmSelectorMode.Held) { holdLookSpring.SnapTo(Formation); holdRimSpring.SnapTo(Formation); }
+        else
+        {
+            holdLookSpring.Target = 0; holdLookSpring.Step(dt, HoldLookFallOmega, 1);
+            if (holdLookSpring.Value < 1e-3 && Math.Abs(holdLookSpring.Velocity) < 1e-2) holdLookSpring.SnapTo(0);
+            holdRimSpring.Target = 0; holdRimSpring.Step(dt, HoldRimFallOmega, 1);
+            if (holdRimSpring.Value < 1e-3 && Math.Abs(holdRimSpring.Velocity) < 1e-2) holdRimSpring.SnapTo(0);
+        }
 
         var formation = Formation;
         var gain = MotionEnabled ? 2 * s.StretchGain * Math.Max(formation, .35) : 0;
@@ -699,7 +736,8 @@ public sealed class CalmSelectorController
         var squeeze = Mode == CalmSelectorMode.Held ? s.Squeeze * sv : 0;
         var pullPressure = s.PullPressurePerDp * pullStrain / Math.Max(s.PullStrainPerDp, 1e-4);
         var transitPressure = Mode == CalmSelectorMode.TapTransit && s.TapPressureOmega > 0;
-        var pressureFormation = transitPressure ? formTarget : formation;
+        var stillReleasePressure = Mode == CalmSelectorMode.Released && releasedStill && s.ReleaseStillFadeOmega > 0;
+        var pressureFormation = transitPressure || stillReleasePressure ? formTarget : formation;
         var formedSqueeze = s.HeldTravelPressureOmega > 0 ? squeeze * pressureFormation : squeeze;
         equilibrium.P = MotionEnabled ? held * pressureFormation - formedSqueeze + pullPressure : 0;
         var recoilPressure = !coupleTapArea && transitPressure && s.TapRecoilArea && MotionEnabled && Hypot(pose.Dx, pose.Dy) < refr.A;
@@ -752,6 +790,7 @@ public sealed class CalmSelectorController
         if (recoilPressure) pressureRate = Math.Max(s.TapPressureOmega, 4 * s.TapSpineOmega);
         else if (Mode == CalmSelectorMode.Held && s.HeldTravelPressureOmega > 0 && equilibrium.P < pose.P && speed2 > 1e-9) pressureRate = s.HeldTravelPressureOmega;
         else if (transitPressure) pressureRate = s.TapPressureOmega;
+        else if (stillReleasePressure && equilibrium.P < pose.P) pressureRate = StillPressureFallOmega;
         else if (Mode != CalmSelectorMode.Held && equilibrium.P < pose.P) pressureRate = s.PressureFallOmega;
         else pressureRate = s.PressureOmega;
         if (!coupleArea) (pose.P, velocity.P) = StepState(dt, pose.P, velocity.P, equilibrium.P, pressureRate, s.PressureZeta);
@@ -1223,7 +1262,7 @@ public sealed class CalmNavigation
     /// 0 on a tap, rising to 1 as a hold forms the lens (Compose's GlassTabBarStyle.itemsFollowBarPress = false).</summary>
     public double ItemFollow
     {
-        get { var f = Math.Clamp((Controller.Formation - .5) / .5, 0, 1); return f * f * (3 - 2 * f); }
+        get { var f = Math.Clamp((Controller.HoldLook - .5) / .5, 0, 1); return f * f * (3 - 2 * f); }
     }
 
     private double TouchAt(double seconds)

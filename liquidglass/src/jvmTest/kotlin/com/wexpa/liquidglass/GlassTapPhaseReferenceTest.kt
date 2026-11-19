@@ -64,7 +64,8 @@ class GlassTapPhaseReferenceTest {
             controller.retarget(target)
             val extent = GlassPoseExtents()
             val samples = arrayListOf<FloatArray>()
-            for (i in 0..hz) {
+            // 1.1 s: the distance-keyed tap clock (#70) settles a two-slot trip at 1.02 s, past the former 1 s window.
+            for (i in 0..hz * 11 / 10) {
                 controller.advanceFrameTo(i.toFloat() / hz)
                 controller.extents(extent)
                 assertFalse(controller.solverFailed)

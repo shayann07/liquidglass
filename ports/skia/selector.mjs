@@ -54,7 +54,7 @@ export const CALM_SELECTOR_SPEC = Object.freeze({
   graspOmega: 120, heldFormRiseOmega: 26, pressFormation: 0, holdThresholdSeconds: .11,
   releaseTrailingEdge: true, releaseRecoveryOmega: 13,
   releaseTrailingInOmega: 9, releaseTrailingInZeta: .3, releaseTrailingCarry: .1, releaseWallGive: .35,
-  releaseTrailingStiffening: .5, releaseStillHoldSeconds: .035, releaseStillFadeOmega: 100, releaseMovingFadeOmega: 12, tapLongTripRate: 1.2, tapFarTripRate: 1.1, tapClockSlotDp: 262 / 3, tapEndWallReach: .03, tapKeepsFormedLens: true,
+  releaseTrailingStiffening: .5, releaseStillHoldSeconds: 0, releaseStillFadeOmega: 36, releaseMovingFadeOmega: 12, tapLongTripRate: 1.2, tapFarTripRate: 1.1, tapClockSlotDp: 262 / 3, tapEndWallReach: .03, tapKeepsFormedLens: true,
   heldTravelStrain: .6, heldTravelStrainOmega: 10,
   heldSquircle: .7,
 });
@@ -64,6 +64,8 @@ const CONTOUR_SAMPLES = 256, QUIET_PX = .02, QUIET_STEPS = 8, CONTACT_TOLERANCE 
 const MAX_CONTACT_ITERATIONS = 24, MAX_CONTACT_STEP = 12, MAX_CONTACT_PRESSURE_STEP = .06;
 const CONTACT_REGAIN_MARGIN = 0, CONTACT_REGAIN_ACCOMMODATION = 1, ACCOMMODATION_RESOLVE_PX = 1;
 const ACCOMMODATION_RESOLVE_PRESSURE = .01, COVERAGE_EPSILON = .5, CONTACT_REGAIN_FORMATION = .02;
+// #103: critical fall rates (per second) of a released hold's fill/lean/reach, chromatic rim and still-release outline pressure (IMG_6756: 21/s, 64/s, 46/s).
+const HOLD_LOOK_FALL_OMEGA = 23, HOLD_RIM_FALL_OMEGA = 64, STILL_PRESSURE_FALL_OMEGA = 46;
 const REGRAB_FORMATION = .15, GEOMETRY_EPSILON = 1e-3, BEVEL_RATIO = .6, WALL_PULL_HEIGHTS = 20, RELEASE_IMPACT_REACH = .3, RELEASE_STILL_SLOTS = .5;
 
 class Spring {
@@ -288,7 +290,7 @@ export class CalmSelectorController {
     this.pose = newPose(); this.velocity = newPose(); this.equilibrium = newPose();
     this.frame = new Frame(); this.reference = new Reference(1, 1); this.bar = null;
     this.mode = MODE.Rest; this.motionEnabled = true; this.started = false;
-    this.form = new Spring(); this.transit = new Spring(); this.travel = new Spring(); this.tapArea = new Spring();
+    this.form = new Spring(); this.transit = new Spring(); this.travel = new Spring(); this.holdFormedLatch = false; this.holdLookSpring = new Spring(); this.holdRimSpring = new Spring(); this.tapArea = new Spring();
     this.strainDrive = new Spring(); this.heldTravelDirection = 0; this.reversalInterval = 1;
     this.tapAreaActive = false; this.tapDistance = 0; this.releaseImpactActive = false;
     this.tapFreeDx = 0; this.tapFreeDxVelocity = 0; this.tapWallEngaged = false; this.tapFormedLatch = false; this.tapFormedArmed = false;
@@ -316,6 +318,20 @@ export class CalmSelectorController {
   get transitAppearance() { return clamp(this.transit.value, 0, .95); }
   /** Compose's GlassPoseController.tapFormed: the tap in transit formed the selector past half and has not settled (#70). */
   get tapFormed() { return this.tapFormedLatch && (this.transit.value > 1e-4 || this.form.value > 1e-3); }
+  /** GlassPoseController.holdFormed (#103): a hold formed the selector past half and has not let go; keeps the lens's identity through release. */
+  get holdFormed() { return this.holdFormedLatch; }
+  /** GlassPoseController.holdReleasing (#103): a formed hold is releasing back to rest. */
+  get holdReleasing() { return this.holdFormedLatch && this.mode === MODE.Released && this.releasedFromHold; }
+  /** GlassPoseController.holdLook (#103): the formation a held lens's fill follows, falling at HOLD_LOOK_FALL_OMEGA after release. */
+  get holdLook() { return Math.max(this.formation, clamp(this.holdLookSpring.value, 0, 1)); }
+  /** GlassPoseController.holdRim (#103): the rim-dispersion scale of a released hold, falling at HOLD_RIM_FALL_OMEGA. */
+  get holdRim() { return clamp(this.holdRimSpring.value, 0, 1); }
+  /** GlassPoseController.holdLean (#103): holdLook for accessory lean and reach, active while held or released, 0 for taps. */
+  get holdLean() {
+    const gate = this.mode === MODE.Held || this.mode === MODE.Released;
+    return Math.max(gate ? this.formation : 0, clamp(this.holdLookSpring.value, 0, 1));
+  }
+  get holdLookSettling() { return this.mode !== MODE.Held && (this.holdLookSpring.value > 0 || this.holdRimSpring.value > 0); }
   get heldTravel() { return clamp(this.travel.value, 0, 1); }
   get isHeld() { return this.mode === MODE.Held; }
   get centreX() { return this.pose.cx; }
@@ -323,7 +339,7 @@ export class CalmSelectorController {
   get centreVelocityX() { return this.velocity.cx; }
   get isIdle() {
     return this.mode !== MODE.PressPending && !this.tapAreaActive && this.transitAppearance < 1e-4 &&
-      this.heldTravel < 1e-4 && this.quietSteps >= QUIET_STEPS && this.strainDrive.value === 0 &&
+      this.heldTravel < 1e-4 && this.quietSteps >= QUIET_STEPS && !this.holdLookSettling && this.strainDrive.value === 0 &&
       // A formation on its way to its target: a still hold's first steps are below the quiet threshold.
       Math.abs(this.form.target - this.form.value) < .001 &&
       // A still release keeping its glass: nothing moves yet, but the formation still has to fall.
@@ -353,6 +369,7 @@ export class CalmSelectorController {
 
   snapToRest(index) {
     this.releaseEdgeActive = false; this.tapAreaActive = false; this.tapWallEngaged = false; this.tapFormedLatch = false; this.tapFormedArmed = false; this.tapDistance = 0; this.releaseImpactActive = false;
+    this.holdFormedLatch = false; this.holdLookSpring.snapTo(0); this.holdRimSpring.snapTo(0);
     this.requestedIndex = index; this.restIndex = clamp(index, 0, Math.max(this.bar.count - 1, 0));
     resetPose(this.pose); resetPose(this.velocity);
     this.pose.cx = centreOf(this.bar, this.restIndex); this.pose.cy = this.bar.height / 2;
@@ -618,6 +635,17 @@ export class CalmSelectorController {
       (this.transit.value <= 1e-4 && this.form.value <= 1e-3)) this.tapFormedLatch = false;
     else if (coupleTapArea && this.tapFormedArmed && this.formation >= .5) this.tapFormedLatch = true;
     if (this.formation < .5) this.tapFormedArmed = true; // this trip's formation has been below half
+    // #103: keep the formed hold's lens identity through release and let fill/lean decay on iOS's slower curve.
+    const holdMode = this.mode === MODE.Held || (this.mode === MODE.Released && this.releasedFromHold);
+    if (!this.motionEnabled || !holdMode || (this.mode === MODE.Released && this.form.value <= 1e-3)) this.holdFormedLatch = false;
+    else if (this.mode === MODE.Held && this.formation >= .5) this.holdFormedLatch = true;
+    if (this.motionEnabled && this.mode === MODE.Held) { this.holdLookSpring.snapTo(this.formation); this.holdRimSpring.snapTo(this.formation); }
+    else {
+      this.holdLookSpring.target = 0; this.holdLookSpring.step(dt, HOLD_LOOK_FALL_OMEGA, 1);
+      if (this.holdLookSpring.value < 1e-3 && Math.abs(this.holdLookSpring.velocity) < 1e-2) this.holdLookSpring.snapTo(0);
+      this.holdRimSpring.target = 0; this.holdRimSpring.step(dt, HOLD_RIM_FALL_OMEGA, 1);
+      if (this.holdRimSpring.value < 1e-3 && Math.abs(this.holdRimSpring.velocity) < 1e-2) this.holdRimSpring.snapTo(0);
+    }
 
     // ---- equilibria
     const formation = this.formation;
@@ -667,7 +695,8 @@ export class CalmSelectorController {
     const squeeze = this.mode === MODE.Held ? s.squeeze * sv : 0;
     const pullPressure = s.pullPressurePerDp * pullStrain / Math.max(s.pullStrainPerDp, 1e-4);
     const transitPressure = this.mode === MODE.TapTransit && s.tapPressureOmega > 0;
-    const pressureFormation = transitPressure ? formTarget : formation;
+    const stillReleasePressure = this.mode === MODE.Released && this.releasedStill && s.releaseStillFadeOmega > 0;
+    const pressureFormation = transitPressure || stillReleasePressure ? formTarget : formation;
     const formedSqueeze = s.heldTravelPressureOmega > 0 ? squeeze * pressureFormation : squeeze;
     eq.p = this.motionEnabled ? held * pressureFormation - formedSqueeze + pullPressure : 0;
     const recoilPressure = !coupleTapArea && transitPressure && s.tapRecoilArea && this.motionEnabled &&
@@ -711,6 +740,7 @@ export class CalmSelectorController {
     if (recoilPressure) pressureRate = Math.max(s.tapPressureOmega, 4 * s.tapSpineOmega);
     else if (this.mode === MODE.Held && s.heldTravelPressureOmega > 0 && eq.p < pose.p && speed2 > 1e-9) pressureRate = s.heldTravelPressureOmega;
     else if (transitPressure) pressureRate = s.tapPressureOmega;
+    else if (stillReleasePressure && eq.p < pose.p) pressureRate = STILL_PRESSURE_FALL_OMEGA;
     else if (this.mode !== MODE.Held && eq.p < pose.p) pressureRate = s.pressureFallOmega;
     else pressureRate = s.pressureOmega;
     if (!coupleArea) [pose.p, vel.p] = this.stepState(dt, pose.p, vel.p, eq.p, pressureRate, s.pressureZeta);
@@ -1175,10 +1205,11 @@ export function createCalmNavigation({bar, selected = 0, onSelect = () => {}, sp
     state(originX = 0, originY = 0) {
       const e = controller.extents();
       return {centreX: controller.centreX, centreY: controller.centreY, extents: e,
-        formation: controller.formation, transitAppearance: controller.transitAppearance, tapFormed: controller.tapFormed, touch: touchAt(clock),
+        formation: controller.formation, transitAppearance: controller.transitAppearance, tapFormed: controller.tapFormed, holdFormed: controller.holdFormed, holdReleasing: controller.holdReleasing,
+        holdLook: controller.holdLook, holdRim: controller.holdRim, touch: touchAt(clock),
         heldTravel: controller.heldTravel, held: controller.isHeld, protrusion: controller.protrusion(),
         // GlassTabBarStyle.itemsFollowBarPress = false: items share the bar's press only as the lens forms.
-        itemFollow: (() => { const f = clamp((controller.formation - .5) / .5, 0, 1); return f * f * (3 - 2 * f); })(),
+        itemFollow: (() => { const f = clamp((controller.holdLook - .5) / .5, 0, 1); return f * f * (3 - 2 * f); })(),
         pose: controller.render(originX, originY)};
     },
   };

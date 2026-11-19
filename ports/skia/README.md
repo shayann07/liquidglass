@@ -182,9 +182,9 @@ drawNavigation(CanvasKit, painter, canvas, { bounds: bar.bounds, pixelRatio: 2, 
 `bakeNavigation(bar, events, {step = 1/240, duration})` runs the scene's own navigation (the same driver, `createCalmNavigation`
 and the bar's press feedback) one step at a time and stores every step; the selection a gesture commits is applied as the
 host's `onSelect` + `select` would. `track.sample(t)` is exact at a step and, between steps, interpolates linearly (the pose's
-inverse is recomputed from the interpolated matrix; `held`, `tapFormed`, `selected` and `active` keep the earlier step's value);
+inverse is recomputed from the interpolated matrix; `held`, `tapFormed`, `holdFormed`, `holdReleasing`, `selected` and `active` keep the earlier step's value);
 before 0 and after the last step it clamps. `track.toJSON()` is plain data and `navigationTrack(json)` rebuilds it, so a worker
-or another process can share one baked track. `drawNavigation(kit, painter, canvas, {bounds, pixelRatio, source}, sample,
+or another process can share one baked track (tracks saved at version 1, before the hold terms, still load and play as they did). `drawNavigation(kit, painter, canvas, {bounds, pixelRatio, source}, sample,
 {material, ink})` is the scene's own bar, selector and ink drawing with no clock: `scene.draw` calls it, and `{selector:
 layer.selector, feedback: layer.feedback}` of a live layer draws the same way. The scene itself gets no second drawing method.
 

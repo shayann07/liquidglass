@@ -3,7 +3,9 @@ import type {CalmSelectorPose, CalmSelectorState} from './selector.mjs';
 export type {CalmSelectorPose, CalmSelectorState, CalmSelectorBar, CalmNavigation} from './selector.mjs';
 export {CalmSelectorController, calmSelectorBar, centreOf, nearestTab, createCalmNavigation} from './selector.mjs';
 /** The Compose Calm selector material as shader uniforms (lengths in dp) and its band blend. */
-export function calmSelectorMaterial(state?: {dark?: boolean; formation?: number; transit?: number; heldTravel?: number; formedTap?: boolean}):
+export function calmSelectorMaterial(state?: {dark?: boolean; formation?: number; transit?: number; heldTravel?: number; formedTap?: boolean;
+    /** Compose's holdFormed / holdReleasing / holdLook / holdRim (#103), from CalmSelectorState. */
+    formedHold?: boolean; holdReleasing?: boolean; holdLook?: number; holdRim?: number}):
   {values: Readonly<Record<string, number | readonly number[]>>; uFormation: number};
 /** The Compose Calm bar material (lengths in dp), its held lift following `formation` (or `touch`, for any touch). */
 export function calmBarMaterial(state?: {dark?: boolean; formation?: number; touch?: number; clear?: boolean}): Readonly<Record<string, number | readonly number[]>>;
@@ -111,11 +113,15 @@ export interface GlassPainter {
     fuse?: readonly number[] | null}): void;
   /** A navigation selector's pose body over the bar rect (device px), in the Compose Calm selector material. */
   drawSelector(canvas: Canvas, bar: GlassRect,
-    selector: {pose: CalmSelectorPose; formation?: number; transit?: number; heldTravel?: number; formedTap?: boolean}, options?: CalmSelectorDrawOptions): void;
+    selector: {pose: CalmSelectorPose; formation?: number; transit?: number; heldTravel?: number; formedTap?: boolean;
+    /** Compose's holdFormed / holdReleasing / holdLook / holdRim (#103), from CalmSelectorState. */
+    formedHold?: boolean; holdReleasing?: boolean; holdLook?: number; holdRim?: number}, options?: CalmSelectorDrawOptions): void;
   /** The selected ink inside the selector (Compose's content pass): `ink` is the bar's items in their
    * selected appearance, transparent ground, device px, origin at the bar's top-left. */
   drawSelectorInk(canvas: Canvas, bar: GlassRect,
-    selector: {pose: CalmSelectorPose; formation?: number; transit?: number; heldTravel?: number; formedTap?: boolean}, ink: Image,
+    selector: {pose: CalmSelectorPose; formation?: number; transit?: number; heldTravel?: number; formedTap?: boolean;
+    /** Compose's holdFormed / holdReleasing / holdLook / holdRim (#103), from CalmSelectorState. */
+    formedHold?: boolean; holdReleasing?: boolean; holdLook?: number; holdRim?: number}, ink: Image,
     options?: Omit<CalmSelectorDrawOptions, 'through'>): void;
   dispose(): void;
 }

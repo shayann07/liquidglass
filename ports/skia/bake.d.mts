@@ -20,7 +20,7 @@ export interface NavigationSample {
   active: boolean;
 }
 export interface NavigationTrackData {
-  version: 1; step: number; duration: number; columns: number[][];
+  version: 2; step: number; duration: number; columns: number[][];
 }
 export interface NavigationTrack {
   readonly step: number; readonly duration: number;
